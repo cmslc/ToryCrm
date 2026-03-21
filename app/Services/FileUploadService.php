@@ -49,8 +49,14 @@ class FileUploadService
 
             $destination = $uploadDir . '/' . $uniqueName;
 
-            if (!move_uploaded_file($file['tmp_name'], $destination)) {
-                return null;
+            if (is_uploaded_file($file['tmp_name'])) {
+                if (!move_uploaded_file($file['tmp_name'], $destination)) {
+                    return null;
+                }
+            } else {
+                if (!copy($file['tmp_name'], $destination)) {
+                    return null;
+                }
             }
 
             $relativePath = 'uploads/' . $directory . '/' . $uniqueName;
@@ -60,11 +66,10 @@ class FileUploadService
                 'original_name' => $originalName,
                 'file_path'     => $relativePath,
                 'file_size'     => $file['size'],
-                'file_type'     => $file['type'],
-                'extension'     => $extension,
+                'mime_type'     => $file['type'] ?? null,
                 'entity_type'   => $entityType,
                 'entity_id'     => $entityId,
-                'created_at'    => date('Y-m-d H:i:s'),
+                'uploaded_by'   => $_SESSION['user']['id'] ?? null,
             ]);
 
             return [
@@ -118,7 +123,7 @@ class FileUploadService
                 unlink($fullPath);
             }
 
-            Database::delete('file_uploads', ['id' => $id]);
+            Database::delete('file_uploads', 'id = ?', [$id]);
 
             return true;
         } catch (\Exception $e) {
