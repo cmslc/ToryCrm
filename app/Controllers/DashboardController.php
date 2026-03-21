@@ -9,12 +9,13 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Summary stats
-        $totalContacts = Database::fetch("SELECT COUNT(*) as count FROM contacts")['count'];
-        $totalCompanies = Database::fetch("SELECT COUNT(*) as count FROM companies")['count'];
-        $totalDeals = Database::fetch("SELECT COUNT(*) as count FROM deals")['count'];
-        $totalTasks = Database::fetch("SELECT COUNT(*) as count FROM tasks")['count'];
-        $totalRevenue = Database::fetch("SELECT COALESCE(SUM(value), 0) as total FROM deals WHERE status = 'won'")['total'];
+        // Summary stats (with tenant scope + soft delete + null safety)
+        $tid = Database::tenantId();
+        $totalContacts = (Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
+        $totalCompanies = (Database::fetch("SELECT COUNT(*) as c FROM companies WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
+        $totalDeals = (Database::fetch("SELECT COUNT(*) as c FROM deals WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
+        $totalTasks = (Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
+        $totalRevenue = (Database::fetch("SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['total'] ?? 0;
 
         $stats = [
             'total_contacts' => $totalContacts,

@@ -75,7 +75,7 @@ class MailService
     public static function sendTemplate(int $templateId, string $to, array $variables = []): bool
     {
         try {
-            $template = Database::fetch('email_templates', ['id' => $templateId]);
+            $template = Database::fetch("SELECT * FROM email_templates WHERE id = ?", [$templateId]);
 
             if (!$template) {
                 return false;

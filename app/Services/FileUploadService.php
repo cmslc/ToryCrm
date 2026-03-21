@@ -106,7 +106,7 @@ class FileUploadService
     public static function delete(int $id): bool
     {
         try {
-            $file = Database::fetch('file_uploads', ['id' => $id]);
+            $file = Database::fetch("SELECT * FROM file_uploads WHERE id = ?", [$id]);
 
             if (!$file) {
                 return false;

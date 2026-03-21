@@ -121,51 +121,60 @@ class OrderController extends Controller
         $orderModel = new Order();
         $orderNumber = $orderModel->generateOrderNumber($type);
 
-        $orderId = Database::insert('orders', [
-            'order_number' => $orderNumber,
-            'type' => $type,
-            'status' => $data['status'] ?? 'draft',
-            'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
-            'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
-            'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
-            'discount_amount' => (float)($data['discount_amount'] ?? 0),
-            'discount_type' => $data['discount_type'] ?? 'fixed',
-            'currency' => 'VND',
-            'notes' => trim($data['notes'] ?? ''),
-            'payment_method' => trim($data['payment_method'] ?? ''),
-            'due_date' => !empty($data['due_date']) ? $data['due_date'] : null,
-            'issued_date' => !empty($data['issued_date']) ? $data['issued_date'] : date('Y-m-d'),
-            'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
-            'created_by' => $this->userId(),
-        ]);
+        Database::beginTransaction();
+        try {
+            $orderId = Database::insert('orders', [
+                'order_number' => $orderNumber,
+                'type' => $type,
+                'status' => $data['status'] ?? 'draft',
+                'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
+                'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
+                'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
+                'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'discount_type' => $data['discount_type'] ?? 'fixed',
+                'currency' => 'VND',
+                'notes' => trim($data['notes'] ?? ''),
+                'payment_method' => trim($data['payment_method'] ?? ''),
+                'due_date' => !empty($data['due_date']) ? $data['due_date'] : null,
+                'issued_date' => !empty($data['issued_date']) ? $data['issued_date'] : date('Y-m-d'),
+                'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
+                'created_by' => $this->userId(),
+            ]);
 
-        // Add order items
-        if (!empty($data['items']) && is_array($data['items'])) {
-            $sort = 0;
-            foreach ($data['items'] as $item) {
-                if (empty($item['product_name'])) continue;
+            // Add order items
+            if (!empty($data['items']) && is_array($data['items'])) {
+                $sort = 0;
+                foreach ($data['items'] as $item) {
+                    if (empty($item['product_name'])) continue;
 
-                $qty = (float)($item['quantity'] ?? 1);
-                $unitPrice = (float)($item['unit_price'] ?? 0);
-                $taxRate = (float)($item['tax_rate'] ?? 0);
-                $taxAmount = $qty * $unitPrice * $taxRate / 100;
-                $itemTotal = $qty * $unitPrice + $taxAmount;
+                    $qty = (float)($item['quantity'] ?? 1);
+                    $unitPrice = (float)($item['unit_price'] ?? 0);
+                    $taxRate = (float)($item['tax_rate'] ?? 0);
+                    $taxAmount = $qty * $unitPrice * $taxRate / 100;
+                    $itemTotal = $qty * $unitPrice + $taxAmount;
 
-                Database::insert('order_items', [
-                    'order_id' => $orderId,
-                    'product_id' => !empty($item['product_id']) ? $item['product_id'] : null,
-                    'product_name' => $item['product_name'],
-                    'description' => $item['description'] ?? '',
-                    'quantity' => $qty,
-                    'unit' => $item['unit'] ?? 'Cái',
-                    'unit_price' => $unitPrice,
-                    'tax_rate' => $taxRate,
-                    'tax_amount' => $taxAmount,
-                    'discount' => (float)($item['discount'] ?? 0),
-                    'total' => $itemTotal,
-                    'sort_order' => $sort++,
-                ]);
+                    Database::insert('order_items', [
+                        'order_id' => $orderId,
+                        'product_id' => !empty($item['product_id']) ? $item['product_id'] : null,
+                        'product_name' => $item['product_name'],
+                        'description' => $item['description'] ?? '',
+                        'quantity' => $qty,
+                        'unit' => $item['unit'] ?? 'Cái',
+                        'unit_price' => $unitPrice,
+                        'tax_rate' => $taxRate,
+                        'tax_amount' => $taxAmount,
+                        'discount' => (float)($item['discount'] ?? 0),
+                        'total' => $itemTotal,
+                        'sort_order' => $sort++,
+                    ]);
+                }
             }
+
+            Database::commit();
+        } catch (\Exception $e) {
+            Database::rollback();
+            $this->setFlash('error', 'Lỗi tạo đơn hàng: ' . $e->getMessage());
+            return $this->back();
         }
 
         // Recalculate totals
