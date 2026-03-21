@@ -27,6 +27,8 @@ return [
     ],
 
     'pagination' => [
-        'per_page' => 20,
+        'per_page' => 10,
     ],
+
+    'version' => '1.0.0',
 ];
