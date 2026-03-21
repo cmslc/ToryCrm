@@ -221,7 +221,9 @@ class TicketController extends Controller
 
     public function delete($id)
     {
-        $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
+        if (!$this->isPost()) return $this->redirect('tickets');
+
+        $ticket = $this->findSecure('tickets', (int)$id);
         if (!$ticket) {
             $this->setFlash('error', 'Ticket không tồn tại.');
             return $this->redirect('tickets');
@@ -229,6 +231,12 @@ class TicketController extends Controller
 
         Database::delete('ticket_comments', 'ticket_id = ?', [$id]);
         Database::delete('tickets', 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Xóa ticket: {$ticket['ticket_code']}",
+            'user_id' => $this->userId(),
+        ]);
 
         $this->setFlash('success', 'Ticket đã được xóa.');
         return $this->redirect('tickets');
