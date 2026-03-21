@@ -1,0 +1,14 @@
+{
+    "name": "ToryCRM",
+    "short_name": "ToryCRM",
+    "description": "Hệ thống quản lý khách hàng ToryCRM",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#405189",
+    "theme_color": "#405189",
+    "orientation": "any",
+    "icons": [
+        {"src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png"},
+        {"src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png"}
+    ]
+}

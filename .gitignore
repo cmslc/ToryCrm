@@ -1,0 +1,12 @@
+vendor/
+node_modules/
+.env
+storage/logs/*.log
+storage/cache/*
+storage/sessions/*
+public/uploads/*
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.gstack/

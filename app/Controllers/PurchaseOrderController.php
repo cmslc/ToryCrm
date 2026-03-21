@@ -1,0 +1,227 @@
+<?php
+
+namespace App\Controllers;
+
+use Core\Controller;
+use Core\Database;
+use App\Models\PurchaseOrder;
+
+class PurchaseOrderController extends Controller
+{
+    public function index()
+    {
+        $model = new PurchaseOrder();
+        $page = max(1, (int) $this->input('page') ?: 1);
+
+        $orders = $model->getWithRelations($page, 10, [
+            'search' => $this->input('search'),
+            'status' => $this->input('status'),
+            'payment_status' => $this->input('payment_status'),
+        ]);
+
+        return $this->view('purchase-orders.index', [
+            'orders' => $orders,
+            'filters' => [
+                'search' => $this->input('search'),
+                'status' => $this->input('status'),
+                'payment_status' => $this->input('payment_status'),
+            ],
+        ]);
+    }
+
+    public function create()
+    {
+        $model = new PurchaseOrder();
+        $orderCode = $model->generateCode();
+        $suppliers = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
+        $products = Database::fetchAll("SELECT id, name, sku, cost_price as price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+
+        return $this->view('purchase-orders.create', [
+            'orderCode' => $orderCode,
+            'suppliers' => $suppliers,
+            'products' => $products,
+            'users' => $users,
+        ]);
+    }
+
+    public function store()
+    {
+        if (!$this->isPost()) return $this->redirect('purchase-orders');
+
+        $data = $this->allInput();
+        $model = new PurchaseOrder();
+        $orderCode = $model->generateCode();
+
+        $orderId = Database::insert('purchase_orders', [
+            'order_code' => $orderCode,
+            'supplier_id' => !empty($data['supplier_id']) ? $data['supplier_id'] : null,
+            'status' => $data['status'] ?? 'draft',
+            'discount_amount' => (float)($data['discount_amount'] ?? 0),
+            'notes' => trim($data['notes'] ?? ''),
+            'expected_date' => !empty($data['expected_date']) ? $data['expected_date'] : null,
+            'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
+            'created_by' => $this->userId(),
+        ]);
+
+        if (!empty($data['items']) && is_array($data['items'])) {
+            $sort = 0;
+            foreach ($data['items'] as $item) {
+                if (empty($item['product_name'])) continue;
+                $qty = (float)($item['quantity'] ?? 1);
+                $unitPrice = (float)($item['unit_price'] ?? 0);
+                $taxRate = (float)($item['tax_rate'] ?? 0);
+                $taxAmount = $qty * $unitPrice * $taxRate / 100;
+                $itemTotal = $qty * $unitPrice + $taxAmount;
+
+                Database::insert('purchase_order_items', [
+                    'purchase_order_id' => $orderId,
+                    'product_id' => !empty($item['product_id']) ? $item['product_id'] : null,
+                    'product_name' => $item['product_name'],
+                    'quantity' => $qty,
+                    'unit' => $item['unit'] ?? 'Cái',
+                    'unit_price' => $unitPrice,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => $taxAmount,
+                    'total' => $itemTotal,
+                    'sort_order' => $sort++,
+                ]);
+            }
+        }
+
+        $model->recalculate($orderId);
+
+        $this->setFlash('success', "Đơn mua {$orderCode} đã được tạo.");
+        return $this->redirect('purchase-orders/' . $orderId);
+    }
+
+    public function show($id)
+    {
+        $order = Database::fetch(
+            "SELECT po.*, s.name as supplier_name, s.phone as supplier_phone, s.email as supplier_email, s.address as supplier_address,
+                    u.name as owner_name, ua.name as approved_by_name
+             FROM purchase_orders po
+             LEFT JOIN companies s ON po.supplier_id = s.id
+             LEFT JOIN users u ON po.owner_id = u.id
+             LEFT JOIN users ua ON po.approved_by = ua.id
+             WHERE po.id = ?",
+            [$id]
+        );
+
+        if (!$order) {
+            $this->setFlash('error', 'Đơn mua không tồn tại.');
+            return $this->redirect('purchase-orders');
+        }
+
+        $model = new PurchaseOrder();
+        $items = $model->getItems($id);
+
+        return $this->view('purchase-orders.show', [
+            'order' => $order,
+            'items' => $items,
+        ]);
+    }
+
+    public function edit($id)
+    {
+        $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
+        if (!$order) {
+            $this->setFlash('error', 'Đơn mua không tồn tại.');
+            return $this->redirect('purchase-orders');
+        }
+
+        $model = new PurchaseOrder();
+        $items = $model->getItems($id);
+        $suppliers = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
+        $products = Database::fetchAll("SELECT id, name, sku, cost_price as price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+
+        return $this->view('purchase-orders.edit', [
+            'order' => $order,
+            'items' => $items,
+            'suppliers' => $suppliers,
+            'products' => $products,
+            'users' => $users,
+        ]);
+    }
+
+    public function update($id)
+    {
+        if (!$this->isPost()) return $this->redirect('purchase-orders/' . $id);
+
+        $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
+        if (!$order) {
+            $this->setFlash('error', 'Đơn mua không tồn tại.');
+            return $this->redirect('purchase-orders');
+        }
+
+        $data = $this->allInput();
+
+        Database::update('purchase_orders', [
+            'supplier_id' => !empty($data['supplier_id']) ? $data['supplier_id'] : null,
+            'status' => $data['status'] ?? $order['status'],
+            'discount_amount' => (float)($data['discount_amount'] ?? 0),
+            'notes' => trim($data['notes'] ?? ''),
+            'payment_status' => $data['payment_status'] ?? $order['payment_status'],
+            'paid_amount' => (float)($data['paid_amount'] ?? 0),
+            'expected_date' => !empty($data['expected_date']) ? $data['expected_date'] : null,
+            'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
+        ], 'id = ?', [$id]);
+
+        // Update items
+        Database::delete('purchase_order_items', 'purchase_order_id = ?', [$id]);
+        if (!empty($data['items']) && is_array($data['items'])) {
+            $sort = 0;
+            foreach ($data['items'] as $item) {
+                if (empty($item['product_name'])) continue;
+                $qty = (float)($item['quantity'] ?? 1);
+                $unitPrice = (float)($item['unit_price'] ?? 0);
+                $taxRate = (float)($item['tax_rate'] ?? 0);
+                $taxAmount = $qty * $unitPrice * $taxRate / 100;
+
+                Database::insert('purchase_order_items', [
+                    'purchase_order_id' => $id,
+                    'product_id' => !empty($item['product_id']) ? $item['product_id'] : null,
+                    'product_name' => $item['product_name'],
+                    'quantity' => $qty,
+                    'unit' => $item['unit'] ?? 'Cái',
+                    'unit_price' => $unitPrice,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => $taxAmount,
+                    'total' => $qty * $unitPrice + $taxAmount,
+                    'sort_order' => $sort++,
+                ]);
+            }
+        }
+
+        $model = new PurchaseOrder();
+        $model->recalculate($id);
+
+        $this->setFlash('success', 'Đơn mua đã được cập nhật.');
+        return $this->redirect('purchase-orders/' . $id);
+    }
+
+    public function approve($id)
+    {
+        if (!$this->isPost()) return $this->redirect('purchase-orders/' . $id);
+
+        Database::update('purchase_orders', [
+            'status' => 'approved',
+            'approved_by' => $this->userId(),
+            'approved_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$id]);
+
+        $this->setFlash('success', 'Đơn mua đã được duyệt.');
+        return $this->redirect('purchase-orders/' . $id);
+    }
+
+    public function delete($id)
+    {
+        if (!$this->isPost()) return $this->redirect('purchase-orders');
+
+        Database::delete('purchase_order_items', 'purchase_order_id = ?', [$id]);
+        Database::delete('purchase_orders', 'id = ?', [$id]);
+        $this->setFlash('success', 'Đơn mua đã được xóa.');
+        return $this->redirect('purchase-orders');
+    }
+}

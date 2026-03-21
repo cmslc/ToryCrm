@@ -1,0 +1,63 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: torycrm-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/var/www/html/public
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - torycrm
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: torycrm-php
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - torycrm
+
+  mysql:
+    image: mysql:8.0
+    container_name: torycrm-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: torycrm
+      MYSQL_USER: torycrm
+      MYSQL_PASSWORD: torycrm_secret
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/migrations/001_create_tables.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./database/seeds/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    networks:
+      - torycrm
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: torycrm-pma
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: torycrm
+      PMA_PASSWORD: torycrm_secret
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - torycrm
+
+volumes:
+  mysql_data:
+
+networks:
+  torycrm:
+    driver: bridge

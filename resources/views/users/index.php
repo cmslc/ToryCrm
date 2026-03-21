@@ -1,0 +1,98 @@
+<?php $pageTitle = 'Quản lý người dùng'; ?>
+
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">Quản lý người dùng</h4>
+            <div>
+                <a href="<?= url('users/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm người dùng</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" action="<?= url('users') ?>" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="search" placeholder="Tìm tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="role" class="form-select">
+                            <option value="">Tất cả vai trò</option>
+                            <option value="admin" <?= ($filters['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
+                            <option value="manager" <?= ($filters['role'] ?? '') === 'manager' ? 'selected' : '' ?>>Manager</option>
+                            <option value="staff" <?= ($filters['role'] ?? '') === 'staff' ? 'selected' : '' ?>>Staff</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
+                        <a href="<?= url('users') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Phòng ban</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái</th>
+                                <th>Đăng nhập cuối</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($users['items'])): ?>
+                                <?php
+                                $rc = ['admin'=>'danger','manager'=>'warning','staff'=>'info'];
+                                $rl = ['admin'=>'Admin','manager'=>'Manager','staff'=>'Staff'];
+                                ?>
+                                <?php foreach ($users['items'] as $user): ?>
+                                    <tr>
+                                        <td class="fw-medium"><?= e($user['name']) ?></td>
+                                        <td><?= e($user['email']) ?></td>
+                                        <td><?= e($user['phone'] ?? '-') ?></td>
+                                        <td><?= e($user['department'] ?? '-') ?></td>
+                                        <td><span class="badge bg-<?= $rc[$user['role']] ?? 'secondary' ?>"><?= $rl[$user['role']] ?? '' ?></span></td>
+                                        <td>
+                                            <?= ($user['is_active'] ?? false)
+                                                ? '<span class="badge bg-success-subtle text-success">Hoạt động</span>'
+                                                : '<span class="badge bg-danger-subtle text-danger">Bị khóa</span>' ?>
+                                        </td>
+                                        <td><?= !empty($user['last_login_at']) ? time_ago($user['last_login_at']) : '-' ?></td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <a href="<?= url('users/' . $user['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary" title="Sửa"><i class="ri-pencil-line"></i></a>
+                                                <form method="POST" action="<?= url('users/' . $user['id'] . '/toggle-active') ?>" class="d-inline">
+                                                    <?= csrf_field() ?>
+                                                    <?php if ($user['is_active'] ?? false): ?>
+                                                        <button class="btn btn-sm btn-soft-danger" title="Khóa" onclick="return confirm('Khóa người dùng này?')"><i class="ri-lock-line"></i></button>
+                                                    <?php else: ?>
+                                                        <button class="btn btn-sm btn-soft-success" title="Mở khóa" onclick="return confirm('Mở khóa người dùng này?')"><i class="ri-lock-unlock-line"></i></button>
+                                                    <?php endif; ?>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="8" class="text-center py-4 text-muted"><i class="ri-user-line fs-1 d-block mb-2"></i>Chưa có người dùng</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <?php if (($users['total_pages'] ?? 0) > 1): ?>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted">Hiển thị <?= count($users['items']) ?> / <?= $users['total'] ?></div>
+                        <nav><ul class="pagination mb-0">
+                            <?php for ($i = 1; $i <= $users['total_pages']; $i++): ?>
+                                <li class="page-item <?= $i === $users['page'] ? 'active' : '' ?>">
+                                    <a class="page-link" href="<?= url('users?page=' . $i . '&' . http_build_query(array_filter($filters ?? []))) ?>"><?= $i ?></a>
+                                </li>
+                            <?php endfor; ?>
+                        </ul></nav>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
