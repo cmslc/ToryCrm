@@ -360,17 +360,95 @@ class OrderController extends Controller
         return $this->redirect('orders/' . $id);
     }
 
-    public function delete($id)
+    // ---- Duyệt đơn hàng ----
+    public function approve($id)
     {
-        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$id]);
+        if (!$this->isPost()) return $this->redirect('orders/' . $id);
 
-        if (!$order) {
-            $this->setFlash('error', 'Đơn hàng không tồn tại.');
-            return $this->redirect('orders');
+        $order = $this->findSecure('orders', (int)$id);
+        if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+
+        if (!in_array($order['status'], ['draft', 'sent'])) {
+            $this->setFlash('error', 'Chỉ duyệt được đơn ở trạng thái Nháp hoặc Đã gửi.');
+            return $this->redirect('orders/' . $id);
         }
 
-        Database::delete('order_items', 'order_id = ?', [$id]);
-        Database::delete('orders', 'id = ?', [$id]);
+        Database::update('orders', [
+            'status' => 'confirmed',
+            'approved_by' => $this->userId(),
+            'approved_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'deal',
+            'title' => "Duyệt đơn hàng: {$order['order_number']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', "Đã duyệt đơn hàng {$order['order_number']}.");
+        return $this->redirect('orders/' . $id);
+    }
+
+    // ---- Hủy đơn hàng ----
+    public function cancel($id)
+    {
+        if (!$this->isPost()) return $this->redirect('orders/' . $id);
+
+        $order = $this->findSecure('orders', (int)$id);
+        if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+
+        if ($order['status'] === 'completed') {
+            $this->setFlash('error', 'Không thể hủy đơn đã hoàn thành.');
+            return $this->redirect('orders/' . $id);
+        }
+
+        Database::update('orders', [
+            'status' => 'cancelled',
+            'cancelled_at' => date('Y-m-d H:i:s'),
+            'cancelled_reason' => trim($this->input('reason') ?? ''),
+        ], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'deal',
+            'title' => "Hủy đơn hàng: {$order['order_number']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', "Đã hủy đơn hàng {$order['order_number']}.");
+        return $this->redirect('orders/' . $id);
+    }
+
+    // ---- Khôi phục đơn hàng ----
+    public function trash()
+    {
+        $tid = Database::tenantId();
+        $orders = Database::fetchAll(
+            "SELECT o.*, c.first_name as contact_first_name, c.last_name as contact_last_name
+             FROM orders o LEFT JOIN contacts c ON o.contact_id = c.id
+             WHERE o.is_deleted = 1 AND o.tenant_id = ?
+             ORDER BY o.deleted_at DESC",
+            [$tid]
+        );
+        return $this->view('orders.trash', ['orders' => $orders]);
+    }
+
+    public function restore($id)
+    {
+        if (!$this->isPost()) return $this->redirect('orders/trash');
+        Database::restore('orders', 'id = ?', [$id]);
+        $this->setFlash('success', 'Đã khôi phục đơn hàng.');
+        return $this->redirect('orders/trash');
+    }
+
+    // ---- Xóa đơn hàng (soft delete) ----
+    public function delete($id)
+    {
+        if (!$this->isPost()) return $this->redirect('orders');
+
+        $order = $this->findSecure('orders', (int)$id);
+        if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+
+        Database::softDelete('orders', 'id = ?', [$id]);
 
         Database::insert('activities', [
             'type' => 'deal',
@@ -378,31 +456,78 @@ class OrderController extends Controller
             'user_id' => $this->userId(),
         ]);
 
-        $this->setFlash('success', 'Xóa đơn hàng thành công.');
+        $this->setFlash('success', 'Đã xóa đơn hàng.');
         return $this->redirect('orders');
+    }
+
+    // ---- Thanh toán đơn hàng ----
+    public function payment($id)
+    {
+        if (!$this->isPost()) return $this->redirect('orders/' . $id);
+
+        $order = $this->findSecure('orders', (int)$id);
+        if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+
+        $amount = (float)$this->input('amount');
+        $method = trim($this->input('payment_method') ?? '');
+        $description = trim($this->input('description') ?? '');
+        $payDate = $this->input('pay_date') ?: date('Y-m-d');
+
+        if ($amount <= 0) {
+            $this->setFlash('error', 'Số tiền thanh toán phải lớn hơn 0.');
+            return $this->back();
+        }
+
+        Database::insert('order_payments', [
+            'order_id' => $id,
+            'payment_method' => $method,
+            'payment_via' => 'direct',
+            'amount' => $amount,
+            'description' => $description,
+            'pay_date' => $payDate,
+            'created_by' => $this->userId(),
+        ]);
+
+        // Update paid_amount and payment_status
+        $totalPaid = (float)(Database::fetch(
+            "SELECT COALESCE(SUM(amount),0) as total FROM order_payments WHERE order_id = ?", [$id]
+        )['total'] ?? 0);
+
+        $paymentStatus = 'unpaid';
+        if ($totalPaid >= (float)$order['total']) {
+            $paymentStatus = 'paid';
+        } elseif ($totalPaid > 0) {
+            $paymentStatus = 'partial';
+        }
+
+        Database::update('orders', [
+            'paid_amount' => $totalPaid,
+            'payment_status' => $paymentStatus,
+        ], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'deal',
+            'title' => "Thanh toán " . format_money($amount) . " cho {$order['order_number']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã ghi nhận thanh toán ' . format_money($amount) . '.');
+        return $this->redirect('orders/' . $id);
     }
 
     public function updateStatus($id)
     {
-        if (!$this->isPost()) {
-            return $this->json(['error' => 'Method not allowed'], 405);
-        }
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
 
         $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$id]);
-
-        if (!$order) {
-            return $this->json(['error' => 'Order not found'], 404);
-        }
+        if (!$order) return $this->json(['error' => 'Order not found'], 404);
 
         $newStatus = $this->input('status');
-        $validStatuses = ['draft', 'sent', 'confirmed', 'processing', 'completed', 'cancelled'];
-
-        if (!in_array($newStatus, $validStatuses)) {
+        if (!in_array($newStatus, ['draft','sent','confirmed','processing','completed','cancelled'])) {
             return $this->json(['error' => 'Invalid status'], 422);
         }
 
         Database::update('orders', ['status' => $newStatus], 'id = ?', [$id]);
-
         return $this->json(['success' => true, 'status' => $newStatus]);
     }
 }

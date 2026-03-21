@@ -85,6 +85,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Orders
     Router::get('orders/pdf/{id}', 'OrderController@pdf');
+    Router::get('orders/trash', 'OrderController@trash');
     Router::get('orders', 'OrderController@index');
     Router::get('orders/create', 'OrderController@create');
     Router::post('orders/store', 'OrderController@store');
@@ -92,6 +93,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('orders/{id}/edit', 'OrderController@edit');
     Router::post('orders/{id}/update', 'OrderController@update');
     Router::post('orders/{id}/delete', 'OrderController@delete');
+    Router::post('orders/{id}/approve', 'OrderController@approve');
+    Router::post('orders/{id}/cancel', 'OrderController@cancel');
+    Router::post('orders/{id}/restore', 'OrderController@restore');
+    Router::post('orders/{id}/payment', 'OrderController@payment');
     Router::post('orders/{id}/status', 'OrderController@updateStatus');
 
     // Calendar

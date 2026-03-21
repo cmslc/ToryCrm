@@ -2,8 +2,9 @@
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Đơn hàng & Báo giá</h4>
-            <div>
-                <a href="<?= url('orders/create?type=quote') ?>" class="btn btn-soft-info me-1"><i class="ri-file-text-line me-1"></i> Tạo báo giá</a>
+            <div class="d-flex gap-2">
+                <a href="<?= url('orders/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
+                <a href="<?= url('orders/create?type=quote') ?>" class="btn btn-soft-info"><i class="ri-file-text-line me-1"></i> Tạo báo giá</a>
                 <a href="<?= url('orders/create?type=order') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn hàng</a>
             </div>
         </div>
