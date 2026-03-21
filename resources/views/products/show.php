@@ -15,7 +15,7 @@
                         <h5 class="card-title mb-0">Thông tin sản phẩm</h5>
                         <div>
                             <a href="<?= url('products/' . $product['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
-                            <form method="POST" action="<?= url('products/' . $product['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('products/' . $product['id'] . '/delete') ?>" class="d-inline" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>

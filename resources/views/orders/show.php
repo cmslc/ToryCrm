@@ -29,7 +29,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         </div>
                         <div>
                             <a href="<?= url('orders/' . $order['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
-                            <form method="POST" action="<?= url('orders/' . $order['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('orders/' . $order['id'] . '/delete') ?>" class="d-inline" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>

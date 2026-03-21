@@ -33,7 +33,7 @@ $typeIcons = ['meeting'=>'ri-team-line','call'=>'ri-phone-line','visit'=>'ri-map
                                     <?= csrf_field() ?><button class="btn btn-sm btn-soft-success"><i class="ri-check-line me-1"></i>Hoàn thành</button>
                                 </form>
                             <?php endif; ?>
-                            <form method="POST" action="<?= url('calendar/' . $event['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('calendar/' . $event['id'] . '/delete') ?>" class="d-inline" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>

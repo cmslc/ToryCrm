@@ -29,7 +29,7 @@
                             <td><?= e($c['company_name'] ?? '-') ?></td>
                             <td class="text-muted"><?= $c['deleted_at'] ? format_datetime($c['deleted_at']) : '-' ?></td>
                             <td>
-                                <form method="POST" action="<?= url('contacts/' . $c['id'] . '/restore') ?>" class="d-inline" onsubmit="return confirm('Khôi phục khách hàng này?')">
+                                <form method="POST" action="<?= url('contacts/' . $c['id'] . '/restore') ?>" class="d-inline" data-confirm="Khôi phục khách hàng này?">
                                     <?= csrf_field() ?>
                                     <button class="btn btn-sm btn-soft-success"><i class="ri-refresh-line me-1"></i>Khôi phục</button>
                                 </form>

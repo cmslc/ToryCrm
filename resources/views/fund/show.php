@@ -27,11 +27,11 @@ $statusLabels = ['draft'=>'Nháp','confirmed'=>'Đã xác nhận','cancelled'=>'
                         </div>
                         <div class="d-flex gap-2">
                             <?php if ($transaction['status'] === 'draft'): ?>
-                                <form method="POST" action="<?= url('fund/' . $transaction['id'] . '/confirm') ?>" class="d-inline" onsubmit="return confirm('Xác nhận phiếu này?')">
+                                <form method="POST" action="<?= url('fund/' . $transaction['id'] . '/confirm') ?>" class="d-inline" data-confirm="Xác nhận phiếu này?">
                                     <?= csrf_field() ?>
                                     <button class="btn btn-sm btn-success"><i class="ri-check-line me-1"></i>Xác nhận</button>
                                 </form>
-                                <form method="POST" action="<?= url('fund/' . $transaction['id'] . '/cancel') ?>" class="d-inline" onsubmit="return confirm('Xác nhận hủy phiếu?')">
+                                <form method="POST" action="<?= url('fund/' . $transaction['id'] . '/cancel') ?>" class="d-inline" data-confirm="Xác nhận hủy phiếu?">
                                     <?= csrf_field() ?>
                                     <button class="btn btn-sm btn-soft-danger"><i class="ri-close-line me-1"></i>Hủy</button>
                                 </form>

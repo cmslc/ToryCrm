@@ -57,7 +57,7 @@
                         <a href="<?= url('billing/plans') ?>" class="btn btn-primary me-2">
                             <i class="ri-arrow-up-circle-line me-1"></i> Nâng cấp gói
                         </a>
-                        <form method="POST" action="<?= url('billing/cancel-subscription') ?>" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy gói dịch vụ?')">
+                        <form method="POST" action="<?= url('billing/cancel-subscription') ?>" class="d-inline" data-confirm="Bạn có chắc chắn muốn hủy gói dịch vụ?">
                             <button type="submit" class="btn btn-outline-danger">
                                 <i class="ri-close-circle-line me-1"></i> Hủy gói
                             </button>

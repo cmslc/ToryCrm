@@ -140,7 +140,7 @@
                                     </td>
                                     <td class="small"><?= format_datetime($cl['started_at']) ?></td>
                                     <td>
-                                        <form method="POST" action="<?= url('call-logs/' . $cl['id'] . '/delete') ?>" onsubmit="return confirm('Xóa?')">
+                                        <form method="POST" action="<?= url('call-logs/' . $cl['id'] . '/delete') ?>" data-confirm="Xóa?">
                                             <?= csrf_field() ?>
                                             <button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
                                         </form>

@@ -89,7 +89,7 @@
                                                 </td>
                                                 <td><?= time_ago($cc['created_at'] ?? '') ?></td>
                                                 <td>
-                                                    <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/remove-contact') ?>" onsubmit="return confirm('Xác nhận xóa liên hệ khỏi chiến dịch?')">
+                                                    <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/remove-contact') ?>" data-confirm="Xác nhận xóa liên hệ khỏi chiến dịch?">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="contact_id" value="<?= $cc['contact_id'] ?>">
                                                         <button class="btn btn-sm btn-soft-danger"><i class="ri-close-line"></i></button>
@@ -112,7 +112,7 @@
                     <div class="card-body">
                         <div class="d-flex gap-2 mb-4">
                             <a href="<?= url('campaigns/' . $campaign['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line me-1"></i> Sửa</a>
-                            <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa chiến dịch?')">
+                            <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/delete') ?>" data-confirm="Xác nhận xóa chiến dịch?">
                                 <?= csrf_field() ?>
                                 <button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>

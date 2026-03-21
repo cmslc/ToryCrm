@@ -39,7 +39,7 @@
                                             <?php if (!$notif['is_read']): ?>
                                                 <span class="badge bg-primary rounded-pill">Mới</span>
                                             <?php endif; ?>
-                                            <form method="POST" action="<?= url('notifications/' . $notif['id'] . '/delete') ?>" onsubmit="return confirm('Xóa thông báo?')">
+                                            <form method="POST" action="<?= url('notifications/' . $notif['id'] . '/delete') ?>" data-confirm="Xóa thông báo?">
                                                 <?= csrf_field() ?>
                                                 <button class="btn btn-sm btn-link text-muted p-0"><i class="ri-close-line"></i></button>
                                             </form>

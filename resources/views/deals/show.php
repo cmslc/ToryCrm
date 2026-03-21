@@ -22,7 +22,7 @@
                         <h3 class="text-primary mb-3"><?= format_money($deal['value']) ?></h3>
                         <div class="d-flex gap-2 mb-4">
                             <a href="<?= url('deals/' . $deal['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line me-1"></i> Sửa</a>
-                            <form method="POST" action="<?= url('deals/' . $deal['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('deals/' . $deal['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?>
                                 <button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>

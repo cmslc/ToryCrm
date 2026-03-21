@@ -29,12 +29,12 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         <div class="d-flex gap-2">
                             <a href="<?= url('purchase-orders/' . $order['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
                             <?php if (in_array($order['status'], ['draft', 'pending'])): ?>
-                                <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/approve') ?>" class="d-inline" onsubmit="return confirm('Xác nhận duyệt đơn hàng này?')">
+                                <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/approve') ?>" class="d-inline" data-confirm="Xác nhận duyệt đơn hàng này?">
                                     <?= csrf_field() ?>
                                     <button class="btn btn-sm btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
                                 </form>
                             <?php endif; ?>
-                            <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/delete') ?>" class="d-inline" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/delete') ?>" class="d-inline" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>

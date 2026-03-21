@@ -34,18 +34,16 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
             <div class="page-content">
                 <div class="container-fluid">
 
-                    <?php $flashMsg = flash(); if ($flashMsg): ?>
-                        <?php
+                    <?php $flashMsg = flash(); if ($flashMsg):
                         $alertType = match($flashMsg['type']) {
-                            'success' => 'success',
-                            'error' => 'danger',
-                            'warning' => 'warning',
-                            'info' => 'info',
-                            default => 'primary',
+                            'success' => 'success', 'error' => 'danger',
+                            'warning' => 'warning', 'info' => 'info', default => 'primary',
                         };
-                        ?>
-                        <div class="alert alert-<?= $alertType ?> alert-dismissible fade show" role="alert">
-                            <?= e($flashMsg['message']) ?>
+                        $alertIcons = ['success'=>'ri-check-double-line','danger'=>'ri-error-warning-line','warning'=>'ri-alert-line','info'=>'ri-information-line','primary'=>'ri-notification-3-line'];
+                    ?>
+                        <div class="alert alert-<?= $alertType ?> alert-border-left alert-dismissible fade show mb-3" role="alert">
+                            <i class="<?= $alertIcons[$alertType] ?? 'ri-notification-3-line' ?> me-3 align-middle fs-16"></i>
+                            <strong><?= $alertType === 'success' ? 'Thành công' : ($alertType === 'danger' ? 'Lỗi' : ($alertType === 'warning' ? 'Cảnh báo' : 'Thông báo')) ?></strong> - <?= e($flashMsg['message']) ?>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     <?php endif; ?>

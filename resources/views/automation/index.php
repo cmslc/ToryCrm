@@ -81,7 +81,7 @@
                                                 <button type="button" class="btn btn-sm btn-soft-info btn-view-logs" data-rule-id="<?= $rule['id'] ?>" title="Xem logs">
                                                     <i class="ri-file-list-line"></i>
                                                 </button>
-                                                <form method="POST" action="<?= url('automation/' . $rule['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa automation rule này?')">
+                                                <form method="POST" action="<?= url('automation/' . $rule['id'] . '/delete') ?>" data-confirm="Xác nhận xóa automation rule này?">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="btn btn-sm btn-soft-danger" title="Xóa">
                                                         <i class="ri-delete-bin-line"></i>

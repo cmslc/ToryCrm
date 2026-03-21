@@ -166,7 +166,7 @@
                                                     <li><a class="dropdown-item" href="<?= url('contacts/' . $contact['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa?')">
+                                                        <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                                             <?= csrf_field() ?>
                                                             <button type="submit" class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button>
                                                         </form>

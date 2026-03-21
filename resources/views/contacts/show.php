@@ -58,7 +58,7 @@
                             <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn-warning btn-sm">
                                 <i class="ri-star-line me-1"></i> Điểm thưởng
                             </a>
-                            <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>

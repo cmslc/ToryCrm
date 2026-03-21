@@ -55,7 +55,7 @@
                                                     <i class="ri-<?= $wh['is_active'] ? 'pause-line' : 'play-line' ?>"></i>
                                                 </button>
                                             </form>
-                                            <form method="POST" action="<?= url('webhooks/' . $wh['id'] . '/delete') ?>" onsubmit="return confirm('Xóa webhook?')">
+                                            <form method="POST" action="<?= url('webhooks/' . $wh['id'] . '/delete') ?>" data-confirm="Xóa webhook?">
                                                 <?= csrf_field() ?>
                                                 <button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
                                             </form>

@@ -21,7 +21,7 @@
                         <p class="text-muted"><?= e($company['industry'] ?? '') ?></p>
                         <div class="d-flex gap-2 justify-content-center">
                             <a href="<?= url('companies/' . $company['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line me-1"></i> Sửa</a>
-                            <form method="POST" action="<?= url('companies/' . $company['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('companies/' . $company['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?>
                                 <button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>

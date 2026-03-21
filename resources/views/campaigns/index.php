@@ -82,7 +82,7 @@
                                                     <li><a class="dropdown-item" href="<?= url('campaigns/' . $campaign['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
-                                                        <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa chiến dịch này?')">
+                                                        <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/delete') ?>" data-confirm="Xác nhận xóa chiến dịch này?">
                                                             <?= csrf_field() ?><button class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button>
                                                         </form>
                                                     </li>

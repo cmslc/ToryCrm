@@ -12,7 +12,7 @@
                         <h5 class="card-title mb-0 flex-grow-1"><?= e($task['title']) ?></h5>
                         <div class="d-flex gap-2">
                             <a href="<?= url('tasks/' . $task['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line"></i></a>
-                            <form method="POST" action="<?= url('tasks/' . $task['id'] . '/delete') ?>" onsubmit="return confirm('Xóa?')"><?= csrf_field() ?><button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line"></i></button></form>
+                            <form method="POST" action="<?= url('tasks/' . $task['id'] . '/delete') ?>" data-confirm="Xóa?"><?= csrf_field() ?><button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line"></i></button></form>
                         </div>
                     </div>
                     <div class="card-body">

@@ -27,7 +27,7 @@
                         <h5 class="card-title mb-0">Nội dung</h5>
                         <div class="d-flex gap-2">
                             <a href="<?= url('tickets/' . $ticket['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line me-1"></i> Sửa</a>
-                            <form method="POST" action="<?= url('tickets/' . $ticket['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa?')">
+                            <form method="POST" action="<?= url('tickets/' . $ticket['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?>
                                 <button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>

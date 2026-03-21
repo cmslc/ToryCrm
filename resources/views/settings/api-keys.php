@@ -28,7 +28,7 @@
                                             <td><?= $k['last_used_at'] ? time_ago($k['last_used_at']) : '-' ?></td>
                                             <td><?= number_format($k['request_count']) ?></td>
                                             <td>
-                                                <form method="POST" action="<?= url('settings/api-keys/' . $k['id'] . '/delete') ?>" onsubmit="return confirm('Xóa API key?')">
+                                                <form method="POST" action="<?= url('settings/api-keys/' . $k['id'] . '/delete') ?>" data-confirm="Xóa API key?">
                                                     <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
                                                 </form>
                                             </td>
