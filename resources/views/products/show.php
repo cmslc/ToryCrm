@@ -21,6 +21,11 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <?php if (!empty($product['image'])): ?>
+                            <div class="text-center mb-3">
+                                <img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded" style="max-height:200px;max-width:100%">
+                            </div>
+                        <?php endif; ?>
                         <div class="table-responsive">
                             <table class="table table-borderless mb-0">
                                 <tbody>

@@ -8,7 +8,7 @@
             </ol>
         </div>
 
-        <form method="POST" action="<?= url('products/' . $product['id'] . '/update') ?>">
+        <form method="POST" action="<?= url('products/' . $product['id'] . '/update') ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row">
                 <div class="col-lg-8">
@@ -43,6 +43,14 @@
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Đơn vị tính</label>
                                     <input type="text" class="form-control" name="unit" value="<?= e($product['unit'] ?? 'Cái') ?>">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Ảnh sản phẩm</label>
+                                    <?php if (!empty($product['image'])): ?>
+                                        <div class="mb-2"><img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded" style="max-height:100px"></div>
+                                    <?php endif; ?>
+                                    <input type="file" class="form-control" name="image" accept="image/*">
+                                    <small class="text-muted">Để trống nếu không đổi ảnh.</small>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Mô tả</label>

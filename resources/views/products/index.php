@@ -52,9 +52,16 @@
                                 <?php foreach ($products['items'] as $product): ?>
                                     <tr>
                                         <td>
-                                            <a href="<?= url('products/' . $product['id']) ?>" class="fw-medium text-dark">
-                                                <?= e($product['name']) ?>
-                                            </a>
+                                            <div class="d-flex align-items-center">
+                                                <?php if (!empty($product['image'])): ?>
+                                                    <img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded me-2" style="width:40px;height:40px;object-fit:cover">
+                                                <?php else: ?>
+                                                    <div class="avatar-sm me-2 flex-shrink-0"><span class="avatar-title bg-light rounded"><i class="ri-image-line text-muted"></i></span></div>
+                                                <?php endif; ?>
+                                                <a href="<?= url('products/' . $product['id']) ?>" class="fw-medium text-dark">
+                                                    <?= e($product['name']) ?>
+                                                </a>
+                                            </div>
                                         </td>
                                         <td><code><?= e($product['sku'] ?? '-') ?></code></td>
                                         <td>

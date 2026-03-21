@@ -94,6 +94,13 @@ class ProductController extends Controller
             return $this->back();
         }
 
+        // Handle image upload
+        $imageName = null;
+        if (!empty($_FILES['image']['name'])) {
+            $uploaded = \App\Services\FileUploadService::uploadImage($_FILES['image'], 'products');
+            if ($uploaded) $imageName = $uploaded['file_name'];
+        }
+
         $productId = Database::insert('products', [
             'name' => $name,
             'sku' => trim($data['sku'] ?? '') ?: null,
@@ -106,7 +113,8 @@ class ProductController extends Controller
             'stock_quantity' => (int)($data['stock_quantity'] ?? 0),
             'min_stock' => (int)($data['min_stock'] ?? 0),
             'description' => trim($data['description'] ?? ''),
-            'is_active' => isset($data['is_active']) ? 1 : 1,
+            'image' => $imageName,
+            'is_active' => 1,
             'created_by' => $this->userId(),
         ]);
 
@@ -192,7 +200,7 @@ class ProductController extends Controller
             return $this->back();
         }
 
-        Database::update('products', [
+        $updateData = [
             'name' => $name,
             'sku' => trim($data['sku'] ?? '') ?: null,
             'category_id' => !empty($data['category_id']) ? $data['category_id'] : null,
@@ -205,7 +213,15 @@ class ProductController extends Controller
             'min_stock' => (int)($data['min_stock'] ?? 0),
             'description' => trim($data['description'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
-        ], 'id = ?', [$id]);
+        ];
+
+        // Handle image upload
+        if (!empty($_FILES['image']['name'])) {
+            $uploaded = \App\Services\FileUploadService::uploadImage($_FILES['image'], 'products');
+            if ($uploaded) $updateData['image'] = $uploaded['file_name'];
+        }
+
+        Database::update('products', $updateData, 'id = ?', [$id]);
 
         $this->setFlash('success', 'Cập nhật sản phẩm thành công.');
         return $this->redirect('products/' . $id);

@@ -10,6 +10,8 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
 
     <!-- Velzon CSS -->
     <link href="<?= asset('css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link href="<?= asset('libs/simplebar/simplebar.min.css') ?>" rel="stylesheet">
+    <link href="<?= asset('libs/node-waves/waves.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/icons.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/app.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
