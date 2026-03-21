@@ -10,9 +10,13 @@
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
                         <h5 class="card-title mb-0 flex-grow-1"><?= e($task['title']) ?></h5>
-                        <div class="d-flex gap-2">
-                            <a href="<?= url('tasks/' . $task['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line"></i></a>
-                            <form method="POST" action="<?= url('tasks/' . $task['id'] . '/delete') ?>" data-confirm="Xóa?"><?= csrf_field() ?><button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line"></i></button></form>
+                        <div class="d-flex gap-1 flex-wrap">
+                            <a href="<?= url('tasks/' . $task['id'] . '/edit') ?>" class="btn btn-soft-primary btn-sm"><i class="ri-pencil-line me-1"></i>Sửa</a>
+                            <?php if ($task['status'] !== 'done'): ?>
+                                <form method="POST" action="<?= url('tasks/' . $task['id'] . '/complete') ?>" data-confirm="Hoàn thành công việc này?"><?= csrf_field() ?><button class="btn btn-soft-success btn-sm"><i class="ri-check-line me-1"></i>Hoàn thành</button></form>
+                            <?php endif; ?>
+                            <form method="POST" action="<?= url('tasks/' . $task['id'] . '/cancel') ?>" data-confirm="Hủy công việc này?"><?= csrf_field() ?><button class="btn btn-soft-warning btn-sm"><i class="ri-close-circle-line me-1"></i>Hủy</button></form>
+                            <form method="POST" action="<?= url('tasks/' . $task['id'] . '/delete') ?>" data-confirm="Xóa công việc?"><?= csrf_field() ?><button class="btn btn-soft-danger btn-sm"><i class="ri-delete-bin-line me-1"></i>Xóa</button></form>
                         </div>
                     </div>
                     <div class="card-body">

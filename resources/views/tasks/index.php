@@ -2,8 +2,9 @@
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Công việc</h4>
-            <div>
-                <a href="<?= url('tasks/kanban') ?>" class="btn btn-soft-info me-1"><i class="ri-layout-masonry-line me-1"></i> Kanban</a>
+            <div class="d-flex gap-2">
+                <a href="<?= url('tasks/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã hủy</a>
+                <a href="<?= url('tasks/kanban') ?>" class="btn btn-soft-info"><i class="ri-layout-masonry-line me-1"></i> Kanban</a>
                 <a href="<?= url('tasks/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm công việc</a>
             </div>
         </div>

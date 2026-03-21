@@ -275,25 +275,109 @@ class TaskController extends Controller
         return $this->redirect('tasks/' . $id);
     }
 
-    public function delete($id)
+    // ---- Hoàn thành công việc ----
+    public function complete($id)
     {
-        $task = Database::fetch("SELECT * FROM tasks WHERE id = ?", [$id]);
+        if (!$this->isPost()) return $this->redirect('tasks/' . $id);
 
+        $task = $this->findSecure('tasks', (int)$id);
         if (!$task) {
-            $this->setFlash('error', 'Task not found.');
+            $this->setFlash('error', 'Công việc không tồn tại.');
             return $this->redirect('tasks');
         }
 
-        Database::delete('tasks', 'id = ?', [$id]);
+        Database::update('tasks', [
+            'status' => 'done',
+            'completed_at' => date('Y-m-d H:i:s'),
+            'progress' => 100,
+        ], 'id = ?', [$id]);
 
         Database::insert('activities', [
             'type' => 'task',
-            'title' => "Task deleted: {$task['title']}",
-            'description' => "Task {$task['title']} was deleted.",
+            'title' => "Hoàn thành: {$task['title']}",
+            'user_id' => $this->userId(),
+            'deal_id' => $task['deal_id'] ?? null,
+            'contact_id' => $task['contact_id'] ?? null,
+        ]);
+
+        $this->setFlash('success', 'Đã hoàn thành công việc.');
+        return $this->redirect('tasks/' . $id);
+    }
+
+    // ---- Hủy công việc ----
+    public function cancel($id)
+    {
+        if (!$this->isPost()) return $this->redirect('tasks/' . $id);
+
+        $task = $this->findSecure('tasks', (int)$id);
+        if (!$task) {
+            $this->setFlash('error', 'Công việc không tồn tại.');
+            return $this->redirect('tasks');
+        }
+
+        Database::update('tasks', [
+            'status' => 'todo',
+            'cancelled_at' => date('Y-m-d H:i:s'),
+            'is_deleted' => 1,
+            'deleted_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'task',
+            'title' => "Hủy công việc: {$task['title']}",
             'user_id' => $this->userId(),
         ]);
 
-        $this->setFlash('success', 'Task deleted successfully.');
+        $this->setFlash('success', 'Đã hủy công việc.');
+        return $this->redirect('tasks');
+    }
+
+    // ---- Khôi phục công việc ----
+    public function trash()
+    {
+        $tid = Database::tenantId();
+        $tasks = Database::fetchAll(
+            "SELECT t.*, u.name as assigned_name
+             FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id
+             WHERE t.is_deleted = 1 AND t.tenant_id = ?
+             ORDER BY t.deleted_at DESC",
+            [$tid]
+        );
+
+        return $this->view('tasks.trash', ['tasks' => $tasks]);
+    }
+
+    public function restore($id)
+    {
+        if (!$this->isPost()) return $this->redirect('tasks/trash');
+
+        Database::restore('tasks', 'id = ?', [$id]);
+        Database::update('tasks', ['cancelled_at' => null, 'status' => 'todo'], 'id = ?', [$id]);
+
+        $this->setFlash('success', 'Đã khôi phục công việc.');
+        return $this->redirect('tasks/trash');
+    }
+
+    // ---- Xóa công việc (soft delete) ----
+    public function delete($id)
+    {
+        if (!$this->isPost()) return $this->redirect('tasks');
+
+        $task = $this->findSecure('tasks', (int)$id);
+        if (!$task) {
+            $this->setFlash('error', 'Công việc không tồn tại.');
+            return $this->redirect('tasks');
+        }
+
+        Database::softDelete('tasks', 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'task',
+            'title' => "Xóa công việc: {$task['title']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã xóa công việc.');
         return $this->redirect('tasks');
     }
 

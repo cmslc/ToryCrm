@@ -60,12 +60,16 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // Tasks
     Router::get('tasks', 'TaskController@index');
     Router::get('tasks/kanban', 'TaskController@kanban');
+    Router::get('tasks/trash', 'TaskController@trash');
     Router::get('tasks/create', 'TaskController@create');
     Router::post('tasks/store', 'TaskController@store');
     Router::get('tasks/{id}', 'TaskController@show');
     Router::get('tasks/{id}/edit', 'TaskController@edit');
     Router::post('tasks/{id}/update', 'TaskController@update');
     Router::post('tasks/{id}/delete', 'TaskController@delete');
+    Router::post('tasks/{id}/complete', 'TaskController@complete');
+    Router::post('tasks/{id}/cancel', 'TaskController@cancel');
+    Router::post('tasks/{id}/restore', 'TaskController@restore');
     Router::post('tasks/{id}/status', 'TaskController@updateStatus');
 
     // Products
