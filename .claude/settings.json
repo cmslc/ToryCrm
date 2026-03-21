@@ -1,21 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl:*)",
-      "Bash(php:*)",
-      "Bash(cd:*)",
-      "Bash(composer:*)",
-      "Bash(cp -r \"D:/Toryhub/accmoon/public/material/assets/css/\"* \"d:/Toryhub/ToryCrm/public/css/\")",
-      "Bash(cp -r \"D:/Toryhub/accmoon/public/material/assets/js/\"* \"d:/Toryhub/ToryCrm/public/js/\")",
-      "Bash(cp -r \"D:/Toryhub/accmoon/public/material/assets/fonts\" \"d:/Toryhub/ToryCrm/public/\")",
-      "Bash(cp -r \"D:/Toryhub/accmoon/public/material/assets/images/\"* \"d:/Toryhub/ToryCrm/public/images/\")",
-      "Bash(cp -r \"D:/Toryhub/accmoon/public/material/assets/libs/\"* \"d:/Toryhub/ToryCrm/public/libs/\")",
-      "Bash(curl -s \"http://localhost:8080/login\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/libs/feather-icons/feather.min.js\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/libs/node-waves/waves.min.js\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/libs/simplebar/simplebar.min.js\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/js/plugins.js\")",
-      "Bash(docker compose:*)"
+      "*"
     ]
   }
 }

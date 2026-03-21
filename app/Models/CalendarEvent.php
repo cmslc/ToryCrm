@@ -11,11 +11,11 @@ class CalendarEvent extends Model
 
     public function getByDateRange(string $start, string $end, ?int $userId = null): array
     {
-        $where = "start_at >= ? AND start_at <= ?";
+        $where = "ce.start_at >= ? AND ce.start_at <= ?";
         $params = [$start, $end];
 
         if ($userId) {
-            $where .= " AND (user_id = ? OR created_by = ?)";
+            $where .= " AND (ce.user_id = ? OR ce.created_by = ?)";
             $params[] = $userId;
             $params[] = $userId;
         }
