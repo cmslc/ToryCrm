@@ -95,61 +95,80 @@ function formatMoney(amount) {
 (function() {
     var pendingForm = null;
 
-    // Intercept all forms with onsubmit="return confirm(...)"
-    document.addEventListener('submit', function(e) {
-        var form = e.target;
-        var onsubmit = form.getAttribute('onsubmit');
-
-        if (!onsubmit || !onsubmit.includes('confirm(')) return;
-
-        // Prevent default submission
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Extract confirm message from onsubmit attribute
-        var match = onsubmit.match(/confirm\(['"](.+?)['"]\)/);
-        var message = match ? match[1] : 'Bạn có chắc chắn?';
-
-        // Detect action type for icon/color
-        var isDelete = message.toLowerCase().includes('xóa') || message.toLowerCase().includes('delete');
+    function showConfirmModal(message, onConfirm) {
         var modalEl = document.getElementById('confirmModal');
-        if (!modalEl) return;
+        if (!modalEl) { if (window.confirm(message)) onConfirm(); return; }
 
         var icon = modalEl.querySelector('.modal-body > div:first-child i');
+        var iconWrap = modalEl.querySelector('.modal-body > div:first-child');
         var title = document.getElementById('confirmTitle');
         var msg = document.getElementById('confirmMessage');
         var okBtn = document.getElementById('confirmOk');
 
+        var lowerMsg = message.toLowerCase();
+        var isDelete = lowerMsg.includes('xóa') || lowerMsg.includes('delete');
+        var isLock = lowerMsg.includes('khóa') || lowerMsg.includes('lock');
+        var isCancel = lowerMsg.includes('hủy') || lowerMsg.includes('cancel');
+        var isRestore = lowerMsg.includes('khôi phục') || lowerMsg.includes('restore');
+        var isConfirm = lowerMsg.includes('xác nhận') || lowerMsg.includes('duyệt');
+
         if (isDelete) {
-            icon.className = 'ri-delete-bin-line';
-            icon.parentElement.className = 'text-danger mb-4';
-            okBtn.className = 'btn w-sm btn-danger';
-            title.textContent = 'Xác nhận xóa';
+            icon.className = 'ri-delete-bin-line'; iconWrap.className = 'text-danger mb-4';
+            okBtn.className = 'btn w-sm btn-danger'; title.textContent = 'Xác nhận xóa';
+        } else if (isLock) {
+            icon.className = 'ri-lock-line'; iconWrap.className = 'text-warning mb-4';
+            okBtn.className = 'btn w-sm btn-warning'; title.textContent = 'Xác nhận';
+        } else if (isCancel) {
+            icon.className = 'ri-close-circle-line'; iconWrap.className = 'text-danger mb-4';
+            okBtn.className = 'btn w-sm btn-danger'; title.textContent = 'Xác nhận hủy';
+        } else if (isRestore) {
+            icon.className = 'ri-refresh-line'; iconWrap.className = 'text-success mb-4';
+            okBtn.className = 'btn w-sm btn-success'; title.textContent = 'Khôi phục';
+        } else if (isConfirm) {
+            icon.className = 'ri-check-double-line'; iconWrap.className = 'text-success mb-4';
+            okBtn.className = 'btn w-sm btn-success'; title.textContent = 'Xác nhận';
         } else {
-            icon.className = 'ri-error-warning-line';
-            icon.parentElement.className = 'text-warning mb-4';
-            okBtn.className = 'btn w-sm btn-primary';
-            title.textContent = 'Xác nhận';
+            icon.className = 'ri-error-warning-line'; iconWrap.className = 'text-warning mb-4';
+            okBtn.className = 'btn w-sm btn-primary'; title.textContent = 'Xác nhận';
         }
 
         msg.textContent = message;
-        pendingForm = form;
+        pendingForm = onConfirm;
 
         var modal = new bootstrap.Modal(modalEl);
         modal.show();
+    }
+
+    // Intercept form submit with confirm()
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        var onsubmit = form.getAttribute('onsubmit');
+        if (!onsubmit || !onsubmit.includes('confirm(')) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        var match = onsubmit.match(/confirm\(['"](.+?)['"]\)/);
+        var message = match ? match[1] : 'Bạn có chắc chắn?';
+
+        showConfirmModal(message, function() {
+            form.removeAttribute('onsubmit');
+            form.submit();
+        });
     }, true);
 
     // Handle confirm OK click
     document.addEventListener('click', function(e) {
         if (e.target.id === 'confirmOk' || e.target.closest('#confirmOk')) {
-            if (pendingForm) {
-                // Remove onsubmit to prevent re-triggering
-                pendingForm.removeAttribute('onsubmit');
-                pendingForm.submit();
+            if (typeof pendingForm === 'function') {
+                pendingForm();
                 pendingForm = null;
             }
             var modalEl = document.getElementById('confirmModal');
-            if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+            if (modalEl) {
+                var inst = bootstrap.Modal.getInstance(modalEl);
+                if (inst) inst.hide();
+            }
         }
     });
 })();

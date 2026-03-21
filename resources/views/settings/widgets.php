@@ -131,14 +131,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Reset defaults
     document.getElementById('reset-defaults').addEventListener('click', function() {
-        if (!confirm('Bạn có chắc muốn đặt lại mặc định? Tất cả widget sẽ được bật và về thứ tự ban đầu.')) return;
-        widgetList.querySelectorAll('.form-check-input').forEach(function(cb) {
-            cb.checked = true;
-        });
-        widgetList.querySelectorAll('.widget-item').forEach(function(item, index) {
-            var sortInput = item.querySelector('.widget-sort');
-            if (sortInput) sortInput.value = index;
-        });
+        var modalEl = document.getElementById('confirmModal');
+        if (!modalEl) return;
+        document.getElementById('confirmTitle').textContent = 'Đặt lại mặc định';
+        document.getElementById('confirmMessage').textContent = 'Tất cả widget sẽ được bật và về thứ tự ban đầu.';
+        document.getElementById('confirmOk').className = 'btn w-sm btn-warning';
+        modalEl.querySelector('.modal-body > div:first-child i').className = 'ri-refresh-line';
+        modalEl.querySelector('.modal-body > div:first-child').className = 'text-warning mb-4';
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        document.getElementById('confirmOk').onclick = function() {
+            widgetList.querySelectorAll('.form-check-input').forEach(function(cb) { cb.checked = true; });
+            widgetList.querySelectorAll('.widget-item').forEach(function(item, index) {
+                var sortInput = item.querySelector('.widget-sort');
+                if (sortInput) sortInput.value = index;
+            });
+            modal.hide();
+            document.getElementById('confirmOk').onclick = null;
+        };
     });
 });
 </script>
