@@ -117,7 +117,7 @@ class FileUploadService
                 unlink($fullPath);
             }
 
-            Database::delete('file_uploads', ['id' => $id]);
+            Database::delete('file_uploads', 'id = ?', [$id]);
 
             return true;
         } catch (\Exception $e) {
