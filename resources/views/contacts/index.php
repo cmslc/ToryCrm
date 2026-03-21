@@ -3,8 +3,8 @@
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Khách hàng</h4>
     <div class="d-flex gap-2">
-        <a href="<?= url('contacts/trash') ?>" class="btn btn-soft-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Thùng rác</a>
-        <a href="<?= url('contacts/create') ?>" class="btn btn-primary btn-sm"><i class="ri-add-line me-1"></i> Thêm KH</a>
+        <a href="<?= url('contacts/trash') ?>" class="btn btn-soft-danger btn"><i class="ri-delete-bin-line me-1"></i> Thùng rác</a>
+        <a href="<?= url('contacts/create') ?>" class="btn btn-primary btn"><i class="ri-add-line me-1"></i> Thêm KH</a>
     </div>
 </div>
 
@@ -48,12 +48,12 @@
         <form method="GET" action="<?= url('contacts') ?>" class="row g-2 align-items-center">
             <div class="col-md-3">
                 <div class="search-box">
-                    <input type="text" class="form-control form-control-sm search" name="search" placeholder="Tìm tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
+                    <input type="text" class="form-control form-control search" name="search" placeholder="Tìm tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
                     <i class="ri-search-line search-icon"></i>
                 </div>
             </div>
             <div class="col-md-2">
-                <select name="status" class="form-select form-select-sm">
+                <select name="status" class="form-select form-select">
                     <option value="">Trạng thái</option>
                     <?php foreach (['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'] as $k=>$v): ?>
                         <option value="<?= $k ?>" <?= ($filters['status'] ?? '') === $k ? 'selected' : '' ?>><?= $v ?></option>
@@ -61,7 +61,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select name="source_id" class="form-select form-select-sm">
+                <select name="source_id" class="form-select form-select">
                     <option value="">Nguồn</option>
                     <?php foreach ($sources ?? [] as $s): ?>
                         <option value="<?= $s['id'] ?>" <?= ($filters['source_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option>
@@ -69,7 +69,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select name="owner_id" class="form-select form-select-sm">
+                <select name="owner_id" class="form-select form-select">
                     <option value="">Phụ trách</option>
                     <?php foreach ($users ?? [] as $u): ?>
                         <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
@@ -77,9 +77,9 @@
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-1">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="ri-equalizer-fill me-1"></i> Lọc</button>
+                <button type="submit" class="btn btn-primary btn"><i class="ri-equalizer-fill me-1"></i> Lọc</button>
                 <?php if (!empty(array_filter($filters ?? []))): ?>
-                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger btn-sm"><i class="ri-close-line"></i></a>
+                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger btn"><i class="ri-close-line"></i></a>
                 <?php endif; ?>
             </div>
         </form>
@@ -144,7 +144,7 @@
                             <td class="text-muted fs-12"><?= time_ago($c['created_at']) ?></td>
                             <td>
                                 <div class="dropdown">
-                                    <button class="btn btn-soft-secondary btn-sm btn-icon" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                                    <button class="btn btn-soft-secondary btn " data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id']) ?>"><i class="ri-eye-line me-2 align-middle"></i>Xem</a></li>
                                         <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id'] . '/edit') ?>"><i class="ri-pencil-line me-2 align-middle"></i>Sửa</a></li>
@@ -170,7 +170,7 @@
                                     </span>
                                 </div>
                                 <h5 class="text-muted">Chưa có khách hàng nào</h5>
-                                <a href="<?= url('contacts/create') ?>" class="btn btn-primary btn-sm mt-2"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
+                                <a href="<?= url('contacts/create') ?>" class="btn btn-primary btn mt-2"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -184,7 +184,7 @@
                 Hiển thị <strong><?= count($contacts['items']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng
             </div>
             <nav>
-                <ul class="pagination pagination-sm mb-0">
+                <ul class="pagination pagination mb-0">
                     <?php if ($contacts['page'] > 1): ?>
                         <li class="page-item"><a class="page-link" href="<?= url('contacts?page=' . ($contacts['page']-1) . '&' . http_build_query(array_filter($filters ?? []))) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
                     <?php endif; ?>
