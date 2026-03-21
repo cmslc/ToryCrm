@@ -40,13 +40,8 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
                             'warning' => 'warning', 'info' => 'info', default => 'primary',
                         };
                         $alertIcons = ['success'=>'ri-check-double-line','danger'=>'ri-error-warning-line','warning'=>'ri-alert-line','info'=>'ri-information-line','primary'=>'ri-notification-3-line'];
-                    ?>
-                        <div class="alert alert-<?= $alertType ?> alert-border-left alert-dismissible fade show mb-3" role="alert">
-                            <i class="<?= $alertIcons[$alertType] ?? 'ri-notification-3-line' ?> me-3 align-middle fs-16"></i>
-                            <strong><?= $alertType === 'success' ? 'Thành công' : ($alertType === 'danger' ? 'Lỗi' : ($alertType === 'warning' ? 'Cảnh báo' : 'Thông báo')) ?></strong> - <?= e($flashMsg['message']) ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
+                        $alertLabels = ['success'=>'Thành công','danger'=>'Lỗi','warning'=>'Cảnh báo','info'=>'Thông báo','primary'=>'Thông báo'];
+                    endif; ?>
 
                     <?= $content ?? '' ?>
 
@@ -92,6 +87,27 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
 
     <!-- ToryCRM Custom JS -->
     <script src="<?= asset('js/torycrm.js') ?>?v=<?= time() ?>"></script>
+
+    <!-- Flash Toast -->
+    <?php if ($flashMsg): ?>
+    <div class="position-fixed top-0 end-0 p-3" style="z-index:9999;margin-top:70px">
+        <div id="flashToast" class="toast align-items-center text-bg-<?= $alertType ?> border-0 show" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="<?= $alertIcons[$alertType] ?> me-2"></i>
+                    <strong><?= $alertLabels[$alertType] ?></strong> - <?= e($flashMsg['message']) ?>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+    <script>
+    setTimeout(function() {
+        var t = document.getElementById('flashToast');
+        if (t) { t.classList.remove('show'); setTimeout(function() { t.parentElement.remove(); }, 300); }
+    }, 4000);
+    </script>
+    <?php endif; ?>
 
     <!-- Service Worker -->
     <script>
