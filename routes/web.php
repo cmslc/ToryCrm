@@ -25,12 +25,17 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Contacts
     Router::get('contacts', 'ContactController@index');
+    Router::get('contacts/trash', 'ContactController@trash');
     Router::get('contacts/create', 'ContactController@create');
     Router::post('contacts/store', 'ContactController@store');
     Router::get('contacts/{id}', 'ContactController@show');
     Router::get('contacts/{id}/edit', 'ContactController@edit');
+    Router::get('contacts/{id}/bonus-points', 'ContactController@bonusPoints');
     Router::post('contacts/{id}/update', 'ContactController@update');
     Router::post('contacts/{id}/delete', 'ContactController@delete');
+    Router::post('contacts/{id}/restore', 'ContactController@restore');
+    Router::post('contacts/{id}/change-owner', 'ContactController@changeOwner');
+    Router::post('contacts/{id}/add-bonus-points', 'ContactController@addBonusPoints');
 
     // Companies
     Router::get('companies', 'CompanyController@index');

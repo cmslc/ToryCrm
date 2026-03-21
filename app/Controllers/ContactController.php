@@ -270,24 +270,131 @@ class ContactController extends Controller
 
     public function delete($id)
     {
-        $contact = Database::fetch("SELECT * FROM contacts WHERE id = ?", [$id]);
+        if (!$this->isPost()) return $this->redirect('contacts');
 
+        $contact = $this->findSecure('contacts', (int)$id);
         if (!$contact) {
-            $this->setFlash('error', 'Contact not found.');
+            $this->setFlash('error', 'Khách hàng không tồn tại.');
             return $this->redirect('contacts');
         }
 
-        Database::delete('contacts', 'id = ?', [$id]);
+        // Soft delete
+        Database::softDelete('contacts', 'id = ?', [$id]);
 
-        // Log activity
         Database::insert('activities', [
             'type' => 'system',
-            'title' => "Contact deleted: {$contact['first_name']} {$contact['last_name']}",
-            'description' => "Contact {$contact['first_name']} {$contact['last_name']} was deleted.",
+            'title' => "Xóa khách hàng: {$contact['first_name']} {$contact['last_name']}",
             'user_id' => $this->userId(),
+            'contact_id' => (int)$id,
         ]);
 
-        $this->setFlash('success', 'Contact deleted successfully.');
+        $this->setFlash('success', 'Đã xóa khách hàng.');
         return $this->redirect('contacts');
+    }
+
+    // ---- Khôi phục khách hàng đã xóa ----
+    public function trash()
+    {
+        $tid = Database::tenantId();
+        $contacts = Database::fetchAll(
+            "SELECT c.*, comp.name as company_name
+             FROM contacts c
+             LEFT JOIN companies comp ON c.company_id = comp.id
+             WHERE c.is_deleted = 1 AND c.tenant_id = ?
+             ORDER BY c.deleted_at DESC",
+            [$tid]
+        );
+
+        return $this->view('contacts.trash', ['contacts' => $contacts]);
+    }
+
+    public function restore($id)
+    {
+        if (!$this->isPost()) return $this->redirect('contacts/trash');
+
+        Database::restore('contacts', 'id = ?', [$id]);
+
+        $this->setFlash('success', 'Đã khôi phục khách hàng.');
+        return $this->redirect('contacts/trash');
+    }
+
+    // ---- Đổi người phụ trách ----
+    public function changeOwner($id)
+    {
+        if (!$this->isPost()) return $this->redirect('contacts/' . $id);
+
+        $contact = $this->findSecure('contacts', (int)$id);
+        if (!$contact) {
+            $this->setFlash('error', 'Khách hàng không tồn tại.');
+            return $this->redirect('contacts');
+        }
+
+        $newOwnerId = $this->input('owner_id');
+        if (empty($newOwnerId)) {
+            $this->setFlash('error', 'Vui lòng chọn người phụ trách.');
+            return $this->back();
+        }
+
+        $oldOwner = Database::fetch("SELECT name FROM users WHERE id = ?", [$contact['owner_id'] ?? 0]);
+        $newOwner = Database::fetch("SELECT name FROM users WHERE id = ?", [$newOwnerId]);
+
+        Database::update('contacts', ['owner_id' => $newOwnerId], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Đổi người phụ trách: {$contact['first_name']} {$contact['last_name']}",
+            'description' => ($oldOwner['name'] ?? 'Chưa gán') . ' → ' . ($newOwner['name'] ?? ''),
+            'user_id' => $this->userId(),
+            'contact_id' => (int)$id,
+        ]);
+
+        $this->setFlash('success', 'Đã đổi người phụ trách.');
+        return $this->redirect('contacts/' . $id);
+    }
+
+    // ---- Điểm thưởng ----
+    public function bonusPoints($id)
+    {
+        $contact = $this->findSecure('contacts', (int)$id);
+        if (!$contact) {
+            $this->setFlash('error', 'Khách hàng không tồn tại.');
+            return $this->redirect('contacts');
+        }
+
+        return $this->view('contacts.bonus-points', ['contact' => $contact]);
+    }
+
+    public function addBonusPoints($id)
+    {
+        if (!$this->isPost()) return $this->redirect('contacts/' . $id);
+
+        $contact = $this->findSecure('contacts', (int)$id);
+        if (!$contact) {
+            $this->setFlash('error', 'Khách hàng không tồn tại.');
+            return $this->redirect('contacts');
+        }
+
+        $points = (int)$this->input('points');
+        $reason = trim($this->input('reason') ?? '');
+
+        if ($points == 0) {
+            $this->setFlash('error', 'Số điểm phải khác 0.');
+            return $this->back();
+        }
+
+        $newTotal = ($contact['bonus_points'] ?? 0) + $points;
+        Database::update('contacts', ['bonus_points' => max(0, $newTotal)], 'id = ?', [$id]);
+
+        $action = $points > 0 ? 'Cộng' : 'Trừ';
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "{$action} " . abs($points) . " điểm thưởng cho {$contact['first_name']} {$contact['last_name']}",
+            'description' => $reason ?: null,
+            'user_id' => $this->userId(),
+            'contact_id' => (int)$id,
+        ]);
+
+        $this->setFlash('success', "Đã {$action} " . abs($points) . " điểm. Tổng: {$newTotal} điểm.");
+        return $this->redirect('contacts/' . $id);
     }
 }

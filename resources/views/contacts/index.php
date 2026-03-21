@@ -4,7 +4,10 @@
             <div class="col-12">
                 <div class="page-title-box d-flex align-items-center justify-content-between">
                     <h4 class="mb-0">Khách hàng</h4>
-                    <div class="page-title-right">
+                    <div class="page-title-right d-flex gap-2">
+                        <a href="<?= url('contacts/trash') ?>" class="btn btn-soft-danger">
+                            <i class="ri-delete-bin-line me-1"></i> Thùng rác
+                        </a>
                         <a href="<?= url('contacts/create') ?>" class="btn btn-primary">
                             <i class="ri-add-line align-bottom me-1"></i> Thêm khách hàng
                         </a>

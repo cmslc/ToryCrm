@@ -40,15 +40,51 @@
                             <?= $sLabels[$contact['status']] ?? $contact['status'] ?>
                         </span>
 
-                        <div class="mt-4 d-flex gap-2 justify-content-center">
+                        <!-- Bonus Points -->
+                        <div class="mt-3 p-2 bg-warning-subtle rounded">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <i class="ri-star-fill text-warning fs-20"></i>
+                                <span class="fw-semibold fs-16"><?= number_format($contact['bonus_points'] ?? 0) ?> điểm</span>
+                            </div>
+                            <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn-sm btn-soft-warning w-100 mt-2">
+                                <i class="ri-add-line me-1"></i> Quản lý điểm
+                            </a>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
                             <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary btn-sm">
                                 <i class="ri-pencil-line me-1"></i> Sửa
+                            </a>
+                            <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn-warning btn-sm">
+                                <i class="ri-star-line me-1"></i> Điểm thưởng
                             </a>
                             <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/delete') ?>" onsubmit="return confirm('Xác nhận xóa?')">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Change Owner -->
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0">Người phụ trách</h5></div>
+                    <div class="card-body">
+                        <p class="mb-2"><strong><?= e($contact['owner_name'] ?? 'Chưa gán') ?></strong></p>
+                        <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/change-owner') ?>">
+                            <?= csrf_field() ?>
+                            <div class="input-group input-group-sm">
+                                <select name="owner_id" class="form-select form-select-sm">
+                                    <option value="">Chọn người mới</option>
+                                    <?php
+                                    $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+                                    foreach ($allUsers as $u): ?>
+                                        <option value="<?= $u['id'] ?>" <?= ($contact['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" class="btn btn-soft-primary"><i class="ri-refresh-line"></i></button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
