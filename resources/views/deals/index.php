@@ -57,7 +57,7 @@
                                     <tr>
                                         <td><a href="<?= url('deals/' . $deal['id']) ?>" class="fw-medium text-dark"><?= e($deal['title']) ?></a></td>
                                         <td class="fw-medium"><?= format_money($deal['value']) ?></td>
-                                        <td><span class="badge" style="background-color:<?= $deal['stage_color'] ?? '#405189' ?>"><?= e($deal['stage_name'] ?? '') ?></span></td>
+                                        <td><span class="badge" style="background-color:<?= safe_color($deal['stage_color'] ?? null) ?>"><?= e($deal['stage_name'] ?? '') ?></span></td>
                                         <td><?= e(($deal['contact_first_name'] ?? '') . ' ' . ($deal['contact_last_name'] ?? '')) ?: '-' ?></td>
                                         <td><?= e($deal['company_name'] ?? '-') ?></td>
                                         <td>

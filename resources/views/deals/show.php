@@ -28,7 +28,7 @@
                             </form>
                         </div>
                         <table class="table table-borderless mb-0">
-                            <tr><th class="text-muted" width="40%">Giai đoạn</th><td><span class="badge" style="background:<?= $deal['stage_color'] ?? '#405189' ?>"><?= e($deal['stage_name'] ?? '') ?></span></td></tr>
+                            <tr><th class="text-muted" width="40%">Giai đoạn</th><td><span class="badge" style="background:<?= safe_color($deal['stage_color'] ?? null) ?>"><?= e($deal['stage_name'] ?? '') ?></span></td></tr>
                             <tr><th class="text-muted">Ưu tiên</th><td><?php $pl=['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn']; echo $pl[$deal['priority']] ?? ''; ?></td></tr>
                             <tr><th class="text-muted">Khách hàng</th><td><?= $deal['contact_id'] ? '<a href="' . url('contacts/' . $deal['contact_id']) . '">' . e($deal['contact_first_name'] . ' ' . ($deal['contact_last_name'] ?? '')) . '</a>' : '-' ?></td></tr>
                             <tr><th class="text-muted">Công ty</th><td><?= $deal['company_id'] ? '<a href="' . url('companies/' . $deal['company_id']) . '">' . e($deal['company_name']) . '</a>' : '-' ?></td></tr>

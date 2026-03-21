@@ -86,3 +86,14 @@ function avatar_url(?string $avatar): string
     }
     return url('images/default-avatar.png');
 }
+
+/**
+ * Sanitize color value - only allow valid hex colors
+ */
+function safe_color(?string $color, string $default = '#405189'): string
+{
+    if ($color && preg_match('/^#[0-9a-fA-F]{3,6}$/', $color)) {
+        return $color;
+    }
+    return $default;
+}

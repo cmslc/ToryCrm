@@ -97,7 +97,7 @@
                                         <th class="text-muted"><i class="ri-links-line me-2"></i>Nguồn</th>
                                         <td>
                                             <?php if ($contact['source_name']): ?>
-                                                <span class="badge" style="background-color: <?= $contact['source_color'] ?>"><?= e($contact['source_name']) ?></span>
+                                                <span class="badge" style="background-color: <?= safe_color($contact['source_color']) ?>"><?= e($contact['source_name']) ?></span>
                                             <?php else: ?>
                                                 -
                                             <?php endif; ?>
@@ -215,7 +215,7 @@
                                             <tr>
                                                 <td><a href="<?= url('deals/' . $deal['id']) ?>"><?= e($deal['title']) ?></a></td>
                                                 <td><?= format_money($deal['value']) ?></td>
-                                                <td><span class="badge" style="background-color: <?= $deal['stage_color'] ?? '#405189' ?>"><?= e($deal['stage_name'] ?? '') ?></span></td>
+                                                <td><span class="badge" style="background-color: <?= safe_color($deal['stage_color'] ?? null) ?>"><?= e($deal['stage_name'] ?? '') ?></span></td>
                                                 <td>
                                                     <?php $dColors = ['open' => 'primary', 'won' => 'success', 'lost' => 'danger']; ?>
                                                     <span class="badge bg-<?= $dColors[$deal['status']] ?? 'secondary' ?>"><?= $deal['status'] ?></span>

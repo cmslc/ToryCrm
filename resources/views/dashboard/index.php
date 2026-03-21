@@ -130,7 +130,7 @@
                     <?php foreach ($pipelineSummary as $stage): ?>
                         <div class="d-flex align-items-center mb-3">
                             <div class="flex-shrink-0">
-                                <span class="badge rounded-pill" style="background-color:<?= $stage['color'] ?>;min-width:28px"><?= $stage['count'] ?? 0 ?></span>
+                                <span class="badge rounded-pill" style="background-color:<?= safe_color($stage['color'] ?? null) ?>;min-width:28px"><?= $stage['count'] ?? 0 ?></span>
                             </div>
                             <div class="flex-grow-1 ms-2">
                                 <p class="mb-0 fs-13"><?= e($stage['name']) ?></p>
@@ -161,7 +161,7 @@
                     <?php foreach ($todayEvents as $ev): ?>
                         <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                             <div class="flex-shrink-0">
-                                <span class="badge fs-12" style="background-color:<?= $ev['color'] ?? '#405189' ?>"><?= date('H:i', strtotime($ev['start_at'])) ?></span>
+                                <span class="badge fs-12" style="background-color:<?= safe_color($ev['color']) ?>"><?= date('H:i', strtotime($ev['start_at'])) ?></span>
                             </div>
                             <div class="flex-grow-1 ms-3 overflow-hidden">
                                 <a href="<?= url('calendar/' . $ev['id']) ?>" class="fw-medium text-dark text-truncate d-block"><?= e($ev['title']) ?></a>

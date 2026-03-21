@@ -19,9 +19,19 @@ class Model
     public function all(string $orderBy = 'id DESC', int $limit = 0): array
     {
         [$where, $params] = Database::scoped($this->table);
-        $sql = "SELECT * FROM {$this->table} WHERE {$where} ORDER BY {$orderBy}";
-        if ($limit > 0) $sql .= " LIMIT {$limit}";
+        $safeOrder = self::sanitizeOrderBy($orderBy);
+        $sql = "SELECT * FROM {$this->table} WHERE {$where} ORDER BY {$safeOrder}";
+        if ($limit > 0) $sql .= " LIMIT " . (int)$limit;
         return Database::fetchAll($sql, $params);
+    }
+
+    protected static function sanitizeOrderBy(string $orderBy): string
+    {
+        $parts = explode(' ', trim($orderBy));
+        $column = preg_replace('/[^a-zA-Z0-9_.]/', '', $parts[0] ?? 'id');
+        $direction = strtoupper($parts[1] ?? 'DESC');
+        if (!in_array($direction, ['ASC', 'DESC'])) $direction = 'DESC';
+        return "{$column} {$direction}";
     }
 
     public function where(string $column, $value, string $operator = '='): array
@@ -96,8 +106,9 @@ class Model
         $totalPages = ceil($total / $perPage);
         $offset = ($page - 1) * $perPage;
 
+        $safeOrder = self::sanitizeOrderBy($orderBy);
         $items = Database::fetchAll(
-            "SELECT * FROM {$this->table} WHERE {$scopedWhere} ORDER BY {$orderBy} LIMIT {$perPage} OFFSET {$offset}",
+            "SELECT * FROM {$this->table} WHERE {$scopedWhere} ORDER BY {$safeOrder} LIMIT " . (int)$perPage . " OFFSET " . (int)$offset,
             $scopedParams
         );
 

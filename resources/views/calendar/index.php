@@ -25,7 +25,7 @@
                                 <div class="d-flex align-items-start mb-3">
                                     <div class="flex-shrink-0">
                                         <div class="avatar-xs">
-                                            <span class="avatar-title rounded-circle" style="background-color:<?= $event['color'] ?? '#405189' ?>">
+                                            <span class="avatar-title rounded-circle" style="background-color:<?= safe_color($event['color']) ?>">
                                                 <?php
                                                 $icons = ['meeting'=>'ri-team-line','call'=>'ri-phone-line','visit'=>'ri-map-pin-line','reminder'=>'ri-alarm-line','other'=>'ri-calendar-event-line'];
                                                 ?>
@@ -60,7 +60,7 @@
                             <?php foreach ($upcoming as $event): ?>
                                 <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
                                     <div class="flex-shrink-0">
-                                        <div style="width:4px;height:40px;border-radius:2px;background:<?= $event['color'] ?? '#405189' ?>"></div>
+                                        <div style="width:4px;height:40px;border-radius:2px;background:<?= safe_color($event['color']) ?>"></div>
                                     </div>
                                     <div class="flex-grow-1 ms-3">
                                         <a href="<?= url('calendar/' . $event['id']) ?>" class="fw-medium text-dark d-block"><?= e($event['title']) ?></a>

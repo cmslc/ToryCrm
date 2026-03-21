@@ -32,7 +32,7 @@
                                 <tbody>
                                     <?php foreach ($bySource ?? [] as $row): ?>
                                     <tr>
-                                        <td><span class="badge" style="background:<?= $row['color'] ?>">&nbsp;</span> <?= e($row['name']) ?></td>
+                                        <td><span class="badge" style="background:<?= safe_color($row['color'] ?? null) ?>">&nbsp;</span> <?= e($row['name']) ?></td>
                                         <td class="text-end fw-medium"><?= $row['count'] ?></td>
                                     </tr>
                                     <?php endforeach; ?>

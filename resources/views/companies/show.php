@@ -103,7 +103,7 @@
                                             <tr>
                                                 <td><a href="<?= url('deals/' . $d['id']) ?>"><?= e($d['title']) ?></a></td>
                                                 <td><?= format_money($d['value']) ?></td>
-                                                <td><span class="badge" style="background-color:<?= $d['stage_color'] ?? '#405189' ?>"><?= e($d['stage_name'] ?? '') ?></span></td>
+                                                <td><span class="badge" style="background-color:<?= safe_color($d['stage_color'] ?? null) ?>"><?= e($d['stage_name'] ?? '') ?></span></td>
                                                 <td><?php $dc=['open'=>'primary','won'=>'success','lost'=>'danger']; ?><span class="badge bg-<?= $dc[$d['status']] ?? 'secondary' ?>"><?= $d['status'] ?></span></td>
                                             </tr>
                                         <?php endforeach; ?>

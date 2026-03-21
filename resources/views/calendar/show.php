@@ -18,7 +18,7 @@ $typeIcons = ['meeting'=>'ri-team-line','call'=>'ri-phone-line','visit'=>'ri-map
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title mb-1"><?= e($event['title']) ?></h5>
-                            <span class="badge" style="background-color:<?= $event['color'] ?? '#405189' ?>">
+                            <span class="badge" style="background-color:<?= safe_color($event['color']) ?>">
                                 <i class="<?= $typeIcons[$event['type']] ?? 'ri-calendar-event-line' ?> me-1"></i>
                                 <?= $typeLabels[$event['type']] ?? '' ?>
                             </span>

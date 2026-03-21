@@ -90,7 +90,7 @@
                         <table class="table table-borderless mb-0">
                             <tr><th class="text-muted" width="40%">Danh mục</th><td>
                                 <?php if (!empty($ticket['category_name'])): ?>
-                                    <span class="badge" style="background-color:<?= $ticket['category_color'] ?? '#405189' ?>"><?= e($ticket['category_name']) ?></span>
+                                    <span class="badge" style="background-color:<?= safe_color($ticket['category_color'] ?? null) ?>"><?= e($ticket['category_name']) ?></span>
                                 <?php else: ?>
                                     -
                                 <?php endif; ?>

@@ -14,12 +14,10 @@ class Controller
             die("View not found: {$view}");
         }
 
-        // Start output buffering for content
         ob_start();
         require $viewPath;
         $content = ob_get_clean();
 
-        // If view uses layout
         $layoutPath = BASE_PATH . '/resources/views/layouts/app.php';
         if (file_exists($layoutPath) && !isset($noLayout)) {
             require $layoutPath;
@@ -82,5 +80,52 @@ class Controller
     protected function tenantId(): int
     {
         return (int) ($_SESSION['tenant_id'] ?? 1);
+    }
+
+    /**
+     * Find a record by ID with automatic tenant scope.
+     * Returns null if not found or belongs to different tenant.
+     */
+    protected function findSecure(string $table, int $id, string $alias = ''): ?array
+    {
+        $prefix = $alias ? "{$alias}." : '';
+        $conditions = ["{$prefix}id = ?"];
+        $params = [$id];
+
+        // Add tenant scope for tenant-scoped tables
+        if (Database::isTenantScoped($table)) {
+            $conditions[] = "{$prefix}tenant_id = ?";
+            $params[] = $this->tenantId();
+        }
+
+        // Add soft delete filter
+        if (Database::hasSoftDelete($table)) {
+            $conditions[] = "{$prefix}is_deleted = 0";
+        }
+
+        $where = implode(' AND ', $conditions);
+        return Database::fetch("SELECT * FROM `{$table}` WHERE {$where}", $params);
+    }
+
+    /**
+     * Sanitize orderBy to prevent SQL injection.
+     * Only allows column names from whitelist.
+     */
+    protected function sanitizeOrderBy(string $orderBy, array $allowedColumns = ['id', 'created_at', 'updated_at', 'name', 'title']): string
+    {
+        $parts = explode(' ', trim($orderBy));
+        $column = preg_replace('/[^a-zA-Z0-9_.]/', '', $parts[0] ?? 'id');
+        $direction = strtoupper($parts[1] ?? 'DESC');
+
+        if (!in_array($direction, ['ASC', 'DESC'])) $direction = 'DESC';
+
+        // Extract base column name (remove alias prefix like "c.")
+        $baseColumn = str_contains($column, '.') ? explode('.', $column)[1] : $column;
+
+        if (!in_array($baseColumn, $allowedColumns)) {
+            return 'id DESC';
+        }
+
+        return "{$column} {$direction}";
     }
 }
