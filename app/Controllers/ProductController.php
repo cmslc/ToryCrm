@@ -229,14 +229,15 @@ class ProductController extends Controller
 
     public function delete($id)
     {
-        $product = Database::fetch("SELECT * FROM products WHERE id = ?", [$id]);
+        if (!$this->isPost()) return $this->redirect('products');
 
+        $product = $this->findSecure('products', (int)$id);
         if (!$product) {
             $this->setFlash('error', 'Sản phẩm không tồn tại.');
             return $this->redirect('products');
         }
 
-        Database::delete('products', 'id = ?', [$id]);
+        Database::softDelete('products', 'id = ?', [$id]);
 
         Database::insert('activities', [
             'type' => 'system',
@@ -244,7 +245,32 @@ class ProductController extends Controller
             'user_id' => $this->userId(),
         ]);
 
-        $this->setFlash('success', 'Xóa sản phẩm thành công.');
+        $this->setFlash('success', 'Đã xóa sản phẩm.');
         return $this->redirect('products');
+    }
+
+    public function trash()
+    {
+        $tid = Database::tenantId();
+        $products = Database::fetchAll(
+            "SELECT p.*, pc.name as category_name
+             FROM products p
+             LEFT JOIN product_categories pc ON p.category_id = pc.id
+             WHERE p.is_deleted = 1 AND p.tenant_id = ?
+             ORDER BY p.deleted_at DESC",
+            [$tid]
+        );
+
+        return $this->view('products.trash', ['products' => $products]);
+    }
+
+    public function restore($id)
+    {
+        if (!$this->isPost()) return $this->redirect('products/trash');
+
+        Database::restore('products', 'id = ?', [$id]);
+
+        $this->setFlash('success', 'Đã khôi phục sản phẩm.');
+        return $this->redirect('products/trash');
     }
 }

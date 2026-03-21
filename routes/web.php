@@ -74,12 +74,14 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Products
     Router::get('products', 'ProductController@index');
+    Router::get('products/trash', 'ProductController@trash');
     Router::get('products/create', 'ProductController@create');
     Router::post('products/store', 'ProductController@store');
     Router::get('products/{id}', 'ProductController@show');
     Router::get('products/{id}/edit', 'ProductController@edit');
     Router::post('products/{id}/update', 'ProductController@update');
     Router::post('products/{id}/delete', 'ProductController@delete');
+    Router::post('products/{id}/restore', 'ProductController@restore');
 
     // Orders
     Router::get('orders/pdf/{id}', 'OrderController@pdf');

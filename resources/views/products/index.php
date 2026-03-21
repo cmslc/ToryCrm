@@ -2,7 +2,10 @@
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Sản phẩm & Dịch vụ</h4>
-            <a href="<?= url('products/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm sản phẩm</a>
+            <div class="d-flex gap-2">
+                <a href="<?= url('products/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
+                <a href="<?= url('products/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm sản phẩm</a>
+            </div>
         </div>
 
         <div class="card">
