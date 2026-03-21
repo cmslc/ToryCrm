@@ -157,7 +157,7 @@
                 <h5 class="card-title mb-0 flex-grow-1">
                     <i class="ri-file-list-3-line me-1"></i> Hóa đơn gần đây
                 </h5>
-                <a href="<?= url('billing/invoices') ?>" class="btn btn-sm btn-soft-primary">Xem tất cả</a>
+                <a href="<?= url('billing/invoices') ?>" class="btn btn btn-soft-primary">Xem tất cả</a>
             </div>
             <div class="card-body">
                 <div class="table-responsive">

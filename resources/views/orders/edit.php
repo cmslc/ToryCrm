@@ -81,7 +81,7 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">Sản phẩm / Dịch vụ</h5>
-                            <button type="button" class="btn btn-sm btn-soft-primary" onclick="addOrderItem()">
+                            <button type="button" class="btn btn btn-soft-primary" onclick="addOrderItem()">
                                 <i class="ri-add-line me-1"></i> Thêm dòng
                             </button>
                         </div>
@@ -111,14 +111,14 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                                             <td colspan="2" class="text-end">
                                                 <div class="d-flex align-items-center justify-content-end gap-2">
                                                     <span>Giảm giá:</span>
-                                                    <select name="discount_type" class="form-select form-select-sm" style="width:90px">
+                                                    <select name="discount_type" class="form-select form-select" style="width:90px">
                                                         <option value="fixed" <?= ($order['discount_type'] ?? '') === 'fixed' ? 'selected' : '' ?>>VNĐ</option>
                                                         <option value="percent" <?= ($order['discount_type'] ?? '') === 'percent' ? 'selected' : '' ?>>%</option>
                                                     </select>
                                                 </div>
                                             </td>
                                             <td>
-                                                <input type="number" class="form-control form-control-sm" name="discount_amount" value="<?= $order['discount_amount'] ?? 0 ?>" min="0" onchange="calculateTotal()">
+                                                <input type="number" class="form-control form-control" name="discount_amount" value="<?= $order['discount_amount'] ?? 0 ?>" min="0" onchange="calculateTotal()">
                                             </td>
                                             <td></td>
                                         </tr>
@@ -198,18 +198,18 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
 
             tr.innerHTML = `
                 <td>
-                    <select class="form-select form-select-sm product-select" onchange="selectProduct(this, ${idx})">
+                    <select class="form-select form-select product-select" onchange="selectProduct(this, ${idx})">
                         ${productOptions}
                     </select>
                     <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data ? data.product_id || '' : ''}">
                     <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data ? data.product_name || '' : ''}">
                 </td>
-                <td><input type="number" class="form-control form-control-sm" name="items[${idx}][quantity]" value="${data ? data.quantity : 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
-                <td><input type="text" class="form-control form-control-sm" name="items[${idx}][unit]" id="item-unit-${idx}" value="${data ? data.unit : 'Cái'}"></td>
-                <td><input type="number" class="form-control form-control-sm" name="items[${idx}][unit_price]" id="item-price-${idx}" value="${data ? data.unit_price : 0}" min="0" onchange="calculateRow(${idx})"></td>
-                <td><input type="number" class="form-control form-control-sm" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data ? data.tax_rate : 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control form-control" name="items[${idx}][quantity]" value="${data ? data.quantity : 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td><input type="text" class="form-control form-control" name="items[${idx}][unit]" id="item-unit-${idx}" value="${data ? data.unit : 'Cái'}"></td>
+                <td><input type="number" class="form-control form-control" name="items[${idx}][unit_price]" id="item-price-${idx}" value="${data ? data.unit_price : 0}" min="0" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data ? data.tax_rate : 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
                 <td class="fw-medium" id="item-total-${idx}">0 ₫</td>
-                <td><button type="button" class="btn btn-sm btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
+                <td><button type="button" class="btn btn btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
             `;
             tbody.appendChild(tr);
             calculateRow(idx);

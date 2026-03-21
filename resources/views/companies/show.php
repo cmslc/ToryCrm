@@ -20,10 +20,10 @@
                         <h5 class="mb-1"><?= e($company['name']) ?></h5>
                         <p class="text-muted"><?= e($company['industry'] ?? '') ?></p>
                         <div class="d-flex gap-2 justify-content-center">
-                            <a href="<?= url('companies/' . $company['id'] . '/edit') ?>" class="btn btn-primary btn-sm"><i class="ri-pencil-line me-1"></i> Sửa</a>
+                            <a href="<?= url('companies/' . $company['id'] . '/edit') ?>" class="btn btn-primary btn"><i class="ri-pencil-line me-1"></i> Sửa</a>
                             <form method="POST" action="<?= url('companies/' . $company['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?>
-                                <button class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
+                                <button class="btn btn-danger btn"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>
                         </div>
                     </div>
@@ -55,7 +55,7 @@
                 <div class="card">
                     <div class="card-header d-flex">
                         <h5 class="card-title mb-0 flex-grow-1">Liên hệ (<?= count($contacts ?? []) ?>)</h5>
-                        <a href="<?= url('contacts/create?company_id=' . $company['id']) ?>" class="btn btn-sm btn-soft-primary">Thêm liên hệ</a>
+                        <a href="<?= url('contacts/create?company_id=' . $company['id']) ?>" class="btn btn btn-soft-primary">Thêm liên hệ</a>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($contacts)): ?>
@@ -89,7 +89,7 @@
                 <div class="card">
                     <div class="card-header d-flex">
                         <h5 class="card-title mb-0 flex-grow-1">Cơ hội kinh doanh</h5>
-                        <a href="<?= url('deals/create?company_id=' . $company['id']) ?>" class="btn btn-sm btn-soft-primary">Thêm cơ hội</a>
+                        <a href="<?= url('deals/create?company_id=' . $company['id']) ?>" class="btn btn btn-soft-primary">Thêm cơ hội</a>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($deals)): ?>

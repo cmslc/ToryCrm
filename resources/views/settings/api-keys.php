@@ -29,7 +29,7 @@
                                             <td><?= number_format($k['request_count']) ?></td>
                                             <td>
                                                 <form method="POST" action="<?= url('settings/api-keys/' . $k['id'] . '/delete') ?>" data-confirm="Xóa API key?">
-                                                    <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                                    <?= csrf_field() ?><button class="btn btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
                                                 </form>
                                             </td>
                                         </tr>

@@ -59,7 +59,7 @@
                     <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between">
                             <h5 class="card-title mb-0"><i class="ri-filter-line me-1"></i> Điều kiện (Conditions)</h5>
-                            <button type="button" class="btn btn-sm btn-soft-primary" id="btnAddCondition">
+                            <button type="button" class="btn btn btn-soft-primary" id="btnAddCondition">
                                 <i class="ri-add-line me-1"></i> Thêm điều kiện
                             </button>
                         </div>
@@ -78,7 +78,7 @@
                     <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between">
                             <h5 class="card-title mb-0"><i class="ri-flashlight-line me-1"></i> Hành động (Actions)</h5>
-                            <button type="button" class="btn btn-sm btn-soft-primary" id="btnAddAction">
+                            <button type="button" class="btn btn btn-soft-primary" id="btnAddAction">
                                 <i class="ri-add-line me-1"></i> Thêm hành động
                             </button>
                         </div>
@@ -145,7 +145,7 @@
                         '<input type="text" class="form-control" name="conditions[' + idx + '][value]" placeholder="Giá trị">' +
                     '</div>' +
                     '<div class="col-md-2">' +
-                        '<button type="button" class="btn btn-sm btn-soft-danger btn-remove-condition" title="Xóa">' +
+                        '<button type="button" class="btn btn btn-soft-danger btn-remove-condition" title="Xóa">' +
                             '<i class="ri-delete-bin-line"></i> Xóa' +
                         '</button>' +
                     '</div>';
@@ -197,7 +197,7 @@
                             '</div>' +
                             '<div class="col-md-7 action-fields"></div>' +
                             '<div class="col-md-2 d-flex align-items-end">' +
-                                '<button type="button" class="btn btn-sm btn-soft-danger btn-remove-action mt-4" title="Xóa">' +
+                                '<button type="button" class="btn btn btn-soft-danger btn-remove-action mt-4" title="Xóa">' +
                                     '<i class="ri-delete-bin-line"></i> Xóa' +
                                 '</button>' +
                             '</div>' +

@@ -74,16 +74,16 @@
                                             <div class="d-flex gap-1">
                                                 <form method="POST" action="<?= url('automation/' . $rule['id'] . '/toggle-active') ?>">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn btn-sm btn-soft-<?= $rule['is_active'] ? 'warning' : 'success' ?>" title="<?= $rule['is_active'] ? 'Tắt' : 'Bật' ?>">
+                                                    <button type="submit" class="btn btn btn-soft-<?= $rule['is_active'] ? 'warning' : 'success' ?>" title="<?= $rule['is_active'] ? 'Tắt' : 'Bật' ?>">
                                                         <i class="ri-<?= $rule['is_active'] ? 'stop-circle-line' : 'play-circle-line' ?>"></i>
                                                     </button>
                                                 </form>
-                                                <button type="button" class="btn btn-sm btn-soft-info btn-view-logs" data-rule-id="<?= $rule['id'] ?>" title="Xem logs">
+                                                <button type="button" class="btn btn btn-soft-info btn-view-logs" data-rule-id="<?= $rule['id'] ?>" title="Xem logs">
                                                     <i class="ri-file-list-line"></i>
                                                 </button>
                                                 <form method="POST" action="<?= url('automation/' . $rule['id'] . '/delete') ?>" data-confirm="Xác nhận xóa automation rule này?">
                                                     <?= csrf_field() ?>
-                                                    <button type="submit" class="btn btn-sm btn-soft-danger" title="Xóa">
+                                                    <button type="submit" class="btn btn btn-soft-danger" title="Xóa">
                                                         <i class="ri-delete-bin-line"></i>
                                                     </button>
                                                 </form>
@@ -141,7 +141,7 @@
                         .then(function(response) { return response.json(); })
                         .then(function(data) {
                             if (data.logs && data.logs.length > 0) {
-                                var html = '<div class="table-responsive"><table class="table table-sm align-middle mb-0">';
+                                var html = '<div class="table-responsive"><table class="table table align-middle mb-0">';
                                 html += '<thead class="table-light"><tr><th>Thời gian</th><th>Kết quả</th><th>Người kích hoạt</th><th>Chi tiết</th></tr></thead><tbody>';
                                 data.logs.forEach(function(log) {
                                     var statusBadge = log.status === 'success'

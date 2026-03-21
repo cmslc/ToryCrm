@@ -44,7 +44,7 @@
                     <div class="card-header"><h5 class="card-title mb-0">Lịch sử gọi (<?= count($logs) ?> gần nhất)</h5></div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-sm align-middle mb-0">
+                            <table class="table table align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Event</th>

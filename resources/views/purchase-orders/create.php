@@ -44,7 +44,7 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">Sản phẩm</h5>
-                            <button type="button" class="btn btn-sm btn-soft-primary" onclick="addItem()"><i class="ri-add-line me-1"></i> Thêm dòng</button>
+                            <button type="button" class="btn btn btn-soft-primary" onclick="addItem()"><i class="ri-add-line me-1"></i> Thêm dòng</button>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -65,7 +65,7 @@
                                         <tr>
                                             <td colspan="3"></td>
                                             <td colspan="2" class="text-end fw-medium">Giảm giá:</td>
-                                            <td><input type="number" class="form-control form-control-sm" name="discount_amount" value="0" min="0" onchange="calcTotal()"></td>
+                                            <td><input type="number" class="form-control form-control" name="discount_amount" value="0" min="0" onchange="calcTotal()"></td>
                                             <td></td>
                                         </tr>
                                         <tr>
@@ -125,15 +125,15 @@
             const tr = document.createElement('tr');
             tr.id = 'row-' + i;
             tr.innerHTML = `
-                <td><select class="form-select form-select-sm" onchange="selProd(this,${i})">${opts}</select>
+                <td><select class="form-select form-select" onchange="selProd(this,${i})">${opts}</select>
                     <input type="hidden" name="items[${i}][product_id]" id="pid-${i}">
                     <input type="hidden" name="items[${i}][product_name]" id="pn-${i}"></td>
-                <td><input type="number" class="form-control form-control-sm" name="items[${i}][quantity]" value="1" min="0.01" step="0.01" onchange="calcRow(${i})"></td>
-                <td><input type="text" class="form-control form-control-sm" name="items[${i}][unit]" id="pu-${i}" value="Cái"></td>
-                <td><input type="number" class="form-control form-control-sm" name="items[${i}][unit_price]" id="pp-${i}" value="0" min="0" onchange="calcRow(${i})"></td>
-                <td><input type="number" class="form-control form-control-sm" name="items[${i}][tax_rate]" id="pt-${i}" value="0" min="0" max="100" step="0.01" onchange="calcRow(${i})"></td>
+                <td><input type="number" class="form-control form-control" name="items[${i}][quantity]" value="1" min="0.01" step="0.01" onchange="calcRow(${i})"></td>
+                <td><input type="text" class="form-control form-control" name="items[${i}][unit]" id="pu-${i}" value="Cái"></td>
+                <td><input type="number" class="form-control form-control" name="items[${i}][unit_price]" id="pp-${i}" value="0" min="0" onchange="calcRow(${i})"></td>
+                <td><input type="number" class="form-control form-control" name="items[${i}][tax_rate]" id="pt-${i}" value="0" min="0" max="100" step="0.01" onchange="calcRow(${i})"></td>
                 <td class="fw-medium" id="rt-${i}">0 ₫</td>
-                <td><button type="button" class="btn btn-sm btn-soft-danger" onclick="document.getElementById('row-'+${i})?.remove();calcTotal()"><i class="ri-close-line"></i></button></td>`;
+                <td><button type="button" class="btn btn btn-soft-danger" onclick="document.getElementById('row-'+${i})?.remove();calcTotal()"><i class="ri-close-line"></i></button></td>`;
             tbody.appendChild(tr);
         }
 

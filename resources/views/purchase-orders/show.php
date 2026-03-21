@@ -27,19 +27,19 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                             </div>
                         </div>
                         <div class="d-flex gap-1 flex-wrap">
-                            <a href="<?= url('purchase-orders/' . $order['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
+                            <a href="<?= url('purchase-orders/' . $order['id'] . '/edit') ?>" class="btn btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
                             <?php if (in_array($order['status'], ['draft', 'pending'])): ?>
                                 <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt đơn mua này?">
-                                    <?= csrf_field() ?><button class="btn btn-sm btn-soft-success"><i class="ri-check-line me-1"></i>Duyệt</button>
+                                    <?= csrf_field() ?><button class="btn btn btn-soft-success"><i class="ri-check-line me-1"></i>Duyệt</button>
                                 </form>
                             <?php endif; ?>
                             <?php if ($order['status'] !== 'completed' && $order['status'] !== 'cancelled'): ?>
                                 <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/cancel') ?>" class="d-inline" data-confirm="Hủy đơn mua này?">
-                                    <?= csrf_field() ?><button class="btn btn-sm btn-soft-warning"><i class="ri-close-circle-line me-1"></i>Hủy</button>
+                                    <?= csrf_field() ?><button class="btn btn btn-soft-warning"><i class="ri-close-circle-line me-1"></i>Hủy</button>
                                 </form>
                             <?php endif; ?>
                             <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa đơn mua?">
-                                <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
+                                <?= csrf_field() ?><button class="btn btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>
                     </div>
@@ -166,9 +166,9 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/payment') ?>">
                             <?= csrf_field() ?>
                             <div class="mb-2">
-                                <input type="number" class="form-control form-control-sm" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
+                                <input type="number" class="form-control form-control" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
                             </div>
-                            <button type="submit" class="btn btn-success btn-sm w-100"><i class="ri-money-dollar-circle-line me-1"></i> Ghi nhận thanh toán</button>
+                            <button type="submit" class="btn btn-success btn w-100"><i class="ri-money-dollar-circle-line me-1"></i> Ghi nhận thanh toán</button>
                         </form>
                     </div>
                 </div>

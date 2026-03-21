@@ -59,7 +59,7 @@
                                 </div>
                                 <?php endforeach; ?>
                             </div>
-                            <button type="button" class="btn btn-sm btn-soft-primary mt-2" onclick="document.querySelectorAll('[name=\'events[]\']').forEach(c=>c.checked=true)">Chọn tất cả</button>
+                            <button type="button" class="btn btn btn-soft-primary mt-2" onclick="document.querySelectorAll('[name=\'events[]\']').forEach(c=>c.checked=true)">Chọn tất cả</button>
                         </div>
                     </div>
                 </div>

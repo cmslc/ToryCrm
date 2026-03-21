@@ -5,7 +5,7 @@
         <div class="navbar-header">
             <div class="d-flex">
                 <!-- Hamburger -->
-                <button type="button" class="btn btn-sm px-3 fs-16 header-item vertical-menu-btn topnav-hamburger" id="topnav-hamburger-icon">
+                <button type="button" class="btn btn px-3 fs-16 header-item vertical-menu-btn topnav-hamburger" id="topnav-hamburger-icon">
                     <span class="hamburger-icon">
                         <span></span><span></span><span></span>
                     </span>
@@ -65,7 +65,7 @@
                             </div>
                         </div>
                         <div class="p-2 border-top text-center">
-                            <a href="<?= url('notifications') ?>" class="btn btn-sm btn-link text-primary">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
+                            <a href="<?= url('notifications') ?>" class="btn btn btn-link text-primary">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
                         </div>
                     </div>
                 </div>

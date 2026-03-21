@@ -62,13 +62,13 @@
                                         <td><?= !empty($user['last_login_at']) ? time_ago($user['last_login_at']) : '-' ?></td>
                                         <td>
                                             <div class="d-flex gap-1">
-                                                <a href="<?= url('users/' . $user['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary" title="Sửa"><i class="ri-pencil-line"></i></a>
+                                                <a href="<?= url('users/' . $user['id'] . '/edit') ?>" class="btn btn btn-soft-primary" title="Sửa"><i class="ri-pencil-line"></i></a>
                                                 <form method="POST" action="<?= url('users/' . $user['id'] . '/toggle-active') ?>" class="d-inline" data-confirm="<?= $user['is_active'] ? 'Khóa người dùng này?' : 'Mở khóa người dùng này?' ?>">
                                                     <?= csrf_field() ?>
                                                     <?php if ($user['is_active'] ?? false): ?>
-                                                        <button class="btn btn-sm btn-soft-danger" title="Khóa"><i class="ri-lock-line"></i></button>
+                                                        <button class="btn btn btn-soft-danger" title="Khóa"><i class="ri-lock-line"></i></button>
                                                     <?php else: ?>
-                                                        <button class="btn btn-sm btn-soft-success" title="Mở khóa"><i class="ri-lock-unlock-line"></i></button>
+                                                        <button class="btn btn btn-soft-success" title="Mở khóa"><i class="ri-lock-unlock-line"></i></button>
                                                     <?php endif; ?>
                                                 </form>
                                             </div>

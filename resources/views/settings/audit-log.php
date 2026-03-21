@@ -25,7 +25,7 @@
                 </form>
 
                 <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
+                    <table class="table table align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Thời gian</th>

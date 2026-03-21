@@ -103,7 +103,7 @@
         <div class="card card-height-100">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-user-star-line me-1"></i> Theo người phụ trách</h5></div>
             <div class="card-body">
-                <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+                <div class="table-responsive"><table class="table table table-hover mb-0">
                     <thead class="table-light"><tr><th>Nhân viên</th><th class="text-end">Số KH</th></tr></thead>
                     <tbody>
                         <?php foreach ($byOwner ?? [] as $row): ?>
@@ -120,7 +120,7 @@
         <div class="card card-height-100">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Theo Tỉnh/TP</h5></div>
             <div class="card-body">
-                <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+                <div class="table-responsive"><table class="table table table-hover mb-0">
                     <thead class="table-light"><tr><th>Tỉnh/TP</th><th class="text-end">Số KH</th></tr></thead>
                     <tbody>
                         <?php foreach ($byProvince ?? [] as $row): ?>
@@ -137,7 +137,7 @@
         <div class="card card-height-100">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-building-4-line me-1"></i> Theo ngành nghề</h5></div>
             <div class="card-body">
-                <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+                <div class="table-responsive"><table class="table table table-hover mb-0">
                     <thead class="table-light"><tr><th>Ngành</th><th class="text-end">Số KH</th></tr></thead>
                     <tbody>
                         <?php foreach ($byIndustry ?? [] as $row): ?>
@@ -157,7 +157,7 @@
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-hearts-line me-1"></i> Trạng thái mối quan hệ</h5></div>
             <div class="card-body">
-                <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+                <div class="table-responsive"><table class="table table table-hover mb-0">
                     <thead class="table-light"><tr><th>Mối quan hệ</th><th class="text-end">Số KH</th></tr></thead>
                     <tbody>
                         <?php foreach ($byRelation ?? [] as $row): ?>
@@ -174,7 +174,7 @@
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-building-line me-1"></i> Top công ty</h5></div>
             <div class="card-body">
-                <div class="table-responsive"><table class="table table-sm table-hover mb-0">
+                <div class="table-responsive"><table class="table table table-hover mb-0">
                     <thead class="table-light"><tr><th>Công ty</th><th class="text-end">Số KH</th></tr></thead>
                     <tbody>
                         <?php foreach ($byCompany ?? [] as $row): ?>

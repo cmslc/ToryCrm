@@ -25,7 +25,7 @@
                             <td>
                                 <form method="POST" action="<?= url('products/' . $p['id'] . '/restore') ?>" class="d-inline" data-confirm="Khôi phục sản phẩm này?">
                                     <?= csrf_field() ?>
-                                    <button class="btn btn-sm btn-soft-success"><i class="ri-refresh-line me-1"></i>Khôi phục</button>
+                                    <button class="btn btn btn-soft-success"><i class="ri-refresh-line me-1"></i>Khôi phục</button>
                                 </form>
                             </td>
                         </tr>

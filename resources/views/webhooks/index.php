@@ -48,16 +48,16 @@
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
-                                            <a href="<?= url('webhooks/' . $wh['id']) ?>" class="btn btn-sm btn-soft-primary"><i class="ri-eye-line"></i></a>
+                                            <a href="<?= url('webhooks/' . $wh['id']) ?>" class="btn btn btn-soft-primary"><i class="ri-eye-line"></i></a>
                                             <form method="POST" action="<?= url('webhooks/' . $wh['id'] . '/toggle') ?>">
                                                 <?= csrf_field() ?>
-                                                <button class="btn btn-sm btn-soft-<?= $wh['is_active'] ? 'warning' : 'success' ?>" title="<?= $wh['is_active'] ? 'Tắt' : 'Bật' ?>">
+                                                <button class="btn btn btn-soft-<?= $wh['is_active'] ? 'warning' : 'success' ?>" title="<?= $wh['is_active'] ? 'Tắt' : 'Bật' ?>">
                                                     <i class="ri-<?= $wh['is_active'] ? 'pause-line' : 'play-line' ?>"></i>
                                                 </button>
                                             </form>
                                             <form method="POST" action="<?= url('webhooks/' . $wh['id'] . '/delete') ?>" data-confirm="Xóa webhook?">
                                                 <?= csrf_field() ?>
-                                                <button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                                <button class="btn btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
                                             </form>
                                         </div>
                                     </td>

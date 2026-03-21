@@ -19,7 +19,7 @@ function isMenuActive(string $path, string $currentUrl): bool {
             <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff"></i></span>
             <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:#fff">ToryCRM</span></span>
         </a>
-        <button type="button" class="btn btn-sm p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover"><i class="ri-record-circle-line"></i></button>
+        <button type="button" class="btn btn p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover"><i class="ri-record-circle-line"></i></button>
     </div>
 
     <div id="scrollbar" data-simplebar class="h-100">

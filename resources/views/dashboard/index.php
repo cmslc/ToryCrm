@@ -123,7 +123,7 @@
         <div class="card card-height-100">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1">Pipeline</h4>
-                <a href="<?= url('deals/pipeline') ?>" class="btn btn-sm btn-soft-primary">Xem</a>
+                <a href="<?= url('deals/pipeline') ?>" class="btn btn btn-soft-primary">Xem</a>
             </div>
             <div class="card-body">
                 <?php if (!empty($pipelineSummary)): ?>
@@ -154,7 +154,7 @@
         <div class="card card-height-100">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1"><i class="ri-calendar-2-line me-1 text-primary"></i> Lịch hẹn hôm nay</h4>
-                <a href="<?= url('calendar') ?>" class="btn btn-sm btn-soft-primary">Xem lịch</a>
+                <a href="<?= url('calendar') ?>" class="btn btn btn-soft-primary">Xem lịch</a>
             </div>
             <div class="card-body">
                 <?php if (!empty($todayEvents)): ?>
@@ -185,7 +185,7 @@
         <div class="card card-height-100">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1"><i class="ri-error-warning-line me-1 text-danger"></i> Công việc quá hạn</h4>
-                <a href="<?= url('tasks') ?>" class="btn btn-sm btn-soft-danger">Xem</a>
+                <a href="<?= url('tasks') ?>" class="btn btn btn-soft-danger">Xem</a>
             </div>
             <div class="card-body">
                 <?php if (!empty($overdueTasks)): ?>
@@ -217,7 +217,7 @@
         <div class="card card-height-100">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1">Tổng quan công việc</h4>
-                <a href="<?= url('tasks/kanban') ?>" class="btn btn-sm btn-soft-primary">Kanban</a>
+                <a href="<?= url('tasks/kanban') ?>" class="btn btn btn-soft-primary">Kanban</a>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 <div style="width:100%;max-width:250px">
@@ -234,7 +234,7 @@
         <div class="card">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1">Khách hàng mới</h4>
-                <a href="<?= url('contacts') ?>" class="btn btn-sm btn-soft-primary">Xem tất cả</a>
+                <a href="<?= url('contacts') ?>" class="btn btn btn-soft-primary">Xem tất cả</a>
             </div>
             <div class="card-body">
                 <div class="table-responsive table-card">
@@ -275,7 +275,7 @@
         <div class="card">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1">Hoạt động gần đây</h4>
-                <a href="<?= url('activities') ?>" class="btn btn-sm btn-soft-primary">Xem tất cả</a>
+                <a href="<?= url('activities') ?>" class="btn btn btn-soft-primary">Xem tất cả</a>
             </div>
             <div class="card-body" style="max-height:380px;overflow-y:auto">
                 <?php if (!empty($recentActivities)): ?>

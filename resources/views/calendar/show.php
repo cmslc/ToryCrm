@@ -27,14 +27,14 @@ $typeIcons = ['meeting'=>'ri-team-line','call'=>'ri-phone-line','visit'=>'ri-map
                             <?php endif; ?>
                         </div>
                         <div>
-                            <a href="<?= url('calendar/' . $event['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
+                            <a href="<?= url('calendar/' . $event['id'] . '/edit') ?>" class="btn btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
                             <?php if (!$event['is_completed']): ?>
                                 <form method="POST" action="<?= url('calendar/' . $event['id'] . '/complete') ?>" class="d-inline">
-                                    <?= csrf_field() ?><button class="btn btn-sm btn-soft-success"><i class="ri-check-line me-1"></i>Hoàn thành</button>
+                                    <?= csrf_field() ?><button class="btn btn btn-soft-success"><i class="ri-check-line me-1"></i>Hoàn thành</button>
                                 </form>
                             <?php endif; ?>
                             <form method="POST" action="<?= url('calendar/' . $event['id'] . '/delete') ?>" class="d-inline" data-confirm="Xác nhận xóa?">
-                                <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
+                                <?= csrf_field() ?><button class="btn btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>
                     </div>

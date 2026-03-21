@@ -133,7 +133,7 @@
                                         <td><span class="badge bg-<?= $statusColors[$txn['status']] ?? 'secondary' ?>"><?= $statusLabels[$txn['status']] ?? '' ?></span></td>
                                         <td>
                                             <div class="dropdown">
-                                                <button class="btn btn-sm btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                                                <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                                                 <ul class="dropdown-menu">
                                                     <li><a class="dropdown-item" href="<?= url('fund/' . $txn['id']) ?>"><i class="ri-eye-line me-2"></i>Xem</a></li>
                                                     <li><a class="dropdown-item" href="<?= url('fund/' . $txn['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>

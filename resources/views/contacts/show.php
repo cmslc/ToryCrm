@@ -46,21 +46,21 @@
                                 <i class="ri-star-fill text-warning fs-20"></i>
                                 <span class="fw-semibold fs-16"><?= number_format($contact['bonus_points'] ?? 0) ?> điểm</span>
                             </div>
-                            <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn-sm btn-soft-warning w-100 mt-2">
+                            <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn btn-soft-warning w-100 mt-2">
                                 <i class="ri-add-line me-1"></i> Quản lý điểm
                             </a>
                         </div>
 
                         <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
-                            <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary btn-sm">
+                            <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary btn">
                                 <i class="ri-pencil-line me-1"></i> Sửa
                             </a>
-                            <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn-warning btn-sm">
+                            <a href="<?= url('contacts/' . $contact['id'] . '/bonus-points') ?>" class="btn btn-warning btn">
                                 <i class="ri-star-line me-1"></i> Điểm thưởng
                             </a>
                             <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/delete') ?>" data-confirm="Xác nhận xóa?">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
+                                <button type="submit" class="btn btn-danger btn"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                         <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/change-owner') ?>">
                             <?= csrf_field() ?>
                             <div class="input-group input-group-sm">
-                                <select name="owner_id" class="form-select form-select-sm">
+                                <select name="owner_id" class="form-select form-select">
                                     <option value="">Chọn người mới</option>
                                     <?php
                                     $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
@@ -232,7 +232,7 @@
                 <div class="card">
                     <div class="card-header d-flex">
                         <h5 class="card-title mb-0 flex-grow-1">Cơ hội liên quan</h5>
-                        <a href="<?= url('deals/create?contact_id=' . $contact['id']) ?>" class="btn btn-sm btn-soft-primary">Thêm cơ hội</a>
+                        <a href="<?= url('deals/create?contact_id=' . $contact['id']) ?>" class="btn btn btn-soft-primary">Thêm cơ hội</a>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($deals)): ?>

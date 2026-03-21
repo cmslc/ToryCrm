@@ -142,7 +142,7 @@
                                     <td>
                                         <form method="POST" action="<?= url('call-logs/' . $cl['id'] . '/delete') ?>" data-confirm="Xóa?">
                                             <?= csrf_field() ?>
-                                            <button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                            <button class="btn btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
                                         </form>
                                     </td>
                                 </tr>
