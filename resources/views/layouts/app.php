@@ -93,7 +93,7 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
     <!-- ToryCRM Custom JS -->
-    <script src="<?= asset('js/torycrm.js') ?>"></script>
+    <script src="<?= asset('js/torycrm.js') ?>?v=<?= time() ?>"></script>
 
     <!-- Service Worker -->
     <script>
