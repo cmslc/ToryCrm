@@ -88,3 +88,78 @@ document.addEventListener('show.bs.dropdown', function(e) {
 function formatMoney(amount) {
     return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
 }
+
+// ============================================================
+// Velzon Confirm Modal - replaces browser confirm()
+// ============================================================
+(function() {
+    var pendingForm = null;
+
+    // Intercept all forms with onsubmit="return confirm(...)"
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        var onsubmit = form.getAttribute('onsubmit');
+
+        if (!onsubmit || !onsubmit.includes('confirm(')) return;
+
+        // Prevent default submission
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Extract confirm message from onsubmit attribute
+        var match = onsubmit.match(/confirm\(['"](.+?)['"]\)/);
+        var message = match ? match[1] : 'Bạn có chắc chắn?';
+
+        // Detect action type for icon/color
+        var isDelete = message.toLowerCase().includes('xóa') || message.toLowerCase().includes('delete');
+        var modalEl = document.getElementById('confirmModal');
+        if (!modalEl) return;
+
+        var icon = modalEl.querySelector('.modal-body > div:first-child i');
+        var title = document.getElementById('confirmTitle');
+        var msg = document.getElementById('confirmMessage');
+        var okBtn = document.getElementById('confirmOk');
+
+        if (isDelete) {
+            icon.className = 'ri-delete-bin-line';
+            icon.parentElement.className = 'text-danger mb-4';
+            okBtn.className = 'btn w-sm btn-danger';
+            title.textContent = 'Xác nhận xóa';
+        } else {
+            icon.className = 'ri-error-warning-line';
+            icon.parentElement.className = 'text-warning mb-4';
+            okBtn.className = 'btn w-sm btn-primary';
+            title.textContent = 'Xác nhận';
+        }
+
+        msg.textContent = message;
+        pendingForm = form;
+
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }, true);
+
+    // Handle confirm OK click
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'confirmOk' || e.target.closest('#confirmOk')) {
+            if (pendingForm) {
+                // Remove onsubmit to prevent re-triggering
+                pendingForm.removeAttribute('onsubmit');
+                pendingForm.submit();
+                pendingForm = null;
+            }
+            var modalEl = document.getElementById('confirmModal');
+            if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+        }
+    });
+})();
+
+// Auto-dismiss flash alerts after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.alert-dismissible').forEach(function(alert) {
+        setTimeout(function() {
+            var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            if (bsAlert) bsAlert.close();
+        }, 5000);
+    });
+});

@@ -61,6 +61,25 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
 
     </div>
 
+    <!-- Confirm Modal (Velzon style) -->
+    <div class="modal fade zoomIn" id="confirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-5">
+                    <div class="text-warning mb-4">
+                        <i class="ri-error-warning-line" style="font-size:80px"></i>
+                    </div>
+                    <h4 class="mb-3" id="confirmTitle">Bạn có chắc chắn?</h4>
+                    <p class="text-muted fs-15 mb-4" id="confirmMessage">Hành động này không thể hoàn tác.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn w-sm btn-light" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn w-sm btn-danger" id="confirmOk">Xác nhận</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Velzon JS -->
     <script src="<?= asset('libs/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
     <script src="<?= asset('libs/simplebar/simplebar.min.js') ?>"></script>
