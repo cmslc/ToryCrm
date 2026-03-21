@@ -17,7 +17,7 @@ class DealController extends Controller
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["d.is_deleted = 0", "d.tenant_id = ?"];
+        $where = ["d.tenant_id = ?"];
         $params = [Database::tenantId()];
 
         if ($search) {

@@ -9,9 +9,9 @@ class Database
 {
     private static ?PDO $connection = null;
 
-    // Tables that have soft delete (is_deleted column)
+    // Tables that have soft delete (is_deleted column) - MUST match actual DB schema
     private static array $softDeleteTables = [
-        'contacts', 'companies', 'deals', 'tasks', 'products', 'orders',
+        'contacts', 'companies', 'tasks', 'products', 'orders',
     ];
 
     // Tables that are tenant-scoped
