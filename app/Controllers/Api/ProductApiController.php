@@ -22,7 +22,7 @@ class ProductApiController extends Controller
             $order = 'DESC';
         }
 
-        $where = ['1=1'];
+        $where = ['p.is_deleted = 0'];
         $params = [];
 
         if (!empty($_GET['category_id'])) {
@@ -90,7 +90,7 @@ class ProductApiController extends Controller
 
         // Get images
         $product['images'] = Database::fetchAll(
-            "SELECT id, file_path, file_name, is_primary, sort_order
+            "SELECT id, image_path, is_featured, sort_order
              FROM product_images
              WHERE product_id = ?
              ORDER BY sort_order",

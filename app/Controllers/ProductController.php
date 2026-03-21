@@ -102,6 +102,7 @@ class ProductController extends Controller
         }
 
         $productId = Database::insert('products', [
+            'tenant_id' => Database::tenantId(),
             'name' => $name,
             'sku' => trim($data['sku'] ?? '') ?: null,
             'category_id' => !empty($data['category_id']) ? $data['category_id'] : null,
@@ -218,7 +219,16 @@ class ProductController extends Controller
         // Handle image upload
         if (!empty($_FILES['image']['name'])) {
             $uploaded = \App\Services\FileUploadService::uploadImage($_FILES['image'], 'products');
-            if ($uploaded) $updateData['image'] = $uploaded['file_name'];
+            if ($uploaded) {
+                // Delete old image file from disk
+                if (!empty($product['image'])) {
+                    $oldPath = BASE_PATH . '/public/uploads/products/' . $product['image'];
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $updateData['image'] = $uploaded['file_name'];
+            }
         }
 
         Database::update('products', $updateData, 'id = ?', [$id]);

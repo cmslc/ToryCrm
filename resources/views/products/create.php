@@ -47,7 +47,7 @@
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Ảnh sản phẩm</label>
                                     <input type="file" class="form-control" name="image" accept="image/*">
-                                    <small class="text-muted">JPG, PNG, GIF. Tối đa 5MB.</small>
+                                    <small class="text-muted">JPG, PNG, GIF. Tối đa 10MB.</small>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Mô tả</label>
