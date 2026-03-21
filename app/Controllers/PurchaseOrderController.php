@@ -205,13 +205,47 @@ class PurchaseOrderController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('purchase-orders/' . $id);
 
+        $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
+        if (!$order || !in_array($order['status'], ['draft', 'pending'])) {
+            $this->setFlash('error', 'Chỉ duyệt được đơn ở trạng thái Nháp hoặc Chờ duyệt.');
+            return $this->redirect('purchase-orders/' . $id);
+        }
+
         Database::update('purchase_orders', [
             'status' => 'approved',
             'approved_by' => $this->userId(),
             'approved_at' => date('Y-m-d H:i:s'),
         ], 'id = ?', [$id]);
 
-        $this->setFlash('success', 'Đơn mua đã được duyệt.');
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Duyệt đơn mua: {$order['order_code']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', "Đã duyệt đơn mua {$order['order_code']}.");
+        return $this->redirect('purchase-orders/' . $id);
+    }
+
+    public function cancel($id)
+    {
+        if (!$this->isPost()) return $this->redirect('purchase-orders/' . $id);
+
+        $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
+        if (!$order || $order['status'] === 'completed') {
+            $this->setFlash('error', 'Không thể hủy đơn đã hoàn thành.');
+            return $this->redirect('purchase-orders/' . $id);
+        }
+
+        Database::update('purchase_orders', ['status' => 'cancelled'], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Hủy đơn mua: {$order['order_code']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', "Đã hủy đơn mua {$order['order_code']}.");
         return $this->redirect('purchase-orders/' . $id);
     }
 
@@ -219,9 +253,50 @@ class PurchaseOrderController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('purchase-orders');
 
-        Database::delete('purchase_order_items', 'purchase_order_id = ?', [$id]);
-        Database::delete('purchase_orders', 'id = ?', [$id]);
-        $this->setFlash('success', 'Đơn mua đã được xóa.');
+        $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
+        if (!$order) { $this->setFlash('error', 'Đơn mua không tồn tại.'); return $this->redirect('purchase-orders'); }
+
+        // Soft delete via status
+        Database::update('purchase_orders', ['status' => 'cancelled'], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Xóa đơn mua: {$order['order_code']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã xóa đơn mua.');
         return $this->redirect('purchase-orders');
+    }
+
+    public function payment($id)
+    {
+        if (!$this->isPost()) return $this->redirect('purchase-orders/' . $id);
+
+        $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
+        if (!$order) { $this->setFlash('error', 'Đơn mua không tồn tại.'); return $this->redirect('purchase-orders'); }
+
+        $amount = (float)$this->input('amount');
+        if ($amount <= 0) {
+            $this->setFlash('error', 'Số tiền phải lớn hơn 0.');
+            return $this->back();
+        }
+
+        $totalPaid = (float)($order['paid_amount'] ?? 0) + $amount;
+        $paymentStatus = $totalPaid >= (float)$order['total'] ? 'paid' : ($totalPaid > 0 ? 'partial' : 'unpaid');
+
+        Database::update('purchase_orders', [
+            'paid_amount' => $totalPaid,
+            'payment_status' => $paymentStatus,
+        ], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Thanh toán " . format_money($amount) . " cho đơn mua {$order['order_code']}",
+            'user_id' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã ghi nhận thanh toán ' . format_money($amount) . '.');
+        return $this->redirect('purchase-orders/' . $id);
     }
 }

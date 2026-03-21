@@ -145,6 +145,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('purchase-orders/{id}/edit', 'PurchaseOrderController@edit');
     Router::post('purchase-orders/{id}/update', 'PurchaseOrderController@update');
     Router::post('purchase-orders/{id}/approve', 'PurchaseOrderController@approve');
+    Router::post('purchase-orders/{id}/cancel', 'PurchaseOrderController@cancel');
+    Router::post('purchase-orders/{id}/payment', 'PurchaseOrderController@payment');
     Router::post('purchase-orders/{id}/delete', 'PurchaseOrderController@delete');
 
     // Fund (Quỹ)

@@ -26,15 +26,19 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                                 <span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>-subtle text-<?= $pc[$order['payment_status']] ?? 'secondary' ?>"><?= $pl[$order['payment_status']] ?? '' ?></span>
                             </div>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-1 flex-wrap">
                             <a href="<?= url('purchase-orders/' . $order['id'] . '/edit') ?>" class="btn btn-sm btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
                             <?php if (in_array($order['status'], ['draft', 'pending'])): ?>
-                                <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/approve') ?>" class="d-inline" data-confirm="Xác nhận duyệt đơn hàng này?">
-                                    <?= csrf_field() ?>
-                                    <button class="btn btn-sm btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
+                                <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt đơn mua này?">
+                                    <?= csrf_field() ?><button class="btn btn-sm btn-soft-success"><i class="ri-check-line me-1"></i>Duyệt</button>
                                 </form>
                             <?php endif; ?>
-                            <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/delete') ?>" class="d-inline" data-confirm="Xác nhận xóa?">
+                            <?php if ($order['status'] !== 'completed' && $order['status'] !== 'cancelled'): ?>
+                                <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/cancel') ?>" class="d-inline" data-confirm="Hủy đơn mua này?">
+                                    <?= csrf_field() ?><button class="btn btn-sm btn-soft-warning"><i class="ri-close-circle-line me-1"></i>Hủy</button>
+                                </form>
+                            <?php endif; ?>
+                            <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa đơn mua?">
                                 <?= csrf_field() ?><button class="btn btn-sm btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
                             </form>
                         </div>
@@ -154,5 +158,20 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         </div>
                     </div>
                 </div>
+
+                <?php if ($order['payment_status'] !== 'paid' && $order['status'] !== 'cancelled'): ?>
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-1"></i> Thanh toán</h5></div>
+                    <div class="card-body">
+                        <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/payment') ?>">
+                            <?= csrf_field() ?>
+                            <div class="mb-2">
+                                <input type="number" class="form-control form-control-sm" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm w-100"><i class="ri-money-dollar-circle-line me-1"></i> Ghi nhận thanh toán</button>
+                        </form>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
