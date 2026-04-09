@@ -148,7 +148,19 @@ class ContactController extends Controller
             'contact_id' => $contactId,
         ]);
 
-        $this->setFlash('success', 'Contact created successfully.');
+        // Auto-follow: thêm admin + managers làm người theo dõi mặc định
+        $defaultFollowers = Database::fetchAll(
+            "SELECT id FROM users WHERE tenant_id = ? AND is_active = 1 AND role IN ('admin', 'manager')",
+            [Database::tenantId()]
+        );
+        foreach ($defaultFollowers as $df) {
+            Database::query(
+                "INSERT IGNORE INTO contact_followers (contact_id, user_id) VALUES (?, ?)",
+                [$contactId, $df['id']]
+            );
+        }
+
+        $this->setFlash('success', 'Đã tạo khách hàng thành công.');
         return $this->redirect('contacts/' . $contactId);
     }
 
