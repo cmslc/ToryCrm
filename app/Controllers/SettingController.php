@@ -277,14 +277,14 @@ class SettingController extends Controller
         $settings = json_decode($tenant['settings'] ?? '{}', true);
         $aiConfig = $settings['ai'] ?? [];
 
-        return $this->view('settings.ai', [
+        return $this->view('settings.api', [
             'aiConfig' => $aiConfig,
         ]);
     }
 
     public function saveAi()
     {
-        if (!$this->isPost()) return $this->redirect('settings/ai');
+        if (!$this->isPost()) return $this->redirect('settings/api');
 
         $groqKey = trim($this->input('groq_api_key') ?? '');
         $geminiKey = trim($this->input('gemini_api_key') ?? '');
@@ -313,12 +313,12 @@ class SettingController extends Controller
         $_ENV['GEMINI_API_KEY'] = $apiKey;
 
         $this->setFlash('success', 'Đã lưu cấu hình AI.');
-        return $this->redirect('settings/ai');
+        return $this->redirect('settings/api');
     }
 
     public function saveAiBehavior()
     {
-        if (!$this->isPost()) return $this->redirect('settings/ai');
+        if (!$this->isPost()) return $this->redirect('settings/api');
 
         $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
         $settings = json_decode($tenant['settings'] ?? '{}', true);
@@ -332,6 +332,6 @@ class SettingController extends Controller
         Database::update('tenants', ['settings' => json_encode($settings)], 'id = ?', [$this->tenantId()]);
 
         $this->setFlash('success', 'Đã lưu cấu hình hành vi AI.');
-        return $this->redirect('settings/ai');
+        return $this->redirect('settings/api');
     }
 }

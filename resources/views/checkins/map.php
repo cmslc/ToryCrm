@@ -62,7 +62,7 @@
                 <div class="text-center text-muted">
                     <i class="ri-map-2-line" style="font-size:48px"></i>
                     <p class="mt-2">Thêm Google Maps API key để hiển thị bản đồ</p>
-                    <a href="<?= url('settings/ai') ?>" class="btn btn-soft-primary"><i class="ri-settings-3-line me-1"></i> Cài đặt API</a>
+                    <a href="<?= url('settings/api') ?>" class="btn btn-soft-primary"><i class="ri-settings-3-line me-1"></i> Cài đặt API</a>
                 </div>
             </div>
         <?php else: ?>
