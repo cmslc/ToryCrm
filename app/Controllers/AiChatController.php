@@ -30,8 +30,8 @@ class AiChatController extends Controller
         // Save user message
         $this->saveMessage($tid, $uid, 'user', $message);
 
-        // Process with rule-based AI
-        $response = $this->processMessage($message, $tid, $uid);
+        // Process with AI (Gemini API or fallback rule-based)
+        $response = \App\Services\AiService::ask($message, $tid, $uid);
 
         // Save assistant response
         $this->saveMessage($tid, $uid, 'assistant', $response);
