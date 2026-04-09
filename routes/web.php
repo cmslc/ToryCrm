@@ -58,6 +58,17 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('conversations/{id}/status', 'ConversationController@updateStatus');
     Router::post('conversations/{id}/star', 'ConversationController@star');
 
+    // Check-in
+    Router::get('checkins', 'CheckinController@index');
+    Router::get('checkins/create', 'CheckinController@create');
+    Router::get('checkins/map', 'CheckinController@map');
+    Router::get('checkins/my', 'CheckinController@myCheckins');
+    Router::post('checkins/store', 'CheckinController@store');
+    Router::get('checkins/{id}', 'CheckinController@show');
+
+    // Theme
+    Router::post('theme/toggle', 'ThemeController@toggle');
+
     // Saved Views
     Router::get('saved-views/{module}', 'SavedViewController@index');
     Router::post('saved-views/store', 'SavedViewController@store');

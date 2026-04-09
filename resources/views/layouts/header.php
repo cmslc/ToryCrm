@@ -31,10 +31,25 @@
 
                 <!-- Dark/Light Mode -->
                 <div class="ms-1 header-item d-none d-sm-flex">
-                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle light-dark-mode">
-                        <i class="bx bx-moon fs-22"></i>
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle" id="theme-toggle" title="Chế độ tối/sáng">
+                        <i class="<?= ($userTheme ?? 'light') === 'dark' ? 'ri-sun-line' : 'ri-moon-line' ?> fs-22"></i>
                     </button>
                 </div>
+                <script>
+                document.getElementById('theme-toggle')?.addEventListener('click', function() {
+                    var btn = this;
+                    var icon = btn.querySelector('i');
+                    fetch('/theme/toggle', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'_token=<?= $_SESSION['csrf_token'] ?? '' ?>'})
+                    .then(function(r){return r.json()})
+                    .then(function(d) {
+                        if (d.theme) {
+                            document.documentElement.setAttribute('data-bs-theme', d.theme);
+                            document.documentElement.setAttribute('data-topbar', d.theme);
+                            icon.className = (d.theme === 'dark' ? 'ri-sun-line' : 'ri-moon-line') + ' fs-22';
+                        }
+                    });
+                });
+                </script>
 
                 <!-- Notifications -->
                 <div class="dropdown topbar-head-dropdown ms-1 header-item" id="notificationDropdown">

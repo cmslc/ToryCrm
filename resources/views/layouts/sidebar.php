@@ -83,6 +83,12 @@ function isMenuActive(string $path, string $currentUrl): bool {
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('checkins', $currentUrl) ? 'active' : '' ?>" href="<?= url('checkins') ?>">
+                        <i class="ri-map-pin-user-line"></i> <span>Check-in</span>
+                    </a>
+                </li>
+
                 <li class="menu-title"><span>Bán hàng</span></li>
 
                 <li class="nav-item">
