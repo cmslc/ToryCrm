@@ -5,7 +5,7 @@ $brandName = $branding['name'] ?? 'ToryCRM';
 $userTheme = $_SESSION['user']['theme'] ?? 'light';
 ?>
 <!DOCTYPE html>
-<html lang="vi" data-layout="vertical" data-topbar="<?= $userTheme === 'dark' ? 'dark' : 'light' ?>" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-bs-theme="<?= e($userTheme) ?>" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
+<html lang="vi" data-layout="vertical" data-topbar="<?= $userTheme === 'dark' ? 'dark' : 'light' ?>" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="enable" data-bs-theme="<?= e($userTheme) ?>" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,8 +31,32 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <!-- PWA -->
     <link rel="manifest" href="<?= asset('manifest.json') ?>">
     <meta name="theme-color" content="#405189">
+
+    <!-- Prefetch on hover -->
+    <script>
+    document.addEventListener('mouseover', function(e) {
+        var a = e.target.closest('a[href]');
+        if (!a || a.dataset.prefetched || a.getAttribute('href').charAt(0) === '#') return;
+        var href = a.href;
+        if (href.indexOf(location.origin) !== 0) return;
+        var link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = href;
+        document.head.appendChild(link);
+        a.dataset.prefetched = '1';
+    });
+    </script>
 </head>
 <body>
+
+    <!-- Velzon Preloader -->
+    <div id="preloader">
+        <div id="status">
+            <div class="spinner-border text-primary avatar-sm" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    </div>
 
     <!-- Begin page -->
     <div id="layout-wrapper">
