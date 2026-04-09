@@ -103,8 +103,9 @@
             '<input type="checkbox" class="form-check-input" id="split-view-check"' + (isSplitEnabled() ? ' checked' : '') + '>' +
             '<span>Split View</span>';
 
-        var rightSide = titleBox.querySelector('.page-title-right');
-        if (rightSide) {
+        // Find the right side container (various structures)
+        var rightSide = titleBox.querySelector('.page-title-right, .d-flex.gap-2, .d-flex:last-child');
+        if (rightSide && rightSide !== titleBox) {
             rightSide.insertBefore(toggle, rightSide.firstChild);
         } else {
             titleBox.appendChild(toggle);
