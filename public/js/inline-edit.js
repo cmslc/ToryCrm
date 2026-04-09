@@ -41,6 +41,7 @@
             input = document.createElement('select');
             input.className = 'form-select';
             input.style.minWidth = '140px';
+            input.style.maxWidth = '200px';
 
             try {
                 var options = JSON.parse(el.dataset.options || '{}');
@@ -57,6 +58,8 @@
             input = document.createElement('select');
             input.className = 'form-select';
             input.style.minWidth = '140px';
+            input.style.maxWidth = '200px';
+            input.size = 1;
 
             var emptyOpt = document.createElement('option');
             emptyOpt.value = '';

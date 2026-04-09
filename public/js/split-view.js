@@ -137,7 +137,7 @@
             row.addEventListener('click', function(e) {
                 if (!isSplitEnabled()) return;
                 // Don't trigger on action buttons, checkboxes, links
-                if (e.target.closest('a, button, .form-check, .dropdown, input')) return;
+                if (e.target.closest('a, button, .form-check, .dropdown, input, select, [data-inline-edit], .form-select, .form-control')) return;
 
                 var id = row.getAttribute('data-id');
                 if (!id) {
