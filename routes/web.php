@@ -495,6 +495,15 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('approvals/{id}/approve', 'ApprovalController@approve');
     Router::post('approvals/{id}/reject', 'ApprovalController@reject');
 
+    // Departments
+    Router::get('departments', 'DepartmentController@index');
+    Router::post('departments/store', 'DepartmentController@store');
+    Router::get('departments/{id}/members', 'DepartmentController@members');
+    Router::post('departments/{id}/update', 'DepartmentController@update');
+    Router::post('departments/{id}/delete', 'DepartmentController@delete');
+    Router::post('departments/{id}/members/add', 'DepartmentController@addMember');
+    Router::post('departments/{id}/members/{userId}/remove', 'DepartmentController@removeMember');
+
     // Settings
     Router::get('settings', 'SettingController@index');
     Router::post('settings/profile', 'SettingController@updateProfile');

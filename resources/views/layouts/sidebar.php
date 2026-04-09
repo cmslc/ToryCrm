@@ -196,6 +196,12 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
 
                 <li class="menu-title"><span>Hệ thống</span></li>
 
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('departments', $currentUrl) ?>" href="<?= url('departments') ?>">
+                        <i class="ri-organization-chart"></i> <span>Phòng ban</span>
+                    </a>
+                </li>
+
                 <?php $sysOpen = isOpen(['reports','import-export','automation','users','call-logs','integrations','webhooks','plugins','duplicates','billing'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
