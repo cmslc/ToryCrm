@@ -314,6 +314,11 @@ $activeGroup = getActiveGroup($currentUrl);
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('settings/contact-statuses', $currentUrl) ? 'active' : '' ?>" href="<?= url('settings/contact-statuses') ?>">
+                            <i class="ri-list-settings-line"></i> <span>Trạng thái KH</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link menu-link <?= isMenuActive('custom-fields', $currentUrl) ? 'active' : '' ?>" href="<?= url('custom-fields') ?>">
                             <i class="ri-input-method-line"></i> <span>Trường tùy chỉnh</span>
                         </a>

@@ -508,4 +508,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/audit-log', 'SettingController@auditLog');
     Router::get('settings/white-label', 'WhiteLabelController@settings');
     Router::post('settings/white-label', 'WhiteLabelController@save');
+
+    // Contact Statuses
+    Router::get('settings/contact-statuses', 'ContactStatusController@index');
+    Router::post('settings/contact-statuses/store', 'ContactStatusController@store');
+    Router::post('settings/contact-statuses/reorder', 'ContactStatusController@reorder');
+    Router::post('settings/contact-statuses/{id}/update', 'ContactStatusController@update');
+    Router::post('settings/contact-statuses/{id}/delete', 'ContactStatusController@delete');
+    Router::post('settings/contact-statuses/{id}/default', 'ContactStatusController@setDefault');
 });
