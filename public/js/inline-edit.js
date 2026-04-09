@@ -55,25 +55,71 @@
             } catch (e) { /* ignore parse errors */ }
 
         } else if (type === 'user') {
-            input = document.createElement('select');
-            input.className = 'form-select';
-            input.style.minWidth = '140px';
-            input.style.maxWidth = '200px';
-            input.size = 1;
+            // Searchable user dropdown
+            input = document.createElement('div');
+            input.className = 'position-relative';
+            input.style.minWidth = '180px';
+            input.style.maxWidth = '220px';
+            input._isCustom = true;
 
-            var emptyOpt = document.createElement('option');
-            emptyOpt.value = '';
-            emptyOpt.textContent = '-- Chọn --';
-            input.appendChild(emptyOpt);
+            var searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'form-control';
+            searchInput.placeholder = 'Tìm người...';
+            searchInput.autocomplete = 'off';
+            input.appendChild(searchInput);
+
+            var dropdown = document.createElement('div');
+            dropdown.className = 'border rounded bg-white shadow-sm mt-1';
+            dropdown.style.cssText = 'position:absolute;z-index:1060;width:100%;max-height:200px;overflow-y:auto;display:none';
+            input.appendChild(dropdown);
 
             getUsers(function (users) {
-                users.forEach(function (u) {
-                    var opt = document.createElement('option');
-                    opt.value = u.id;
-                    opt.textContent = u.name;
-                    if (String(u.id) === String(currentValue)) opt.selected = true;
-                    input.appendChild(opt);
-                });
+                input._users = users;
+                input._selectedValue = '';
+
+                function renderList(q) {
+                    dropdown.innerHTML = '';
+                    var filtered = users.filter(function(u) {
+                        return !q || u.name.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+                    });
+                    if (filtered.length === 0) {
+                        dropdown.innerHTML = '<div class="px-3 py-2 text-muted">Không tìm thấy</div>';
+                    }
+                    filtered.forEach(function(u) {
+                        var item = document.createElement('div');
+                        item.className = 'px-3 py-2';
+                        item.style.cursor = 'pointer';
+                        item.textContent = u.name;
+                        item.dataset.value = u.id;
+                        item.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
+                        item.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+                        item.addEventListener('mousedown', function(e) {
+                            e.preventDefault();
+                            input._selectedValue = u.id;
+                            searchInput.value = u.name;
+                            dropdown.style.display = 'none';
+                            // Trigger change
+                            var evt = new Event('change', {bubbles: true});
+                            searchInput.dispatchEvent(evt);
+                        });
+                        dropdown.appendChild(item);
+                    });
+                    dropdown.style.display = filtered.length > 0 || q ? 'block' : 'none';
+                }
+
+                searchInput.addEventListener('focus', function() { renderList(this.value); });
+                searchInput.addEventListener('input', function() { renderList(this.value); });
+                searchInput.addEventListener('blur', function() { setTimeout(function() { dropdown.style.display = 'none'; }, 200); });
+
+                // Set initial value
+                var current = users.find(function(u) { return String(u.id) === String(currentValue); });
+                if (current) {
+                    searchInput.value = current.name;
+                    input._selectedValue = current.id;
+                }
+
+                setTimeout(function() { searchInput.focus(); }, 50);
             });
 
         } else {
@@ -118,7 +164,7 @@
 
             el.addEventListener('click', function (e) {
                 // Don't trigger if already editing
-                if (el.querySelector('input, select')) return;
+                if (el.querySelector('input, select, [data-value]')) return;
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -136,8 +182,8 @@
                 }
 
                 function save() {
-                    var newValue = input.value;
-                    if (newValue === originalValue) {
+                    var newValue = input._isCustom ? (input._selectedValue || '') : input.value;
+                    if (newValue === originalValue || newValue === '') {
                         cancel();
                         return;
                     }
@@ -190,16 +236,29 @@
 
                 if (input.tagName === 'SELECT') {
                     input.addEventListener('change', save);
+                } else if (input._isCustom) {
+                    // Custom searchable dropdown - listen for change on inner input
+                    var innerInput = input.querySelector('input');
+                    if (innerInput) {
+                        innerInput.addEventListener('change', save);
+                        innerInput.addEventListener('keydown', function(evt) {
+                            if (evt.key === 'Escape') cancel();
+                        });
+                        innerInput.addEventListener('blur', function() {
+                            setTimeout(function() { if (!input._selectedValue || input._selectedValue === originalValue) cancel(); }, 300);
+                        });
+                    }
                 }
 
-                input.addEventListener('blur', function () {
-                    // Small delay to allow change event to fire first
-                    setTimeout(function () {
-                        if (el.querySelector('input, select')) {
-                            cancel();
-                        }
-                    }, 200);
-                });
+                if (!input._isCustom) {
+                    input.addEventListener('blur', function () {
+                        setTimeout(function () {
+                            if (el.querySelector('input, select')) {
+                                cancel();
+                            }
+                        }, 200);
+                    });
+                }
             });
         });
     }
