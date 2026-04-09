@@ -11,41 +11,38 @@ class CompanyController extends Controller
     {
         $search = $this->input('search');
         $industry = $this->input('industry');
+        $companySize = $this->input('company_size');
+        $city = $this->input('city');
         $ownerId = $this->input('owner_id');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 10;
+        $perPage = 20;
         $offset = ($page - 1) * $perPage;
 
         $where = ["c.is_deleted = 0", "c.tenant_id = ?"];
         $params = [Database::tenantId()];
 
         if ($search) {
-            $where[] = "(c.name LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR c.website LIKE ?)";
+            $where[] = "(c.name LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR c.website LIKE ? OR c.tax_code LIKE ?)";
             $searchTerm = "%{$search}%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
 
-        if ($industry) {
-            $where[] = "c.industry = ?";
-            $params[] = $industry;
-        }
-
-        if ($ownerId) {
-            $where[] = "c.owner_id = ?";
-            $params[] = $ownerId;
-        }
+        if ($industry) { $where[] = "c.industry = ?"; $params[] = $industry; }
+        if ($companySize) { $where[] = "c.company_size = ?"; $params[] = $companySize; }
+        if ($city) { $where[] = "c.city = ?"; $params[] = $city; }
+        if ($ownerId) { $where[] = "c.owner_id = ?"; $params[] = $ownerId; }
 
         $whereClause = implode(' AND ', $where);
 
-        $total = Database::fetch(
-            "SELECT COUNT(*) as count FROM companies c WHERE {$whereClause}",
-            $params
-        )['count'];
+        $total = Database::fetch("SELECT COUNT(*) as count FROM companies c WHERE {$whereClause}", $params)['count'];
 
         $companies = Database::fetchAll(
             "SELECT c.*, u.name as owner_name,
-                    (SELECT COUNT(*) FROM contacts WHERE company_id = c.id) as contact_count,
-                    (SELECT COUNT(*) FROM deals WHERE company_id = c.id) as deal_count
+                    (SELECT COUNT(*) FROM contacts ct WHERE ct.company_id = c.id AND ct.is_deleted = 0) as contact_count,
+                    (SELECT COUNT(*) FROM deals d WHERE d.company_id = c.id AND d.status = 'open') as deal_count,
+                    (SELECT COALESCE(SUM(d2.value),0) FROM deals d2 WHERE d2.company_id = c.id AND d2.status = 'won') as total_revenue,
+                    (SELECT COUNT(*) FROM orders o WHERE o.company_id = c.id AND o.is_deleted = 0) as order_count,
+                    (SELECT MAX(a.created_at) FROM activities a WHERE a.company_id = c.id) as last_activity_at
              FROM companies c
              LEFT JOIN users u ON c.owner_id = u.id
              WHERE {$whereClause}
@@ -54,6 +51,8 @@ class CompanyController extends Controller
             $params
         );
 
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $cities = Database::fetchAll("SELECT DISTINCT city FROM companies WHERE tenant_id = ? AND city IS NOT NULL AND city != '' ORDER BY city", [Database::tenantId()]);
         $totalPages = ceil($total / $perPage);
 
         return $this->view('companies.index', [
@@ -63,9 +62,13 @@ class CompanyController extends Controller
                 'page' => $page,
                 'total_pages' => $totalPages,
             ],
+            'users' => $users,
+            'cities' => $cities,
             'filters' => [
                 'search' => $search,
                 'industry' => $industry,
+                'company_size' => $companySize,
+                'city' => $city,
                 'owner_id' => $ownerId,
             ],
         ]);

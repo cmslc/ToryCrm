@@ -73,7 +73,7 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0">API Keys</h5></div>
             <div class="card-body">
-                <form method="POST" action="<?= url('settings/ai/save') ?>">
+                <form method="POST" action="<?= url('settings/api/save') ?>">
                     <?= csrf_field() ?>
 
                     <!-- Groq (ưu tiên) -->
@@ -124,7 +124,7 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Google Maps API</h5></div>
             <div class="card-body">
-                <form method="POST" action="<?= url('settings/ai/save') ?>">
+                <form method="POST" action="<?= url('settings/api/save') ?>">
                     <?= csrf_field() ?>
                     <input type="hidden" name="groq_api_key" value="<?= e($groqKey) ?>">
                     <input type="hidden" name="gemini_api_key" value="<?= e($geminiKey) ?>">
@@ -151,7 +151,7 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0">Cấu hình hành vi AI</h5></div>
             <div class="card-body">
-                <form method="POST" action="<?= url('settings/ai/behavior') ?>">
+                <form method="POST" action="<?= url('settings/api/behavior') ?>">
                     <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">System Prompt (Vai trò AI)</label>
