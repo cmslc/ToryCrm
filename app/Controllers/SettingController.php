@@ -286,17 +286,19 @@ class SettingController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('settings/ai');
 
-        $apiKey = trim($this->input('gemini_api_key') ?? '');
-        $model = $this->input('ai_model') ?? 'gemini-2.0-flash';
+        $groqKey = trim($this->input('groq_api_key') ?? '');
+        $geminiKey = trim($this->input('gemini_api_key') ?? '');
 
-        // Save API key to .env file
+        // Save both keys to .env file
         $envPath = BASE_PATH . '/.env';
         $envContent = file_get_contents($envPath);
 
-        if (str_contains($envContent, 'GEMINI_API_KEY=')) {
-            $envContent = preg_replace('/GEMINI_API_KEY=.*/', 'GEMINI_API_KEY=' . $apiKey, $envContent);
-        } else {
-            $envContent .= "\nGEMINI_API_KEY=" . $apiKey;
+        foreach (['GROQ_API_KEY' => $groqKey, 'GEMINI_API_KEY' => $geminiKey] as $envKey => $envVal) {
+            if (str_contains($envContent, $envKey . '=')) {
+                $envContent = preg_replace('/' . $envKey . '=.*/', $envKey . '=' . $envVal, $envContent);
+            } else {
+                $envContent .= "\n" . $envKey . "=" . $envVal;
+            }
         }
         file_put_contents($envPath, $envContent);
 

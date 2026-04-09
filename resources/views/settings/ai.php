@@ -1,16 +1,24 @@
 <?php
 $pageTitle = 'Cấu hình AI';
-$currentKey = $_ENV['GEMINI_API_KEY'] ?? '';
-$hasKey = !empty($currentKey);
-$maskedKey = $hasKey ? substr($currentKey, 0, 8) . '••••••••' . substr($currentKey, -4) : '';
+$groqKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY') ?: '';
+$geminiKey = $_ENV['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?: '';
+$hasGroq = !empty($groqKey);
+$hasGemini = !empty($geminiKey);
+$hasKey = $hasGroq || $hasGemini;
+$activeProvider = $hasGroq ? 'Groq (Llama 3.3 70B)' : ($hasGemini ? 'Google Gemini 2.0 Flash' : 'Rule-based');
+$maskedGroq = $hasGroq ? substr($groqKey, 0, 8) . '••••••' . substr($groqKey, -4) : '';
+$maskedGemini = $hasGemini ? substr($geminiKey, 0, 8) . '••••••' . substr($geminiKey, -4) : '';
 
-// Test connection
 $aiStatus = 'inactive';
-$aiModel = 'Gemini 2.0 Flash';
+$aiModel = $activeProvider;
 if ($hasKey) {
     try {
-        $testUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" . $currentKey;
-        $testResp = @file_get_contents($testUrl, false, stream_context_create(['http' => ['timeout' => 5]]));
+        if ($hasGroq) {
+            $testUrl = "https://api.groq.com/openai/v1/models";
+        } else {
+            $testUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" . $geminiKey;
+        }
+        $testResp = @file_get_contents($testUrl, false, stream_context_create(['http' => ['timeout' => 5, 'header' => $hasGroq ? "Authorization: Bearer {$groqKey}" : '']]));
         $aiStatus = ($testResp !== false) ? 'active' : 'error';
     } catch (\Exception $e) {
         $aiStatus = 'error';
@@ -43,7 +51,7 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                         </span>
                     </div>
                     <div class="flex-grow-1">
-                        <h5 class="mb-1">Google Gemini AI</h5>
+                        <h5 class="mb-1">AI Trợ lý</h5>
                         <p class="text-muted mb-0">
                             <?php if ($aiStatus === 'active'): ?>
                                 <span class="badge bg-success">Đã kết nối</span> Model: <?= $aiModel ?>
@@ -59,37 +67,47 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
             </div>
         </div>
 
-        <!-- API Key Config -->
+        <!-- API Keys -->
         <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0">API Key</h5></div>
+            <div class="card-header"><h5 class="card-title mb-0">API Keys</h5></div>
             <div class="card-body">
                 <form method="POST" action="<?= url('settings/ai/save') ?>">
                     <?= csrf_field() ?>
-                    <div class="mb-3">
-                        <label class="form-label">Gemini API Key</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" name="gemini_api_key" id="apiKeyInput"
-                                value="<?= e($currentKey) ?>" placeholder="Nhập API key từ Google AI Studio...">
-                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('apiKeyInput');i.type=i.type==='password'?'text':'password'">
-                                <i class="ri-eye-line"></i>
-                            </button>
+
+                    <!-- Groq (ưu tiên) -->
+                    <div class="mb-4 p-3 border rounded <?= $hasGroq ? 'border-success' : '' ?>">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 flex-grow-1"><i class="ri-speed-line me-1 text-success"></i> Groq <span class="badge bg-success-subtle text-success">Khuyên dùng</span></h6>
+                            <?php if ($hasGroq): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
                         </div>
-                        <?php if ($hasKey): ?>
-                            <small class="text-success mt-1 d-block"><i class="ri-check-line me-1"></i>Key hiện tại: <?= e($maskedKey) ?></small>
+                        <div class="input-group mb-2">
+                            <input type="password" class="form-control" name="groq_api_key" id="groqKeyInput" value="<?= e($groqKey) ?>" placeholder="gsk_xxxxxxxxxxxxx...">
+                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('groqKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
+                        </div>
+                        <?php if ($hasGroq): ?>
+                            <small class="text-success d-block mb-1"><i class="ri-check-line me-1"></i>Key: <?= e($maskedGroq) ?></small>
                         <?php endif; ?>
-                        <small class="text-muted mt-1 d-block">
-                            <i class="ri-information-line me-1"></i>Lấy API key miễn phí tại
-                            <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>
-                        </small>
+                        <small class="text-muted">Model: Llama 3.3 70B | Free: 30 req/phút, 14.400/ngày | <a href="https://console.groq.com/keys" target="_blank">Lấy key</a></small>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Model</label>
-                        <select name="ai_model" class="form-select">
-                            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Miễn phí - Nhanh)</option>
-                            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (Miễn phí - Rất nhanh)</option>
-                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Miễn phí giới hạn - Thông minh hơn)</option>
-                        </select>
+                    <!-- Gemini (backup) -->
+                    <div class="mb-4 p-3 border rounded <?= !$hasGroq && $hasGemini ? 'border-primary' : '' ?>">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 flex-grow-1"><i class="ri-google-line me-1 text-primary"></i> Google Gemini</h6>
+                            <?php if (!$hasGroq && $hasGemini): ?><span class="badge bg-primary">Đang dùng</span><?php endif; ?>
+                        </div>
+                        <div class="input-group mb-2">
+                            <input type="password" class="form-control" name="gemini_api_key" id="geminiKeyInput" value="<?= e($geminiKey) ?>" placeholder="AIzaSyxxxxxxxxxx...">
+                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('geminiKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
+                        </div>
+                        <?php if ($hasGemini): ?>
+                            <small class="text-success d-block mb-1"><i class="ri-check-line me-1"></i>Key: <?= e($maskedGemini) ?></small>
+                        <?php endif; ?>
+                        <small class="text-muted">Model: Gemini 2.0 Flash | Free: 1.500 req/ngày | <a href="https://aistudio.google.com/apikey" target="_blank">Lấy key</a></small>
+                    </div>
+
+                    <div class="alert alert-light mb-3">
+                        <i class="ri-information-line me-1"></i> Ưu tiên: <strong>Groq</strong> → Gemini → Rule-based. Chỉ cần 1 key là đủ.
                     </div>
 
                     <div class="d-flex gap-2">
@@ -176,17 +194,30 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
 
         <!-- Free Tier Info -->
         <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0">Giới hạn miễn phí</h5></div>
-            <div class="card-body">
-                <div class="alert alert-info mb-0">
-                    <h6 class="alert-heading"><i class="ri-information-line me-1"></i>Google Gemini Free Tier</h6>
-                    <ul class="mb-0 ps-3">
-                        <li>15 requests / phút</li>
-                        <li>1.500 requests / ngày</li>
-                        <li>1 triệu tokens / phút</li>
-                        <li>Không cần thẻ tín dụng</li>
-                    </ul>
-                </div>
+            <div class="card-header"><h5 class="card-title mb-0">So sánh providers</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>Provider</th><th>Model</th><th>Free Tier</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="<?= $hasGroq ? 'table-success' : '' ?>">
+                            <td><strong>Groq</strong> <span class="badge bg-success-subtle text-success">Nhanh nhất</span></td>
+                            <td>Llama 3.3 70B</td>
+                            <td>30 req/phút, 14.400/ngày</td>
+                        </tr>
+                        <tr class="<?= !$hasGroq && $hasGemini ? 'table-primary' : '' ?>">
+                            <td><strong>Gemini</strong></td>
+                            <td>2.0 Flash</td>
+                            <td>15 req/phút, 1.500/ngày</td>
+                        </tr>
+                        <tr class="<?= !$hasKey ? 'table-warning' : '' ?>">
+                            <td><strong>Rule-based</strong></td>
+                            <td>Tích hợp sẵn</td>
+                            <td>Không giới hạn</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -210,26 +241,26 @@ document.getElementById('tempSlider')?.addEventListener('input', function() {
 });
 
 document.getElementById('testBtn')?.addEventListener('click', function() {
-    var key = document.getElementById('apiKeyInput').value;
-    if (!key) { alert('Vui lòng nhập API key trước'); return; }
-    this.disabled = true;
-    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang test...';
+    var groqKey = document.getElementById('groqKeyInput').value;
+    var geminiKey = document.getElementById('geminiKeyInput').value;
+    if (!groqKey && !geminiKey) { alert('Vui lòng nhập ít nhất 1 API key'); return; }
     var btn = this;
-    fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + key)
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            if (d.models) {
-                btn.innerHTML = '<i class="ri-check-line me-1"></i> Kết nối thành công!';
-                btn.className = 'btn btn-success';
-            } else {
-                btn.innerHTML = '<i class="ri-close-line me-1"></i> Lỗi: ' + (d.error?.message || 'Key không hợp lệ');
-                btn.className = 'btn btn-danger';
-            }
-        })
-        .catch(function() {
-            btn.innerHTML = '<i class="ri-close-line me-1"></i> Không kết nối được';
-            btn.className = 'btn btn-danger';
-        })
-        .finally(function() { btn.disabled = false; setTimeout(function(){ btn.innerHTML = '<i class="ri-play-line me-1"></i> Test kết nối'; btn.className = 'btn btn-soft-info'; }, 3000); });
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang test...';
+
+    var testGroq = groqKey ? fetch('https://api.groq.com/openai/v1/models', {headers:{'Authorization':'Bearer '+groqKey}}).then(function(r){return r.json()}) : Promise.resolve(null);
+    var testGemini = geminiKey ? fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+geminiKey).then(function(r){return r.json()}) : Promise.resolve(null);
+
+    Promise.all([testGroq, testGemini]).then(function(results) {
+        var msgs = [];
+        if (results[0]) msgs.push(results[0].data ? '✅ Groq OK' : '❌ Groq: ' + (results[0].error?.message || 'Lỗi'));
+        if (results[1]) msgs.push(results[1].models ? '✅ Gemini OK' : '❌ Gemini: ' + (results[1].error?.message || 'Lỗi'));
+        var allOk = msgs.every(function(m){return m.startsWith('✅')});
+        btn.innerHTML = msgs.join(' | ');
+        btn.className = allOk ? 'btn btn-success' : 'btn btn-warning';
+    }).catch(function() {
+        btn.innerHTML = '❌ Không kết nối được';
+        btn.className = 'btn btn-danger';
+    }).finally(function() { btn.disabled = false; setTimeout(function(){ btn.innerHTML = '<i class="ri-play-line me-1"></i> Test kết nối'; btn.className = 'btn btn-soft-info'; }, 5000); });
 });
 </script>
