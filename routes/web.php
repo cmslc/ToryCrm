@@ -17,11 +17,33 @@ Router::post('forgot-password', 'AuthController@forgot', ['GuestMiddleware']);
 // Logout
 Router::get('logout', 'AuthController@logout');
 
+// Client Portal (public routes - no auth middleware)
+Router::get('portal/login', 'PortalController@login');
+Router::post('portal/login', 'PortalController@authenticate');
+Router::get('portal', 'PortalController@dashboard');
+Router::get('portal/orders', 'PortalController@orders');
+Router::get('portal/tickets', 'PortalController@tickets');
+Router::get('portal/tickets/create', 'PortalController@createTicket');
+Router::post('portal/tickets/store', 'PortalController@storeTicket');
+Router::get('portal/logout', 'PortalController@logout');
+
 // Protected routes
 Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddleware']], function () {
     // Dashboard
     Router::get('', 'DashboardController@index');
     Router::get('dashboard', 'DashboardController@index');
+    Router::post('insights/{id}/dismiss', 'DashboardController@dismissInsight');
+
+    // Conversations (Hộp thư)
+    Router::get('conversations', 'ConversationController@index');
+    Router::get('conversations/create', 'ConversationController@create');
+    Router::get('conversations/canned-responses', 'ConversationController@cannedResponses');
+    Router::post('conversations/store', 'ConversationController@store');
+    Router::get('conversations/{id}', 'ConversationController@show');
+    Router::post('conversations/{id}/reply', 'ConversationController@reply');
+    Router::post('conversations/{id}/assign', 'ConversationController@assign');
+    Router::post('conversations/{id}/status', 'ConversationController@updateStatus');
+    Router::post('conversations/{id}/star', 'ConversationController@star');
 
     // Contacts
     Router::get('contacts', 'ContactController@index');
@@ -196,6 +218,16 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('import-export/export-contacts', 'ImportExportController@exportContacts');
     Router::get('import-export/export-products', 'ImportExportController@exportProducts');
     Router::get('import-export/template/{type}', 'ImportExportController@downloadTemplate');
+
+    // Workflows
+    Router::get('workflows', 'WorkflowController@index');
+    Router::get('workflows/create', 'WorkflowController@create');
+    Router::post('workflows/store', 'WorkflowController@store');
+    Router::get('workflows/{id}/edit', 'WorkflowController@edit');
+    Router::post('workflows/{id}/update', 'WorkflowController@update');
+    Router::post('workflows/{id}/delete', 'WorkflowController@delete');
+    Router::post('workflows/{id}/toggle', 'WorkflowController@toggleActive');
+    Router::get('workflows/{id}/logs', 'WorkflowController@logs');
 
     // Automation
     Router::get('automation', 'AutomationController@index');

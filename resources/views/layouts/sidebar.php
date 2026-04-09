@@ -34,6 +34,18 @@ function isMenuActive(string $path, string $currentUrl): bool {
                         <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
                     </a>
                 </li>
+                <?php
+                    $convUnread = 0;
+                    try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM conversations WHERE tenant_id = ? AND unread_count > 0", [$_SESSION['tenant_id'] ?? 1])['cnt'] ?? 0); } catch (\Throwable $e) {}
+                ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('conversations', $currentUrl) ? 'active' : '' ?>" href="<?= url('conversations') ?>">
+                        <i class="ri-chat-1-line"></i> <span>Hộp thư</span>
+                        <?php if ($convUnread > 0): ?>
+                            <span class="badge bg-danger rounded-pill ms-auto"><?= $convUnread ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
 
                 <li class="menu-title"><span>CRM</span></li>
 
@@ -104,6 +116,11 @@ function isMenuActive(string $path, string $currentUrl): bool {
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isMenuActive('activities', $currentUrl) ? 'active' : '' ?>" href="<?= url('activities') ?>">
                         <i class="ri-history-line"></i> <span>Hoạt động</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('workflows', $currentUrl) ? 'active' : '' ?>" href="<?= url('workflows') ?>">
+                        <i class="ri-flow-chart"></i> <span>Workflow</span>
                     </a>
                 </li>
 

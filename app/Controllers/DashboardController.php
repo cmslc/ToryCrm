@@ -4,108 +4,179 @@ namespace App\Controllers;
 
 use Core\Controller;
 use Core\Database;
+use App\Services\InsightEngine;
+use App\Services\HealthScoreCalculator;
+use App\Services\RevenueAnalytics;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // Summary stats (with tenant scope + soft delete + null safety)
-        $tid = Database::tenantId();
-        $totalContacts = (Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
-        $totalCompanies = (Database::fetch("SELECT COUNT(*) as c FROM companies WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
-        $totalDeals = (Database::fetch("SELECT COUNT(*) as c FROM deals WHERE tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
-        $totalTasks = (Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE is_deleted=0 AND tenant_id=?", [$tid]) ?? [])['c'] ?? 0;
-        $totalRevenue = (Database::fetch("SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?", [$tid]) ?? [])['total'] ?? 0;
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+
+        // Generate insights if none exist today
+        try {
+            $todayInsights = Database::fetch(
+                "SELECT COUNT(*) as c FROM smart_insights WHERE tenant_id = ? AND user_id = ? AND DATE(created_at) = CURDATE()",
+                [$tid, $uid]
+            );
+            if (((int)($todayInsights['c'] ?? 0)) === 0) {
+                $engine = new InsightEngine();
+                $engine->generateDailyInsights($tid, $uid);
+            }
+        } catch (\Exception $e) {
+            // Table may not exist yet
+        }
+
+        // Smart insights (not dismissed, today)
+        $insights = [];
+        try {
+            $insights = Database::fetchAll(
+                "SELECT * FROM smart_insights
+                 WHERE tenant_id = ? AND user_id = ? AND is_dismissed = 0
+                 ORDER BY priority DESC, created_at DESC
+                 LIMIT 4",
+                [$tid, $uid]
+            );
+        } catch (\Exception $e) {}
+
+        // ---- Stats with last month comparison ----
+        $totalContacts = (int)(Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE is_deleted=0 AND tenant_id=?", [$tid])['c'] ?? 0);
+        $lastMonthContacts = (int)(Database::fetch(
+            "SELECT COUNT(*) as c FROM contacts WHERE is_deleted=0 AND tenant_id=? AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01')",
+            [$tid]
+        )['c'] ?? 0);
+
+        $totalDeals = (int)(Database::fetch("SELECT COUNT(*) as c FROM deals WHERE tenant_id=? AND status='open'", [$tid])['c'] ?? 0);
+        $lastMonthDeals = (int)(Database::fetch(
+            "SELECT COUNT(*) as c FROM deals WHERE tenant_id=? AND status='open' AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01')",
+            [$tid]
+        )['c'] ?? 0);
+
+        $totalRevenue = (float)(Database::fetch("SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?", [$tid])['total'] ?? 0);
+        $thisMonthRevenue = (float)(Database::fetch(
+            "SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?
+             AND YEAR(actual_close_date)=YEAR(CURDATE()) AND MONTH(actual_close_date)=MONTH(CURDATE())",
+            [$tid]
+        )['total'] ?? 0);
+        $lastMonthRevenue = (float)(Database::fetch(
+            "SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?
+             AND YEAR(actual_close_date)=YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+             AND MONTH(actual_close_date)=MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))",
+            [$tid]
+        )['total'] ?? 0);
+
+        $totalOrders = 0;
+        $lastMonthOrders = 0;
+        try {
+            $totalOrders = (int)(Database::fetch("SELECT COUNT(*) as c FROM orders WHERE type='order' AND tenant_id=?", [$tid])['c'] ?? 0);
+            $lastMonthOrders = (int)(Database::fetch(
+                "SELECT COUNT(*) as c FROM orders WHERE type='order' AND tenant_id=? AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01')",
+                [$tid]
+            )['c'] ?? 0);
+        } catch (\Exception $e) {}
 
         $stats = [
             'total_contacts' => $totalContacts,
-            'total_companies' => $totalCompanies,
+            'contacts_change' => $lastMonthContacts > 0 ? round(($totalContacts - $lastMonthContacts) / $lastMonthContacts * 100) : 0,
             'total_deals' => $totalDeals,
-            'total_tasks' => $totalTasks,
+            'deals_change' => $lastMonthDeals > 0 ? round(($totalDeals - $lastMonthDeals) / $lastMonthDeals * 100) : 0,
             'total_revenue' => $totalRevenue,
+            'this_month_revenue' => $thisMonthRevenue,
+            'revenue_change' => $lastMonthRevenue > 0 ? round(($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue * 100) : 0,
+            'total_orders' => $totalOrders,
+            'orders_change' => $lastMonthOrders > 0 ? round(($totalOrders - $lastMonthOrders) / $lastMonthOrders * 100) : 0,
         ];
 
-        // Recent contacts
-        $recentContacts = Database::fetchAll(
-            "SELECT c.*, comp.name as company_name
-             FROM contacts c
-             LEFT JOIN companies comp ON c.company_id = comp.id
-             ORDER BY c.created_at DESC
-             LIMIT 5"
-        );
-
-        // Recent activities
-        $recentActivities = Database::fetchAll(
-            "SELECT a.*, u.name as user_name
-             FROM activities a
-             LEFT JOIN users u ON a.user_id = u.id
-             ORDER BY a.created_at DESC
-             LIMIT 5"
-        );
-
-        // Deal pipeline summary
-        $pipelineSummary = Database::fetchAll(
-            "SELECT ds.name, ds.color, COUNT(d.id) as count, COALESCE(SUM(d.value), 0) as total_value
-             FROM deal_stages ds
-             LEFT JOIN deals d ON d.stage_id = ds.id AND d.status = 'open'
-             GROUP BY ds.id, ds.name, ds.color
-             ORDER BY ds.sort_order"
-        );
-
-        // Overdue tasks
-        $overdueTasks = Database::fetchAll(
-            "SELECT t.*, u.name as assigned_name
-             FROM tasks t
-             LEFT JOIN users u ON t.assigned_to = u.id
-             WHERE t.due_date < NOW() AND t.status != 'done'
-             ORDER BY t.due_date ASC
-             LIMIT 5"
-        );
-
-        // Task stats for chart
-        $taskCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM tasks GROUP BY status");
-        $taskStats = [0, 0, 0, 0]; // todo, in_progress, review, done
-        $statusMap = ['todo' => 0, 'in_progress' => 1, 'review' => 2, 'done' => 3];
-        foreach ($taskCounts as $tc) {
-            if (isset($statusMap[$tc['status']])) {
-                $taskStats[$statusMap[$tc['status']]] = (int)$tc['count'];
+        // ---- Health scores distribution ----
+        $healthDist = ['low' => 0, 'medium' => 0, 'high' => 0, 'critical' => 0];
+        $criticalContacts = [];
+        try {
+            $healthRows = Database::fetchAll(
+                "SELECT hs.churn_risk, COUNT(*) as cnt
+                 FROM health_scores hs
+                 JOIN contacts c ON c.id = hs.contact_id AND c.tenant_id = ? AND c.is_deleted = 0
+                 GROUP BY hs.churn_risk",
+                [$tid]
+            );
+            foreach ($healthRows as $hr) {
+                $healthDist[$hr['churn_risk']] = (int)$hr['cnt'];
             }
-        }
+            $criticalContacts = Database::fetchAll(
+                "SELECT c.id, c.first_name, c.last_name, c.email, hs.overall_score, hs.churn_risk, hs.days_since_interaction
+                 FROM health_scores hs
+                 JOIN contacts c ON c.id = hs.contact_id AND c.tenant_id = ? AND c.is_deleted = 0
+                 WHERE hs.churn_risk IN ('critical', 'high')
+                 ORDER BY hs.overall_score ASC
+                 LIMIT 5",
+                [$tid]
+            );
+        } catch (\Exception $e) {}
 
-        // Revenue by month
+        // ---- Revenue chart data (last 12 months) ----
         $year = date('Y');
         $revenueRows = Database::fetchAll(
             "SELECT MONTH(actual_close_date) as month, SUM(value) as revenue
-             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ?
+             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ?
              GROUP BY MONTH(actual_close_date)",
-            [$year]
+            [$year, $tid]
         );
         $revenueData = array_fill(0, 12, 0);
         foreach ($revenueRows as $r) {
             $revenueData[$r['month'] - 1] = (float)$r['revenue'];
         }
 
-        // Orders stats (wrapped in try-catch in case migration not yet applied)
-        try {
-            $totalOrders = Database::fetch("SELECT COUNT(*) as count FROM orders WHERE type = 'order'")['count'] ?? 0;
-            $orderRevenue = Database::fetch("SELECT COALESCE(SUM(total), 0) as total FROM orders WHERE type = 'order' AND status = 'completed'")['total'] ?? 0;
-        } catch (\Exception $e) {
-            $totalOrders = 0;
-            $orderRevenue = 0;
-        }
+        // ---- Pipeline / Funnel ----
+        $pipelineSummary = Database::fetchAll(
+            "SELECT ds.name, ds.color, COUNT(d.id) as count, COALESCE(SUM(d.value), 0) as total_value
+             FROM deal_stages ds
+             LEFT JOIN deals d ON d.stage_id = ds.id AND d.status = 'open' AND d.tenant_id = ?
+             GROUP BY ds.id, ds.name, ds.color
+             ORDER BY ds.sort_order",
+            [$tid]
+        );
 
-        // Ticket stats
-        try {
-            $openTickets = Database::fetch("SELECT COUNT(*) as count FROM tickets WHERE status NOT IN ('resolved', 'closed')")['count'] ?? 0;
-        } catch (\Exception $e) {
-            $openTickets = 0;
-        }
-        $stats['open_tickets'] = $openTickets;
+        // ---- Action items: overdue tasks ----
+        $overdueTasks = Database::fetchAll(
+            "SELECT t.*, u.name as assigned_name
+             FROM tasks t
+             LEFT JOIN users u ON t.assigned_to = u.id
+             WHERE t.tenant_id = ? AND t.is_deleted = 0 AND t.due_date < NOW() AND t.status != 'done'
+             ORDER BY t.due_date ASC
+             LIMIT 5",
+            [$tid]
+        );
 
-        $stats['total_orders'] = $totalOrders;
-        $stats['order_revenue'] = $orderRevenue;
+        // ---- Action items: deals closing soon (7 days) ----
+        $dealsClosingSoon = Database::fetchAll(
+            "SELECT d.id, d.title, d.value, d.expected_close_date, c.first_name, c.last_name
+             FROM deals d
+             LEFT JOIN contacts c ON d.contact_id = c.id
+             WHERE d.tenant_id = ? AND d.status = 'open'
+               AND d.expected_close_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+             ORDER BY d.expected_close_date ASC
+             LIMIT 5",
+            [$tid]
+        );
 
-        // Today's calendar events
+        // ---- Action items: inactive contacts (30+ days) ----
+        $inactiveContacts = Database::fetchAll(
+            "SELECT c.id, c.first_name, c.last_name, c.email,
+                    MAX(a.created_at) as last_activity,
+                    DATEDIFF(NOW(), COALESCE(MAX(a.created_at), c.created_at)) as days_inactive
+             FROM contacts c
+             LEFT JOIN activities a ON a.contact_id = c.id
+             WHERE c.tenant_id = ? AND c.is_deleted = 0
+             GROUP BY c.id, c.first_name, c.last_name, c.email, c.created_at
+             HAVING days_inactive >= 30
+             ORDER BY days_inactive DESC
+             LIMIT 5",
+            [$tid]
+        );
+
+        // ---- Today's calendar events ----
+        $todayEvents = [];
         try {
             $todayEvents = Database::fetchAll(
                 "SELECT ce.*, c.first_name as contact_first_name, c.last_name as contact_last_name
@@ -114,21 +185,58 @@ class DashboardController extends Controller
                  WHERE (ce.user_id = ? OR ce.created_by = ?) AND DATE(ce.start_at) = CURDATE()
                  ORDER BY ce.start_at ASC
                  LIMIT 5",
-                [$this->userId(), $this->userId()]
+                [$uid, $uid]
             );
-        } catch (\Exception $e) {
-            $todayEvents = [];
-        }
+        } catch (\Exception $e) {}
+
+        // ---- Recent activities ----
+        $recentActivities = Database::fetchAll(
+            "SELECT a.*, u.name as user_name
+             FROM activities a
+             LEFT JOIN users u ON a.user_id = u.id
+             WHERE a.tenant_id = ?
+             ORDER BY a.created_at DESC
+             LIMIT 8",
+            [$tid]
+        );
 
         return $this->view('dashboard.index', [
+            'insights' => $insights,
             'stats' => $stats,
-            'recentContacts' => $recentContacts,
-            'recentActivities' => $recentActivities,
+            'healthDist' => $healthDist,
+            'criticalContacts' => $criticalContacts,
+            'revenueData' => $revenueData,
             'pipelineSummary' => $pipelineSummary,
             'overdueTasks' => $overdueTasks,
-            'taskStats' => $taskStats,
-            'revenueData' => $revenueData,
+            'dealsClosingSoon' => $dealsClosingSoon,
+            'inactiveContacts' => $inactiveContacts,
             'todayEvents' => $todayEvents,
+            'recentActivities' => $recentActivities,
         ]);
+    }
+
+    /**
+     * Dismiss a smart insight via AJAX
+     */
+    public function dismissInsight(int $id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+
+        try {
+            Database::update(
+                'smart_insights',
+                ['is_dismissed' => 1],
+                'id = ? AND tenant_id = ? AND user_id = ?',
+                [$id, $tid, $uid]
+            );
+            return $this->json(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Failed'], 500);
+        }
     }
 }

@@ -19,6 +19,7 @@ class Database
         'contacts', 'companies', 'deals', 'tasks', 'products', 'orders',
         'tickets', 'campaigns', 'fund_transactions', 'calendar_events',
         'activities', 'purchase_orders', 'call_logs', 'notifications', 'users',
+        'conversations', 'canned_responses',
     ];
 
     public static function init(array $config): void
