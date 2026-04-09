@@ -37,6 +37,7 @@ class DuplicateDetector
                 'entity_type' => 'contact',
                 'match_field' => 'email',
                 'match_value' => $dupe['email'],
+                'record_ids' => json_encode(array_map('intval', $ids)),
                 'status' => 'pending',
             ]);
 
@@ -73,6 +74,7 @@ class DuplicateDetector
                 'entity_type' => 'contact',
                 'match_field' => 'phone',
                 'match_value' => $dupe['phone'],
+                'record_ids' => json_encode(array_map('intval', $ids)),
                 'status' => 'pending',
             ]);
 
@@ -119,6 +121,7 @@ class DuplicateDetector
                 'entity_type' => 'company',
                 'match_field' => 'tax_code',
                 'match_value' => $dupe['tax_code'],
+                'record_ids' => json_encode(array_map('intval', $ids)),
                 'status' => 'pending',
             ]);
 
@@ -155,6 +158,7 @@ class DuplicateDetector
                 'entity_type' => 'company',
                 'match_field' => 'name',
                 'match_value' => $dupe['name'],
+                'record_ids' => json_encode(array_map('intval', $ids)),
                 'status' => 'pending',
             ]);
 
