@@ -90,14 +90,22 @@ class ActivityController extends Controller
             'scheduled_at' => $data['scheduled_at'] ?? null,
         ]);
 
-        $activity = Database::fetch(
-            "SELECT a.*, u.name as user_name
-             FROM activities a
-             LEFT JOIN users u ON a.user_id = u.id
-             WHERE a.id = ?",
-            [$activityId]
-        );
+        // AJAX request → return JSON
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            $activity = Database::fetch(
+                "SELECT a.*, u.name as user_name
+                 FROM activities a
+                 LEFT JOIN users u ON a.user_id = u.id
+                 WHERE a.id = ?",
+                [$activityId]
+            );
+            return $this->json(['success' => true, 'activity' => $activity]);
+        }
 
-        return $this->json(['success' => true, 'activity' => $activity]);
+        // Normal form submit → redirect back
+        $this->setFlash('success', 'Đã thêm hoạt động.');
+        $referer = $_SERVER['HTTP_REFERER'] ?? url('activities');
+        header('Location: ' . $referer);
+        exit;
     }
 }

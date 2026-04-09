@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "*",
-      "WebFetch(domain:developer.getfly.vn)"
+      "WebFetch(domain:developer.getfly.vn)",
+      "Bash(docker compose:*)",
+      "Bash(docker context:*)",
+      "Bash(curl -s \"http://localhost:8080/contacts\")",
+      "Bash(docker compose exec -T mysql mysql -u torycrm -ptorycrm_secret torycrm -e \":*)",
+      "Bash(curl -s -b /tmp/ckR.txt \"http://localhost:8080/contacts/18\" -o /tmp/c18.html -w \"HTTP: %{http_code}\\\\n\")",
+      "Bash(curl -s -b /tmp/ckR.txt \"http://localhost:8080/contacts/18\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/login\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8081/\")"
     ]
   }
 }

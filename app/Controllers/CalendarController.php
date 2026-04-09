@@ -46,6 +46,9 @@ class CalendarController extends Controller
             'deals' => $deals,
             'users' => $users,
             'defaultDate' => $this->input('date', date('Y-m-d')),
+            'selectedContactId' => (int) $this->input('contact_id'),
+            'selectedCompanyId' => (int) $this->input('company_id'),
+            'selectedDealId' => (int) $this->input('deal_id'),
         ]);
     }
 

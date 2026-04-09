@@ -65,7 +65,7 @@
                                 <select name="contact_id" class="form-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($contacts ?? [] as $c): ?>
-                                        <option value="<?= $c['id'] ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                                        <option value="<?= $c['id'] ?>" <?= ($selectedContactId ?? 0) == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -74,7 +74,7 @@
                                 <select name="company_id" class="form-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($companies ?? [] as $comp): ?>
-                                        <option value="<?= $comp['id'] ?>"><?= e($comp['name']) ?></option>
+                                        <option value="<?= $comp['id'] ?>" <?= ($selectedCompanyId ?? 0) == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -83,7 +83,7 @@
                                 <select name="deal_id" class="form-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($deals ?? [] as $d): ?>
-                                        <option value="<?= $d['id'] ?>"><?= e($d['title']) ?></option>
+                                        <option value="<?= $d['id'] ?>" <?= ($selectedDealId ?? 0) == $d['id'] ? 'selected' : '' ?>><?= e($d['title']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>

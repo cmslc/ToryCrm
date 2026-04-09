@@ -77,10 +77,39 @@
                 </select>
             </div>
             <div class="col-md-3 d-flex gap-1">
-                <button type="submit" class="btn btn-primary btn"><i class="ri-equalizer-fill me-1"></i> Lọc</button>
+                <button type="submit" class="btn btn-primary"><i class="ri-equalizer-fill me-1"></i> Lọc</button>
                 <?php if (!empty(array_filter($filters ?? []))): ?>
-                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger btn"><i class="ri-close-line"></i></a>
+                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger"><i class="ri-close-line"></i></a>
                 <?php endif; ?>
+                <div class="dropdown">
+                    <button class="btn btn-soft-secondary" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Tùy chọn cột">
+                        <i class="ri-settings-3-line me-1"></i> Hiển thị
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 220px;">
+                        <h6 class="dropdown-header px-0">Hiển thị cột</h6>
+                        <?php
+                        $columns = [
+                            'col-customer' => 'Khách hàng',
+                            'col-contact' => 'Liên hệ',
+                            'col-company' => 'Công ty',
+                            'col-source' => 'Nguồn',
+                            'col-status' => 'Trạng thái',
+                            'col-owner' => 'Phụ trách',
+                            'col-address' => 'Địa chỉ',
+                            'col-birthday' => 'Ngày sinh',
+                            'col-tags' => 'Nhãn',
+                            'col-created' => 'Ngày tạo',
+                        ];
+                        foreach ($columns as $colId => $colLabel): ?>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                            <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                        </div>
+                        <?php endforeach; ?>
+                        <hr class="my-2">
+                        <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -91,12 +120,16 @@
                 <thead class="text-muted table-light">
                     <tr>
                         <th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
-                        <th>Khách hàng</th>
-                        <th>Liên hệ</th>
-                        <th>Công ty</th>
-                        <th>Trạng thái</th>
-                        <th>Phụ trách</th>
-                        <th>Ngày tạo</th>
+                        <th class="col-customer">Khách hàng</th>
+                        <th class="col-contact">Liên hệ</th>
+                        <th class="col-company">Công ty</th>
+                        <th class="col-source">Nguồn</th>
+                        <th class="col-status">Trạng thái</th>
+                        <th class="col-owner">Phụ trách</th>
+                        <th class="col-address">Địa chỉ</th>
+                        <th class="col-birthday">Ngày sinh</th>
+                        <th class="col-tags">Nhãn</th>
+                        <th class="col-created">Ngày tạo</th>
                         <th style="width:50px"></th>
                     </tr>
                 </thead>
@@ -109,7 +142,7 @@
                         <?php foreach ($contacts['items'] as $c): ?>
                         <tr>
                             <td><input type="checkbox" class="form-check-input contact-check" value="<?= $c['id'] ?>"></td>
-                            <td>
+                            <td class="col-customer">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
                                         <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-13">
@@ -124,31 +157,48 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td class="col-contact">
                                 <?php if ($c['email']): ?><div class="fs-12"><i class="ri-mail-line me-1 text-muted"></i><?= e($c['email']) ?></div><?php endif; ?>
                                 <?php if ($c['phone']): ?><div class="fs-12"><i class="ri-phone-line me-1 text-muted"></i><?= e($c['phone']) ?></div><?php endif; ?>
                             </td>
-                            <td>
+                            <td class="col-company">
                                 <?php if ($c['company_id']): ?>
                                     <a href="<?= url('companies/' . $c['company_id']) ?>" class="text-body"><?= e($c['company_name']) ?></a>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td class="col-source">
+                                <?php if (!empty($c['source_name'])): ?>
+                                    <span class="badge bg-secondary-subtle text-secondary"><?= e($c['source_name']) ?></span>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col-status">
                                 <span class="badge bg-<?= $sColors[$c['status']] ?? 'secondary' ?>-subtle text-<?= $sColors[$c['status']] ?? 'secondary' ?>">
                                     <?= $sLabels[$c['status']] ?? $c['status'] ?>
                                 </span>
                             </td>
-                            <td class="fs-13"><?= e($c['owner_name'] ?? '-') ?></td>
-                            <td class="text-muted fs-12"><?= time_ago($c['created_at']) ?></td>
+                            <td class="col-owner fs-13"><?= e($c['owner_name'] ?? '-') ?></td>
+                            <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>
+                            <td class="col-birthday fs-12"><?= !empty($c['date_of_birth']) ? date('d/m/Y', strtotime($c['date_of_birth'])) : '-' ?></td>
+                            <td class="col-tags">
+                                <?php if (!empty($c['tags'])): ?>
+                                    <?php foreach (explode(',', $c['tags']) as $tag): ?>
+                                        <span class="badge bg-info-subtle text-info me-1"><?= e(trim($tag)) ?></span>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col-created text-muted fs-12"><?= time_ago($c['created_at']) ?></td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-soft-secondary btn " data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id']) ?>"><i class="ri-eye-line me-2 align-middle"></i>Xem</a></li>
                                         <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id'] . '/edit') ?>"><i class="ri-pencil-line me-2 align-middle"></i>Sửa</a></li>
-                                        <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id'] . '/bonus-points') ?>"><i class="ri-star-line me-2 align-middle"></i>Điểm thưởng</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form method="POST" action="<?= url('contacts/' . $c['id'] . '/delete') ?>" data-confirm="Xóa khách hàng <?= e($c['first_name']) ?>?">
@@ -163,7 +213,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="8" class="text-center py-5">
+                            <td colspan="13" class="text-center py-5">
                                 <div class="avatar-md mx-auto mb-3">
                                     <span class="avatar-title bg-primary-subtle rounded-circle">
                                         <i class="ri-contacts-line text-primary fs-24"></i>
@@ -202,3 +252,44 @@
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+(function() {
+    const STORAGE_KEY = 'torycrm_contacts_columns';
+    const allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-tags','col-created'];
+    const defaults = ['col-customer','col-contact','col-company','col-status','col-owner','col-created'];
+
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaults; }
+        catch(e) { return defaults; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(col => {
+            const show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(el => {
+                el.style.display = show ? '' : 'none';
+            });
+            const cb = document.getElementById(col);
+            if (cb) cb.checked = show;
+        });
+    }
+
+    applyColumns(getVisible());
+
+    document.querySelectorAll('.column-toggle').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const visible = [];
+            document.querySelectorAll('.column-toggle:checked').forEach(c => visible.push(c.dataset.column));
+            if (visible.length === 0) { this.checked = true; return; }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
+        });
+    });
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaults);
+    });
+})();
+</script>

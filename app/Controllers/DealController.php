@@ -127,6 +127,8 @@ class DealController extends Controller
             'companies' => $companies,
             'stages' => $stages,
             'users' => $users,
+            'selectedContactId' => (int) $this->input('contact_id'),
+            'selectedCompanyId' => (int) $this->input('company_id'),
         ]);
     }
 

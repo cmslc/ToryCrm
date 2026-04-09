@@ -98,6 +98,10 @@ class OrderController extends Controller
         $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
 
+        $contactId = (int) $this->input('contact_id');
+        $companyId = (int) $this->input('company_id');
+        $dealId = (int) $this->input('deal_id');
+
         return $this->view('orders.create', [
             'orderNumber' => $orderNumber,
             'type' => $type,
@@ -106,6 +110,9 @@ class OrderController extends Controller
             'deals' => $deals,
             'products' => $products,
             'users' => $users,
+            'selectedContactId' => $contactId,
+            'selectedCompanyId' => $companyId,
+            'selectedDealId' => $dealId,
         ]);
     }
 

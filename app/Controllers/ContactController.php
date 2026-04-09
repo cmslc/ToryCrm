@@ -169,7 +169,7 @@ class ContactController extends Controller
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.contact_id = ?
              ORDER BY a.created_at DESC
-             LIMIT 20",
+             LIMIT 50",
             [$id]
         );
 
@@ -352,49 +352,4 @@ class ContactController extends Controller
         return $this->redirect('contacts/' . $id);
     }
 
-    // ---- Điểm thưởng ----
-    public function bonusPoints($id)
-    {
-        $contact = $this->findSecure('contacts', (int)$id);
-        if (!$contact) {
-            $this->setFlash('error', 'Khách hàng không tồn tại.');
-            return $this->redirect('contacts');
-        }
-
-        return $this->view('contacts.bonus-points', ['contact' => $contact]);
-    }
-
-    public function addBonusPoints($id)
-    {
-        if (!$this->isPost()) return $this->redirect('contacts/' . $id);
-
-        $contact = $this->findSecure('contacts', (int)$id);
-        if (!$contact) {
-            $this->setFlash('error', 'Khách hàng không tồn tại.');
-            return $this->redirect('contacts');
-        }
-
-        $points = (int)$this->input('points');
-        $reason = trim($this->input('reason') ?? '');
-
-        if ($points == 0) {
-            $this->setFlash('error', 'Số điểm phải khác 0.');
-            return $this->back();
-        }
-
-        $newTotal = ($contact['bonus_points'] ?? 0) + $points;
-        Database::update('contacts', ['bonus_points' => max(0, $newTotal)], 'id = ?', [$id]);
-
-        $action = $points > 0 ? 'Cộng' : 'Trừ';
-        Database::insert('activities', [
-            'type' => 'system',
-            'title' => "{$action} " . abs($points) . " điểm thưởng cho {$contact['first_name']} {$contact['last_name']}",
-            'description' => $reason ?: null,
-            'user_id' => $this->userId(),
-            'contact_id' => (int)$id,
-        ]);
-
-        $this->setFlash('success', "Đã {$action} " . abs($points) . " điểm. Tổng: {$newTotal} điểm.");
-        return $this->redirect('contacts/' . $id);
-    }
 }

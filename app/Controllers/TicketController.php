@@ -50,6 +50,8 @@ class TicketController extends Controller
             'companies' => $companies,
             'categories' => $categories,
             'users' => $users,
+            'selectedContactId' => (int) $this->input('contact_id'),
+            'selectedCompanyId' => (int) $this->input('company_id'),
         ]);
     }
 
