@@ -1,12 +1,17 @@
 <?php
+$branding = \App\Services\BrandingService::get();
 $pageTitle = $pageTitle ?? 'ToryCRM';
+$brandName = $branding['name'] ?? 'ToryCRM';
 ?>
 <!DOCTYPE html>
 <html lang="vi" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-bs-theme="light" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($pageTitle) ?> | ToryCRM</title>
+    <title><?= e($pageTitle) ?> | <?= e($brandName) ?></title>
+    <?php if (!empty($branding['favicon_url'])): ?>
+    <link rel="icon" href="<?= e($branding['favicon_url']) ?>" type="image/x-icon">
+    <?php endif; ?>
 
     <!-- Velzon CSS -->
     <link href="<?= asset('css/bootstrap.min.css') ?>" rel="stylesheet">
@@ -15,6 +20,12 @@ $pageTitle = $pageTitle ?? 'ToryCRM';
     <link href="<?= asset('css/icons.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/app.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
+
+    <!-- White-label Branding -->
+    <?php $brandingCss = \App\Services\BrandingService::getCssVariables(); ?>
+    <?php if (!empty($brandingCss)): ?>
+    <style><?= $brandingCss ?></style>
+    <?php endif; ?>
 
     <!-- PWA -->
     <link rel="manifest" href="<?= asset('manifest.json') ?>">

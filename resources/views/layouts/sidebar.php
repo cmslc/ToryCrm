@@ -1,6 +1,9 @@
 <?php
 $currentUrl = trim($_GET['url'] ?? '', '/');
 $user = $_SESSION['user'] ?? null;
+$_branding = \App\Services\BrandingService::get();
+$_brandName = $_branding['name'] ?? 'ToryCRM';
+$_brandLogo = $_branding['logo_url'] ?? '';
 
 function isMenuActive(string $path, string $currentUrl): bool {
     return $currentUrl === trim($path, '/') || str_starts_with($currentUrl, trim($path, '/') . '/');
@@ -12,12 +15,22 @@ function isMenuActive(string $path, string $currentUrl): bool {
     <!-- LOGO -->
     <div class="navbar-brand-box">
         <a href="<?= url('dashboard') ?>" class="logo logo-dark">
-            <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color)"></i></span>
-            <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:var(--vz-vertical-menu-item-active-color)">ToryCRM</span></span>
+            <?php if ($_brandLogo): ?>
+                <span class="logo-sm"><img src="<?= e($_brandLogo) ?>" alt="<?= e($_brandName) ?>" height="22"></span>
+                <span class="logo-lg"><img src="<?= e($_brandLogo) ?>" alt="<?= e($_brandName) ?>" height="28"></span>
+            <?php else: ?>
+                <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color)"></i></span>
+                <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:var(--vz-vertical-menu-item-active-color)"><?= e($_brandName) ?></span></span>
+            <?php endif; ?>
         </a>
         <a href="<?= url('dashboard') ?>" class="logo logo-light">
-            <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff"></i></span>
-            <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:#fff">ToryCRM</span></span>
+            <?php if ($_brandLogo): ?>
+                <span class="logo-sm"><img src="<?= e($_brandLogo) ?>" alt="<?= e($_brandName) ?>" height="22"></span>
+                <span class="logo-lg"><img src="<?= e($_brandLogo) ?>" alt="<?= e($_brandName) ?>" height="28"></span>
+            <?php else: ?>
+                <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff"></i></span>
+                <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:#fff"><?= e($_brandName) ?></span></span>
+            <?php endif; ?>
         </a>
         <button type="button" class="btn btn p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover"><i class="ri-record-circle-line"></i></button>
     </div>
@@ -170,8 +183,18 @@ function isMenuActive(string $path, string $currentUrl): bool {
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('integrations', $currentUrl) ? 'active' : '' ?>" href="<?= url('integrations') ?>">
+                        <i class="ri-links-line"></i> <span>Tích hợp</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link menu-link <?= isMenuActive('webhooks', $currentUrl) ? 'active' : '' ?>" href="<?= url('webhooks') ?>">
-                        <i class="ri-links-line"></i> <span>Webhook</span>
+                        <i class="ri-webhook-line"></i> <span>Webhook</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('plugins', $currentUrl) ? 'active' : '' ?>" href="<?= url('plugins/marketplace') ?>">
+                        <i class="ri-store-2-line"></i> <span>Marketplace</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -179,9 +202,17 @@ function isMenuActive(string $path, string $currentUrl): bool {
                         <i class="ri-bank-card-line"></i> <span>Gói dịch vụ</span>
                     </a>
                 </li>
+
+                <li class="menu-title"><span>Cài đặt</span></li>
+
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isMenuActive('settings', $currentUrl) ? 'active' : '' ?>" href="<?= url('settings') ?>">
                         <i class="ri-settings-3-line"></i> <span>Cài đặt</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('settings/white-label', $currentUrl) ? 'active' : '' ?>" href="<?= url('settings/white-label') ?>">
+                        <i class="ri-palette-line"></i> <span>White-label</span>
                     </a>
                 </li>
                 <li class="nav-item">

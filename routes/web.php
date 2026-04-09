@@ -17,6 +17,19 @@ Router::post('forgot-password', 'AuthController@forgot', ['GuestMiddleware']);
 // Logout
 Router::get('logout', 'AuthController@logout');
 
+// Public webhook routes (no auth)
+Router::post('webhooks/zalo', 'ZaloController@webhook');
+Router::post('webhooks/voip', 'VoipController@callEvent');
+
+// Payment gateway callbacks (public - no auth)
+Router::get('payments/vnpay-return', 'PaymentController@vnpayReturn');
+Router::get('payments/momo-return', 'PaymentController@momoReturn');
+Router::post('webhooks/vnpay', 'PaymentController@vnpayIPN');
+Router::post('webhooks/momo', 'PaymentController@momoIPN');
+
+// Google Calendar OAuth callback (public)
+Router::get('integrations/google-calendar/callback', 'GoogleCalendarController@callback');
+
 // Client Portal (public routes - no auth middleware)
 Router::get('portal/login', 'PortalController@login');
 Router::post('portal/login', 'PortalController@authenticate');
@@ -296,6 +309,43 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('onboarding', 'OnboardingController@welcome');
     Router::post('onboarding/complete', 'OnboardingController@complete');
 
+    // Plugins / Marketplace
+    Router::get('plugins', 'PluginController@installed');
+    Router::get('plugins/marketplace', 'PluginController@marketplace');
+    Router::post('plugins/{id}/install', 'PluginController@install');
+    Router::post('plugins/{id}/uninstall', 'PluginController@uninstall');
+    Router::post('plugins/{id}/toggle', 'PluginController@toggleActive');
+    Router::get('plugins/{id}/configure', 'PluginController@configure');
+    Router::post('plugins/{id}/configure', 'PluginController@saveConfig');
+
+    // Integrations
+    Router::get('integrations', 'IntegrationController@index');
+    Router::get('integrations/zalo', 'ZaloController@settings');
+    Router::post('integrations/zalo', 'ZaloController@saveSettings');
+    Router::post('integrations/zalo/send', 'ZaloController@send');
+    Router::get('integrations/voip', 'VoipController@settings');
+    Router::post('integrations/voip', 'VoipController@saveSettings');
+    Router::post('integrations/voip/call', 'VoipController@makeCall');
+    Router::get('integrations/voip/token', 'VoipController@token');
+
+    // Google Calendar Integration
+    Router::get('integrations/google-calendar', 'GoogleCalendarController@settings');
+    Router::post('integrations/google-calendar', 'GoogleCalendarController@saveSettings');
+    Router::get('integrations/google-calendar/connect', 'GoogleCalendarController@connect');
+    Router::post('integrations/google-calendar/disconnect', 'GoogleCalendarController@disconnect');
+    Router::post('integrations/google-calendar/sync', 'GoogleCalendarController@sync');
+
+    // Payment Gateway Settings
+    Router::get('integrations/vnpay', 'PaymentController@vnpaySettings');
+    Router::post('integrations/vnpay', 'PaymentController@saveVNPaySettings');
+    Router::get('integrations/momo', 'PaymentController@momoSettings');
+    Router::post('integrations/momo', 'PaymentController@saveMoMoSettings');
+
+    // Payment Checkout
+    Router::get('payments/{invoiceId}/checkout', 'PaymentController@checkout');
+    Router::post('payments/{invoiceId}/vnpay', 'PaymentController@processVNPay');
+    Router::post('payments/{invoiceId}/momo', 'PaymentController@processMoMo');
+
     // Settings
     Router::get('settings', 'SettingController@index');
     Router::post('settings/profile', 'SettingController@updateProfile');
@@ -308,4 +358,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/permissions', 'SettingController@permissions');
     Router::post('settings/permissions', 'SettingController@savePermissions');
     Router::get('settings/audit-log', 'SettingController@auditLog');
+    Router::get('settings/white-label', 'WhiteLabelController@settings');
+    Router::post('settings/white-label', 'WhiteLabelController@save');
 });
