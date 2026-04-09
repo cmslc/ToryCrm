@@ -7,43 +7,12 @@
     <title><?= e($pageTitle) ?> | ToryCRM</title>
 
     <!-- Bootstrap 5.3 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <!-- Remix Icon -->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="/css/icons.min.css" rel="stylesheet">
     <!-- App CSS -->
     <link href="<?= asset('css/app.css') ?>" rel="stylesheet">
 
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .legal-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-        .legal-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .legal-header h1 {
-            color: #405189;
-            font-weight: 700;
-        }
-        .legal-section {
-            margin-bottom: 2rem;
-        }
-        .legal-section h3 {
-            color: #405189;
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-        .legal-section p {
-            color: #495057;
-            line-height: 1.8;
-        }
-    </style>
 </head>
 <body>
 
@@ -108,6 +77,6 @@
 </div>
 
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

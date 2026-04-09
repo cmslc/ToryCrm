@@ -79,19 +79,6 @@
             </div>
         </div>
 
-<style>
-.pipeline-board { margin: 0 -0.75rem; padding: 0 0.75rem; }
-.pipeline-cards { transition: background-color 0.2s; }
-.pipeline-cards.sortable-ghost-class { opacity: 0.4; }
-.deal-card { cursor: grab; transition: transform 0.15s, box-shadow 0.15s; }
-.deal-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.deal-card.sortable-chosen { transform: rotate(2deg); box-shadow: 0 4px 16px rgba(0,0,0,0.15); cursor: grabbing; }
-.deal-card.sortable-ghost { opacity: 0.3; }
-.pipeline-cards.drag-highlight { background-color: rgba(64,81,137,0.05); border-radius: 0.375rem; }
-@media (max-width: 768px) {
-    .pipeline-column { min-width: 260px !important; }
-}
-</style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>

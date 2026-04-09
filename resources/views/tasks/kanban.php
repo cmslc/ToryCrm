@@ -83,17 +83,6 @@
             <?php endforeach; ?>
         </div>
 
-<style>
-.kanban-column { transition: background-color 0.2s; }
-.task-card { cursor: grab; transition: transform 0.15s, box-shadow 0.15s; }
-.task-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.task-card.sortable-chosen { transform: rotate(2deg); box-shadow: 0 4px 16px rgba(0,0,0,0.15); cursor: grabbing; }
-.task-card.sortable-ghost { opacity: 0.3; }
-.kanban-column.drag-highlight { background-color: rgba(64,81,137,0.05); border-radius: 0.375rem; }
-@media (max-width: 768px) {
-    .kanban-stage { min-width: 260px !important; }
-}
-</style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>

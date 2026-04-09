@@ -121,8 +121,3 @@
             calendar.render();
         });
         </script>
-        <style>
-            .fc .fc-toolbar-title { font-size: 1.2rem; }
-            .fc .fc-button { font-size: 0.85rem; }
-            .fc-event { cursor: pointer; }
-        </style>
