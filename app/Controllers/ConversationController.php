@@ -254,7 +254,6 @@ class ConversationController extends Controller
             'last_message_preview' => $preview,
             'unread_count' => 0,
             'is_starred' => 0,
-            'created_by' => $this->userId(),
         ]);
 
         Database::insert('conversation_messages', [

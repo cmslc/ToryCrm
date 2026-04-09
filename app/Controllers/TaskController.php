@@ -381,6 +381,49 @@ class TaskController extends Controller
         return $this->redirect('tasks');
     }
 
+    public function quickUpdate($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $task = Database::fetch("SELECT * FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$task) {
+            return $this->json(['error' => 'Công việc không tồn tại'], 404);
+        }
+
+        $field = $this->input('field');
+        $value = $this->input('value');
+        $allowed = ['status', 'assigned_to', 'priority'];
+
+        if (!in_array($field, $allowed)) {
+            return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
+        }
+
+        $updateData = [$field => $value ?: null];
+        if ($field === 'status' && $value === 'done' && $task['status'] !== 'done') {
+            $updateData['completed_at'] = date('Y-m-d H:i:s');
+        } elseif ($field === 'status' && $value !== 'done') {
+            $updateData['completed_at'] = null;
+        }
+
+        Database::update('tasks', $updateData, 'id = ?', [$id]);
+
+        $display = $value;
+        if ($field === 'status') {
+            $labels = ['todo' => 'Cần làm', 'in_progress' => 'Đang làm', 'review' => 'Xem xét', 'done' => 'Hoàn thành'];
+            $display = $labels[$value] ?? $value;
+        } elseif ($field === 'assigned_to') {
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$value]);
+            $display = $user ? htmlspecialchars($user['name']) : '-';
+        } elseif ($field === 'priority') {
+            $labels = ['low' => 'Thấp', 'medium' => 'Trung bình', 'high' => 'Cao', 'urgent' => 'Khẩn cấp'];
+            $display = $labels[$value] ?? $value;
+        }
+
+        return $this->json(['success' => true, 'value' => $value, 'display' => $display]);
+    }
+
     public function updateStatus($id)
     {
         if (!$this->isPost()) {

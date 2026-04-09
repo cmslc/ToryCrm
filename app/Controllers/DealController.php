@@ -323,6 +323,42 @@ class DealController extends Controller
         return $this->redirect('deals');
     }
 
+    public function quickUpdate($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$deal) {
+            return $this->json(['error' => 'Deal không tồn tại'], 404);
+        }
+
+        $field = $this->input('field');
+        $value = $this->input('value');
+        $allowed = ['status', 'owner_id', 'stage_id', 'priority'];
+
+        if (!in_array($field, $allowed)) {
+            return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
+        }
+
+        Database::update('deals', [$field => $value ?: null], 'id = ?', [$id]);
+
+        $display = $value;
+        if ($field === 'status') {
+            $labels = ['open' => 'Mở', 'won' => 'Thắng', 'lost' => 'Thua'];
+            $display = $labels[$value] ?? $value;
+        } elseif ($field === 'owner_id') {
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$value]);
+            $display = $user ? htmlspecialchars($user['name']) : '-';
+        } elseif ($field === 'stage_id') {
+            $stage = Database::fetch("SELECT name FROM deal_stages WHERE id = ?", [$value]);
+            $display = $stage ? htmlspecialchars($stage['name']) : '-';
+        }
+
+        return $this->json(['success' => true, 'value' => $value, 'display' => $display]);
+    }
+
     public function updateStage($id)
     {
         if (!$this->isPost()) {

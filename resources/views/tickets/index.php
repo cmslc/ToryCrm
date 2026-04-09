@@ -81,6 +81,7 @@
                                 <th>Khách hàng</th>
                                 <th>Ưu tiên</th>
                                 <th>Trạng thái</th>
+                                <th>SLA</th>
                                 <th>Phụ trách</th>
                                 <th>Ngày tạo</th>
                                 <th>Thao tác</th>
@@ -106,6 +107,19 @@
                                         <td><?= e($ticket['contact_name'] ?? '-') ?></td>
                                         <td><span class="badge bg-<?= $pc[$ticket['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$ticket['priority']] ?? 'secondary' ?>"><?= $pl[$ticket['priority']] ?? '' ?></span></td>
                                         <td><span class="badge bg-<?= $sc[$ticket['status']] ?? 'secondary' ?>"><?= $sl[$ticket['status']] ?? $ticket['status'] ?></span></td>
+                                        <td>
+                                            <?php if (!empty($ticket['sla_policy_id'])):
+                                                $sla = \App\Services\SlaService::getSlaStatus($ticket);
+                                                if ($sla):
+                                                    $worstStatus = 'ok';
+                                                    if ($sla['first_response_status'] === 'breached' || $sla['resolution_status'] === 'breached') $worstStatus = 'breached';
+                                                    elseif ($sla['first_response_status'] === 'warning' || $sla['resolution_status'] === 'warning') $worstStatus = 'warning';
+                                                    $dotColor = $worstStatus === 'ok' ? 'success' : ($worstStatus === 'warning' ? 'warning' : 'danger');
+                                                    $dotLabel = $worstStatus === 'ok' ? 'OK' : ($worstStatus === 'warning' ? 'Cảnh báo' : 'Vi phạm');
+                                            ?>
+                                                <span class="badge bg-<?= $dotColor ?>-subtle text-<?= $dotColor ?>" title="SLA: <?= $dotLabel ?>"><i class="ri-circle-fill fs-6 align-middle"></i> <?= $dotLabel ?></span>
+                                            <?php endif; endif; ?>
+                                        </td>
                                         <td><?= e($ticket['assigned_name'] ?? '-') ?></td>
                                         <td><?= format_date($ticket['created_at']) ?></td>
                                         <td>
@@ -126,7 +140,7 @@
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-customer-service-2-line fs-1 d-block mb-2"></i>Chưa có ticket</td></tr>
+                                <tr><td colspan="10" class="text-center py-4 text-muted"><i class="ri-customer-service-2-line fs-1 d-block mb-2"></i>Chưa có ticket</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

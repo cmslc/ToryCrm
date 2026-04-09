@@ -522,6 +522,42 @@ class OrderController extends Controller
         return $this->redirect('orders/' . $id);
     }
 
+    public function quickUpdate($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$order) {
+            return $this->json(['error' => 'Đơn hàng không tồn tại'], 404);
+        }
+
+        $field = $this->input('field');
+        $value = $this->input('value');
+        $allowed = ['status', 'owner_id', 'payment_status'];
+
+        if (!in_array($field, $allowed)) {
+            return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
+        }
+
+        Database::update('orders', [$field => $value ?: null], 'id = ?', [$id]);
+
+        $display = $value;
+        if ($field === 'status') {
+            $labels = ['draft' => 'Nháp', 'sent' => 'Đã gửi', 'confirmed' => 'Đã duyệt', 'processing' => 'Đang xử lý', 'completed' => 'Hoàn thành', 'cancelled' => 'Đã hủy'];
+            $display = $labels[$value] ?? $value;
+        } elseif ($field === 'owner_id') {
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$value]);
+            $display = $user ? htmlspecialchars($user['name']) : '-';
+        } elseif ($field === 'payment_status') {
+            $labels = ['unpaid' => 'Chưa thanh toán', 'partial' => 'Thanh toán 1 phần', 'paid' => 'Đã thanh toán'];
+            $display = $labels[$value] ?? $value;
+        }
+
+        return $this->json(['success' => true, 'value' => $value, 'display' => $display]);
+    }
+
     public function updateStatus($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);

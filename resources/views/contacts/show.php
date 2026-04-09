@@ -1154,3 +1154,9 @@ document.getElementById('activitySearch')?.addEventListener('input', filterActiv
 document.getElementById('activityUserFilter')?.addEventListener('change', filterActivities);
 document.getElementById('activityTypeFilter')?.addEventListener('change', filterActivities);
 </script>
+
+        <div class="row">
+            <div class="col-xl-8 offset-xl-4">
+                <?php $chatEntityType = 'contact'; $chatEntityId = $contact['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
+            </div>
+        </div>

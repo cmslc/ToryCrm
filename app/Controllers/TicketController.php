@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Controller;
 use Core\Database;
 use App\Models\Ticket;
+use App\Services\SlaService;
 
 class TicketController extends Controller
 {
@@ -92,6 +93,9 @@ class TicketController extends Controller
             'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
         ]);
 
+        // Assign SLA policy based on ticket priority
+        SlaService::assignSla($ticketId);
+
         $this->setFlash('success', "Ticket {$ticketCode} đã được tạo.");
         return $this->redirect('tickets/' . $ticketId);
     }
@@ -122,10 +126,12 @@ class TicketController extends Controller
 
         $ticketModel = new Ticket();
         $comments = $ticketModel->getComments($id);
+        $slaStatus = SlaService::getSlaStatus($ticket);
 
         return $this->view('tickets.show', [
             'ticket' => $ticket,
             'comments' => $comments,
+            'slaStatus' => $slaStatus,
         ]);
     }
 
@@ -217,8 +223,55 @@ class TicketController extends Controller
             'user_id' => $this->userId(),
         ]);
 
+        // Record first response for SLA tracking (staff comment)
+        SlaService::recordFirstResponse($id);
+
         $this->setFlash('success', 'Đã thêm bình luận.');
         return $this->redirect('tickets/' . $id);
+    }
+
+    public function quickUpdate($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$ticket) {
+            return $this->json(['error' => 'Ticket không tồn tại'], 404);
+        }
+
+        $field = $this->input('field');
+        $value = $this->input('value');
+        $allowed = ['status', 'assigned_to', 'priority'];
+
+        if (!in_array($field, $allowed)) {
+            return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
+        }
+
+        $updateData = [$field => $value ?: null];
+        if ($field === 'status' && $value === 'resolved' && $ticket['status'] !== 'resolved') {
+            $updateData['resolved_at'] = date('Y-m-d H:i:s');
+        }
+        if ($field === 'status' && $value === 'closed' && $ticket['status'] !== 'closed') {
+            $updateData['closed_at'] = date('Y-m-d H:i:s');
+        }
+
+        Database::update('tickets', $updateData, 'id = ?', [$id]);
+
+        $display = $value;
+        if ($field === 'status') {
+            $labels = ['open' => 'Mở', 'in_progress' => 'Đang xử lý', 'resolved' => 'Đã giải quyết', 'closed' => 'Đã đóng'];
+            $display = $labels[$value] ?? $value;
+        } elseif ($field === 'assigned_to') {
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$value]);
+            $display = $user ? htmlspecialchars($user['name']) : '-';
+        } elseif ($field === 'priority') {
+            $labels = ['low' => 'Thấp', 'medium' => 'Trung bình', 'high' => 'Cao', 'urgent' => 'Khẩn cấp'];
+            $display = $labels[$value] ?? $value;
+        }
+
+        return $this->json(['success' => true, 'value' => $value, 'display' => $display]);
     }
 
     public function delete($id)

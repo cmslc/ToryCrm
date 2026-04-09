@@ -95,6 +95,11 @@ function isMenuActive(string $path, string $currentUrl): bool {
                         <i class="ri-megaphone-line"></i> <span>Chiến dịch</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('email-templates', $currentUrl) ? 'active' : '' ?>" href="<?= url('email-templates') ?>">
+                        <i class="ri-mail-settings-line"></i> <span>Email Templates</span>
+                    </a>
+                </li>
 
                 <li class="menu-title"><span>Quản lý</span></li>
 
@@ -111,6 +116,11 @@ function isMenuActive(string $path, string $currentUrl): bool {
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isMenuActive('tickets', $currentUrl) ? 'active' : '' ?>" href="<?= url('tickets') ?>">
                         <i class="ri-customer-service-line"></i> <span>Ticket</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isMenuActive('sla', $currentUrl) ? 'active' : '' ?>" href="<?= url('sla') ?>">
+                        <i class="ri-timer-line"></i> <span>Chính sách SLA</span>
                     </a>
                 </li>
                 <li class="nav-item">

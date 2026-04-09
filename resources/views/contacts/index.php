@@ -81,6 +81,7 @@
                 <?php if (!empty(array_filter($filters ?? []))): ?>
                     <a href="<?= url('contacts') ?>" class="btn btn-soft-danger"><i class="ri-close-line"></i></a>
                 <?php endif; ?>
+                <?php $module = 'contacts'; include BASE_PATH . '/resources/views/components/saved-views.php'; ?>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Tùy chọn cột">
                         <i class="ri-settings-3-line me-1"></i> Hiển thị
@@ -141,7 +142,7 @@
                         ?>
                         <?php foreach ($contacts['items'] as $c): ?>
                         <tr>
-                            <td><input type="checkbox" class="form-check-input contact-check" value="<?= $c['id'] ?>"></td>
+                            <td><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
                             <td class="col-customer">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
@@ -176,11 +177,20 @@
                                 <?php endif; ?>
                             </td>
                             <td class="col-status">
-                                <span class="badge bg-<?= $sColors[$c['status']] ?? 'secondary' ?>-subtle text-<?= $sColors[$c['status']] ?? 'secondary' ?>">
-                                    <?= $sLabels[$c['status']] ?? $c['status'] ?>
+                                <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="status" data-type="select"
+                                      data-options='<?= json_encode(['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất']) ?>'
+                                      data-value="<?= e($c['status']) ?>">
+                                    <span class="badge bg-<?= $sColors[$c['status']] ?? 'secondary' ?>-subtle text-<?= $sColors[$c['status']] ?? 'secondary' ?>">
+                                        <?= $sLabels[$c['status']] ?? $c['status'] ?>
+                                    </span>
                                 </span>
                             </td>
-                            <td class="col-owner fs-13"><?= e($c['owner_name'] ?? '-') ?></td>
+                            <td class="col-owner fs-13">
+                                <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="owner_id" data-type="user"
+                                      data-value="<?= e($c['owner_id'] ?? '') ?>">
+                                    <?= e($c['owner_name'] ?? '-') ?>
+                                </span>
+                            </td>
                             <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>
                             <td class="col-birthday fs-12"><?= !empty($c['date_of_birth']) ? date('d/m/Y', strtotime($c['date_of_birth'])) : '-' ?></td>
                             <td class="col-tags">
@@ -252,6 +262,22 @@
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+// Inline edit: preload users
+window.__inlineEditUsers = <?= json_encode($users ?? []) ?>;
+</script>
+<script src="<?= url('js/inline-edit.js') ?>"></script>
+<script>
+// Bulk actions config
+window.__bulkConfig = {
+    url: '<?= url('contacts/bulk') ?>',
+    module: 'contacts',
+    statuses: {new:'Mới', contacted:'Đã liên hệ', qualified:'Tiềm năng', converted:'Chuyển đổi', lost:'Mất'},
+    users: <?= json_encode($users ?? []) ?>
+};
+</script>
+<script src="<?= url('js/bulk-actions.js') ?>"></script>
 
 <script>
 (function() {

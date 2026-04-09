@@ -20,6 +20,90 @@
             </ol>
         </div>
 
+        <?php if (!empty($slaStatus)): ?>
+            <?php if ($slaStatus['is_breached']): ?>
+                <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                    <i class="ri-alarm-warning-line fs-4 me-2"></i>
+                    <div class="fw-medium">SLA đã bị vi phạm</div>
+                </div>
+            <?php endif; ?>
+            <div class="card mb-3">
+                <div class="card-header"><h5 class="card-title mb-0"><i class="ri-timer-line me-1"></i> SLA</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-2 d-flex justify-content-between">
+                                <span class="fw-medium">Phản hồi đầu tiên</span>
+                                <?php
+                                    $frStatus = $slaStatus['first_response_status'];
+                                    $frColor = $frStatus === 'ok' ? 'success' : ($frStatus === 'warning' ? 'warning' : 'danger');
+                                    $frLabel = $frStatus === 'breached' ? 'Đã vi phạm' : ($frStatus === 'warning' ? 'Sắp hết hạn' : 'Trong hạn');
+                                    if (!empty($ticket['first_response_at'])) {
+                                        $frLabel = $frStatus === 'breached' ? 'Đã vi phạm' : 'Đã phản hồi';
+                                    }
+                                ?>
+                                <span class="badge bg-<?= $frColor ?>-subtle text-<?= $frColor ?>"><?= $frLabel ?></span>
+                            </div>
+                            <?php
+                                $frPercent = 100;
+                                if (empty($ticket['first_response_at']) && $slaStatus['first_response_remaining'] !== null) {
+                                    $totalHours = !empty($ticket['sla_first_response_due']) && !empty($ticket['created_at'])
+                                        ? (strtotime($ticket['sla_first_response_due']) - strtotime($ticket['created_at'])) / 3600 : 1;
+                                    $frPercent = $totalHours > 0 ? max(0, min(100, (($totalHours - $slaStatus['first_response_remaining']) / $totalHours) * 100)) : 100;
+                                }
+                            ?>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-<?= $frColor ?>" style="width: <?= $frPercent ?>%"></div>
+                            </div>
+                            <small class="text-muted">
+                                <?php if (!empty($ticket['first_response_at'])): ?>
+                                    Đã phản hồi lúc <?= format_datetime($ticket['first_response_at']) ?>
+                                <?php elseif ($frStatus === 'breached'): ?>
+                                    Hạn: <?= format_datetime($ticket['sla_first_response_due']) ?>
+                                <?php elseif ($slaStatus['first_response_remaining'] !== null): ?>
+                                    Còn <?= $slaStatus['first_response_remaining'] ?>h (hạn: <?= format_datetime($ticket['sla_first_response_due']) ?>)
+                                <?php endif; ?>
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2 d-flex justify-content-between">
+                                <span class="fw-medium">Xử lý</span>
+                                <?php
+                                    $resStatus = $slaStatus['resolution_status'];
+                                    $resColor = $resStatus === 'ok' ? 'success' : ($resStatus === 'warning' ? 'warning' : 'danger');
+                                    $resLabel = $resStatus === 'breached' ? 'Đã vi phạm' : ($resStatus === 'warning' ? 'Sắp hết hạn' : 'Trong hạn');
+                                    if (in_array($ticket['status'] ?? '', ['resolved', 'closed'])) {
+                                        $resLabel = $resStatus === 'breached' ? 'Đã vi phạm' : 'Đã xử lý';
+                                    }
+                                ?>
+                                <span class="badge bg-<?= $resColor ?>-subtle text-<?= $resColor ?>"><?= $resLabel ?></span>
+                            </div>
+                            <?php
+                                $resPercent = 100;
+                                if (!in_array($ticket['status'] ?? '', ['resolved', 'closed']) && $slaStatus['resolution_remaining'] !== null) {
+                                    $totalHours = !empty($ticket['sla_resolution_due']) && !empty($ticket['created_at'])
+                                        ? (strtotime($ticket['sla_resolution_due']) - strtotime($ticket['created_at'])) / 3600 : 1;
+                                    $resPercent = $totalHours > 0 ? max(0, min(100, (($totalHours - $slaStatus['resolution_remaining']) / $totalHours) * 100)) : 100;
+                                }
+                            ?>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-<?= $resColor ?>" style="width: <?= $resPercent ?>%"></div>
+                            </div>
+                            <small class="text-muted">
+                                <?php if (in_array($ticket['status'] ?? '', ['resolved', 'closed'])): ?>
+                                    Đã xử lý lúc <?= format_datetime($ticket['resolved_at'] ?? $ticket['closed_at'] ?? '') ?>
+                                <?php elseif ($resStatus === 'breached'): ?>
+                                    Hạn: <?= format_datetime($ticket['sla_resolution_due']) ?>
+                                <?php elseif ($slaStatus['resolution_remaining'] !== null): ?>
+                                    Còn <?= $slaStatus['resolution_remaining'] ?>h (hạn: <?= format_datetime($ticket['sla_resolution_due']) ?>)
+                                <?php endif; ?>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="row">
             <div class="col-lg-8">
                 <div class="card">
@@ -81,6 +165,8 @@
                         </form>
                     </div>
                 </div>
+
+                <?php $chatEntityType = 'ticket'; $chatEntityId = $ticket['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
             </div>
 
             <div class="col-lg-4">

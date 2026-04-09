@@ -45,10 +45,17 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('conversations/{id}/status', 'ConversationController@updateStatus');
     Router::post('conversations/{id}/star', 'ConversationController@star');
 
+    // Saved Views
+    Router::get('saved-views/{module}', 'SavedViewController@index');
+    Router::post('saved-views/store', 'SavedViewController@store');
+    Router::post('saved-views/{id}/delete', 'SavedViewController@delete');
+    Router::post('saved-views/{id}/default', 'SavedViewController@setDefault');
+
     // Contacts
     Router::get('contacts', 'ContactController@index');
     Router::get('contacts/trash', 'ContactController@trash');
     Router::get('contacts/create', 'ContactController@create');
+    Router::post('contacts/bulk', 'ContactController@bulk');
     Router::post('contacts/store', 'ContactController@store');
     Router::get('contacts/{id}', 'ContactController@show');
     Router::get('contacts/{id}/edit', 'ContactController@edit');
@@ -56,6 +63,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contacts/{id}/delete', 'ContactController@delete');
     Router::post('contacts/{id}/restore', 'ContactController@restore');
     Router::post('contacts/{id}/change-owner', 'ContactController@changeOwner');
+    Router::post('contacts/{id}/quick-update', 'ContactController@quickUpdate');
 
     // Companies
     Router::get('companies', 'CompanyController@index');
@@ -76,6 +84,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('deals/{id}/update', 'DealController@update');
     Router::post('deals/{id}/delete', 'DealController@delete');
     Router::post('deals/{id}/stage', 'DealController@updateStage');
+    Router::post('deals/{id}/quick-update', 'DealController@quickUpdate');
 
     // Tasks
     Router::get('tasks', 'TaskController@index');
@@ -91,6 +100,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('tasks/{id}/cancel', 'TaskController@cancel');
     Router::post('tasks/{id}/restore', 'TaskController@restore');
     Router::post('tasks/{id}/status', 'TaskController@updateStatus');
+    Router::post('tasks/{id}/quick-update', 'TaskController@quickUpdate');
 
     // Products
     Router::get('products', 'ProductController@index');
@@ -118,6 +128,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('orders/{id}/restore', 'OrderController@restore');
     Router::post('orders/{id}/payment', 'OrderController@payment');
     Router::post('orders/{id}/status', 'OrderController@updateStatus');
+    Router::post('orders/{id}/quick-update', 'OrderController@quickUpdate');
 
     // Calendar
     Router::get('calendar', 'CalendarController@index');
@@ -137,6 +148,14 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('notifications/{id}/read', 'NotificationController@markRead');
     Router::post('notifications/{id}/delete', 'NotificationController@delete');
 
+    // SLA Policies
+    Router::get('sla', 'SlaController@index');
+    Router::get('sla/create', 'SlaController@create');
+    Router::post('sla/store', 'SlaController@store');
+    Router::get('sla/{id}/edit', 'SlaController@edit');
+    Router::post('sla/{id}/update', 'SlaController@update');
+    Router::post('sla/{id}/delete', 'SlaController@delete');
+
     // Tickets
     Router::get('tickets', 'TicketController@index');
     Router::get('tickets/create', 'TicketController@create');
@@ -146,6 +165,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('tickets/{id}/update', 'TicketController@update');
     Router::post('tickets/{id}/comment', 'TicketController@comment');
     Router::post('tickets/{id}/delete', 'TicketController@delete');
+    Router::post('tickets/{id}/quick-update', 'TicketController@quickUpdate');
 
     // Campaigns
     Router::get('campaigns', 'CampaignController@index');
@@ -156,6 +176,23 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('campaigns/{id}/update', 'CampaignController@update');
     Router::post('campaigns/{id}/add-contact', 'CampaignController@addContact');
     Router::post('campaigns/{id}/delete', 'CampaignController@delete');
+
+    // Email Templates
+    Router::get('email-templates', 'EmailTemplateController@index');
+    Router::get('email-templates/create', 'EmailTemplateController@create');
+    Router::post('email-templates/store', 'EmailTemplateController@store');
+    Router::get('email-templates/{id}/edit', 'EmailTemplateController@edit');
+    Router::post('email-templates/{id}/update', 'EmailTemplateController@update');
+    Router::post('email-templates/{id}/delete', 'EmailTemplateController@delete');
+    Router::get('email-templates/{id}/preview', 'EmailTemplateController@preview');
+    Router::post('email-templates/{id}/send', 'EmailTemplateController@send');
+
+    // Internal Chat
+    Router::get('chat/{entityType}/{entityId}', 'ChatController@getMessages');
+    Router::post('chat/{entityType}/{entityId}', 'ChatController@postMessage');
+    Router::post('chat/{id}/pin', 'ChatController@pinMessage');
+    Router::post('chat/{id}/delete', 'ChatController@deleteMessage');
+    Router::get('api-internal/users', 'ChatController@searchUsers');
 
     // Purchase Orders
     Router::get('purchase-orders', 'PurchaseOrderController@index');

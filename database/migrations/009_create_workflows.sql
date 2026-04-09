@@ -29,11 +29,9 @@ CREATE TABLE IF NOT EXISTS `workflow_logs` (
     FOREIGN KEY (`workflow_id`) REFERENCES `workflows`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Portal fields on contacts table
-ALTER TABLE `contacts`
-    ADD COLUMN IF NOT EXISTS `portal_token` VARCHAR(100) NULL,
-    ADD COLUMN IF NOT EXISTS `portal_password` VARCHAR(255) NULL,
-    ADD COLUMN IF NOT EXISTS `portal_active` TINYINT(1) NOT NULL DEFAULT 0;
-
-ALTER TABLE `contacts`
-    ADD INDEX IF NOT EXISTS `idx_contacts_portal_token` (`portal_token`);
+-- Portal fields on contacts table (ignore errors if columns already exist)
+SET @col_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'contacts' AND column_name = 'portal_token');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE contacts ADD COLUMN portal_token VARCHAR(100) NULL, ADD COLUMN portal_password VARCHAR(255) NULL, ADD COLUMN portal_active TINYINT(1) NOT NULL DEFAULT 0', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

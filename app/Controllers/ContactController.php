@@ -318,6 +318,110 @@ class ContactController extends Controller
         return $this->redirect('contacts/trash');
     }
 
+    // ---- Quick Update (inline edit) ----
+    public function quickUpdate($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $contact = Database::fetch("SELECT * FROM contacts WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$contact) {
+            return $this->json(['error' => 'Khách hàng không tồn tại'], 404);
+        }
+
+        $field = $this->input('field');
+        $value = $this->input('value');
+        $allowed = ['status', 'owner_id', 'source_id'];
+
+        if (!in_array($field, $allowed)) {
+            return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
+        }
+
+        Database::update('contacts', [$field => $value ?: null], 'id = ?', [$id]);
+
+        $display = $value;
+        if ($field === 'status') {
+            $statusLabels = ['new' => 'Mới', 'contacted' => 'Đã liên hệ', 'qualified' => 'Tiềm năng', 'converted' => 'Chuyển đổi', 'lost' => 'Mất'];
+            $statusColors = ['new' => 'info', 'contacted' => 'primary', 'qualified' => 'warning', 'converted' => 'success', 'lost' => 'danger'];
+            $label = $statusLabels[$value] ?? $value;
+            $color = $statusColors[$value] ?? 'secondary';
+            $display = '<span class="badge bg-' . $color . '-subtle text-' . $color . '">' . $label . '</span>';
+        } elseif ($field === 'owner_id') {
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$value]);
+            $display = $user ? htmlspecialchars($user['name']) : '-';
+        } elseif ($field === 'source_id') {
+            $source = Database::fetch("SELECT name FROM contact_sources WHERE id = ?", [$value]);
+            $display = $source ? '<span class="badge bg-secondary-subtle text-secondary">' . htmlspecialchars($source['name']) . '</span>' : '-';
+        }
+
+        return $this->json(['success' => true, 'value' => $value, 'display' => $display]);
+    }
+
+    // ---- Bulk Actions ----
+    public function bulk()
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $ids = $_POST['ids'] ?? [];
+        $action = $this->input('action');
+        $value = $this->input('value');
+
+        if (empty($ids) || !is_array($ids)) {
+            return $this->json(['error' => 'Chưa chọn mục nào'], 422);
+        }
+
+        // Sanitize IDs
+        $ids = array_map('intval', $ids);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $tenantId = Database::tenantId();
+
+        $count = 0;
+
+        switch ($action) {
+            case 'assign':
+                if (empty($value)) {
+                    return $this->json(['error' => 'Vui lòng chọn người phụ trách'], 422);
+                }
+                foreach ($ids as $id) {
+                    Database::update('contacts', ['owner_id' => (int)$value], 'id = ? AND tenant_id = ?', [$id, $tenantId]);
+                    $count++;
+                }
+                break;
+
+            case 'status':
+                $validStatuses = ['new', 'contacted', 'qualified', 'converted', 'lost'];
+                if (!in_array($value, $validStatuses)) {
+                    return $this->json(['error' => 'Trạng thái không hợp lệ'], 422);
+                }
+                foreach ($ids as $id) {
+                    Database::update('contacts', ['status' => $value], 'id = ? AND tenant_id = ?', [$id, $tenantId]);
+                    $count++;
+                }
+                break;
+
+            case 'delete':
+                foreach ($ids as $id) {
+                    Database::softDelete('contacts', 'id = ? AND tenant_id = ?', [$id, $tenantId]);
+                    $count++;
+                }
+                break;
+
+            default:
+                return $this->json(['error' => 'Hành động không hợp lệ'], 422);
+        }
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Thao tác hàng loạt ({$action}) trên {$count} khách hàng",
+            'user_id' => $this->userId(),
+        ]);
+
+        return $this->json(['success' => true, 'count' => $count]);
+    }
+
     // ---- Đổi người phụ trách ----
     public function changeOwner($id)
     {

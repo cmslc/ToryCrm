@@ -134,6 +134,8 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                     <div class="card-body"><?= nl2br(e($order['notes'])) ?></div>
                 </div>
                 <?php endif; ?>
+
+                <?php $chatEntityType = 'order'; $chatEntityId = $order['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
             </div>
 
             <div class="col-lg-4">

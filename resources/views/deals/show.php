@@ -77,5 +77,7 @@
                         </div>
                     </div>
                 </div>
+
+                <?php $chatEntityType = 'deal'; $chatEntityId = $deal['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
             </div>
         </div>
