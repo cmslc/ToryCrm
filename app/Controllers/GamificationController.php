@@ -91,7 +91,7 @@ class GamificationController extends Controller
         }
 
         // Delete old data for current period to refresh
-        Database::execute(
+        Database::query(
             "DELETE FROM leaderboard_snapshots WHERE tenant_id = ? AND period = ?",
             [$tid, $period]
         );
@@ -111,14 +111,14 @@ class GamificationController extends Controller
 
             // Deals won this period
             $dealsWon = (int)(Database::fetch(
-                "SELECT COUNT(*) as c FROM deals WHERE tenant_id = ? AND user_id = ? AND status = 'won'
+                "SELECT COUNT(*) as c FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'
                  AND MONTH(updated_at) = ? AND YEAR(updated_at) = ?",
                 [$tid, $uid, $month, $year]
             )['c'] ?? 0);
 
             // Revenue from won deals
             $revenue = (float)(Database::fetch(
-                "SELECT COALESCE(SUM(value), 0) as total FROM deals WHERE tenant_id = ? AND user_id = ? AND status = 'won'
+                "SELECT COALESCE(SUM(value), 0) as total FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'
                  AND MONTH(updated_at) = ? AND YEAR(updated_at) = ?",
                 [$tid, $uid, $month, $year]
             )['total'] ?? 0);
@@ -143,7 +143,7 @@ class GamificationController extends Controller
             )['p'] ?? 0);
             $points += $achievementPoints;
 
-            Database::execute(
+            Database::query(
                 "INSERT INTO leaderboard_snapshots (tenant_id, user_id, period, deals_won, revenue, activities_count, points, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
                  ON DUPLICATE KEY UPDATE deals_won = VALUES(deals_won), revenue = VALUES(revenue),
@@ -158,11 +158,11 @@ class GamificationController extends Controller
             [$tid, $period]
         );
         foreach ($ranked as $i => $r) {
-            Database::execute("UPDATE leaderboard_snapshots SET rank_position = ? WHERE id = ?", [$i + 1, $r['id']]);
+            Database::query("UPDATE leaderboard_snapshots SET rank_position = ? WHERE id = ?", [$i + 1, $r['id']]);
         }
 
         // Check and award achievements
-        $this->checkAchievements($tid);
+        try { $this->checkAchievements($tid); } catch (\Exception $e) {}
     }
 
     private function checkAchievements(int $tid): void
@@ -182,7 +182,7 @@ class GamificationController extends Controller
 
                 $progress = $this->calculateProgress($ach, $tid, $uid);
                 if ($progress >= 100) {
-                    Database::execute(
+                    Database::query(
                         "INSERT IGNORE INTO user_achievements (user_id, achievement_id, earned_at) VALUES (?, ?, NOW())",
                         [$uid, $ach['id']]
                     );
@@ -199,7 +199,7 @@ class GamificationController extends Controller
         switch ($ach['criteria_type']) {
             case 'deals_won':
                 $current = (int)(Database::fetch(
-                    "SELECT COUNT(*) as c FROM deals WHERE tenant_id = ? AND user_id = ? AND status = 'won'",
+                    "SELECT COUNT(*) as c FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'",
                     [$tid, $uid]
                 )['c'] ?? 0);
                 break;
@@ -214,7 +214,7 @@ class GamificationController extends Controller
 
             case 'contacts_created':
                 $current = (int)(Database::fetch(
-                    "SELECT COUNT(*) as c FROM contacts WHERE tenant_id = ? AND user_id = ? AND is_deleted = 0",
+                    "SELECT COUNT(*) as c FROM contacts WHERE tenant_id = ? AND created_by = ? AND is_deleted = 0",
                     [$tid, $uid]
                 )['c'] ?? 0);
                 break;

@@ -12,18 +12,6 @@
             </div>
         </div>
 
-        <?php if ($flash = getFlash('success')): ?>
-            <div class="alert alert-success alert-dismissible fade show">
-                <?= e($flash) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        <?php if ($flash = getFlash('error')): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <?= e($flash) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
 
         <!-- Stats -->
         <div class="row mb-3">

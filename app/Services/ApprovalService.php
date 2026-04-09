@@ -281,7 +281,7 @@ class ApprovalService
              JOIN approval_flow_steps fs ON fs.flow_id = ar.flow_id AND fs.step_order = ar.current_step
              JOIN users u ON ar.requested_by = u.id
              WHERE ar.status = 'pending' AND fs.approver_id = ?
-             ORDER BY ar.created_at DESC",
+             ORDER BY ar.requested_at DESC",
             [$userId]
         );
     }

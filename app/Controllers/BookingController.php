@@ -13,7 +13,7 @@ class BookingController extends Controller
         $uid = $this->userId();
 
         $links = Database::fetchAll(
-            "SELECT bl.*, (SELECT COUNT(*) FROM bookings b WHERE b.booking_link_id = bl.id) as booking_count
+            "SELECT bl.*, (SELECT COUNT(*) FROM bookings b WHERE b.link_id = bl.id) as booking_count
              FROM booking_links bl
              WHERE bl.tenant_id = ? AND bl.user_id = ?
              ORDER BY bl.created_at DESC",
@@ -55,7 +55,7 @@ class BookingController extends Controller
         $days = implode(',', $data['available_days'] ?? [1,2,3,4,5]);
 
         Database::execute(
-            "INSERT INTO booking_links (tenant_id, user_id, title, description, slug, duration, available_days, start_time, end_time, buffer_minutes, max_advance_days, is_active, created_at)
+            "INSERT INTO booking_links (tenant_id, user_id, title, description, slug, duration, available_days, TIME(start_at), TIME(end_at), buffer_minutes, max_advance_days, is_active, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
             [
                 $this->tenantId(),
@@ -65,8 +65,8 @@ class BookingController extends Controller
                 $slug,
                 (int)($data['duration'] ?? 30),
                 $days,
-                $data['start_time'] ?? '08:00',
-                $data['end_time'] ?? '17:00',
+                $data['TIME(start_at)'] ?? '08:00',
+                $data['TIME(end_at)'] ?? '17:00',
                 (int)($data['buffer_minutes'] ?? 15),
                 (int)($data['max_advance_days'] ?? 30),
             ]
@@ -110,15 +110,15 @@ class BookingController extends Controller
         $days = implode(',', $data['available_days'] ?? [1,2,3,4,5]);
 
         Database::execute(
-            "UPDATE booking_links SET title=?, description=?, duration=?, available_days=?, start_time=?, end_time=?, buffer_minutes=?, max_advance_days=?, is_active=?, updated_at=NOW()
+            "UPDATE booking_links SET title=?, description=?, duration=?, available_days=?, TIME(start_at)=?, TIME(end_at)=?, buffer_minutes=?, max_advance_days=?, is_active=?, updated_at=NOW()
              WHERE id=? AND tenant_id=?",
             [
                 $title,
                 trim($data['description'] ?? ''),
                 (int)($data['duration'] ?? 30),
                 $days,
-                $data['start_time'] ?? '08:00',
-                $data['end_time'] ?? '17:00',
+                $data['TIME(start_at)'] ?? '08:00',
+                $data['TIME(end_at)'] ?? '17:00',
                 (int)($data['buffer_minutes'] ?? 15),
                 (int)($data['max_advance_days'] ?? 30),
                 isset($data['is_active']) ? 1 : 0,
@@ -153,7 +153,7 @@ class BookingController extends Controller
         }
 
         $bookings = Database::fetchAll(
-            "SELECT * FROM bookings WHERE booking_link_id = ? ORDER BY booking_date DESC, start_time DESC",
+            "SELECT * FROM bookings WHERE link_id = ? ORDER BY DATE(start_at) DESC, TIME(start_at) DESC",
             [(int)$id]
         );
 
@@ -216,16 +216,16 @@ class BookingController extends Controller
 
         // Get existing bookings for this date
         $existingBookings = Database::fetchAll(
-            "SELECT start_time, end_time FROM bookings
-             WHERE booking_link_id = ? AND booking_date = ? AND status = 'confirmed'",
+            "SELECT TIME(start_at), TIME(end_at) FROM bookings
+             WHERE link_id = ? AND DATE(start_at) = ? AND status = 'confirmed'",
             [$link['id'], $date]
         );
 
         // Generate time slots
         $duration = (int)$link['duration'];
         $buffer = (int)$link['buffer_minutes'];
-        $startTime = strtotime($date . ' ' . $link['start_time']);
-        $endTime = strtotime($date . ' ' . $link['end_time']);
+        $startTime = strtotime($date . ' ' . $link['TIME(start_at)']);
+        $endTime = strtotime($date . ' ' . $link['TIME(end_at)']);
 
         $slots = [];
         $current = $startTime;
@@ -237,8 +237,8 @@ class BookingController extends Controller
             // Check if slot overlaps with existing bookings
             $isAvailable = true;
             foreach ($existingBookings as $booking) {
-                $bStart = substr($booking['start_time'], 0, 5);
-                $bEnd = substr($booking['end_time'], 0, 5);
+                $bStart = substr($booking['TIME(start_at)'], 0, 5);
+                $bEnd = substr($booking['TIME(end_at)'], 0, 5);
                 if ($slotStart < $bEnd && $slotEnd > $bStart) {
                     $isAvailable = false;
                     break;
@@ -276,10 +276,10 @@ class BookingController extends Controller
         }
 
         $data = $this->allInput();
-        $name = trim($data['guest_name'] ?? '');
-        $email = trim($data['guest_email'] ?? '');
-        $date = $data['booking_date'] ?? '';
-        $startTime = $data['start_time'] ?? '';
+        $name = trim($data['contact_name'] ?? '');
+        $email = trim($data['contact_email'] ?? '');
+        $date = $data['DATE(start_at)'] ?? '';
+        $startTime = $data['TIME(start_at)'] ?? '';
 
         if (empty($name) || empty($email) || empty($date) || empty($startTime)) {
             return $this->json(['error' => 'Vui lòng điền đầy đủ thông tin'], 400);
@@ -290,7 +290,7 @@ class BookingController extends Controller
         // Check if slot is still available
         $conflict = Database::fetch(
             "SELECT id FROM bookings
-             WHERE booking_link_id = ? AND booking_date = ? AND start_time = ? AND status = 'confirmed'",
+             WHERE link_id = ? AND DATE(start_at) = ? AND TIME(start_at) = ? AND status = 'confirmed'",
             [$link['id'], $date, $startTime]
         );
 
@@ -299,14 +299,14 @@ class BookingController extends Controller
         }
 
         Database::execute(
-            "INSERT INTO bookings (tenant_id, booking_link_id, guest_name, guest_email, guest_phone, note, booking_date, start_time, end_time, status, created_at)
+            "INSERT INTO bookings (tenant_id, link_id, contact_name, contact_email, contact_phone, note, DATE(start_at), TIME(start_at), TIME(end_at), status, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', NOW())",
             [
                 $link['tenant_id'],
                 $link['id'],
                 $name,
                 $email,
-                trim($data['guest_phone'] ?? ''),
+                trim($data['contact_phone'] ?? ''),
                 trim($data['note'] ?? ''),
                 $date,
                 $startTime,
@@ -323,7 +323,7 @@ class BookingController extends Controller
                     $link['tenant_id'],
                     $link['user_id'],
                     'Lịch hẹn: ' . $name,
-                    "Khách: $name\nEmail: $email\nSĐT: " . ($data['guest_phone'] ?? '') . "\nGhi chú: " . ($data['note'] ?? ''),
+                    "Khách: $name\nEmail: $email\nSĐT: " . ($data['contact_phone'] ?? '') . "\nGhi chú: " . ($data['note'] ?? ''),
                     $date . ' ' . $startTime,
                     $date . ' ' . $endTime,
                 ]

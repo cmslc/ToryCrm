@@ -319,7 +319,7 @@ class DealController extends Controller
 
         if (($newStatus === 'won' || $newStatus === 'lost') && $newStatus !== $deal['status']) {
             $updateData['close_reason'] = trim($data['close_reason'] ?? '');
-            $updateData['closed_at'] = date('Y-m-d H:i:s');
+            $updateData['actual_close_date'] = date('Y-m-d H:i:s');
             if ($newStatus === 'lost') {
                 $updateData['loss_reason_category'] = trim($data['loss_reason_category'] ?? '');
                 $updateData['competitor'] = trim($data['competitor'] ?? '');
@@ -470,7 +470,7 @@ class DealController extends Controller
         $updateData = [
             'status' => $status,
             'close_reason' => $closeReason,
-            'closed_at' => date('Y-m-d H:i:s'),
+            'actual_close_date' => date('Y-m-d H:i:s'),
         ];
 
         if ($status === 'lost') {
@@ -631,8 +631,8 @@ class DealController extends Controller
             "SELECT COUNT(*) as cnt, COALESCE(SUM(value), 0) as total
              FROM deals
              WHERE status = 'won' AND tenant_id = ?
-             AND closed_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
-             AND closed_at < DATE_FORMAT(NOW(), '%Y-%m-01')",
+             AND actual_close_date >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
+             AND actual_close_date < DATE_FORMAT(NOW(), '%Y-%m-01')",
             [Database::tenantId()]
         );
 
@@ -641,7 +641,7 @@ class DealController extends Controller
             "SELECT COUNT(*) as cnt, COALESCE(SUM(value), 0) as total
              FROM deals
              WHERE status = 'won' AND tenant_id = ?
-             AND closed_at >= DATE_FORMAT(NOW(), '%Y-%m-01')",
+             AND actual_close_date >= DATE_FORMAT(NOW(), '%Y-%m-01')",
             [Database::tenantId()]
         );
 
