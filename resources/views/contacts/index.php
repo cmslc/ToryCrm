@@ -1,92 +1,140 @@
-<?php $pageTitle = 'Khách hàng'; ?>
+<?php
+$pageTitle = 'Khách hàng';
+$totalAll = 0;
+foreach ($statusCounts ?? [] as $sc) { $totalAll += $sc['count']; }
+$sColors = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger'];
+$sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
+$currentStatus = $filters['status'] ?? '';
+?>
 
-<div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0">Khách hàng</h4>
-    <div class="d-flex gap-2">
-        <a href="<?= url('contacts/trash') ?>" class="btn btn-soft-danger btn"><i class="ri-delete-bin-line me-1"></i> Thùng rác</a>
-        <a href="<?= url('contacts/create') ?>" class="btn btn-primary btn"><i class="ri-add-line me-1"></i> Thêm KH</a>
-    </div>
-</div>
-
-<!-- Stat Cards (compact) -->
-<div class="row">
-    <?php
-    $statusInfo = [
-        'new' => ['label' => 'Mới', 'color' => 'info', 'icon' => 'ri-user-add-line'],
-        'contacted' => ['label' => 'Đã liên hệ', 'color' => 'primary', 'icon' => 'ri-phone-line'],
-        'qualified' => ['label' => 'Tiềm năng', 'color' => 'warning', 'icon' => 'ri-star-line'],
-        'converted' => ['label' => 'Chuyển đổi', 'color' => 'success', 'icon' => 'ri-checkbox-circle-line'],
-        'lost' => ['label' => 'Mất', 'color' => 'danger', 'icon' => 'ri-close-circle-line'],
-    ];
-    foreach ($statusInfo as $key => $info):
-        $count = 0;
-        foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
-    ?>
-    <div class="col">
-        <div class="card card-animate">
-            <div class="card-body p-3">
-                <div class="d-flex align-items-center">
-                    <div class="avatar-xs flex-shrink-0 me-2">
-                        <span class="avatar-title bg-<?= $info['color'] ?>-subtle rounded-circle">
-                            <i class="<?= $info['icon'] ?> text-<?= $info['color'] ?>"></i>
-                        </span>
-                    </div>
-                    <div>
-                        <h5 class="mb-0"><?= $count ?></h5>
-                        <p class="text-muted mb-0 fs-12"><?= $info['label'] ?></p>
-                    </div>
+<!-- Toolbar Row 1: Title + Search + Filters + Actions -->
+<div class="card mb-0">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Icon + Title -->
+            <div class="d-flex align-items-center me-2">
+                <div class="avatar-xs flex-shrink-0 me-2">
+                    <span class="avatar-title bg-primary-subtle text-primary rounded">
+                        <i class="ri-contacts-line"></i>
+                    </span>
                 </div>
+                <h5 class="mb-0 text-nowrap">Quản lý khách hàng</h5>
             </div>
-        </div>
-    </div>
-    <?php endforeach; ?>
-</div>
 
-<!-- Main Card: Filter + Table -->
-<div class="card">
-    <div class="card-header border-0">
-        <form method="GET" action="<?= url('contacts') ?>" class="row g-2 align-items-center">
-            <div class="col-md-3">
-                <div class="search-box">
-                    <input type="text" class="form-control form-control search" name="search" placeholder="Tìm tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
+            <!-- Search -->
+            <form method="GET" action="<?= url('contacts') ?>" class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap" id="filterForm">
+                <div class="search-box" style="min-width:200px;max-width:300px">
+                    <input type="text" class="form-control" name="search" placeholder="Tên khách hàng, số điện thoại, email..." value="<?= e($filters['search'] ?? '') ?>">
                     <i class="ri-search-line search-icon"></i>
                 </div>
-            </div>
-            <div class="col-md-2">
-                <select name="status" class="form-select form-select">
-                    <option value="">Trạng thái</option>
-                    <?php foreach (['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'] as $k=>$v): ?>
-                        <option value="<?= $k ?>" <?= ($filters['status'] ?? '') === $k ? 'selected' : '' ?>><?= $v ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select name="source_id" class="form-select form-select">
-                    <option value="">Nguồn</option>
+
+                <!-- Quick Filters -->
+                <select name="source_id" class="form-select" style="width:auto;min-width:160px" onchange="this.form.submit()">
+                    <option value="">Chọn nguồn</option>
                     <?php foreach ($sources ?? [] as $s): ?>
                         <option value="<?= $s['id'] ?>" <?= ($filters['source_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
-            </div>
-            <div class="col-md-2">
-                <select name="owner_id" class="form-select form-select">
-                    <option value="">Phụ trách</option>
+
+                <select name="owner_id" class="form-select" style="width:auto;min-width:170px" onchange="this.form.submit()">
+                    <option value="">Chọn người phụ trách</option>
                     <?php foreach ($users ?? [] as $u): ?>
                         <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
-            </div>
-            <div class="col-md-3 d-flex gap-1">
-                <button type="submit" class="btn btn-primary"><i class="ri-equalizer-fill me-1"></i> Lọc</button>
+
+                <!-- Hidden status from tab click -->
+                <input type="hidden" name="status" id="statusInput" value="<?= e($currentStatus) ?>">
+
+                <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm kiếm</button>
+
                 <?php if (!empty(array_filter($filters ?? []))): ?>
-                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger"><i class="ri-close-line"></i></a>
+                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger" title="Xóa bộ lọc"><i class="ri-refresh-line"></i></a>
                 <?php endif; ?>
-                <?php $module = 'contacts'; include BASE_PATH . '/resources/views/components/saved-views.php'; ?>
+            </form>
+
+            <!-- Right Actions -->
+            <div class="d-flex gap-2 ms-auto">
+                <a href="<?= url('import-export') ?>" class="btn btn-soft-info" title="Tải lên"><i class="ri-upload-2-line me-1"></i> Tải lên</a>
+                <a href="<?= url('contacts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toolbar Row 2: Status Tabs + Saved Views + Pagination Info + Column Toggle -->
+<div class="card mb-3">
+    <div class="card-body py-0 px-3">
+        <div class="d-flex align-items-center justify-content-between">
+            <!-- Left: Status Tabs + Quick Filters -->
+            <div class="d-flex align-items-center gap-0 overflow-auto" style="white-space:nowrap">
+                <!-- Status Tabs -->
+                <ul class="nav nav-tabs nav-tabs-custom border-0 mb-0">
+                    <li class="nav-item">
+                        <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('contacts') ?>">
+                            Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>
+                        </a>
+                    </li>
+                    <?php
+                    $statusInfo = [
+                        'new' => 'Mới',
+                        'contacted' => 'Đã liên hệ',
+                        'qualified' => 'Tiềm năng',
+                        'converted' => 'Chuyển đổi',
+                        'lost' => 'Mất',
+                    ];
+                    foreach ($statusInfo as $key => $label):
+                        $count = 0;
+                        foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
+                        if ($count == 0 && $currentStatus !== $key) continue;
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 <?= $currentStatus === $key ? 'active' : '' ?>" href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>">
+                            <?= $label ?> <span class="badge bg-<?= $sColors[$key] ?>-subtle text-<?= $sColors[$key] ?> rounded-pill ms-1"><?= $count ?></span>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+
+                <!-- Saved Views as tabs -->
+                <?php
+                try {
+                    $savedViews = \Core\Database::fetchAll("SELECT * FROM saved_views WHERE module = 'contacts' AND (user_id = ? OR is_shared = 1) ORDER BY name", [$_SESSION['user']['id'] ?? 0]);
+                } catch (\Exception $e) { $savedViews = []; }
+                ?>
+                <?php foreach ($savedViews as $sv): ?>
+                    <?php $svFilters = json_decode($sv['filters'], true) ?: []; ?>
+                    <span class="nav-item ms-1">
+                        <a class="nav-link py-2 border-start" href="<?= url('contacts?' . http_build_query($svFilters)) ?>" title="<?= e($sv['name']) ?>">
+                            <?= e($sv['name']) ?>
+                        </a>
+                    </span>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Right: Pagination Info + Column Toggle -->
+            <div class="d-flex align-items-center gap-2 ms-3" style="white-space:nowrap">
+                <?php if (!empty($contacts['items'])): ?>
+                    <span class="text-muted fs-13">
+                        <?= (($contacts['page'] - 1) * 20) + 1 ?> - <?= min($contacts['page'] * 20, $contacts['total']) ?>
+                        <span class="mx-1">/</span>
+                        <strong><?= number_format($contacts['total']) ?></strong>
+                    </span>
+
+                    <?php if ($contacts['page'] > 1): ?>
+                        <a href="<?= url('contacts?page=' . ($contacts['page']-1) . '&' . http_build_query(array_filter($filters ?? []))) ?>" class="btn btn-light border py-1 px-2"><i class="ri-arrow-left-s-line"></i></a>
+                    <?php endif; ?>
+                    <?php if ($contacts['page'] < ($contacts['total_pages'] ?? 1)): ?>
+                        <a href="<?= url('contacts?page=' . ($contacts['page']+1) . '&' . http_build_query(array_filter($filters ?? []))) ?>" class="btn btn-light border py-1 px-2"><i class="ri-arrow-right-s-line"></i></a>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <!-- Column Toggle -->
                 <div class="dropdown">
-                    <button class="btn btn-soft-secondary" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Tùy chọn cột">
-                        <i class="ri-settings-3-line me-1"></i> Hiển thị
+                    <button class="btn btn-light border py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
+                        <i class="ri-layout-column-line"></i>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 220px;">
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
                         <h6 class="dropdown-header px-0">Hiển thị cột</h6>
                         <?php
                         $columns = [
@@ -111,22 +159,35 @@
                         <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
                     </div>
                 </div>
-            </div>
-        </form>
-    </div>
 
-    <div class="card-body pt-0">
+                <!-- Trash + More -->
+                <div class="dropdown">
+                    <button class="btn btn-light border py-1 px-2" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
+                        <li><a class="dropdown-item" href="<?= url('import-export') ?>"><i class="ri-download-line me-2"></i>Xuất Excel</a></li>
+                        <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle table-nowrap mb-0">
                 <thead class="text-muted table-light">
                     <tr>
-                        <th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
+                        <th style="width:30px" class="ps-3"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <th class="col-customer">Khách hàng</th>
                         <th class="col-contact">Liên hệ</th>
                         <th class="col-company">Công ty</th>
                         <th class="col-source">Nguồn</th>
                         <th class="col-status">Trạng thái</th>
-                        <th class="col-owner">Phụ trách</th>
+                        <th class="col-owner">Người phụ trách</th>
                         <th class="col-address">Địa chỉ</th>
                         <th class="col-birthday">Ngày sinh</th>
                         <th class="col-tags">Nhãn</th>
@@ -136,13 +197,9 @@
                 </thead>
                 <tbody>
                     <?php if (!empty($contacts['items'])): ?>
-                        <?php
-                        $sColors = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger'];
-                        $sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
-                        ?>
                         <?php foreach ($contacts['items'] as $c): ?>
                         <tr data-id="<?= $c['id'] ?>">
-                            <td><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
+                            <td class="ps-3"><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
                             <td class="col-customer">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
@@ -178,14 +235,13 @@
                             </td>
                             <td class="col-status">
                                 <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="status" data-type="select"
-                                      data-options='<?= json_encode(['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất']) ?>'
-                                      data-value="<?= e($c['status']) ?>">
+                                      data-options='<?= json_encode($sLabels) ?>' data-value="<?= e($c['status']) ?>">
                                     <span class="badge bg-<?= $sColors[$c['status']] ?? 'secondary' ?>-subtle text-<?= $sColors[$c['status']] ?? 'secondary' ?>">
                                         <?= $sLabels[$c['status']] ?? $c['status'] ?>
                                     </span>
                                 </span>
                             </td>
-                            <td class="col-owner fs-13">
+                            <td class="col-owner">
                                 <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="owner_id" data-type="user"
                                       data-value="<?= e($c['owner_id'] ?? '') ?>">
                                     <?= e($c['owner_name'] ?? '-') ?>
@@ -205,7 +261,7 @@
                             <td class="col-created text-muted fs-12"><?= time_ago($c['created_at']) ?></td>
                             <td>
                                 <div class="dropdown">
-                                    <button class="btn btn-soft-secondary btn " data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                                    <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id']) ?>"><i class="ri-eye-line me-2 align-middle"></i>Xem</a></li>
                                         <li><a class="dropdown-item" href="<?= url('contacts/' . $c['id'] . '/edit') ?>"><i class="ri-pencil-line me-2 align-middle"></i>Sửa</a></li>
@@ -223,14 +279,14 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="13" class="text-center py-5">
+                            <td colspan="12" class="text-center py-5">
                                 <div class="avatar-md mx-auto mb-3">
                                     <span class="avatar-title bg-primary-subtle rounded-circle">
                                         <i class="ri-contacts-line text-primary fs-24"></i>
                                     </span>
                                 </div>
                                 <h5 class="text-muted">Chưa có khách hàng nào</h5>
-                                <a href="<?= url('contacts/create') ?>" class="btn btn-primary btn mt-2"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
+                                <a href="<?= url('contacts/create') ?>" class="btn btn-primary mt-2"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -238,13 +294,14 @@
             </table>
         </div>
 
+        <!-- Bottom Pagination -->
         <?php if (($contacts['total_pages'] ?? 0) > 1): ?>
-        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+        <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
             <div class="text-muted fs-13">
-                Hiển thị <strong><?= count($contacts['items']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng
+                Hiển thị <strong><?= (($contacts['page'] - 1) * 20) + 1 ?> - <?= min($contacts['page'] * 20, $contacts['total']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng
             </div>
             <nav>
-                <ul class="pagination pagination mb-0">
+                <ul class="pagination mb-0">
                     <?php if ($contacts['page'] > 1): ?>
                         <li class="page-item"><a class="page-link" href="<?= url('contacts?page=' . ($contacts['page']-1) . '&' . http_build_query(array_filter($filters ?? []))) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
                     <?php endif; ?>
@@ -266,47 +323,33 @@
 <script>
 // Inline edit: preload users
 window.__inlineEditUsers = <?= json_encode($users ?? []) ?>;
-</script>
-<script src="<?= url('js/inline-edit.js') ?>"></script>
-<script>
-// Bulk actions config
-window.__bulkConfig = {
-    url: '<?= url('contacts/bulk') ?>',
-    module: 'contacts',
-    statuses: {new:'Mới', contacted:'Đã liên hệ', qualified:'Tiềm năng', converted:'Chuyển đổi', lost:'Mất'},
-    users: <?= json_encode($users ?? []) ?>
-};
-</script>
-<script src="<?= url('js/bulk-actions.js') ?>"></script>
 
-<script>
+// Column toggle
 (function() {
-    const STORAGE_KEY = 'torycrm_contacts_columns';
-    const allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-tags','col-created'];
-    const defaults = ['col-customer','col-contact','col-company','col-status','col-owner','col-created'];
+    var STORAGE_KEY = 'torycrm_contacts_columns';
+    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-tags','col-created'];
+    var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-created'];
 
     function getVisible() {
-        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaults; }
-        catch(e) { return defaults; }
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
     }
 
     function applyColumns(visible) {
-        allColumns.forEach(col => {
-            const show = visible.includes(col);
-            document.querySelectorAll('.' + col).forEach(el => {
-                el.style.display = show ? '' : 'none';
-            });
-            const cb = document.getElementById(col);
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
             if (cb) cb.checked = show;
         });
     }
 
     applyColumns(getVisible());
 
-    document.querySelectorAll('.column-toggle').forEach(cb => {
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
         cb.addEventListener('change', function() {
-            const visible = [];
-            document.querySelectorAll('.column-toggle:checked').forEach(c => visible.push(c.dataset.column));
+            var visible = [];
+            document.querySelectorAll('.column-toggle:checked').forEach(function(c) { visible.push(c.dataset.column); });
             if (visible.length === 0) { this.checked = true; return; }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
             applyColumns(visible);
@@ -315,7 +358,18 @@ window.__bulkConfig = {
 
     document.getElementById('resetColumns')?.addEventListener('click', function() {
         localStorage.removeItem(STORAGE_KEY);
-        applyColumns(defaults);
+        applyColumns(defaultVisible);
     });
 })();
+
+// Bulk actions config
+window.__bulkConfig = {
+    module: 'contacts',
+    bulkUrl: '<?= url("contacts/bulk") ?>',
+    csrfToken: '<?= $_SESSION["csrf_token"] ?? "" ?>',
+    statuses: <?= json_encode($sLabels) ?>,
+    users: <?= json_encode($users ?? []) ?>
+};
 </script>
+<script src="<?= asset('js/inline-edit.js') ?>?v=<?= time() ?>"></script>
+<script src="<?= asset('js/bulk-actions.js') ?>?v=<?= time() ?>"></script>
