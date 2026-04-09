@@ -15,7 +15,7 @@ class EmailTemplateController extends Controller
         $perPage = 12;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["tenant_id = ?"];
+        $where = ["et.tenant_id = ?"];
         $params = [Database::tenantId()];
 
         if ($search) {
@@ -32,7 +32,7 @@ class EmailTemplateController extends Controller
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch(
-            "SELECT COUNT(*) as count FROM email_templates WHERE {$whereClause}",
+            "SELECT COUNT(*) as count FROM email_templates et WHERE {$whereClause}",
             $params
         )['count'];
 

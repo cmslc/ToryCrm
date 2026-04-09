@@ -92,9 +92,10 @@ class ReportController extends Controller
 
         // 6. KH theo Tỉnh/Thành phố - NEW
         $byProvince = Database::fetchAll(
-            "SELECT COALESCE(c.city, c.province, 'Chưa xác định') as province, COUNT(*) as count
-             FROM contacts c WHERE {$baseWhere} {$dateWhere}
-             GROUP BY province ORDER BY count DESC LIMIT 15",
+            "SELECT province, COUNT(*) as count FROM (
+                SELECT COALESCE(c.city, c.province, 'Chưa xác định') as province
+                FROM contacts c WHERE {$baseWhere} {$dateWhere}
+             ) sub GROUP BY province ORDER BY count DESC LIMIT 15",
             array_merge($baseParams, $dateParams)
         );
 
