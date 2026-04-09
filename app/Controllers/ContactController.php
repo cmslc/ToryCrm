@@ -67,6 +67,11 @@ class ContactController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
+        $contactStatuses = Database::fetchAll(
+            "SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order",
+            [Database::tenantId()]
+        );
+
         return $this->view('contacts.index', [
             'contacts' => [
                 'items' => $contacts,
@@ -77,6 +82,7 @@ class ContactController extends Controller
             'sources' => $sources,
             'users' => $users,
             'statusCounts' => $statusCounts,
+            'contactStatuses' => $contactStatuses,
             'filters' => [
                 'search' => $search,
                 'status' => $status,
@@ -196,11 +202,17 @@ class ContactController extends Controller
             [$id]
         );
 
+        $contactStatuses = Database::fetchAll(
+            "SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order",
+            [Database::tenantId()]
+        );
+
         return $this->view('contacts.show', [
             'contact' => $contact,
             'activities' => $activities,
             'deals' => $deals,
             'tasks' => $tasks,
+            'contactStatuses' => $contactStatuses,
         ]);
     }
 

@@ -2,8 +2,21 @@
 $pageTitle = 'Khách hàng';
 $totalAll = 0;
 foreach ($statusCounts ?? [] as $sc) { $totalAll += $sc['count']; }
-$sColors = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger'];
-$sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
+
+// Build status maps from DB
+$sColors = [];
+$sLabels = [];
+$sIcons = [];
+foreach ($contactStatuses ?? [] as $cs) {
+    $sColors[$cs['slug']] = $cs['color'];
+    $sLabels[$cs['slug']] = $cs['name'];
+    $sIcons[$cs['slug']] = $cs['icon'];
+}
+// Fallback if no DB data
+if (empty($sLabels)) {
+    $sColors = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger'];
+    $sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
+}
 $currentStatus = $filters['status'] ?? '';
 ?>
 
@@ -76,14 +89,7 @@ $currentStatus = $filters['status'] ?? '';
                         </a>
                     </li>
                     <?php
-                    $statusInfo = [
-                        'new' => 'Mới',
-                        'contacted' => 'Đã liên hệ',
-                        'qualified' => 'Tiềm năng',
-                        'converted' => 'Chuyển đổi',
-                        'lost' => 'Mất',
-                    ];
-                    foreach ($statusInfo as $key => $label):
+                    foreach ($sLabels as $key => $label):
                         $count = 0;
                         foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
                         if ($count == 0 && $currentStatus !== $key) continue;

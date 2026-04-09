@@ -33,8 +33,9 @@
                         <?php endif; ?>
 
                         <?php
-                        $sColors = ['new' => 'info', 'contacted' => 'primary', 'qualified' => 'warning', 'converted' => 'success', 'lost' => 'danger'];
-                        $sLabels = ['new' => 'Mới', 'contacted' => 'Đã liên hệ', 'qualified' => 'Tiềm năng', 'converted' => 'Chuyển đổi', 'lost' => 'Mất'];
+                        $sColors = []; $sLabels = [];
+                        foreach ($contactStatuses ?? [] as $_cs) { $sColors[$_cs['slug']] = $_cs['color']; $sLabels[$_cs['slug']] = $_cs['name']; }
+                        if (empty($sLabels)) { $sColors = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger']; $sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất']; }
                         ?>
                         <span class="badge bg-<?= $sColors[$contact['status']] ?? 'secondary' ?> fs-12">
                             <?= $sLabels[$contact['status']] ?? $contact['status'] ?>
@@ -153,14 +154,13 @@
                     "SELECT COUNT(*) as order_count, COALESCE(SUM(total), 0) as total_value FROM orders WHERE contact_id = ? AND is_deleted = 0",
                     [$contact['id']]
                 );
-                $relationLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
                 ?>
                 <div class="card">
                     <div class="card-body p-3">
                         <div class="row text-center">
                             <div class="col">
                                 <p class="text-muted mb-1 fs-12">Mối quan hệ</p>
-                                <span class="badge bg-<?= $sColors[$contact['status']] ?? 'secondary' ?> fs-12"><?= $relationLabels[$contact['status']] ?? $contact['status'] ?></span>
+                                <span class="badge bg-<?= $sColors[$contact['status']] ?? 'secondary' ?> fs-12"><?= $sLabels[$contact['status']] ?? $contact['status'] ?></span>
                             </div>
                             <div class="col border-start">
                                 <p class="text-muted mb-1 fs-12">Người phụ trách</p>
