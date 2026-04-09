@@ -94,18 +94,33 @@
     }
 
     function addToggleButton() {
+        // Check if toggle already exists in HTML
+        var existing = document.getElementById('split-view-check');
+        if (existing) {
+            existing.checked = isSplitEnabled();
+            existing.addEventListener('change', function() {
+                localStorage.setItem(SPLIT_KEY, this.checked ? 'true' : 'false');
+                // Update row cursors
+                document.querySelectorAll('table tbody tr[data-id]').forEach(function(r) {
+                    r.style.cursor = isSplitEnabled() ? 'pointer' : '';
+                });
+            });
+            return;
+        }
+
+        // Fallback: create toggle if not in HTML
         var titleBox = document.querySelector('.page-title-box');
         if (!titleBox) return;
 
         var toggle = document.createElement('label');
-        toggle.className = 'split-view-toggle ms-3';
+        toggle.className = 'd-flex align-items-center gap-1 mb-0';
+        toggle.style.cursor = 'pointer';
         toggle.innerHTML =
-            '<input type="checkbox" class="form-check-input" id="split-view-check"' + (isSplitEnabled() ? ' checked' : '') + '>' +
-            '<span>Split View</span>';
+            '<input type="checkbox" class="form-check-input m-0" id="split-view-check"' + (isSplitEnabled() ? ' checked' : '') + '>' +
+            '<span class="fs-13">Split View</span>';
 
-        // Find the right side container (various structures)
-        var rightSide = titleBox.querySelector('.page-title-right, .d-flex.gap-2, .d-flex:last-child');
-        if (rightSide && rightSide !== titleBox) {
+        var rightSide = titleBox.querySelector('.page-title-right, .d-flex.gap-2');
+        if (rightSide) {
             rightSide.insertBefore(toggle, rightSide.firstChild);
         } else {
             titleBox.appendChild(toggle);

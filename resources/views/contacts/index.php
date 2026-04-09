@@ -118,8 +118,11 @@ $currentStatus = $filters['status'] ?? '';
                 <?php endforeach; ?>
             </div>
 
-            <!-- Right: Column Toggle + More -->
-            <div class="d-flex align-items-center gap-2 ms-auto" style="white-space:nowrap">
+            <!-- Right: Split View + Column Toggle + More -->
+            <div class="d-flex align-items-center gap-2 ms-auto page-title-right" style="white-space:nowrap">
+                <label class="d-flex align-items-center gap-1 mb-0" style="cursor:pointer" title="Bấm vào dòng để xem nhanh">
+                    <input type="checkbox" class="form-check-input m-0" id="split-view-check"> <span class="fs-13">Split View</span>
+                </label>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
                         <i class="ri-layout-column-line me-1"></i> Cột
