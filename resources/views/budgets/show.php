@@ -171,7 +171,7 @@ $tl = ['department'=>'Phòng ban','project'=>'Dự án','campaign'=>'Chiến d�
                             <span><?= e($budget['approved_by_name']) ?></span>
                         </div>
                         <?php endif; ?>
-                        <?php if ($budget['approved_at']): ?>
+                        <?php if (!empty($budget['approved_at'])): ?>
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-muted">Ngày duyệt</span>
                             <span><?= format_datetime($budget['approved_at']) ?></span>

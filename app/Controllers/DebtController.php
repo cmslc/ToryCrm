@@ -126,7 +126,7 @@ class DebtController extends Controller
         $payments = Database::fetchAll(
             "SELECT dp.*, u.name as recorded_by_name
              FROM debt_payments dp
-             LEFT JOIN users u ON dp.recorded_by = u.id
+             LEFT JOIN users u ON dp.created_by = u.id
              WHERE dp.debt_id = ?
              ORDER BY dp.payment_date DESC",
             [$id]
@@ -215,7 +215,7 @@ class DebtController extends Controller
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'payment_date' => !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d'),
                 'note' => trim($data['note'] ?? ''),
-                'recorded_by' => $this->userId(),
+                'created_by' => $this->userId(),
             ]);
 
             // Update debt

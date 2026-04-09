@@ -153,8 +153,8 @@
                                                 <a href="<?= url('orders/' . $c['entity_id']) ?>">#<?= $c['entity_id'] ?></a>
                                             <?php endif; ?>
                                         </td>
-                                        <td class="text-end"><?= format_money($c['base_amount'] ?? 0) ?></td>
-                                        <td><?= $c['rate_type'] === 'percent' ? number_format($c['rate'], 1) . '%' : format_money($c['rate']) ?></td>
+                                        <td class="text-end"><?= format_money($c['base_value'] ?? 0) ?></td>
+                                        <td><?= $c['rate'] > 0 ? number_format($c['rate'], 1) . '%' : '-' ?></td>
                                         <td class="text-end fw-medium"><?= format_money($c['amount']) ?></td>
                                         <td><span class="badge bg-<?= $statusColors[$c['status']] ?? 'secondary' ?>"><?= $statusLabels[$c['status']] ?? '' ?></span></td>
                                         <td><?= date('d/m/Y', strtotime($c['created_at'])) ?></td>
