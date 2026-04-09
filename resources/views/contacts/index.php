@@ -141,7 +141,7 @@
                         $sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
                         ?>
                         <?php foreach ($contacts['items'] as $c): ?>
-                        <tr>
+                        <tr data-id="<?= $c['id'] ?>">
                             <td><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
                             <td class="col-customer">
                                 <div class="d-flex align-items-center">

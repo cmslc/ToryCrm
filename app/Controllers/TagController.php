@@ -61,7 +61,7 @@ class TagController extends Controller
             return $this->json(['error' => 'Tên nhãn không được để trống'], 422);
         }
 
-        Database::execute(
+        Database::query(
             "UPDATE tags SET name = ?, color = ? WHERE id = ?",
             [$name, $color, $id]
         );

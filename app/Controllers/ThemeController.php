@@ -16,7 +16,7 @@ class ThemeController extends Controller
         $currentTheme = $_SESSION['user']['theme'] ?? 'light';
         $newTheme = $currentTheme === 'dark' ? 'light' : 'dark';
 
-        Database::execute(
+        Database::query(
             "UPDATE users SET theme = ? WHERE id = ?",
             [$newTheme, $this->userId()]
         );

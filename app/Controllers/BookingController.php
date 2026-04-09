@@ -54,7 +54,7 @@ class BookingController extends Controller
 
         $days = implode(',', $data['available_days'] ?? [1,2,3,4,5]);
 
-        Database::execute(
+        Database::query(
             "INSERT INTO booking_links (tenant_id, user_id, title, description, slug, duration, available_days, TIME(start_at), TIME(end_at), buffer_minutes, max_advance_days, is_active, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())",
             [
@@ -109,7 +109,7 @@ class BookingController extends Controller
 
         $days = implode(',', $data['available_days'] ?? [1,2,3,4,5]);
 
-        Database::execute(
+        Database::query(
             "UPDATE booking_links SET title=?, description=?, duration=?, available_days=?, TIME(start_at)=?, TIME(end_at)=?, buffer_minutes=?, max_advance_days=?, is_active=?, updated_at=NOW()
              WHERE id=? AND tenant_id=?",
             [
@@ -135,7 +135,7 @@ class BookingController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('bookings');
 
-        Database::execute(
+        Database::query(
             "DELETE FROM booking_links WHERE id = ? AND tenant_id = ?",
             [(int)$id, $this->tenantId()]
         );
@@ -298,7 +298,7 @@ class BookingController extends Controller
             return $this->json(['error' => 'Khung giờ này đã được đặt. Vui lòng chọn giờ khác.'], 409);
         }
 
-        Database::execute(
+        Database::query(
             "INSERT INTO bookings (tenant_id, link_id, contact_name, contact_email, contact_phone, note, DATE(start_at), TIME(start_at), TIME(end_at), status, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', NOW())",
             [
@@ -316,7 +316,7 @@ class BookingController extends Controller
 
         // Create calendar event for the owner
         try {
-            Database::execute(
+            Database::query(
                 "INSERT INTO calendar_events (tenant_id, user_id, title, description, start_at, end_at, type, color, created_at)
                  VALUES (?, ?, ?, ?, ?, ?, 'meeting', '#405189', NOW())",
                 [

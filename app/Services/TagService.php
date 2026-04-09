@@ -46,7 +46,7 @@ class TagService
         );
 
         // Delete existing taggables
-        Database::execute(
+        Database::query(
             "DELETE FROM taggables WHERE entity_type = ? AND entity_id = ?",
             [$entityType, $entityId]
         );
@@ -54,7 +54,7 @@ class TagService
         // Decrement use_count for removed tags
         if (!empty($currentTagIds)) {
             $placeholders = implode(',', array_fill(0, count($currentTagIds), '?'));
-            Database::execute(
+            Database::query(
                 "UPDATE tags SET use_count = GREATEST(0, use_count - 1) WHERE id IN ({$placeholders})",
                 $currentTagIds
             );
@@ -71,7 +71,7 @@ class TagService
                 'entity_id' => $entityId,
             ]);
 
-            Database::execute(
+            Database::query(
                 "UPDATE tags SET use_count = use_count + 1 WHERE id = ?",
                 [$tagId]
             );
@@ -96,8 +96,8 @@ class TagService
      */
     public static function deleteTag(int $tagId): void
     {
-        Database::execute("DELETE FROM taggables WHERE tag_id = ?", [$tagId]);
-        Database::execute("DELETE FROM tags WHERE id = ?", [$tagId]);
+        Database::query("DELETE FROM taggables WHERE tag_id = ?", [$tagId]);
+        Database::query("DELETE FROM tags WHERE id = ?", [$tagId]);
     }
 
     /**

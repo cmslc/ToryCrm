@@ -68,7 +68,7 @@ class AiChatController extends Controller
         $tid = $this->tenantId();
         $uid = $this->userId();
 
-        Database::execute(
+        Database::query(
             "DELETE FROM ai_chat_history WHERE tenant_id = ? AND user_id = ?",
             [$tid, $uid]
         );
@@ -79,7 +79,7 @@ class AiChatController extends Controller
     private function saveMessage(int $tid, int $uid, string $role, string $message): void
     {
         try {
-            Database::execute(
+            Database::query(
                 "INSERT INTO ai_chat_history (tenant_id, user_id, role, message, created_at) VALUES (?, ?, ?, ?, NOW())",
                 [$tid, $uid, $role, $message]
             );
@@ -202,7 +202,7 @@ class AiChatController extends Controller
 
         // Revenue from orders this month
         $orderRevenue = Database::fetch(
-            "SELECT COUNT(*) as cnt, COALESCE(SUM(total_amount), 0) as total
+            "SELECT COUNT(*) as cnt, COALESCE(SUM(total), 0) as total
              FROM orders
              WHERE tenant_id = ? AND is_deleted = 0
              AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())",
@@ -253,7 +253,7 @@ class AiChatController extends Controller
     private function createTask(string $title, int $tid, int $uid): string
     {
         try {
-            Database::execute(
+            Database::query(
                 "INSERT INTO tasks (tenant_id, user_id, assigned_to, title, status, priority, created_at, updated_at)
                  VALUES (?, ?, ?, ?, 'todo', 'medium', NOW(), NOW())",
                 [$tid, $uid, $uid, $title]

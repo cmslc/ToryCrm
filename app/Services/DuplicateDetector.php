@@ -241,14 +241,14 @@ class DuplicateDetector
         if ($group['entity_type'] === 'contact') {
             // Move related records to the kept contact
             foreach ($removeIds as $oldId) {
-                Database::execute("UPDATE deals SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE orders SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE activities SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE tickets SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE taggables SET entity_id = ? WHERE entity_type = 'contact' AND entity_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE deals SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE orders SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE activities SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE tickets SET contact_id = ? WHERE contact_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE taggables SET entity_id = ? WHERE entity_type = 'contact' AND entity_id = ?", [$keepId, $oldId]);
 
                 // Soft-delete the duplicate
-                Database::execute(
+                Database::query(
                     "UPDATE contacts SET deleted_at = NOW() WHERE id = ?",
                     [$oldId]
                 );
@@ -256,19 +256,19 @@ class DuplicateDetector
         } else {
             // Company merge
             foreach ($removeIds as $oldId) {
-                Database::execute("UPDATE contacts SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE deals SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE orders SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE activities SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
-                Database::execute("UPDATE taggables SET entity_id = ? WHERE entity_type = 'company' AND entity_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE contacts SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE deals SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE orders SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE activities SET company_id = ? WHERE company_id = ?", [$keepId, $oldId]);
+                Database::query("UPDATE taggables SET entity_id = ? WHERE entity_type = 'company' AND entity_id = ?", [$keepId, $oldId]);
 
                 // Delete company
-                Database::execute("DELETE FROM companies WHERE id = ?", [$oldId]);
+                Database::query("DELETE FROM companies WHERE id = ?", [$oldId]);
             }
         }
 
         // Mark group as merged
-        Database::execute(
+        Database::query(
             "UPDATE duplicate_groups SET status = 'merged', merged_keep_id = ?, merged_at = NOW() WHERE id = ?",
             [$keepId, $groupId]
         );
@@ -284,7 +284,7 @@ class DuplicateDetector
      */
     public static function ignore(int $groupId): void
     {
-        Database::execute(
+        Database::query(
             "UPDATE duplicate_groups SET status = 'ignored' WHERE id = ?",
             [$groupId]
         );

@@ -224,7 +224,7 @@ class ActivityController extends Controller
             return $this->json(['error' => 'Tiêu đề không được để trống'], 422);
         }
 
-        Database::execute(
+        Database::query(
             "UPDATE activities SET type = ?, title = ?, description = ?, scheduled_at = ? WHERE id = ?",
             [
                 $type,
@@ -249,7 +249,7 @@ class ActivityController extends Controller
             return $this->json(['error' => 'Method not allowed'], 405);
         }
 
-        Database::execute("DELETE FROM activities WHERE id = ?", [$id]);
+        Database::query("DELETE FROM activities WHERE id = ?", [$id]);
 
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
             return $this->json(['success' => true]);
