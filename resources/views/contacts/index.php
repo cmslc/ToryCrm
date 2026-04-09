@@ -140,6 +140,7 @@ $currentStatus = $filters['status'] ?? '';
                             'col-address' => 'Địa chỉ',
                             'col-birthday' => 'Ngày sinh',
                             'col-tags' => 'Nhãn',
+                            'col-lastcontact' => 'Liên hệ lần cuối',
                             'col-created' => 'Ngày tạo',
                         ];
                         foreach ($columns as $colId => $colLabel): ?>
@@ -184,6 +185,7 @@ $currentStatus = $filters['status'] ?? '';
                         <th class="col-address">Địa chỉ</th>
                         <th class="col-birthday">Ngày sinh</th>
                         <th class="col-tags">Nhãn</th>
+                        <th class="col-lastcontact">Liên hệ lần cuối</th>
                         <th class="col-created">Ngày tạo</th>
                         <th style="width:50px"></th>
                     </tr>
@@ -251,6 +253,7 @@ $currentStatus = $filters['status'] ?? '';
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
+                            <td class="col-lastcontact text-muted fs-12"><?= !empty($c['last_activity_at']) ? time_ago($c['last_activity_at']) : '-' ?></td>
                             <td class="col-created text-muted fs-12"><?= time_ago($c['created_at']) ?></td>
                             <td>
                                 <div class="dropdown">
@@ -320,8 +323,8 @@ window.__inlineEditUsers = <?= json_encode($users ?? []) ?>;
 // Column toggle
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
-    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-tags','col-created'];
-    var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-created'];
+    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-tags','col-lastcontact','col-created'];
+    var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-lastcontact','col-created'];
 
     function getVisible() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
