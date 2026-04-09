@@ -97,7 +97,7 @@
             <!-- Input Area -->
             <div class="card-footer bg-light">
                 <form id="chatForm" onsubmit="sendMessage(event)" class="d-flex gap-2">
-                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="_token" value="<?= csrf_token() ?>">
                     <input type="text" id="chatInput" class="form-control" placeholder="Nhập tin nhắn... (VD: Doanh thu tháng này, Tạo task...)" autocomplete="off">
                     <button type="submit" class="btn btn-primary" id="sendBtn">
                         <i class="ri-send-plane-fill"></i>
@@ -208,7 +208,7 @@ function sendMessage(e) {
 
     var formData = new FormData();
     formData.append('message', message);
-    formData.append('csrf_token', document.querySelector('[name=csrf_token]').value);
+    formData.append('_token', document.querySelector('[name=_token]').value);
 
     fetch('<?= url("ai-chat/send") ?>', {
         method: 'POST',
@@ -251,7 +251,7 @@ function clearChat() {
     if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện?')) return;
 
     var formData = new FormData();
-    formData.append('csrf_token', document.querySelector('[name=csrf_token]').value);
+    formData.append('_token', document.querySelector('[name=_token]').value);
 
     fetch('<?= url("ai-chat/clear") ?>', { method: 'POST', body: formData })
         .then(r => r.json())

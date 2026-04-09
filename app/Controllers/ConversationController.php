@@ -103,7 +103,7 @@ class ConversationController extends Controller
             if ($activeConversation) {
                 $messages = Database::fetchAll(
                     "SELECT cm.*, u.name as sender_name
-                     FROM conversation_messages cm
+                     FROM messages cm
                      LEFT JOIN users u ON cm.sender_id = u.id
                      WHERE cm.conversation_id = ?
                      ORDER BY cm.created_at ASC",
@@ -112,7 +112,7 @@ class ConversationController extends Controller
 
                 // Mark unread messages as read
                 Database::query(
-                    "UPDATE conversation_messages SET is_read = 1
+                    "UPDATE messages SET is_read = 1
                      WHERE conversation_id = ? AND is_read = 0 AND direction = 'inbound'",
                     [$activeId]
                 );
@@ -177,7 +177,7 @@ class ConversationController extends Controller
 
         $messages = Database::fetchAll(
             "SELECT cm.*, u.name as sender_name
-             FROM conversation_messages cm
+             FROM messages cm
              LEFT JOIN users u ON cm.sender_id = u.id
              WHERE cm.conversation_id = ?
              ORDER BY cm.created_at ASC",
@@ -186,7 +186,7 @@ class ConversationController extends Controller
 
         // Mark unread messages as read
         Database::query(
-            "UPDATE conversation_messages SET is_read = 1
+            "UPDATE messages SET is_read = 1
              WHERE conversation_id = ? AND is_read = 0 AND direction = 'inbound'",
             [$id]
         );
@@ -256,7 +256,7 @@ class ConversationController extends Controller
             'is_starred' => 0,
         ]);
 
-        Database::insert('conversation_messages', [
+        Database::insert('messages', [
             'conversation_id' => $conversationId,
             'direction' => 'outbound',
             'content' => $content,
@@ -292,7 +292,7 @@ class ConversationController extends Controller
         $now = date('Y-m-d H:i:s');
         $preview = mb_substr(strip_tags($content), 0, 100);
 
-        Database::insert('conversation_messages', [
+        Database::insert('messages', [
             'conversation_id' => $id,
             'direction' => 'outbound',
             'content' => $content,
