@@ -49,7 +49,7 @@
                             <div class="input-group" style="max-width:320px">
                                 <input type="text" class="form-control bg-light" value="<?= url('book/' . e($link['slug'])) ?>" readonly id="link-<?= $link['id'] ?>">
                                 <button class="btn btn-soft-primary" onclick="copyLink(<?= $link['id'] ?>)" title="Sao chép">
-                                    <i class="ri-file-copy-line"></i>
+                                    <i class="ri-file-copy-line me-1"></i> Sao chép
                                 </button>
                             </div>
                         </td>
@@ -66,14 +66,14 @@
                         <td class="text-end">
                             <div class="d-flex gap-1 justify-content-end">
                                 <a href="<?= url('book/' . e($link['slug'])) ?>" target="_blank" class="btn btn-soft-info" title="Xem trang công khai">
-                                    <i class="ri-external-link-line"></i>
+                                    <i class="ri-external-link-line me-1"></i> Xem
                                 </a>
                                 <a href="<?= url('bookings/' . $link['id'] . '/edit') ?>" class="btn btn-soft-warning" title="Sửa">
-                                    <i class="ri-edit-line"></i>
+                                    <i class="ri-edit-line me-1"></i> Sửa
                                 </a>
                                 <form method="POST" action="<?= url('bookings/' . $link['id'] . '/delete') ?>" onsubmit="return confirm('Bạn có chắc chắn muốn xóa liên kết này?')">
                                     <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                                    <button class="btn btn-soft-danger" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+                                    <button class="btn btn-soft-danger" title="Xóa"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                                 </form>
                             </div>
                         </td>

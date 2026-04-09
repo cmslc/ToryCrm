@@ -296,7 +296,7 @@
                                                         <td class="text-end">
                                                             <form method="POST" action="<?= url('deals/' . $deal['id'] . '/products/' . $dp['id'] . '/remove') ?>" data-confirm="Xóa sản phẩm này?" class="d-inline">
                                                                 <?= csrf_field() ?>
-                                                                <button class="btn btn-soft-danger p-1"><i class="ri-delete-bin-line"></i></button>
+                                                                <button class="btn btn-soft-danger p-1"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                                                             </form>
                                                         </td>
                                                     </tr>

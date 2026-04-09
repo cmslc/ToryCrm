@@ -86,7 +86,7 @@
                         <input type="date" class="form-control" name="date_to" value="<?= e($filters['date_to'] ?? '') ?>" placeholder="Đến">
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i></button>
+                        <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
                         <a href="<?= url('call-logs') ?>" class="btn btn-soft-secondary">Xóa</a>
                     </div>
                 </form>
@@ -142,7 +142,7 @@
                                     <td>
                                         <form method="POST" action="<?= url('call-logs/' . $cl['id'] . '/delete') ?>" data-confirm="Xóa?">
                                             <?= csrf_field() ?>
-                                            <button class="btn btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                            <button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                                         </form>
                                     </td>
                                 </tr>

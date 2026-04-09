@@ -104,7 +104,7 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
+                        <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Lọc</button>
                         <a href="<?= url('commissions') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
                     </div>
                 </form>
@@ -162,12 +162,12 @@
                                             <?php if ($c['status'] === 'pending'): ?>
                                                 <form method="POST" action="<?= url('commissions/' . $c['id'] . '/approve') ?>" class="d-inline">
                                                     <?= csrf_field() ?>
-                                                    <button class="btn btn-soft-info" title="Duyệt"><i class="ri-checkbox-circle-line"></i></button>
+                                                    <button class="btn btn-soft-info" title="Duyệt"><i class="ri-checkbox-circle-line me-1"></i> Duyệt</button>
                                                 </form>
                                             <?php elseif ($c['status'] === 'approved'): ?>
                                                 <form method="POST" action="<?= url('commissions/' . $c['id'] . '/paid') ?>" class="d-inline">
                                                     <?= csrf_field() ?>
-                                                    <button class="btn btn-soft-success" title="Đánh dấu đã trả"><i class="ri-money-dollar-circle-line"></i></button>
+                                                    <button class="btn btn-soft-success" title="Đánh dấu đã trả"><i class="ri-money-dollar-circle-line me-1"></i> Đã trả</button>
                                                 </form>
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>

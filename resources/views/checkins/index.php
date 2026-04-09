@@ -89,7 +89,7 @@
             </div>
             <div class="col-md-3 d-flex gap-1">
                 <button type="submit" class="btn btn-primary"><i class="ri-equalizer-fill me-1"></i> Lọc</button>
-                <a href="<?= url('checkins') ?>" class="btn btn-soft-secondary"><i class="ri-refresh-line"></i></a>
+                <a href="<?= url('checkins') ?>" class="btn btn-soft-secondary"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
             </div>
         </form>
     </div>
@@ -180,8 +180,8 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <a href="<?= url('checkins/' . $ci['id']) ?>" class="btn btn-soft-primary btn-icon" title="Xem chi tiết">
-                                        <i class="ri-eye-line"></i>
+                                    <a href="<?= url('checkins/' . $ci['id']) ?>" class="btn btn-soft-primary" title="Xem chi tiết">
+                                        <i class="ri-eye-line me-1"></i> Xem
                                     </a>
                                 </td>
                             </tr>

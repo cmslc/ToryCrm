@@ -49,7 +49,7 @@ $currentStatus = $filters['status'] ?? '';
                 <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm kiếm</button>
 
                 <?php if (!empty(array_filter($filters ?? []))): ?>
-                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger" title="Xóa bộ lọc"><i class="ri-refresh-line"></i></a>
+                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger" title="Xóa bộ lọc"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
                 <?php endif; ?>
             </form>
 

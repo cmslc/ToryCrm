@@ -133,7 +133,7 @@
                         <input type="date" class="form-control" name="date_to" value="<?= e($filters['date_to'] ?? '') ?>" placeholder="Đến ngày">
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
+                        <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Lọc</button>
                         <a href="<?= url('debts?type=' . e($filters['type'] ?? 'receivable')) ?>" class="btn btn-soft-secondary">Xóa lọc</a>
                     </div>
                 </form>
@@ -200,7 +200,7 @@
                                             <span class="badge bg-<?= $sc[$status] ?? 'secondary' ?>"><?= $sl[$status] ?? '' ?></span>
                                         </td>
                                         <td>
-                                            <a href="<?= url('debts/' . $debt['id']) ?>" class="btn btn-soft-primary"><i class="ri-eye-line"></i></a>
+                                            <a href="<?= url('debts/' . $debt['id']) ?>" class="btn btn-soft-primary"><i class="ri-eye-line me-1"></i> Xem</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

@@ -96,7 +96,7 @@
                             </div>
                             <div class="col-md-2">
                                 <button type="button" class="btn btn-soft-danger remove-step-btn w-100" disabled>
-                                    <i class="ri-delete-bin-line"></i>
+                                    <i class="ri-delete-bin-line me-1"></i> Xóa
                                 </button>
                             </div>
                         </div>
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 echo json_encode($userOptions);
             ?> +
             '</select></div>' +
-            '<div class="col-md-2"><button type="button" class="btn btn-soft-danger remove-step-btn w-100"><i class="ri-delete-bin-line"></i></button></div>' +
+            '<div class="col-md-2"><button type="button" class="btn btn-soft-danger remove-step-btn w-100"><i class="ri-delete-bin-line me-1"></i> Xóa</button></div>' +
             '</div>';
         container.insertAdjacentHTML('beforeend', html);
         updateRemoveButtons();

@@ -56,7 +56,7 @@
                                         <option value="<?= $u['id'] ?>" <?= ($company['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <button type="submit" class="btn btn-soft-primary"><i class="ri-refresh-line"></i></button>
+                                <button type="submit" class="btn btn-soft-primary"><i class="ri-refresh-line me-1"></i> Đổi</button>
                             </div>
                         </form>
                     </div>

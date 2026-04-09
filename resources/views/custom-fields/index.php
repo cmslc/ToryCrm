@@ -93,11 +93,11 @@
                                 <td>
                                     <div class="d-flex gap-1">
                                         <a href="<?= url('custom-fields/' . $field['id'] . '/edit') ?>" class="btn btn-soft-primary">
-                                            <i class="ri-pencil-line"></i>
+                                            <i class="ri-pencil-line me-1"></i> Sửa
                                         </a>
                                         <form method="POST" action="<?= url('custom-fields/' . $field['id'] . '/delete') ?>" data-confirm="Xác nhận xóa trường này? Tất cả dữ liệu liên quan sẽ bị mất.">
                                             <?= csrf_field() ?>
-                                            <button class="btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                            <button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                                         </form>
                                     </div>
                                 </td>

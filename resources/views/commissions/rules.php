@@ -51,10 +51,10 @@
                                         </td>
                                         <td>
                                             <div class="d-flex gap-1">
-                                                <a href="<?= url('commissions/rules/' . $rule['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line"></i></a>
+                                                <a href="<?= url('commissions/rules/' . $rule['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i> Sửa</a>
                                                 <form method="POST" action="<?= url('commissions/rules/' . $rule['id'] . '/delete') ?>" data-confirm="Xác nhận xóa quy tắc này?">
                                                     <?= csrf_field() ?>
-                                                    <button class="btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                                    <button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                                                 </form>
                                             </div>
                                         </td>

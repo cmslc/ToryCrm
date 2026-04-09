@@ -26,7 +26,7 @@
                             <form method="GET" action="<?= url('conversations') ?>">
                                 <div class="input-group">
                                     <input type="text" class="form-control" name="search" placeholder="Tìm kiếm cuộc hội thoại..." value="<?= e($filters['search'] ?? '') ?>">
-                                    <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i></button>
+                                    <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
                                 </div>
                                 <?php if ($currentFilter): ?>
                                     <input type="hidden" name="filter" value="<?= e($currentFilter) ?>">
@@ -189,7 +189,7 @@
 
                                     <!-- View full page -->
                                     <a href="<?= url('conversations/' . $activeConversation['id']) ?>" class="btn btn-soft-info" title="Xem trang đầy đủ">
-                                        <i class="ri-external-link-line"></i>
+                                        <i class="ri-external-link-line me-1"></i> Xem
                                     </a>
                                 </div>
                             </div>

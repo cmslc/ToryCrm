@@ -68,7 +68,7 @@
                 <h5 class="card-title mb-0">Chi tiết hoa hồng</h5>
                 <form method="GET" action="<?= url('commissions/my') ?>" class="d-flex gap-2">
                     <input type="month" class="form-control" name="period" value="<?= e($filters['period'] ?? '') ?>" placeholder="Lọc theo tháng">
-                    <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i></button>
+                    <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
                 </form>
             </div>
             <div class="card-body">
