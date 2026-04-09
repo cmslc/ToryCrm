@@ -12,7 +12,22 @@ class AiService
      */
     public static function ask(string $message, int $tenantId, int $userId): string
     {
+        // Try multiple ways to get key (PHP-FPM quirks)
         $apiKey = $_ENV['GEMINI_API_KEY'] ?? '';
+        if (empty($apiKey)) $apiKey = getenv('GEMINI_API_KEY') ?: '';
+        if (empty($apiKey)) {
+            // Read directly from .env as last resort
+            $envFile = BASE_PATH . '/.env';
+            if (file_exists($envFile)) {
+                $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                foreach ($lines as $line) {
+                    if (str_starts_with($line, 'GEMINI_API_KEY=')) {
+                        $apiKey = trim(substr($line, 15));
+                        break;
+                    }
+                }
+            }
+        }
 
         // Nếu chưa có API key → fallback về rule-based
         if (empty($apiKey)) {
@@ -51,12 +66,30 @@ class AiService
         ];
 
         try {
-            $response = @file_get_contents($url, false, stream_context_create($opts));
-            if ($response === false) {
-                return self::fallbackRuleBased($message, $tenantId, $userId);
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_SSL_VERIFYPEER => false,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if ($response === false || empty($response)) {
+                return "⚠️ Không kết nối được Gemini API: " . ($curlError ?: 'Timeout');
             }
 
             $data = json_decode($response, true);
+
+            if (isset($data['error'])) {
+                return "⚠️ Gemini API lỗi: " . ($data['error']['message'] ?? 'HTTP ' . $httpCode);
+            }
+
             $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
             if ($text) {
@@ -65,7 +98,7 @@ class AiService
 
             return self::fallbackRuleBased($message, $tenantId, $userId);
         } catch (\Exception $e) {
-            return self::fallbackRuleBased($message, $tenantId, $userId);
+            return "⚠️ Lỗi AI: " . $e->getMessage();
         }
     }
 
