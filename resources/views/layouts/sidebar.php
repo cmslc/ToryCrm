@@ -46,8 +46,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
             <div id="two-column-menu"></div>
             <ul class="navbar-nav" id="navbar-nav">
 
-                <li class="menu-title"><span>Menu</span></li>
-
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('dashboard', $currentUrl) ?>" href="<?= url('dashboard') ?>">
                         <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>

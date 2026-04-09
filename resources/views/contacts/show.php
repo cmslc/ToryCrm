@@ -86,6 +86,93 @@
                     </div>
                 </div>
 
+                <!-- Followers (Người xem) -->
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <h5 class="card-title mb-0 flex-grow-1">Người theo dõi</h5>
+                        <span class="badge bg-secondary-subtle text-secondary" id="followerCount"><?= count($followers ?? []) ?></span>
+                    </div>
+                    <div class="card-body">
+                        <div id="followerList" class="mb-2">
+                            <?php foreach ($followers ?? [] as $f): ?>
+                                <div class="d-flex align-items-center justify-content-between mb-2" data-follower-id="<?= $f['user_id'] ?>">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs me-2">
+                                            <span class="avatar-title bg-info-subtle text-info rounded-circle"><?= strtoupper(substr($f['name'], 0, 1)) ?></span>
+                                        </div>
+                                        <span><?= e($f['name']) ?></span>
+                                    </div>
+                                    <button class="btn btn-soft-danger py-0 px-2 remove-follower" data-user-id="<?= $f['user_id'] ?>" title="Bỏ theo dõi"><i class="ri-close-line"></i></button>
+                                </div>
+                            <?php endforeach; ?>
+                            <?php if (empty($followers)): ?>
+                                <p class="text-muted mb-0" id="noFollowers">Chưa có người theo dõi</p>
+                            <?php endif; ?>
+                        </div>
+                        <form id="addFollowerForm" class="d-flex gap-2">
+                            <select id="followerSelect" class="form-select">
+                                <option value="">Thêm người xem...</option>
+                                <?php
+                                $followerIds = array_column($followers ?? [], 'user_id');
+                                foreach ($allUsers as $u):
+                                    if (in_array($u['id'], $followerIds) || $u['id'] == ($contact['owner_id'] ?? 0)) continue;
+                                ?>
+                                    <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="button" class="btn btn-soft-primary" id="addFollowerBtn"><i class="ri-add-line"></i></button>
+                        </form>
+                    </div>
+                </div>
+                <script>
+                (function() {
+                    var contactId = <?= $contact['id'] ?>;
+                    var token = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+
+                    document.getElementById('addFollowerBtn')?.addEventListener('click', function() {
+                        var sel = document.getElementById('followerSelect');
+                        var uid = sel.value;
+                        if (!uid) return;
+                        var name = sel.options[sel.selectedIndex].text;
+
+                        fetch('/contacts/' + contactId + '/followers', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: '_token=' + token + '&user_id=' + uid + '&action=add'
+                        }).then(function(r) { return r.json(); }).then(function(d) {
+                            if (d.success) {
+                                var noEl = document.getElementById('noFollowers');
+                                if (noEl) noEl.remove();
+                                var div = document.createElement('div');
+                                div.className = 'd-flex align-items-center justify-content-between mb-2';
+                                div.dataset.followerId = uid;
+                                div.innerHTML = '<div class="d-flex align-items-center"><div class="avatar-xs me-2"><span class="avatar-title bg-info-subtle text-info rounded-circle">' + name.charAt(0).toUpperCase() + '</span></div><span>' + name + '</span></div><button class="btn btn-soft-danger py-0 px-2 remove-follower" data-user-id="' + uid + '"><i class="ri-close-line"></i></button>';
+                                document.getElementById('followerList').appendChild(div);
+                                sel.querySelector('option[value="' + uid + '"]').remove();
+                                sel.value = '';
+                                document.getElementById('followerCount').textContent = document.querySelectorAll('[data-follower-id]').length;
+                            }
+                        });
+                    });
+
+                    document.getElementById('followerList')?.addEventListener('click', function(e) {
+                        var btn = e.target.closest('.remove-follower');
+                        if (!btn) return;
+                        var uid = btn.dataset.userId;
+                        fetch('/contacts/' + contactId + '/followers', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: '_token=' + token + '&user_id=' + uid + '&action=remove'
+                        }).then(function(r) { return r.json(); }).then(function(d) {
+                            if (d.success) {
+                                btn.closest('[data-follower-id]').remove();
+                                document.getElementById('followerCount').textContent = document.querySelectorAll('[data-follower-id]').length;
+                            }
+                        });
+                    });
+                })();
+                </script>
+
                 <!-- Contact Info -->
                 <div class="card">
                     <div class="card-header">

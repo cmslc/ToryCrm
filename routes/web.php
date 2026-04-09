@@ -103,6 +103,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contacts/{id}/delete', 'ContactController@delete');
     Router::post('contacts/{id}/restore', 'ContactController@restore');
     Router::post('contacts/{id}/change-owner', 'ContactController@changeOwner');
+    Router::post('contacts/{id}/followers', 'ContactController@followers');
     Router::post('contacts/{id}/quick-update', 'ContactController@quickUpdate');
 
     // Companies

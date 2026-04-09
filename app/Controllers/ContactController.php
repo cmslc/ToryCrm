@@ -207,12 +207,18 @@ class ContactController extends Controller
             [Database::tenantId()]
         );
 
+        $followers = Database::fetchAll(
+            "SELECT cf.user_id, u.name FROM contact_followers cf JOIN users u ON cf.user_id = u.id WHERE cf.contact_id = ? ORDER BY cf.created_at",
+            [$id]
+        );
+
         return $this->view('contacts.show', [
             'contact' => $contact,
             'activities' => $activities,
             'deals' => $deals,
             'tasks' => $tasks,
             'contactStatuses' => $contactStatuses,
+            'followers' => $followers,
         ]);
     }
 
@@ -287,6 +293,32 @@ class ContactController extends Controller
 
         $this->setFlash('success', 'Contact updated successfully.');
         return $this->redirect('contacts/' . $id);
+    }
+
+    public function followers($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $userId = (int) $this->input('user_id');
+        $action = $this->input('action');
+
+        if (!$userId) return $this->json(['error' => 'User ID required'], 400);
+
+        if ($action === 'add') {
+            Database::query(
+                "INSERT IGNORE INTO contact_followers (contact_id, user_id) VALUES (?, ?)",
+                [(int)$id, $userId]
+            );
+            return $this->json(['success' => true]);
+        } elseif ($action === 'remove') {
+            Database::query(
+                "DELETE FROM contact_followers WHERE contact_id = ? AND user_id = ?",
+                [(int)$id, $userId]
+            );
+            return $this->json(['success' => true]);
+        }
+
+        return $this->json(['error' => 'Invalid action'], 400);
     }
 
     public function delete($id)
