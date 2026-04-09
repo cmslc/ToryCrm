@@ -5,7 +5,7 @@ $brandName = $branding['name'] ?? 'ToryCRM';
 $userTheme = $_SESSION['user']['theme'] ?? 'light';
 ?>
 <!DOCTYPE html>
-<html lang="vi" data-layout="vertical" data-topbar="<?= $userTheme === 'dark' ? 'dark' : 'light' ?>" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="enable" data-bs-theme="<?= e($userTheme) ?>" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
+<html lang="vi" data-layout="vertical" data-topbar="<?= $userTheme === 'dark' ? 'dark' : 'light' ?>" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-bs-theme="<?= e($userTheme) ?>" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,14 +49,24 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
 </head>
 <body>
 
-    <!-- Velzon Preloader -->
-    <div id="preloader">
-        <div id="status">
-            <div class="spinner-border text-primary avatar-sm" role="status">
-                <span class="visually-hidden">Đang tải...</span>
-            </div>
-        </div>
-    </div>
+    <!-- Top loading bar -->
+    <div id="tory-loader" style="position:fixed;top:0;left:0;height:3px;background:var(--vz-primary,#405189);z-index:99999;width:0;transition:width .4s ease;pointer-events:none"></div>
+    <script>
+    (function(){
+        var bar = document.getElementById('tory-loader');
+        document.addEventListener('click', function(e) {
+            var a = e.target.closest('a[href]');
+            if (!a) return;
+            var h = a.getAttribute('href');
+            if (!h || h.charAt(0) === '#' || h.indexOf('javascript') === 0 || a.getAttribute('target') === '_blank' || a.getAttribute('download')) return;
+            bar.style.transition = 'width .4s ease';
+            bar.style.opacity = '1';
+            bar.style.width = '30%';
+            setTimeout(function(){ bar.style.transition = 'width 8s cubic-bezier(.1,.05,.1,1)'; bar.style.width = '85%'; }, 50);
+        });
+        window.addEventListener('load', function(){ bar.style.transition = 'width .2s ease'; bar.style.width = '100%'; setTimeout(function(){ bar.style.opacity = '0'; bar.style.width = '0'; }, 300); });
+    })();
+    </script>
 
     <!-- Begin page -->
     <div id="layout-wrapper">
