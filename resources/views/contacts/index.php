@@ -21,8 +21,8 @@ $currentStatus = $filters['status'] ?? '';
 ?>
 
 <!-- Toolbar Row 1: Title + Search + Filters + Actions -->
-<div class="card mb-0">
-    <div class="card-body py-2 px-3">
+<div class="card mb-2">
+    <div class="card-body py-1 px-3">
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Icon + Title -->
             <div class="d-flex align-items-center me-2">
@@ -77,7 +77,7 @@ $currentStatus = $filters['status'] ?? '';
 
 <!-- Toolbar Row 2: Status Tabs + Saved Views + Pagination Info + Column Toggle -->
 <div class="card mb-3">
-    <div class="card-body py-0 px-3">
+    <div class="card-body py-1 px-3">
         <div class="d-flex align-items-center justify-content-between">
             <!-- Left: Status Tabs + Quick Filters -->
             <div class="d-flex align-items-center gap-0 overflow-auto" style="white-space:nowrap">
@@ -118,27 +118,11 @@ $currentStatus = $filters['status'] ?? '';
                 <?php endforeach; ?>
             </div>
 
-            <!-- Right: Pagination Info + Column Toggle -->
-            <div class="d-flex align-items-center gap-2 ms-3" style="white-space:nowrap">
-                <?php if (!empty($contacts['items'])): ?>
-                    <span class="text-muted fs-13">
-                        <?= (($contacts['page'] - 1) * 20) + 1 ?> - <?= min($contacts['page'] * 20, $contacts['total']) ?>
-                        <span class="mx-1">/</span>
-                        <strong><?= number_format($contacts['total']) ?></strong>
-                    </span>
-
-                    <?php if ($contacts['page'] > 1): ?>
-                        <a href="<?= url('contacts?page=' . ($contacts['page']-1) . '&' . http_build_query(array_filter($filters ?? []))) ?>" class="btn btn-light border py-1 px-2"><i class="ri-arrow-left-s-line"></i></a>
-                    <?php endif; ?>
-                    <?php if ($contacts['page'] < ($contacts['total_pages'] ?? 1)): ?>
-                        <a href="<?= url('contacts?page=' . ($contacts['page']+1) . '&' . http_build_query(array_filter($filters ?? []))) ?>" class="btn btn-light border py-1 px-2"><i class="ri-arrow-right-s-line"></i></a>
-                    <?php endif; ?>
-                <?php endif; ?>
-
-                <!-- Column Toggle -->
+            <!-- Right: Column Toggle + More -->
+            <div class="d-flex align-items-center gap-2 ms-auto" style="white-space:nowrap">
                 <div class="dropdown">
-                    <button class="btn btn-light border py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
-                        <i class="ri-layout-column-line"></i>
+                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
+                        <i class="ri-layout-column-line me-1"></i> Cột
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
                         <h6 class="dropdown-header px-0">Hiển thị cột</h6>
@@ -165,10 +149,10 @@ $currentStatus = $filters['status'] ?? '';
                         <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
                     </div>
                 </div>
-
-                <!-- Trash + More -->
                 <div class="dropdown">
-                    <button class="btn btn-light border py-1 px-2" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
+                        <i class="ri-more-fill"></i>
+                    </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
                         <li><a class="dropdown-item" href="<?= url('import-export') ?>"><i class="ri-download-line me-2"></i>Xuất Excel</a></li>
