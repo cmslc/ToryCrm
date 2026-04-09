@@ -270,4 +270,65 @@ class SettingController extends Controller
             'filters' => ['module' => $module],
         ]);
     }
+
+    public function ai()
+    {
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $aiConfig = $settings['ai'] ?? [];
+
+        return $this->view('settings.ai', [
+            'aiConfig' => $aiConfig,
+        ]);
+    }
+
+    public function saveAi()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/ai');
+
+        $apiKey = trim($this->input('gemini_api_key') ?? '');
+        $model = $this->input('ai_model') ?? 'gemini-2.0-flash';
+
+        // Save API key to .env file
+        $envPath = BASE_PATH . '/.env';
+        $envContent = file_get_contents($envPath);
+
+        if (str_contains($envContent, 'GEMINI_API_KEY=')) {
+            $envContent = preg_replace('/GEMINI_API_KEY=.*/', 'GEMINI_API_KEY=' . $apiKey, $envContent);
+        } else {
+            $envContent .= "\nGEMINI_API_KEY=" . $apiKey;
+        }
+        file_put_contents($envPath, $envContent);
+
+        // Save model to tenant settings
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $settings['ai']['model'] = $model;
+        Database::update('tenants', ['settings' => json_encode($settings)], 'id = ?', [$this->tenantId()]);
+
+        // Update $_ENV for current request
+        $_ENV['GEMINI_API_KEY'] = $apiKey;
+
+        $this->setFlash('success', 'Đã lưu cấu hình AI.');
+        return $this->redirect('settings/ai');
+    }
+
+    public function saveAiBehavior()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/ai');
+
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+
+        $settings['ai']['system_prompt'] = trim($this->input('system_prompt') ?? '');
+        $settings['ai']['temperature'] = (int) ($this->input('temperature') ?? 7);
+        $settings['ai']['max_tokens'] = (int) ($this->input('max_tokens') ?? 500);
+        $settings['ai']['include_crm_context'] = $this->input('include_crm_context') ? true : false;
+        $settings['ai']['show_widget'] = $this->input('show_widget') ? true : false;
+
+        Database::update('tenants', ['settings' => json_encode($settings)], 'id = ?', [$this->tenantId()]);
+
+        $this->setFlash('success', 'Đã lưu cấu hình hành vi AI.');
+        return $this->redirect('settings/ai');
+    }
 }
