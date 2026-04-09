@@ -139,12 +139,12 @@ class CompanyController extends Controller
         }
 
         $contacts = Database::fetchAll(
-            "SELECT * FROM contacts WHERE company_id = ? ORDER BY first_name",
+            "SELECT * FROM contacts WHERE company_id = ? AND is_deleted = 0 ORDER BY first_name",
             [$id]
         );
 
         $deals = Database::fetchAll(
-            "SELECT d.*, ds.name as stage_name
+            "SELECT d.*, ds.name as stage_name, ds.color as stage_color
              FROM deals d
              LEFT JOIN deal_stages ds ON d.stage_id = ds.id
              WHERE d.company_id = ?
@@ -158,15 +158,29 @@ class CompanyController extends Controller
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.company_id = ?
              ORDER BY a.created_at DESC
+             LIMIT 50",
+            [$id]
+        );
+
+        $tickets = Database::fetchAll(
+            "SELECT t.*, u.name as assigned_name
+             FROM tickets t
+             LEFT JOIN users u ON t.assigned_to = u.id
+             WHERE t.company_id = ?
+             ORDER BY t.created_at DESC
              LIMIT 20",
             [$id]
         );
+
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
 
         return $this->view('companies.show', [
             'company' => $company,
             'contacts' => $contacts,
             'deals' => $deals,
             'activities' => $activities,
+            'tickets' => $tickets,
+            'users' => $users,
         ]);
     }
 
@@ -244,7 +258,11 @@ class CompanyController extends Controller
             return $this->redirect('companies');
         }
 
-        Database::delete('companies', 'id = ?', [$id]);
+        // Soft delete
+        Database::update('companies', [
+            'is_deleted' => 1,
+            'deleted_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$id]);
 
         // Log activity
         Database::insert('activities', [
@@ -254,7 +272,95 @@ class CompanyController extends Controller
             'user_id' => $this->userId(),
         ]);
 
-        $this->setFlash('success', 'Company deleted successfully.');
+        $this->setFlash('success', 'Đã xóa doanh nghiệp.');
         return $this->redirect('companies');
+    }
+
+    public function trash()
+    {
+        $tid = Database::tenantId();
+        $companies = Database::fetchAll(
+            "SELECT c.*, u.name as owner_name
+             FROM companies c
+             LEFT JOIN users u ON c.owner_id = u.id
+             WHERE c.is_deleted = 1 AND c.tenant_id = ?
+             ORDER BY c.deleted_at DESC",
+            [$tid]
+        );
+
+        return $this->view('companies.trash', ['companies' => $companies]);
+    }
+
+    public function restore($id)
+    {
+        if (!$this->isPost()) return $this->redirect('companies/trash');
+
+        Database::restore('companies', 'id = ?', [$id]);
+
+        $this->setFlash('success', 'Đã khôi phục doanh nghiệp.');
+        return $this->redirect('companies/trash');
+    }
+
+    public function changeOwner($id)
+    {
+        if (!$this->isPost()) return $this->redirect('companies/' . $id);
+
+        $company = Database::fetch("SELECT * FROM companies WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$company) {
+            $this->setFlash('error', 'Doanh nghiệp không tồn tại.');
+            return $this->redirect('companies');
+        }
+
+        $newOwnerId = $this->input('owner_id');
+        if (empty($newOwnerId)) {
+            $this->setFlash('error', 'Vui lòng chọn người phụ trách.');
+            return $this->back();
+        }
+
+        $oldOwner = Database::fetch("SELECT name FROM users WHERE id = ?", [$company['owner_id'] ?? 0]);
+        $newOwner = Database::fetch("SELECT name FROM users WHERE id = ?", [$newOwnerId]);
+
+        Database::update('companies', ['owner_id' => $newOwnerId], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Đổi người phụ trách: {$company['name']}",
+            'description' => ($oldOwner['name'] ?? 'Chưa gán') . ' → ' . ($newOwner['name'] ?? ''),
+            'user_id' => $this->userId(),
+            'company_id' => $id,
+        ]);
+
+        $this->setFlash('success', 'Đã đổi người phụ trách.');
+        return $this->redirect('companies/' . $id);
+    }
+
+    public function quickUpdate($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $company = Database::fetch("SELECT * FROM companies WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$company) {
+            return $this->json(['error' => 'Doanh nghiệp không tồn tại'], 404);
+        }
+
+        $field = $this->input('field');
+        $value = $this->input('value');
+        $allowed = ['industry', 'company_size', 'owner_id'];
+
+        if (!in_array($field, $allowed)) {
+            return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
+        }
+
+        Database::update('companies', [$field => $value ?: null], 'id = ?', [$id]);
+
+        $display = $value;
+        if ($field === 'owner_id') {
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$value]);
+            $display = $user ? htmlspecialchars($user['name']) : '-';
+        }
+
+        return $this->json(['success' => true, 'value' => $value, 'display' => $display]);
     }
 }

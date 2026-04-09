@@ -40,6 +40,17 @@
                             <?= $sLabels[$contact['status']] ?? $contact['status'] ?>
                         </span>
 
+                        <!-- Tags -->
+                        <div class="mt-3">
+                            <?php
+                            $contactTags = \App\Services\TagService::getForEntity('contact', $contact['id']);
+                            $entityType = 'contact';
+                            $entityId = $contact['id'];
+                            $selectedTags = $contactTags;
+                            include __DIR__ . '/../components/tag-input.php';
+                            ?>
+                        </div>
+
                         <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
                             <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary">
                                 <i class="ri-pencil-line me-1"></i> Sửa

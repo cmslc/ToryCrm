@@ -11,6 +11,9 @@ class ActivityController extends Controller
     {
         $type = $this->input('type');
         $userId = $this->input('user_id');
+        $contactId = $this->input('contact_id');
+        $dateFrom = $this->input('date_from');
+        $dateTo = $this->input('date_to');
         $page = max(1, (int) $this->input('page') ?: 1);
         $perPage = 30;
         $offset = ($page - 1) * $perPage;
@@ -26,6 +29,21 @@ class ActivityController extends Controller
         if ($userId) {
             $where[] = "a.user_id = ?";
             $params[] = $userId;
+        }
+
+        if ($contactId) {
+            $where[] = "a.contact_id = ?";
+            $params[] = $contactId;
+        }
+
+        if ($dateFrom) {
+            $where[] = "a.created_at >= ?";
+            $params[] = $dateFrom . ' 00:00:00';
+        }
+
+        if ($dateTo) {
+            $where[] = "a.created_at <= ?";
+            $params[] = $dateTo . ' 23:59:59';
         }
 
         $whereClause = implode(' AND ', $where);
@@ -52,14 +70,21 @@ class ActivityController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
+        // Get users for filter
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+
         return $this->view('activities.index', [
             'activities' => $activities,
             'total' => $total,
             'page' => $page,
             'totalPages' => $totalPages,
+            'users' => $users,
             'filters' => [
                 'type' => $type,
                 'user_id' => $userId,
+                'contact_id' => $contactId,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
             ],
         ]);
     }
@@ -159,5 +184,121 @@ class ActivityController extends Controller
         $referer = $_SERVER['HTTP_REFERER'] ?? url('activities');
         header('Location: ' . $referer);
         exit;
+    }
+
+    public function edit($id)
+    {
+        $activity = Database::fetch(
+            "SELECT a.*, u.name as user_name
+             FROM activities a
+             LEFT JOIN users u ON a.user_id = u.id
+             WHERE a.id = ?",
+            [$id]
+        );
+
+        if (!$activity) {
+            $this->setFlash('error', 'Không tìm thấy hoạt động.');
+            return $this->redirect('activities');
+        }
+
+        // Return JSON for modal edit
+        return $this->json(['activity' => $activity]);
+    }
+
+    public function update($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        $activity = Database::fetch("SELECT * FROM activities WHERE id = ?", [$id]);
+        if (!$activity) {
+            return $this->json(['error' => 'Không tìm thấy hoạt động'], 404);
+        }
+
+        $data = $this->allInput();
+        $title = trim($data['title'] ?? '');
+        $type = trim($data['type'] ?? $activity['type']);
+
+        if (empty($title)) {
+            return $this->json(['error' => 'Tiêu đề không được để trống'], 422);
+        }
+
+        Database::execute(
+            "UPDATE activities SET type = ?, title = ?, description = ?, scheduled_at = ? WHERE id = ?",
+            [
+                $type,
+                $title,
+                trim($data['description'] ?? ''),
+                $data['scheduled_at'] ?? null,
+                $id,
+            ]
+        );
+
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            return $this->json(['success' => true]);
+        }
+
+        $this->setFlash('success', 'Đã cập nhật hoạt động.');
+        return $this->redirect('activities');
+    }
+
+    public function delete($id)
+    {
+        if (!$this->isPost()) {
+            return $this->json(['error' => 'Method not allowed'], 405);
+        }
+
+        Database::execute("DELETE FROM activities WHERE id = ?", [$id]);
+
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            return $this->json(['success' => true]);
+        }
+
+        $this->setFlash('success', 'Đã xóa hoạt động.');
+        return $this->redirect('activities');
+    }
+
+    public function calendar()
+    {
+        $start = $this->input('start', date('Y-m-01'));
+        $end = $this->input('end', date('Y-m-t'));
+
+        $activities = Database::fetchAll(
+            "SELECT a.id, a.type, a.title, a.description, a.scheduled_at, a.created_at, u.name as user_name
+             FROM activities a
+             LEFT JOIN users u ON a.user_id = u.id
+             WHERE (a.scheduled_at BETWEEN ? AND ?) OR (a.scheduled_at IS NULL AND a.created_at BETWEEN ? AND ?)
+             ORDER BY COALESCE(a.scheduled_at, a.created_at) ASC",
+            [$start, $end . ' 23:59:59', $start, $end . ' 23:59:59']
+        );
+
+        $typeColors = [
+            'note' => '#405189',
+            'call' => '#0ab39c',
+            'email' => '#299cdb',
+            'meeting' => '#f7b84b',
+            'task' => '#f06548',
+            'deal' => '#0ab39c',
+            'system' => '#878a99',
+        ];
+
+        $events = [];
+        foreach ($activities as $act) {
+            $events[] = [
+                'id' => $act['id'],
+                'title' => $act['title'],
+                'start' => $act['scheduled_at'] ?? $act['created_at'],
+                'backgroundColor' => $typeColors[$act['type']] ?? '#405189',
+                'borderColor' => $typeColors[$act['type']] ?? '#405189',
+                'extendedProps' => [
+                    'type' => $act['type'],
+                    'description' => $act['description'] ?? '',
+                    'user_name' => $act['user_name'] ?? '',
+                ],
+            ];
+        }
+
+        return $this->json($events);
     }
 }

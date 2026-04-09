@@ -177,8 +177,8 @@ class DealController extends Controller
     public function show($id)
     {
         $deal = Database::fetch(
-            "SELECT d.*, c.first_name as contact_first_name, c.last_name as contact_last_name,
-                    comp.name as company_name, u.name as owner_name, ds.name as stage_name, ds.color as stage_color
+            "SELECT d.*, c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
+                    comp.name as company_name, u.name as owner_name, ds.name as stage_name, ds.color as stage_color, ds.sort_order as stage_order
              FROM deals d
              LEFT JOIN contacts c ON d.contact_id = c.id
              LEFT JOIN companies comp ON d.company_id = comp.id
@@ -199,7 +199,7 @@ class DealController extends Controller
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.deal_id = ?
              ORDER BY a.created_at DESC
-             LIMIT 20",
+             LIMIT 50",
             [$id]
         );
 
@@ -212,10 +212,31 @@ class DealController extends Controller
             [$id]
         );
 
+        $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
+
+        $dealProducts = Database::fetchAll(
+            "SELECT dp.*, p.name as product_name, p.sku
+             FROM deal_products dp
+             LEFT JOIN products p ON dp.product_id = p.id
+             WHERE dp.deal_id = ?
+             ORDER BY dp.id",
+            [$id]
+        );
+
+        $products = Database::fetchAll(
+            "SELECT id, name, sku, price FROM products WHERE is_deleted = 0 ORDER BY name"
+        );
+
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+
         return $this->view('deals.show', [
             'deal' => $deal,
             'activities' => $activities,
             'tasks' => $tasks,
+            'stages' => $stages,
+            'dealProducts' => $dealProducts,
+            'products' => $products,
+            'users' => $users,
         ]);
     }
 
@@ -269,19 +290,43 @@ class DealController extends Controller
 
         $oldStageId = $deal['stage_id'];
         $newStageId = $data['stage_id'] ?? $oldStageId;
+        $newStatus = $data['status'] ?? 'open';
 
-        Database::update('deals', [
+        // Validate close reason when status changes to won/lost
+        if (($newStatus === 'won' || $newStatus === 'lost') && $newStatus !== $deal['status']) {
+            if (empty(trim($data['close_reason'] ?? ''))) {
+                $this->setFlash('error', 'Vui lòng nhập lý do đóng cơ hội.');
+                return $this->back();
+            }
+            if ($newStatus === 'lost' && empty(trim($data['loss_reason_category'] ?? ''))) {
+                $this->setFlash('error', 'Vui lòng chọn phân loại lý do thua.');
+                return $this->back();
+            }
+        }
+
+        $updateData = [
             'title' => $title,
             'value' => (float) ($data['value'] ?? 0),
             'stage_id' => $newStageId ?: null,
-            'status' => $data['status'] ?? 'open',
+            'status' => $newStatus,
             'contact_id' => (!empty($data['contact_id']) ? $data['contact_id'] : null),
             'company_id' => (!empty($data['company_id']) ? $data['company_id'] : null),
             'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),
             'expected_close_date' => (!empty($data['expected_close_date']) ? $data['expected_close_date'] : null),
             'priority' => $data['priority'] ?? 'medium',
             'description' => trim($data['description'] ?? ''),
-        ], 'id = ?', [$id]);
+        ];
+
+        if (($newStatus === 'won' || $newStatus === 'lost') && $newStatus !== $deal['status']) {
+            $updateData['close_reason'] = trim($data['close_reason'] ?? '');
+            $updateData['closed_at'] = date('Y-m-d H:i:s');
+            if ($newStatus === 'lost') {
+                $updateData['loss_reason_category'] = trim($data['loss_reason_category'] ?? '');
+                $updateData['competitor'] = trim($data['competitor'] ?? '');
+            }
+        }
+
+        Database::update('deals', $updateData, 'id = ?', [$id]);
 
         // Log activity
         $description = "Deal {$title} was updated.";
@@ -395,5 +440,219 @@ class DealController extends Controller
         ]);
 
         return $this->json(['success' => true, 'stage_id' => $newStageId]);
+    }
+
+    public function closeDeal($id)
+    {
+        if (!$this->isPost()) {
+            return $this->redirect('deals/' . $id);
+        }
+
+        $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$deal) {
+            $this->setFlash('error', 'Cơ hội không tồn tại.');
+            return $this->redirect('deals');
+        }
+
+        $status = $this->input('status');
+        $closeReason = trim($this->input('close_reason') ?? '');
+
+        if (!in_array($status, ['won', 'lost'])) {
+            $this->setFlash('error', 'Trạng thái không hợp lệ.');
+            return $this->back();
+        }
+
+        if (empty($closeReason)) {
+            $this->setFlash('error', 'Vui lòng nhập lý do đóng cơ hội.');
+            return $this->back();
+        }
+
+        $updateData = [
+            'status' => $status,
+            'close_reason' => $closeReason,
+            'closed_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($status === 'lost') {
+            $lossCategory = trim($this->input('loss_reason_category') ?? '');
+            if (empty($lossCategory)) {
+                $this->setFlash('error', 'Vui lòng chọn phân loại lý do thua.');
+                return $this->back();
+            }
+            $updateData['loss_reason_category'] = $lossCategory;
+            $updateData['competitor'] = trim($this->input('competitor') ?? '');
+        }
+
+        Database::update('deals', $updateData, 'id = ?', [$id]);
+
+        $statusLabel = $status === 'won' ? 'Thắng' : 'Thua';
+        Database::insert('activities', [
+            'type' => 'deal',
+            'title' => "Đóng cơ hội: {$deal['title']} - {$statusLabel}",
+            'description' => "Lý do: {$closeReason}",
+            'user_id' => $this->userId(),
+            'deal_id' => $id,
+        ]);
+
+        $this->setFlash('success', "Đã đóng cơ hội: {$statusLabel}.");
+        return $this->redirect('deals/' . $id);
+    }
+
+    public function addProduct($id)
+    {
+        if (!$this->isPost()) {
+            return $this->redirect('deals/' . $id);
+        }
+
+        $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$deal) {
+            $this->setFlash('error', 'Cơ hội không tồn tại.');
+            return $this->redirect('deals');
+        }
+
+        $productId = $this->input('product_id');
+        $quantity = max(1, (int) ($this->input('quantity') ?? 1));
+        $unitPrice = (float) ($this->input('unit_price') ?? 0);
+        $discount = (float) ($this->input('discount') ?? 0);
+
+        if (empty($productId)) {
+            $this->setFlash('error', 'Vui lòng chọn sản phẩm.');
+            return $this->back();
+        }
+
+        $product = Database::fetch("SELECT * FROM products WHERE id = ?", [$productId]);
+        if (!$product) {
+            $this->setFlash('error', 'Sản phẩm không tồn tại.');
+            return $this->back();
+        }
+
+        if ($unitPrice <= 0) {
+            $unitPrice = (float) $product['price'];
+        }
+
+        $total = ($unitPrice * $quantity) - $discount;
+
+        Database::insert('deal_products', [
+            'deal_id' => $id,
+            'product_id' => $productId,
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'discount' => $discount,
+            'total' => $total,
+        ]);
+
+        // Update deal value
+        $sumTotal = Database::fetch("SELECT COALESCE(SUM(total), 0) as total FROM deal_products WHERE deal_id = ?", [$id]);
+        Database::update('deals', ['value' => $sumTotal['total']], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'deal',
+            'title' => "Thêm sản phẩm: {$product['name']}",
+            'description' => "Số lượng: {$quantity}, Đơn giá: " . number_format($unitPrice) . "đ",
+            'user_id' => $this->userId(),
+            'deal_id' => $id,
+        ]);
+
+        $this->setFlash('success', 'Đã thêm sản phẩm.');
+        return $this->redirect('deals/' . $id . '#tab-products');
+    }
+
+    public function removeProduct($id, $productId)
+    {
+        if (!$this->isPost()) {
+            return $this->redirect('deals/' . $id);
+        }
+
+        $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$deal) {
+            $this->setFlash('error', 'Cơ hội không tồn tại.');
+            return $this->redirect('deals');
+        }
+
+        $dp = Database::fetch("SELECT dp.*, p.name as product_name FROM deal_products dp LEFT JOIN products p ON dp.product_id = p.id WHERE dp.id = ? AND dp.deal_id = ?", [$productId, $id]);
+        if (!$dp) {
+            $this->setFlash('error', 'Sản phẩm không tồn tại trong cơ hội.');
+            return $this->back();
+        }
+
+        Database::delete('deal_products', 'id = ? AND deal_id = ?', [$productId, $id]);
+
+        // Update deal value
+        $sumTotal = Database::fetch("SELECT COALESCE(SUM(total), 0) as total FROM deal_products WHERE deal_id = ?", [$id]);
+        Database::update('deals', ['value' => $sumTotal['total']], 'id = ?', [$id]);
+
+        Database::insert('activities', [
+            'type' => 'deal',
+            'title' => "Xóa sản phẩm: {$dp['product_name']}",
+            'description' => '',
+            'user_id' => $this->userId(),
+            'deal_id' => $id,
+        ]);
+
+        $this->setFlash('success', 'Đã xóa sản phẩm.');
+        return $this->redirect('deals/' . $id . '#tab-products');
+    }
+
+    public function forecast()
+    {
+        $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
+
+        $forecastData = [];
+        $totalWeighted = 0;
+        $totalValue = 0;
+        $totalDeals = 0;
+
+        foreach ($stages as $stage) {
+            $stats = Database::fetch(
+                "SELECT COUNT(*) as deal_count, COALESCE(SUM(value), 0) as total_value
+                 FROM deals
+                 WHERE stage_id = ? AND status = 'open' AND tenant_id = ?",
+                [$stage['id'], Database::tenantId()]
+            );
+
+            $probability = (float) ($stage['probability'] ?? 0);
+            $weighted = ($stats['total_value'] ?? 0) * ($probability / 100);
+
+            $forecastData[] = [
+                'stage' => $stage,
+                'deal_count' => (int) ($stats['deal_count'] ?? 0),
+                'total_value' => (float) ($stats['total_value'] ?? 0),
+                'probability' => $probability,
+                'weighted_value' => $weighted,
+            ];
+
+            $totalWeighted += $weighted;
+            $totalValue += (float) ($stats['total_value'] ?? 0);
+            $totalDeals += (int) ($stats['deal_count'] ?? 0);
+        }
+
+        // Last month won deals for comparison
+        $lastMonthWon = Database::fetch(
+            "SELECT COUNT(*) as cnt, COALESCE(SUM(value), 0) as total
+             FROM deals
+             WHERE status = 'won' AND tenant_id = ?
+             AND closed_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
+             AND closed_at < DATE_FORMAT(NOW(), '%Y-%m-01')",
+            [Database::tenantId()]
+        );
+
+        // This month won deals
+        $thisMonthWon = Database::fetch(
+            "SELECT COUNT(*) as cnt, COALESCE(SUM(value), 0) as total
+             FROM deals
+             WHERE status = 'won' AND tenant_id = ?
+             AND closed_at >= DATE_FORMAT(NOW(), '%Y-%m-01')",
+            [Database::tenantId()]
+        );
+
+        return $this->view('deals.forecast', [
+            'forecastData' => $forecastData,
+            'totalWeighted' => $totalWeighted,
+            'totalValue' => $totalValue,
+            'totalDeals' => $totalDeals,
+            'stages' => $stages,
+            'lastMonthWon' => $lastMonthWon,
+            'thisMonthWon' => $thisMonthWon,
+        ]);
     }
 }

@@ -17,8 +17,8 @@ function getActiveGroup(string $url): string {
         'marketing' => ['campaigns', 'email-templates'],
         'management' => ['tasks', 'calendar', 'tickets', 'sla', 'activities', 'workflows', 'leaderboard', 'achievements', 'approvals'],
         'finance' => ['fund', 'budgets', 'debts', 'contracts', 'commissions', 'finance-reports'],
-        'system' => ['reports', 'import-export', 'automation', 'users', 'call-logs', 'integrations', 'webhooks', 'plugins', 'billing'],
-        'settings' => ['settings', 'help', 'custom-fields'],
+        'system' => ['reports', 'import-export', 'automation', 'users', 'call-logs', 'integrations', 'webhooks', 'plugins', 'billing', 'duplicates'],
+        'settings' => ['settings', 'help', 'custom-fields', 'tags'],
     ];
     foreach ($map as $group => $paths) {
         foreach ($paths as $p) {
@@ -295,6 +295,11 @@ $activeGroup = getActiveGroup($currentUrl);
                             <i class="ri-store-2-line"></i> <span>Marketplace</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('duplicates', $currentUrl) ? 'active' : '' ?>" href="<?= url('duplicates') ?>">
+                            <i class="ri-file-copy-line"></i> <span>Trùng lặp</span>
+                        </a>
+                    </li>
                 </div>
 
                 <!-- CAI DAT (collapsible) -->
@@ -311,6 +316,11 @@ $activeGroup = getActiveGroup($currentUrl);
                     <li class="nav-item">
                         <a class="nav-link menu-link <?= isMenuActive('custom-fields', $currentUrl) ? 'active' : '' ?>" href="<?= url('custom-fields') ?>">
                             <i class="ri-input-method-line"></i> <span>Trường tùy chỉnh</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('tags', $currentUrl) ? 'active' : '' ?>" href="<?= url('tags') ?>">
+                            <i class="ri-price-tag-3-line"></i> <span>Nhãn</span>
                         </a>
                     </li>
                     <li class="nav-item">

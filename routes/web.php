@@ -107,16 +107,21 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Companies
     Router::get('companies', 'CompanyController@index');
+    Router::get('companies/trash', 'CompanyController@trash');
     Router::get('companies/create', 'CompanyController@create');
     Router::post('companies/store', 'CompanyController@store');
     Router::get('companies/{id}', 'CompanyController@show');
     Router::get('companies/{id}/edit', 'CompanyController@edit');
     Router::post('companies/{id}/update', 'CompanyController@update');
     Router::post('companies/{id}/delete', 'CompanyController@delete');
+    Router::post('companies/{id}/restore', 'CompanyController@restore');
+    Router::post('companies/{id}/change-owner', 'CompanyController@changeOwner');
+    Router::post('companies/{id}/quick-update', 'CompanyController@quickUpdate');
 
     // Deals (Pipeline)
     Router::get('deals', 'DealController@index');
     Router::get('deals/pipeline', 'DealController@pipeline');
+    Router::get('deals/forecast', 'DealController@forecast');
     Router::get('deals/create', 'DealController@create');
     Router::post('deals/store', 'DealController@store');
     Router::get('deals/{id}', 'DealController@show');
@@ -125,6 +130,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('deals/{id}/delete', 'DealController@delete');
     Router::post('deals/{id}/stage', 'DealController@updateStage');
     Router::post('deals/{id}/quick-update', 'DealController@quickUpdate');
+    Router::post('deals/{id}/close', 'DealController@closeDeal');
+    Router::post('deals/{id}/products', 'DealController@addProduct');
+    Router::post('deals/{id}/products/{productId}/remove', 'DealController@removeProduct');
 
     // Tasks
     Router::get('tasks', 'TaskController@index');
@@ -391,10 +399,28 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('automation/{id}/toggle', 'AutomationController@toggleActive');
     Router::post('automation/{id}/delete', 'AutomationController@delete');
 
-    // Activities (feed MUST be before {id} route)
+    // Tags
+    Router::get('tags', 'TagController@index');
+    Router::get('tags/search', 'TagController@search');
+    Router::post('tags/store', 'TagController@store');
+    Router::post('tags/assign', 'TagController@assign');
+    Router::post('tags/{id}/update', 'TagController@update');
+    Router::post('tags/{id}/delete', 'TagController@delete');
+
+    // Duplicates
+    Router::get('duplicates', 'DuplicateController@index');
+    Router::post('duplicates/scan', 'DuplicateController@scan');
+    Router::post('duplicates/{id}/merge', 'DuplicateController@merge');
+    Router::post('duplicates/{id}/ignore', 'DuplicateController@ignore');
+
+    // Activities (static routes MUST be before {id} routes)
     Router::get('activities/feed', 'ActivityController@feed');
+    Router::get('activities/calendar', 'ActivityController@calendar');
     Router::get('activities', 'ActivityController@index');
     Router::post('activities/store', 'ActivityController@store');
+    Router::get('activities/{id}/edit', 'ActivityController@edit');
+    Router::post('activities/{id}/update', 'ActivityController@update');
+    Router::post('activities/{id}/delete', 'ActivityController@delete');
 
     // Billing
     Router::get('billing', 'BillingController@index');
