@@ -288,12 +288,13 @@ class SettingController extends Controller
 
         $groqKey = trim($this->input('groq_api_key') ?? '');
         $geminiKey = trim($this->input('gemini_api_key') ?? '');
+        $gmapsKey = trim($this->input('google_maps_api_key') ?? '');
 
-        // Save both keys to .env file
+        // Save all keys to .env file
         $envPath = BASE_PATH . '/.env';
         $envContent = file_get_contents($envPath);
 
-        foreach (['GROQ_API_KEY' => $groqKey, 'GEMINI_API_KEY' => $geminiKey] as $envKey => $envVal) {
+        foreach (['GROQ_API_KEY' => $groqKey, 'GEMINI_API_KEY' => $geminiKey, 'GOOGLE_MAPS_API_KEY' => $gmapsKey] as $envKey => $envVal) {
             if (str_contains($envContent, $envKey . '=')) {
                 $envContent = preg_replace('/' . $envKey . '=.*/', $envKey . '=' . $envVal, $envContent);
             } else {

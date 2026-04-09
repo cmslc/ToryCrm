@@ -236,7 +236,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive('settings/contact-statuses', $currentUrl) ?>">Trạng thái KH</a></li>
                             <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
                             <li class="nav-item"><a href="<?= url('tags') ?>" class="nav-link <?= isActive('tags', $currentUrl) ?>">Nhãn</a></li>
-                            <li class="nav-item"><a href="<?= url('settings/ai') ?>" class="nav-link <?= isActive('settings/ai', $currentUrl) ?>">Cấu hình AI</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/ai') ?>" class="nav-link <?= isActive('settings/ai', $currentUrl) ?>">Cấu hình API</a></li>
                             <li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">White-label</a></li>
                             <li class="nav-item"><a href="<?= url('help') ?>" class="nav-link <?= isActive('help', $currentUrl) ?>">Trợ giúp</a></li>
                         </ul>

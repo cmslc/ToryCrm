@@ -1,8 +1,10 @@
 <?php
-$pageTitle = 'Cấu hình AI';
+$pageTitle = 'Cấu hình API';
 $groqKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY') ?: '';
 $geminiKey = $_ENV['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?: '';
+$gmapsKey = $_ENV['GOOGLE_MAPS_API_KEY'] ?? getenv('GOOGLE_MAPS_API_KEY') ?: '';
 $hasGroq = !empty($groqKey);
+$hasGmaps = !empty($gmapsKey);
 $hasGemini = !empty($geminiKey);
 $hasKey = $hasGroq || $hasGemini;
 $activeProvider = $hasGroq ? 'Groq (Llama 3.3 70B)' : ($hasGemini ? 'Google Gemini 2.0 Flash' : 'Rule-based');
@@ -32,10 +34,10 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0">Cấu hình AI Trợ lý</h4>
+    <h4 class="mb-0">Cấu hình API & Dịch vụ</h4>
     <ol class="breadcrumb m-0">
         <li class="breadcrumb-item"><a href="<?= url('settings') ?>">Cài đặt</a></li>
-        <li class="breadcrumb-item active">AI</li>
+        <li class="breadcrumb-item active">API</li>
     </ol>
 </div>
 
@@ -114,6 +116,33 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                         <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu cấu hình</button>
                         <button type="button" class="btn btn-soft-info" id="testBtn"><i class="ri-play-line me-1"></i> Test kết nối</button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Google Maps API -->
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Google Maps API</h5></div>
+            <div class="card-body">
+                <form method="POST" action="<?= url('settings/ai/save') ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="groq_api_key" value="<?= e($groqKey) ?>">
+                    <input type="hidden" name="gemini_api_key" value="<?= e($geminiKey) ?>">
+                    <div class="mb-3 p-3 border rounded <?= $hasGmaps ? 'border-success' : '' ?>">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 flex-grow-1">Google Maps API Key</h6>
+                            <?php if ($hasGmaps): ?><span class="badge bg-success">Đã cấu hình</span><?php endif; ?>
+                        </div>
+                        <div class="input-group mb-2">
+                            <input type="password" class="form-control" name="google_maps_api_key" id="gmapsKeyInput" value="<?= e($gmapsKey) ?>" placeholder="AIzaSyxxxxxxxxxx...">
+                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('gmapsKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
+                        </div>
+                        <small class="text-muted">Dùng cho: Check-in bản đồ, geocoding địa chỉ, hiển thị vị trí KH. <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Lấy key tại Google Cloud Console</a></small>
+                        <div class="mt-2">
+                            <small class="text-muted">Cần bật APIs: Maps JavaScript API, Geocoding API, Places API</small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu</button>
                 </form>
             </div>
         </div>
