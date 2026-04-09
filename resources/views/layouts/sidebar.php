@@ -13,10 +13,10 @@ function isMenuActive(string $path, string $currentUrl): bool {
 function getActiveGroup(string $url): string {
     $map = [
         'crm' => ['contacts', 'companies', 'deals', 'checkins', 'bookings'],
-        'sales' => ['products', 'orders', 'purchase-orders'],
+        'sales' => ['products', 'orders', 'purchase-orders', 'quotations'],
         'marketing' => ['campaigns', 'email-templates'],
         'management' => ['tasks', 'calendar', 'tickets', 'sla', 'activities', 'workflows', 'leaderboard', 'achievements', 'approvals'],
-        'finance' => ['fund'],
+        'finance' => ['fund', 'budgets', 'debts', 'contracts', 'commissions', 'finance-reports'],
         'system' => ['reports', 'import-export', 'automation', 'users', 'call-logs', 'integrations', 'webhooks', 'plugins', 'billing'],
         'settings' => ['settings', 'help', 'custom-fields'],
     ];
@@ -148,6 +148,11 @@ $activeGroup = getActiveGroup($currentUrl);
                             <i class="ri-shopping-cart-line"></i> <span>Đơn hàng mua</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('quotations', $currentUrl) ? 'active' : '' ?>" href="<?= url('quotations') ?>">
+                            <i class="ri-file-text-line"></i> <span>Báo giá</span>
+                        </a>
+                    </li>
                 </div>
 
                 <!-- MARKETING (collapsible) -->
@@ -225,6 +230,31 @@ $activeGroup = getActiveGroup($currentUrl);
                     <li class="nav-item">
                         <a class="nav-link menu-link <?= isMenuActive('fund', $currentUrl) ? 'active' : '' ?>" href="<?= url('fund') ?>">
                             <i class="ri-wallet-3-line"></i> <span>Quỹ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('budgets', $currentUrl) ? 'active' : '' ?>" href="<?= url('budgets') ?>">
+                            <i class="ri-wallet-line"></i> <span>Ngân sách</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('debts', $currentUrl) ? 'active' : '' ?>" href="<?= url('debts') ?>">
+                            <i class="ri-money-dollar-circle-line"></i> <span>Công nợ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('contracts', $currentUrl) ? 'active' : '' ?>" href="<?= url('contracts') ?>">
+                            <i class="ri-file-shield-2-line"></i> <span>Hợp đồng</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('commissions', $currentUrl) ? 'active' : '' ?>" href="<?= url('commissions') ?>">
+                            <i class="ri-percent-line"></i> <span>Hoa hồng</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link menu-link <?= isMenuActive('finance-reports', $currentUrl) ? 'active' : '' ?>" href="<?= url('finance-reports') ?>">
+                            <i class="ri-line-chart-line"></i> <span>Báo cáo tài chính</span>
                         </a>
                     </li>
                 </div>

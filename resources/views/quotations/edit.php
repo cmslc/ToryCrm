@@ -1,0 +1,256 @@
+<?php $pageTitle = 'Sửa báo giá ' . $quotation['quote_number']; ?>
+
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="mb-0"><?= $pageTitle ?></h4>
+            <ol class="breadcrumb m-0">
+                <li class="breadcrumb-item"><a href="<?= url('quotations') ?>">Báo giá</a></li>
+                <li class="breadcrumb-item active">Sửa</li>
+            </ol>
+        </div>
+
+        <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/update') ?>" id="quotationForm">
+            <?= csrf_field() ?>
+
+            <div class="row">
+                <div class="col-xl-8">
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0">Thông tin báo giá</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Mã báo giá</label>
+                                    <input type="text" class="form-control" value="<?= e($quotation['quote_number']) ?>" readonly>
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Tiêu đề</label>
+                                    <input type="text" class="form-control" name="title" value="<?= e($quotation['title'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Khách hàng</label>
+                                    <select name="contact_id" class="form-select">
+                                        <option value="">Chọn khách hàng</option>
+                                        <?php foreach ($contacts ?? [] as $c): ?>
+                                            <option value="<?= $c['id'] ?>" <?= ($quotation['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Công ty</label>
+                                    <select name="company_id" class="form-select">
+                                        <option value="">Chọn công ty</option>
+                                        <?php foreach ($companies ?? [] as $comp): ?>
+                                            <option value="<?= $comp['id'] ?>" <?= ($quotation['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Cơ hội liên quan</label>
+                                    <select name="deal_id" class="form-select">
+                                        <option value="">Không</option>
+                                        <?php foreach ($deals ?? [] as $d): ?>
+                                            <option value="<?= $d['id'] ?>" <?= ($quotation['deal_id'] ?? '') == $d['id'] ? 'selected' : '' ?>><?= e($d['title']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items Table -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Sản phẩm / Dịch vụ</h5>
+                            <button type="button" class="btn btn-soft-primary" onclick="addItem()">
+                                <i class="ri-add-line me-1"></i> Thêm dòng
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0" id="itemsTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="28%">Sản phẩm</th>
+                                            <th width="8%">SL</th>
+                                            <th width="8%">ĐVT</th>
+                                            <th width="15%">Đơn giá</th>
+                                            <th width="8%">Thuế %</th>
+                                            <th width="12%">Chiết khấu</th>
+                                            <th width="15%">Thành tiền</th>
+                                            <th width="5%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="itemsBody">
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="6" class="text-end fw-medium">Tạm tính:</td>
+                                            <td id="subtotalDisplay" class="fw-medium">0 ₫</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="4"></td>
+                                            <td colspan="2" class="text-end">
+                                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                                    <span>Giảm giá:</span>
+                                                    <select name="discount_type" class="form-select" style="width:90px" onchange="calculateTotal()">
+                                                        <option value="fixed" <?= ($quotation['discount_type'] ?? '') === 'fixed' ? 'selected' : '' ?>>VNĐ</option>
+                                                        <option value="percent" <?= ($quotation['discount_type'] ?? '') === 'percent' ? 'selected' : '' ?>>%</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control" name="discount_amount" value="<?= (float)($quotation['discount_amount'] ?? 0) ?>" min="0" onchange="calculateTotal()">
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="6" class="text-end fw-bold fs-5">Tổng cộng:</td>
+                                            <td id="totalDisplay" class="fw-bold fs-5 text-primary">0 ₫</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ghi chú</label>
+                                    <textarea name="notes" class="form-control" rows="3"><?= e($quotation['notes'] ?? '') ?></textarea>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Điều khoản</label>
+                                    <textarea name="terms" class="form-control" rows="3"><?= e($quotation['terms'] ?? '') ?></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4">
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0">Thiết lập</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Hiệu lực đến</label>
+                                <input type="date" class="form-control" name="valid_until" value="<?= $quotation['valid_until'] ?? '' ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Người phụ trách</label>
+                                <select name="owner_id" class="form-select">
+                                    <option value="">Chọn</option>
+                                    <?php foreach ($users ?? [] as $u): ?>
+                                        <option value="<?= $u['id'] ?>" <?= ($quotation['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Lưu</button>
+                            <a href="<?= url('quotations/' . $quotation['id']) ?>" class="btn btn-soft-secondary">Hủy</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <script>
+        const products = <?= json_encode($products ?? []) ?>;
+        const existingItems = <?= json_encode($items ?? []) ?>;
+        let itemIndex = 0;
+
+        function addItem(data) {
+            const tbody = document.getElementById('itemsBody');
+            const idx = itemIndex++;
+            const tr = document.createElement('tr');
+            tr.id = 'item-row-' + idx;
+
+            let productOptions = '<option value="">Chọn sản phẩm</option>';
+            products.forEach(p => {
+                const selected = data && data.product_id == p.id ? 'selected' : '';
+                productOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" ${selected}>${p.name}${p.sku ? ' ('+p.sku+')' : ''}</option>`;
+            });
+
+            tr.innerHTML = `
+                <td>
+                    <select class="form-select product-select" onchange="selectProduct(this, ${idx})">
+                        ${productOptions}
+                    </select>
+                    <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data?.product_id || ''}">
+                    <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data?.product_name || ''}">
+                </td>
+                <td><input type="number" class="form-control" name="items[${idx}][quantity]" value="${data?.quantity || 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td><input type="text" class="form-control" name="items[${idx}][unit]" id="item-unit-${idx}" value="${data?.unit || 'Cái'}"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][unit_price]" id="item-price-${idx}" value="${data?.unit_price || 0}" min="0" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data?.tax_rate || 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][discount]" id="item-discount-${idx}" value="${data?.discount || 0}" min="0" onchange="calculateRow(${idx})"></td>
+                <td class="fw-medium" id="item-total-${idx}">0 ₫</td>
+                <td><button type="button" class="btn btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            if (data) calculateRow(idx);
+        }
+
+        function selectProduct(select, idx) {
+            const option = select.options[select.selectedIndex];
+            if (option.value) {
+                document.getElementById('item-product-' + idx).value = option.value;
+                document.getElementById('item-name-' + idx).value = option.text.split(' (')[0];
+                document.getElementById('item-price-' + idx).value = option.dataset.price || 0;
+                document.getElementById('item-unit-' + idx).value = option.dataset.unit || 'Cái';
+                document.getElementById('item-tax-' + idx).value = option.dataset.tax || 0;
+            } else {
+                document.getElementById('item-product-' + idx).value = '';
+                document.getElementById('item-name-' + idx).value = '';
+            }
+            calculateRow(idx);
+        }
+
+        function removeItem(idx) {
+            document.getElementById('item-row-' + idx)?.remove();
+            calculateTotal();
+        }
+
+        function calculateRow(idx) {
+            const qty = parseFloat(document.querySelector(`[name="items[${idx}][quantity]"]`)?.value || 0);
+            const price = parseFloat(document.getElementById('item-price-' + idx)?.value || 0);
+            const tax = parseFloat(document.getElementById('item-tax-' + idx)?.value || 0);
+            const discount = parseFloat(document.getElementById('item-discount-' + idx)?.value || 0);
+            const total = qty * price * (1 + tax / 100) - discount;
+            const el = document.getElementById('item-total-' + idx);
+            if (el) el.textContent = formatMoney(Math.max(0, total));
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let subtotal = 0;
+            document.querySelectorAll('#itemsBody tr').forEach(tr => {
+                const qty = parseFloat(tr.querySelector('[name*="[quantity]"]')?.value || 0);
+                const price = parseFloat(tr.querySelector('[name*="[unit_price]"]')?.value || 0);
+                subtotal += qty * price;
+            });
+            document.getElementById('subtotalDisplay').textContent = formatMoney(subtotal);
+
+            const discountAmount = parseFloat(document.querySelector('[name="discount_amount"]')?.value || 0);
+            const discountType = document.querySelector('[name="discount_type"]')?.value || 'fixed';
+            const discount = discountType === 'percent' ? subtotal * discountAmount / 100 : discountAmount;
+            const total = Math.max(0, subtotal - discount);
+            document.getElementById('totalDisplay').textContent = formatMoney(total);
+        }
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('vi-VN').format(Math.round(amount)) + ' ₫';
+        }
+
+        // Load existing items
+        if (existingItems.length > 0) {
+            existingItems.forEach(item => addItem(item));
+        } else {
+            addItem();
+        }
+        </script>

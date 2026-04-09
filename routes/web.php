@@ -35,6 +35,11 @@ Router::get('book/{slug}', 'BookingController@publicPage');
 Router::get('book/{slug}/slots', 'BookingController@getAvailableSlots');
 Router::post('book/{slug}', 'BookingController@bookSlot');
 
+// Public quotation view (no auth)
+Router::get('quote/{token}', 'QuotationController@publicView');
+Router::post('quote/{token}/accept', 'QuotationController@publicAccept');
+Router::post('quote/{token}/reject', 'QuotationController@publicReject');
+
 // Client Portal (public routes - no auth middleware)
 Router::get('portal/login', 'PortalController@login');
 Router::post('portal/login', 'PortalController@authenticate');
@@ -242,6 +247,69 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('purchase-orders/{id}/cancel', 'PurchaseOrderController@cancel');
     Router::post('purchase-orders/{id}/payment', 'PurchaseOrderController@payment');
     Router::post('purchase-orders/{id}/delete', 'PurchaseOrderController@delete');
+
+    // Quotations (Báo giá)
+    Router::get('quotations', 'QuotationController@index');
+    Router::get('quotations/create', 'QuotationController@create');
+    Router::post('quotations/store', 'QuotationController@store');
+    Router::get('quotations/{id}', 'QuotationController@show');
+    Router::get('quotations/{id}/edit', 'QuotationController@edit');
+    Router::post('quotations/{id}/update', 'QuotationController@update');
+    Router::post('quotations/{id}/send', 'QuotationController@send');
+    Router::post('quotations/{id}/convert', 'QuotationController@convertToOrder');
+    Router::post('quotations/{id}/delete', 'QuotationController@delete');
+    Router::get('quotations/{id}/pdf', 'QuotationController@pdf');
+
+    // Budgets (Ngân sách)
+    Router::get('budgets', 'BudgetController@index');
+    Router::get('budgets/create', 'BudgetController@create');
+    Router::post('budgets/store', 'BudgetController@store');
+    Router::get('budgets/{id}', 'BudgetController@show');
+    Router::get('budgets/{id}/edit', 'BudgetController@edit');
+    Router::post('budgets/{id}/update', 'BudgetController@update');
+    Router::post('budgets/{id}/approve', 'BudgetController@approve');
+    Router::post('budgets/{id}/close', 'BudgetController@close');
+
+    // Commissions (Hoa hồng)
+    Router::get('commissions', 'CommissionController@index');
+    Router::get('commissions/rules', 'CommissionController@rules');
+    Router::get('commissions/rules/create', 'CommissionController@createRule');
+    Router::post('commissions/rules/store', 'CommissionController@storeRule');
+    Router::get('commissions/rules/{id}/edit', 'CommissionController@editRule');
+    Router::post('commissions/rules/{id}/update', 'CommissionController@updateRule');
+    Router::post('commissions/rules/{id}/delete', 'CommissionController@deleteRule');
+    Router::get('commissions/my', 'CommissionController@myCommissions');
+    Router::get('commissions/report', 'CommissionController@report');
+    Router::post('commissions/{id}/approve', 'CommissionController@approve');
+    Router::post('commissions/{id}/paid', 'CommissionController@markPaid');
+    Router::post('commissions/bulk-approve', 'CommissionController@bulkApprove');
+    Router::post('commissions/bulk-paid', 'CommissionController@bulkPaid');
+
+    // Finance Reports (Báo cáo tài chính)
+    Router::get('finance-reports', 'FinanceReportController@index');
+    Router::get('finance-reports/profit-loss', 'FinanceReportController@profitLoss');
+    Router::get('finance-reports/cash-flow', 'FinanceReportController@cashFlow');
+    Router::get('finance-reports/aging', 'FinanceReportController@aging');
+
+    // Debts (Công nợ)
+    Router::get('debts', 'DebtController@index');
+    Router::get('debts/create', 'DebtController@create');
+    Router::get('debts/aging', 'DebtController@aging');
+    Router::get('debts/by-contact', 'DebtController@byContact');
+    Router::post('debts/store', 'DebtController@store');
+    Router::get('debts/{id}', 'DebtController@show');
+    Router::post('debts/{id}/payment', 'DebtController@addPayment');
+
+    // Contracts (Hợp đồng)
+    Router::get('contracts', 'ContractController@index');
+    Router::get('contracts/create', 'ContractController@create');
+    Router::post('contracts/store', 'ContractController@store');
+    Router::get('contracts/{id}', 'ContractController@show');
+    Router::get('contracts/{id}/edit', 'ContractController@edit');
+    Router::post('contracts/{id}/update', 'ContractController@update');
+    Router::post('contracts/{id}/sign', 'ContractController@sign');
+    Router::post('contracts/{id}/renew', 'ContractController@renew');
+    Router::post('contracts/{id}/delete', 'ContractController@delete');
 
     // Fund (Quỹ)
     Router::get('fund', 'FundController@index');
