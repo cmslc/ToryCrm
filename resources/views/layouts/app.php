@@ -100,6 +100,14 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <!-- ToryCRM Custom JS -->
     <script src="<?= asset('js/torycrm.js') ?>?v=<?= time() ?>"></script>
 
+    <!-- UI Enhancements -->
+    <script src="<?= asset('js/command-palette.js') ?>?v=<?= time() ?>"></script>
+    <script src="<?= asset('js/split-view.js') ?>?v=<?= time() ?>"></script>
+    <script src="<?= asset('js/activity-feed.js') ?>?v=<?= time() ?>"></script>
+
+    <!-- AI Chat Widget -->
+    <script src="<?= asset('js/ai-chat-widget.js') ?>?v=<?= time() ?>"></script>
+
     <!-- Flash Toast -->
     <?php if ($flashMsg): ?>
     <div class="position-fixed top-0 end-0 p-3" style="z-index:9999;margin-top:70px">

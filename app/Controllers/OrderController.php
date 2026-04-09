@@ -226,6 +226,38 @@ class OrderController extends Controller
         echo \App\Services\PdfService::orderHtml($order, $items);
     }
 
+    /**
+     * Invoice PDF - detailed invoice template
+     */
+    public function invoicePdf($id)
+    {
+        $html = \App\Services\PdfService::generateInvoicePdf((int) $id);
+
+        if (empty($html)) {
+            $this->setFlash('error', 'Đơn hàng không tồn tại.');
+            return $this->redirect('orders');
+        }
+
+        $noLayout = true;
+        echo $html;
+    }
+
+    /**
+     * Quotation PDF - quotation template with validity period
+     */
+    public function quotationPdf($id)
+    {
+        $html = \App\Services\PdfService::generateQuotationPdf((int) $id);
+
+        if (empty($html)) {
+            $this->setFlash('error', 'Đơn hàng không tồn tại.');
+            return $this->redirect('orders');
+        }
+
+        $noLayout = true;
+        echo $html;
+    }
+
     public function show($id)
     {
         $order = Database::fetch(

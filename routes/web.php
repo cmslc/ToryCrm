@@ -30,6 +30,11 @@ Router::post('webhooks/momo', 'PaymentController@momoIPN');
 // Google Calendar OAuth callback (public)
 Router::get('integrations/google-calendar/callback', 'GoogleCalendarController@callback');
 
+// Booking public pages (no auth)
+Router::get('book/{slug}', 'BookingController@publicPage');
+Router::get('book/{slug}/slots', 'BookingController@getAvailableSlots');
+Router::post('book/{slug}', 'BookingController@bookSlot');
+
 // Client Portal (public routes - no auth middleware)
 Router::get('portal/login', 'PortalController@login');
 Router::post('portal/login', 'PortalController@authenticate');
@@ -46,6 +51,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('', 'DashboardController@index');
     Router::get('dashboard', 'DashboardController@index');
     Router::post('insights/{id}/dismiss', 'DashboardController@dismissInsight');
+
+    // AI Chat
+    Router::get('ai-chat', 'AiChatController@index');
+    Router::post('ai-chat/send', 'AiChatController@send');
+    Router::get('ai-chat/history', 'AiChatController@history');
+    Router::post('ai-chat/clear', 'AiChatController@clear');
 
     // Conversations (Hộp thư)
     Router::get('conversations', 'ConversationController@index');
@@ -153,6 +164,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('orders/{id}/payment', 'OrderController@payment');
     Router::post('orders/{id}/status', 'OrderController@updateStatus');
     Router::post('orders/{id}/quick-update', 'OrderController@quickUpdate');
+    Router::get('orders/{id}/pdf/invoice', 'OrderController@invoicePdf');
+    Router::get('orders/{id}/pdf/quotation', 'OrderController@quotationPdf');
 
     // Calendar
     Router::get('calendar', 'CalendarController@index');
@@ -242,6 +255,18 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('fund/{id}/cancel', 'FundController@cancel');
     Router::post('fund/{id}/delete', 'FundController@delete');
 
+    // Booking Links
+    Router::get('bookings', 'BookingController@index');
+    Router::get('bookings/create', 'BookingController@create');
+    Router::post('bookings/store', 'BookingController@store');
+    Router::get('bookings/{id}/edit', 'BookingController@edit');
+    Router::post('bookings/{id}/update', 'BookingController@update');
+    Router::post('bookings/{id}/delete', 'BookingController@delete');
+
+    // Gamification
+    Router::get('leaderboard', 'GamificationController@leaderboard');
+    Router::get('achievements', 'GamificationController@achievements');
+
     // User Management
     Router::get('users', 'UserController@index');
     Router::get('users/create', 'UserController@create');
@@ -298,7 +323,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('automation/{id}/toggle', 'AutomationController@toggleActive');
     Router::post('automation/{id}/delete', 'AutomationController@delete');
 
-    // Activities
+    // Activities (feed MUST be before {id} route)
+    Router::get('activities/feed', 'ActivityController@feed');
     Router::get('activities', 'ActivityController@index');
     Router::post('activities/store', 'ActivityController@store');
 
@@ -356,6 +382,23 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('payments/{invoiceId}/checkout', 'PaymentController@checkout');
     Router::post('payments/{invoiceId}/vnpay', 'PaymentController@processVNPay');
     Router::post('payments/{invoiceId}/momo', 'PaymentController@processMoMo');
+
+    // Custom Fields
+    Router::get('custom-fields', 'CustomFieldController@index');
+    Router::get('custom-fields/create', 'CustomFieldController@create');
+    Router::post('custom-fields/store', 'CustomFieldController@store');
+    Router::get('custom-fields/{id}/edit', 'CustomFieldController@edit');
+    Router::post('custom-fields/{id}/update', 'CustomFieldController@update');
+    Router::post('custom-fields/{id}/delete', 'CustomFieldController@delete');
+    Router::post('custom-fields/reorder', 'CustomFieldController@reorder');
+
+    // Approvals
+    Router::get('approvals', 'ApprovalController@index');
+    Router::get('approvals/pending', 'ApprovalController@pending');
+    Router::get('approvals/create', 'ApprovalController@create');
+    Router::post('approvals/store', 'ApprovalController@store');
+    Router::post('approvals/{id}/approve', 'ApprovalController@approve');
+    Router::post('approvals/{id}/reject', 'ApprovalController@reject');
 
     // Settings
     Router::get('settings', 'SettingController@index');

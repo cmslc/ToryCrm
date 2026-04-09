@@ -12,6 +12,17 @@ class SearchController extends Controller
         $q = trim($this->input('q') ?? '');
 
         if (empty($q)) {
+            if ($this->input('format') === 'json') {
+                return $this->json([
+                    'q' => '',
+                    'contacts' => [],
+                    'companies' => [],
+                    'deals' => [],
+                    'tickets' => [],
+                    'orders' => [],
+                ]);
+            }
+
             return $this->view('search.index', [
                 'q' => '',
                 'contacts' => [],
@@ -79,13 +90,19 @@ class SearchController extends Controller
             [$search]
         );
 
-        return $this->view('search.index', [
+        $results = [
             'q' => $q,
             'contacts' => $contacts,
             'companies' => $companies,
             'deals' => $deals,
             'tickets' => $tickets,
             'orders' => $orders,
-        ]);
+        ];
+
+        if ($this->input('format') === 'json') {
+            return $this->json($results);
+        }
+
+        return $this->view('search.index', $results);
     }
 }

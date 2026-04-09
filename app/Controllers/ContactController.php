@@ -173,6 +173,15 @@ class ContactController extends Controller
             [$id]
         );
 
+        // Split view partial (no layout)
+        if ($this->input('partial')) {
+            return $this->view('contacts.partial-show', [
+                'contact' => $contact,
+                'activities' => $activities,
+                'noLayout' => true,
+            ]);
+        }
+
         $deals = Database::fetchAll(
             "SELECT d.*, ds.name as stage_name
              FROM deals d

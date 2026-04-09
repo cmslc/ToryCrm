@@ -14,7 +14,6 @@ class InsightEngine
         $this->tenantId = $tenantId;
         $this->userId = $userId;
 
-        // Clear old insights for today (regenerate)
         Database::query(
             "DELETE FROM smart_insights WHERE tenant_id = ? AND user_id = ? AND DATE(created_at) = CURDATE()",
             [$tenantId, $userId]
@@ -28,9 +27,6 @@ class InsightEngine
         $this->getTopPerformers();
     }
 
-    /**
-     * Deals with expected_close_date within 7 days
-     */
     private function getDealsToClose(): void
     {
         $deals = Database::fetchAll(
@@ -47,14 +43,14 @@ class InsightEngine
         foreach ($deals as $deal) {
             $contactName = trim(($deal['first_name'] ?? '') . ' ' . ($deal['last_name'] ?? ''));
             $daysLeft = (int)((strtotime($deal['expected_close_date']) - time()) / 86400);
-            $daysLabel = $daysLeft <= 0 ? 'hom nay' : "con {$daysLeft} ngay";
+            $daysLabel = $daysLeft <= 0 ? 'hôm nay' : "còn {$daysLeft} ngày";
 
             $this->insertInsight(
                 'deal_closing',
-                'Co hoi sap chot: ' . $deal['title'],
-                "Co hoi \"" . $deal['title'] . "\" tri gia " . number_format($deal['value']) . "d voi " . ($contactName ?: 'N/A') . " - {$daysLabel}.",
+                'Cơ hội sắp chốt: ' . $deal['title'],
+                "Cơ hội \"{$deal['title']}\" trị giá " . number_format($deal['value']) . "đ với " . ($contactName ?: 'N/A') . " - {$daysLabel}.",
                 '/deals/' . $deal['id'],
-                'Xem co hoi',
+                'Xem cơ hội',
                 'ri-hand-coin-line',
                 'warning',
                 90
@@ -62,9 +58,6 @@ class InsightEngine
         }
     }
 
-    /**
-     * Contacts with no activity in 30+ days
-     */
     private function getInactiveContacts(): void
     {
         $contacts = Database::fetchAll(
@@ -84,10 +77,10 @@ class InsightEngine
         if (count($contacts) > 0) {
             $this->insertInsight(
                 'inactive_contacts',
-                count($contacts) . '+ khach hang khong hoat dong',
-                'Co ' . count($contacts) . ' khach hang khong co hoat dong trong 30+ ngay. Nen lien he lai de duy tri moi quan he.',
+                count($contacts) . '+ khách hàng không hoạt động',
+                'Có ' . count($contacts) . ' khách hàng không có hoạt động trong 30+ ngày. Nên liên hệ lại để duy trì mối quan hệ.',
                 '/contacts?sort=inactive',
-                'Xem danh sach',
+                'Xem danh sách',
                 'ri-user-unfollow-line',
                 'danger',
                 80
@@ -95,9 +88,6 @@ class InsightEngine
         }
     }
 
-    /**
-     * Overdue tasks
-     */
     private function getOverdueTasks(): void
     {
         $result = Database::fetch(
@@ -113,10 +103,10 @@ class InsightEngine
         if ($count > 0) {
             $this->insertInsight(
                 'overdue_tasks',
-                $count . ' cong viec qua han',
-                'Ban co ' . $count . ' cong viec da qua han can xu ly. Hay uu tien hoan thanh hoac cap nhat trang thai.',
+                $count . ' công việc quá hạn',
+                'Bạn có ' . $count . ' công việc đã quá hạn cần xử lý. Hãy ưu tiên hoàn thành hoặc cập nhật trạng thái.',
                 '/tasks?filter=overdue',
-                'Xem cong viec',
+                'Xem công việc',
                 'ri-error-warning-line',
                 'danger',
                 95
@@ -124,12 +114,8 @@ class InsightEngine
         }
     }
 
-    /**
-     * Revenue forecast - compare to last month
-     */
     private function getRevenueForecast(): void
     {
-        // This month's won deals
         $thisMonth = Database::fetch(
             "SELECT COALESCE(SUM(value), 0) as total
              FROM deals
@@ -139,7 +125,6 @@ class InsightEngine
             [$this->tenantId]
         );
 
-        // Last month's won deals
         $lastMonth = Database::fetch(
             "SELECT COALESCE(SUM(value), 0) as total
              FROM deals
@@ -149,7 +134,6 @@ class InsightEngine
             [$this->tenantId]
         );
 
-        // Pipeline value (open deals weighted by stage probability)
         $pipeline = Database::fetch(
             "SELECT COALESCE(SUM(d.value * COALESCE(ds.probability, 50) / 100), 0) as forecast
              FROM deals d
@@ -163,24 +147,21 @@ class InsightEngine
         $forecast = (float)($pipeline['forecast'] ?? 0);
 
         $change = $lastTotal > 0 ? round(($thisTotal - $lastTotal) / $lastTotal * 100) : 0;
-        $arrow = $change >= 0 ? 'tang' : 'giam';
+        $arrow = $change >= 0 ? 'tăng' : 'giảm';
         $changeAbs = abs($change);
 
         $this->insertInsight(
             'revenue_forecast',
-            'Du bao doanh thu thang nay',
-            "Doanh thu chot: " . number_format($thisTotal) . "d ({$arrow} {$changeAbs}% so voi thang truoc). Du bao tu pipeline: " . number_format($forecast) . "d.",
+            'Dự báo doanh thu tháng này',
+            "Doanh thu chốt: " . number_format($thisTotal) . "đ ({$arrow} {$changeAbs}% so với tháng trước). Dự báo từ pipeline: " . number_format($forecast) . "đ.",
             '/reports/revenue',
-            'Xem bao cao',
+            'Xem báo cáo',
             'ri-line-chart-line',
             $change >= 0 ? 'success' : 'warning',
             70
         );
     }
 
-    /**
-     * Open deals with no activity in 14+ days
-     */
     private function getAtRiskDeals(): void
     {
         $deals = Database::fetchAll(
@@ -200,10 +181,10 @@ class InsightEngine
             $totalValue = array_sum(array_column($deals, 'value'));
             $this->insertInsight(
                 'at_risk_deals',
-                count($deals) . ' co hoi co nguy co mat',
-                'Co ' . count($deals) . ' co hoi (tong ' . number_format($totalValue) . 'd) khong co hoat dong trong 14+ ngay. Nen lien he ngay.',
+                count($deals) . ' cơ hội có nguy cơ mất',
+                'Có ' . count($deals) . ' cơ hội (tổng ' . number_format($totalValue) . 'đ) không có hoạt động trong 14+ ngày. Nên liên hệ ngay.',
                 '/deals?filter=at_risk',
-                'Xem co hoi',
+                'Xem cơ hội',
                 'ri-alarm-warning-line',
                 'danger',
                 85
@@ -211,9 +192,6 @@ class InsightEngine
         }
     }
 
-    /**
-     * Users with most won deals this month
-     */
     private function getTopPerformers(): void
     {
         $performers = Database::fetchAll(
@@ -233,10 +211,10 @@ class InsightEngine
             $top = $performers[0];
             $this->insertInsight(
                 'top_performers',
-                'Nhan vien xuat sac thang nay',
-                $top['name'] . ' dan dau voi ' . $top['won_count'] . ' co hoi chot thanh cong, tong ' . number_format($top['total_value']) . 'd.',
+                'Nhân viên xuất sắc tháng này',
+                $top['name'] . ' dẫn đầu với ' . $top['won_count'] . ' cơ hội chốt thành công, tổng ' . number_format($top['total_value']) . 'đ.',
                 '/reports/revenue',
-                'Xem chi tiet',
+                'Xem chi tiết',
                 'ri-trophy-line',
                 'success',
                 50
@@ -244,18 +222,10 @@ class InsightEngine
         }
     }
 
-    /**
-     * Insert an insight record
-     */
     private function insertInsight(
-        string $type,
-        string $title,
-        string $message,
-        string $actionUrl,
-        string $actionLabel,
-        string $icon,
-        string $color,
-        int $priority
+        string $type, string $title, string $message,
+        string $actionUrl, string $actionLabel, string $icon,
+        string $color, int $priority
     ): void {
         try {
             Database::query(

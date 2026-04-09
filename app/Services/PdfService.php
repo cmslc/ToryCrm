@@ -14,6 +14,92 @@ use Core\Database;
 class PdfService
 {
     /**
+     * Generate invoice PDF (HTML) for an order
+     */
+    public static function generateInvoicePdf(int $orderId): string
+    {
+        $order = Database::fetch(
+            "SELECT o.*,
+                    c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    c.email as contact_email, c.phone as contact_phone, c.address as contact_address,
+                    comp.name as company_name, u.name as owner_name, u.email as owner_email
+             FROM orders o
+             LEFT JOIN contacts c ON o.contact_id = c.id
+             LEFT JOIN companies comp ON o.company_id = comp.id
+             LEFT JOIN users u ON o.owner_id = u.id
+             WHERE o.id = ?",
+            [$orderId]
+        );
+
+        if (!$order) return '';
+
+        $items = Database::fetchAll(
+            "SELECT oi.* FROM order_items oi WHERE oi.order_id = ? ORDER BY oi.sort_order",
+            [$orderId]
+        );
+
+        $tenant = $_SESSION['tenant'] ?? ['name' => 'ToryCRM'];
+        $bankInfo = [];
+
+        return self::renderHtml('pdf/invoice', [
+            'order' => $order,
+            'items' => $items,
+            'tenant' => $tenant,
+            'bankInfo' => $bankInfo,
+        ]);
+    }
+
+    /**
+     * Generate quotation PDF (HTML) for an order
+     */
+    public static function generateQuotationPdf(int $orderId): string
+    {
+        $order = Database::fetch(
+            "SELECT o.*,
+                    c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    c.email as contact_email, c.phone as contact_phone, c.address as contact_address,
+                    comp.name as company_name, u.name as owner_name, u.email as owner_email, u.phone as owner_phone
+             FROM orders o
+             LEFT JOIN contacts c ON o.contact_id = c.id
+             LEFT JOIN companies comp ON o.company_id = comp.id
+             LEFT JOIN users u ON o.owner_id = u.id
+             WHERE o.id = ?",
+            [$orderId]
+        );
+
+        if (!$order) return '';
+
+        $items = Database::fetchAll(
+            "SELECT oi.* FROM order_items oi WHERE oi.order_id = ? ORDER BY oi.sort_order",
+            [$orderId]
+        );
+
+        $tenant = $_SESSION['tenant'] ?? ['name' => 'ToryCRM'];
+
+        return self::renderHtml('pdf/quotation', [
+            'order' => $order,
+            'items' => $items,
+            'tenant' => $tenant,
+            'validityDays' => 30,
+        ]);
+    }
+
+    /**
+     * Render a PHP template to HTML string
+     */
+    public static function renderHtml(string $template, array $data): string
+    {
+        extract($data);
+        $viewPath = (defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__, 2)) . '/resources/views/' . str_replace('.', '/', $template) . '.php';
+
+        if (!file_exists($viewPath)) return '';
+
+        ob_start();
+        require $viewPath;
+        return ob_get_clean();
+    }
+
+    /**
      * Render a printable HTML page for an order/invoice
      */
     public static function orderHtml(array $order, array $items): string

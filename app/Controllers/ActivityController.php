@@ -64,6 +64,58 @@ class ActivityController extends Controller
         ]);
     }
 
+    public function feed()
+    {
+        $activities = Database::fetchAll(
+            "SELECT a.*, u.name as user_name,
+                    c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    d.title as deal_title, comp.name as company_name
+             FROM activities a
+             LEFT JOIN users u ON a.user_id = u.id
+             LEFT JOIN contacts c ON a.contact_id = c.id
+             LEFT JOIN deals d ON a.deal_id = d.id
+             LEFT JOIN companies comp ON a.company_id = comp.id
+             ORDER BY a.created_at DESC
+             LIMIT 20"
+        );
+
+        $now = time();
+        foreach ($activities as &$act) {
+            $created = strtotime($act['created_at'] ?? '');
+            if ($created) {
+                $diff = $now - $created;
+                if ($diff < 60) {
+                    $act['time_ago'] = 'Vừa xong';
+                } elseif ($diff < 3600) {
+                    $act['time_ago'] = floor($diff / 60) . ' phút trước';
+                } elseif ($diff < 86400) {
+                    $act['time_ago'] = floor($diff / 3600) . ' giờ trước';
+                } elseif ($diff < 604800) {
+                    $act['time_ago'] = floor($diff / 86400) . ' ngày trước';
+                } else {
+                    $act['time_ago'] = date('d/m/Y', $created);
+                }
+            } else {
+                $act['time_ago'] = '';
+            }
+        }
+        unset($act);
+
+        // Count activities in last 24h as "new"
+        $newCount = 0;
+        foreach ($activities as $a) {
+            $created = strtotime($a['created_at'] ?? '');
+            if ($created && ($now - $created) < 86400) {
+                $newCount++;
+            }
+        }
+
+        return $this->json([
+            'activities' => $activities,
+            'new_count' => $newCount,
+        ]);
+    }
+
     public function store()
     {
         if (!$this->isPost()) {

@@ -78,7 +78,7 @@
                                 <select name="contact_id" class="form-select">
                                     <option value="">Chọn liên hệ</option>
                                     <?php foreach ($contacts ?? [] as $contact): ?>
-                                        <option value="<?= $contact['id'] ?>" <?= ($old['contact_id'] ?? '') == $contact['id'] ? 'selected' : '' ?>><?= e($contact['name']) ?></option>
+                                        <option value="<?= $contact['id'] ?>" <?= ($old['contact_id'] ?? '') == $contact['id'] ? 'selected' : '' ?>><?= e($contact['first_name'] . ' ' . ($contact['last_name'] ?? '')) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
