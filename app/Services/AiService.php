@@ -156,6 +156,28 @@ class AiService
                 $lines[] = "  + " . $d['title'] . " - " . number_format($d['value']) . "đ (" . ($d['first_name'] ?? '') . ")";
             }
         }
+
+        // Danh sách KH để AI tra cứu theo tên/SĐT/email
+        $allContacts = Database::fetchAll(
+            "SELECT c.first_name, c.last_name, c.phone, c.email, c.status, c.position, comp.name as company_name
+             FROM contacts c LEFT JOIN companies comp ON c.company_id = comp.id
+             WHERE c.tenant_id = ? AND c.is_deleted = 0 ORDER BY c.first_name LIMIT 50",
+            [$tenantId]
+        );
+        if (!empty($allContacts)) {
+            $lines[] = "- Danh sách khách hàng:";
+            foreach ($allContacts as $c) {
+                $name = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                $info = $name;
+                if ($c['phone']) $info .= " | SĐT: " . $c['phone'];
+                if ($c['email']) $info .= " | Email: " . $c['email'];
+                if ($c['company_name']) $info .= " | Cty: " . $c['company_name'];
+                if ($c['position']) $info .= " | " . $c['position'];
+                $info .= " | TT: " . $c['status'];
+                $lines[] = "  + " . $info;
+            }
+        }
+
         return implode("\n", $lines);
     }
 
