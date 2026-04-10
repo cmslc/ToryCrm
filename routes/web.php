@@ -138,9 +138,19 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // Tasks
     Router::get('tasks', 'TaskController@index');
     Router::get('tasks/kanban', 'TaskController@kanban');
+    Router::get('tasks/calendar', 'TaskController@calendar');
+    Router::get('tasks/calendar/events', 'TaskController@calendarEvents');
+    Router::get('tasks/gantt', 'TaskController@gantt');
+    Router::get('tasks/gantt/data', 'TaskController@ganttData');
+    Router::get('tasks/export', 'TaskController@export');
+    Router::get('tasks/templates', 'TaskController@templates');
+    Router::post('tasks/templates/store', 'TaskController@storeTemplate');
+    Router::post('tasks/templates/{id}/delete', 'TaskController@deleteTemplate');
+    Router::get('tasks/templates/{id}/create', 'TaskController@createFromTemplate');
     Router::get('tasks/trash', 'TaskController@trash');
     Router::get('tasks/create', 'TaskController@create');
     Router::post('tasks/store', 'TaskController@store');
+    Router::post('tasks/bulk', 'TaskController@bulk');
     Router::get('tasks/{id}', 'TaskController@show');
     Router::get('tasks/{id}/edit', 'TaskController@edit');
     Router::post('tasks/{id}/update', 'TaskController@update');
@@ -150,6 +160,17 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('tasks/{id}/restore', 'TaskController@restore');
     Router::post('tasks/{id}/status', 'TaskController@updateStatus');
     Router::post('tasks/{id}/quick-update', 'TaskController@quickUpdate');
+    Router::post('tasks/{id}/subtask', 'TaskController@addSubtask');
+    Router::post('tasks/{id}/toggle-subtask', 'TaskController@toggleSubtask');
+    Router::post('tasks/{id}/comment', 'TaskController@addComment');
+    Router::post('tasks/{id}/comment/{commentId}/delete', 'TaskController@deleteComment');
+    Router::post('tasks/{id}/timer/start', 'TaskController@startTimer');
+    Router::post('tasks/{id}/timer/stop', 'TaskController@stopTimer');
+    Router::post('tasks/{id}/time-log', 'TaskController@addTimeLog');
+    Router::post('tasks/{id}/attachment', 'TaskController@uploadAttachment');
+    Router::post('tasks/{id}/attachment/{attId}/delete', 'TaskController@deleteAttachment');
+    Router::post('tasks/{id}/dependency', 'TaskController@addDependency');
+    Router::post('tasks/{id}/dependency/{depId}/delete', 'TaskController@removeDependency');
 
     // Products
     Router::get('products', 'ProductController@index');

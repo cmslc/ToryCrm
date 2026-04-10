@@ -14,6 +14,8 @@ class TaskController extends Controller
         $status = $this->input('status');
         $priority = $this->input('priority');
         $assignedTo = $this->input('assigned_to');
+        $dueFrom = $this->input('due_from');
+        $dueTo = $this->input('due_to');
         $page = max(1, (int) $this->input('page') ?: 1);
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
@@ -40,6 +42,15 @@ class TaskController extends Controller
         if ($assignedTo) {
             $where[] = "t.assigned_to = ?";
             $params[] = $assignedTo;
+        }
+
+        if ($dueFrom) {
+            $where[] = "t.due_date >= ?";
+            $params[] = $dueFrom . ' 00:00:00';
+        }
+        if ($dueTo) {
+            $where[] = "t.due_date <= ?";
+            $params[] = $dueTo . ' 23:59:59';
         }
 
         // Owner-based data scoping: staff only sees own tasks
@@ -103,6 +114,8 @@ class TaskController extends Controller
                 'status' => $status,
                 'priority' => $priority,
                 'assigned_to' => $assignedTo,
+                'due_from' => $dueFrom,
+                'due_to' => $dueTo,
             ],
             'statusCounts' => $statusCounts,
             'users' => $users,
@@ -222,8 +235,54 @@ class TaskController extends Controller
             return $this->redirect('tasks');
         }
 
+        // Subtasks
+        $subtasks = Database::fetchAll(
+            "SELECT t.*, u.name as assigned_name FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id WHERE t.parent_id = ? AND t.is_deleted = 0 ORDER BY t.created_at",
+            [$id]
+        );
+
+        // Comments
+        $comments = Database::fetchAll(
+            "SELECT c.*, u.name as user_name FROM task_comments c LEFT JOIN users u ON c.user_id = u.id WHERE c.task_id = ? ORDER BY c.created_at ASC",
+            [$id]
+        );
+
+        // Time logs
+        $timeLogs = Database::fetchAll(
+            "SELECT tl.*, u.name as user_name FROM task_time_logs tl LEFT JOIN users u ON tl.user_id = u.id WHERE tl.task_id = ? ORDER BY tl.started_at DESC",
+            [$id]
+        );
+        $totalTime = Database::fetch("SELECT COALESCE(SUM(duration),0) as total FROM task_time_logs WHERE task_id = ? AND ended_at IS NOT NULL", [$id]);
+        $runningTimer = Database::fetch("SELECT * FROM task_time_logs WHERE task_id = ? AND user_id = ? AND ended_at IS NULL", [$id, $this->userId()]);
+
+        // Attachments
+        $attachments = Database::fetchAll(
+            "SELECT a.*, u.name as user_name FROM task_attachments a LEFT JOIN users u ON a.user_id = u.id WHERE a.task_id = ? ORDER BY a.created_at DESC",
+            [$id]
+        );
+
+        // Dependencies
+        $dependencies = Database::fetchAll(
+            "SELECT td.*, t.title as dep_title, t.status as dep_status FROM task_dependencies td JOIN tasks t ON td.depends_on_id = t.id WHERE td.task_id = ?",
+            [$id]
+        );
+
+        // All tasks for dependency picker (exclude self and subtasks)
+        $allTasks = Database::fetchAll(
+            "SELECT id, title FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND id != ? AND parent_id IS NULL ORDER BY title",
+            [Database::tenantId(), $id]
+        );
+
         return $this->view('tasks.show', [
             'task' => $task,
+            'subtasks' => $subtasks,
+            'comments' => $comments,
+            'timeLogs' => $timeLogs,
+            'totalTime' => (int)($totalTime['total'] ?? 0),
+            'runningTimer' => $runningTimer,
+            'attachments' => $attachments,
+            'dependencies' => $dependencies,
+            'allTasks' => $allTasks,
         ]);
     }
 
@@ -459,7 +518,7 @@ class TaskController extends Controller
 
         $field = $this->input('field');
         $value = $this->input('value');
-        $allowed = ['status', 'assigned_to', 'priority'];
+        $allowed = ['status', 'assigned_to', 'priority', 'title', 'due_date'];
 
         if (!in_array($field, $allowed)) {
             return $this->json(['error' => 'Trường không được phép cập nhật'], 422);
@@ -529,5 +588,516 @@ class TaskController extends Controller
         ]);
 
         return $this->json(['success' => true, 'status' => $newStatus]);
+    }
+
+    // ---- Subtasks ----
+    public function addSubtask($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $this->authorize('tasks', 'create');
+
+        $parent = Database::fetch("SELECT * FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$parent) return $this->json(['error' => 'Task không tồn tại'], 404);
+
+        $title = trim($this->input('title') ?? '');
+        if (empty($title)) return $this->json(['error' => 'Tiêu đề không được để trống'], 422);
+
+        $subId = Database::insert('tasks', [
+            'title' => $title,
+            'parent_id' => (int)$id,
+            'status' => 'todo',
+            'priority' => $parent['priority'],
+            'assigned_to' => $parent['assigned_to'],
+            'due_date' => $parent['due_date'],
+            'contact_id' => $parent['contact_id'],
+            'deal_id' => $parent['deal_id'],
+            'created_by' => $this->userId(),
+        ]);
+
+        return $this->json(['success' => true, 'id' => $subId, 'title' => $title]);
+    }
+
+    public function toggleSubtask($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $task = Database::fetch("SELECT * FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$task) return $this->json(['error' => 'Not found'], 404);
+
+        $newStatus = $task['status'] === 'done' ? 'todo' : 'done';
+        $update = ['status' => $newStatus];
+        if ($newStatus === 'done') $update['completed_at'] = date('Y-m-d H:i:s');
+        else $update['completed_at'] = null;
+
+        Database::update('tasks', $update, 'id = ?', [$id]);
+        return $this->json(['success' => true, 'status' => $newStatus]);
+    }
+
+    // ---- Comments ----
+    public function addComment($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $task = Database::fetch("SELECT id FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$task) return $this->json(['error' => 'Task không tồn tại'], 404);
+
+        $content = trim($this->input('content') ?? '');
+        if (empty($content)) return $this->json(['error' => 'Nội dung không được để trống'], 422);
+
+        $commentId = Database::insert('task_comments', [
+            'task_id' => (int)$id,
+            'user_id' => $this->userId(),
+            'content' => $content,
+        ]);
+
+        $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$this->userId()]);
+
+        return $this->json([
+            'success' => true,
+            'comment' => [
+                'id' => $commentId,
+                'content' => $content,
+                'user_name' => $user['name'] ?? '',
+                'created_at' => date('d/m/Y H:i'),
+            ],
+        ]);
+    }
+
+    public function deleteComment($id, $commentId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $comment = Database::fetch("SELECT * FROM task_comments WHERE id = ? AND task_id = ?", [$commentId, $id]);
+        if (!$comment) return $this->json(['error' => 'Không tồn tại'], 404);
+
+        if ($comment['user_id'] != $this->userId() && !$this->isAdminOrManager()) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
+
+        Database::query("DELETE FROM task_comments WHERE id = ?", [$commentId]);
+        return $this->json(['success' => true]);
+    }
+
+    // ---- Time Tracking ----
+    public function startTimer($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $task = Database::fetch("SELECT id FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$task) return $this->json(['error' => 'Task không tồn tại'], 404);
+
+        // Check if already running
+        $running = Database::fetch(
+            "SELECT id FROM task_time_logs WHERE task_id = ? AND user_id = ? AND ended_at IS NULL",
+            [$id, $this->userId()]
+        );
+        if ($running) return $this->json(['error' => 'Timer đang chạy'], 422);
+
+        $logId = Database::insert('task_time_logs', [
+            'task_id' => (int)$id,
+            'user_id' => $this->userId(),
+            'started_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return $this->json(['success' => true, 'log_id' => $logId, 'started_at' => date('Y-m-d H:i:s')]);
+    }
+
+    public function stopTimer($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $log = Database::fetch(
+            "SELECT * FROM task_time_logs WHERE task_id = ? AND user_id = ? AND ended_at IS NULL ORDER BY id DESC LIMIT 1",
+            [$id, $this->userId()]
+        );
+        if (!$log) return $this->json(['error' => 'Không có timer đang chạy'], 422);
+
+        $now = date('Y-m-d H:i:s');
+        $duration = strtotime($now) - strtotime($log['started_at']);
+        $note = trim($this->input('note') ?? '');
+
+        Database::update('task_time_logs', [
+            'ended_at' => $now,
+            'duration' => $duration,
+            'note' => $note ?: null,
+        ], 'id = ?', [$log['id']]);
+
+        return $this->json(['success' => true, 'duration' => $duration]);
+    }
+
+    public function addTimeLog($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $hours = (float)($this->input('hours') ?? 0);
+        $minutes = (int)($this->input('minutes') ?? 0);
+        $note = trim($this->input('note') ?? '');
+        $duration = ($hours * 3600) + ($minutes * 60);
+
+        if ($duration <= 0) return $this->json(['error' => 'Thời gian không hợp lệ'], 422);
+
+        $now = date('Y-m-d H:i:s');
+        Database::insert('task_time_logs', [
+            'task_id' => (int)$id,
+            'user_id' => $this->userId(),
+            'started_at' => date('Y-m-d H:i:s', strtotime($now) - $duration),
+            'ended_at' => $now,
+            'duration' => (int)$duration,
+            'note' => $note ?: null,
+        ]);
+
+        return $this->json(['success' => true]);
+    }
+
+    // ---- File Attachments ----
+    public function uploadAttachment($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $task = Database::fetch("SELECT id FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$task) return $this->json(['error' => 'Task không tồn tại'], 404);
+
+        if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            return $this->json(['error' => 'Không có file hoặc lỗi upload'], 422);
+        }
+
+        $file = $_FILES['file'];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        if ($file['size'] > $maxSize) return $this->json(['error' => 'File quá lớn (tối đa 10MB)'], 422);
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'task_' . $id . '_' . uniqid() . '.' . $ext;
+        $uploadDir = BASE_PATH . '/public/uploads/tasks/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        move_uploaded_file($file['tmp_name'], $uploadDir . $filename);
+
+        $attId = Database::insert('task_attachments', [
+            'task_id' => (int)$id,
+            'user_id' => $this->userId(),
+            'filename' => $filename,
+            'original_name' => $file['name'],
+            'file_size' => $file['size'],
+            'mime_type' => $file['type'],
+        ]);
+
+        return $this->json([
+            'success' => true,
+            'attachment' => [
+                'id' => $attId,
+                'filename' => $filename,
+                'original_name' => $file['name'],
+                'file_size' => $file['size'],
+                'url' => '/uploads/tasks/' . $filename,
+            ],
+        ]);
+    }
+
+    public function deleteAttachment($id, $attId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $att = Database::fetch("SELECT * FROM task_attachments WHERE id = ? AND task_id = ?", [$attId, $id]);
+        if (!$att) return $this->json(['error' => 'Không tồn tại'], 404);
+
+        $filePath = BASE_PATH . '/public/uploads/tasks/' . $att['filename'];
+        if (file_exists($filePath)) unlink($filePath);
+
+        Database::query("DELETE FROM task_attachments WHERE id = ?", [$attId]);
+        return $this->json(['success' => true]);
+    }
+
+    // ---- Bulk Actions ----
+    public function bulk()
+    {
+        if (!$this->isPost()) return $this->redirect('tasks');
+        $this->authorize('tasks', 'edit');
+
+        $ids = $this->input('ids') ?? [];
+        $action = $this->input('action');
+
+        if (empty($ids) || !is_array($ids)) {
+            $this->setFlash('error', 'Chưa chọn công việc nào.');
+            return $this->back();
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $tid = Database::tenantId();
+
+        switch ($action) {
+            case 'delete':
+                $this->authorize('tasks', 'delete');
+                Database::query("UPDATE tasks SET is_deleted = 1, deleted_at = NOW() WHERE id IN ({$placeholders}) AND tenant_id = ?", array_merge($ids, [$tid]));
+                $this->setFlash('success', 'Đã xóa ' . count($ids) . ' công việc.');
+                break;
+            case 'done':
+                Database::query("UPDATE tasks SET status = 'done', completed_at = NOW() WHERE id IN ({$placeholders}) AND tenant_id = ?", array_merge($ids, [$tid]));
+                $this->setFlash('success', 'Đã hoàn thành ' . count($ids) . ' công việc.');
+                break;
+            case 'assign':
+                $assignTo = $this->input('bulk_assign_to');
+                if ($assignTo) {
+                    Database::query("UPDATE tasks SET assigned_to = ? WHERE id IN ({$placeholders}) AND tenant_id = ?", array_merge([$assignTo], $ids, [$tid]));
+                    $this->setFlash('success', 'Đã gán ' . count($ids) . ' công việc.');
+                }
+                break;
+            case 'priority':
+                $priority = $this->input('bulk_priority');
+                if ($priority) {
+                    Database::query("UPDATE tasks SET priority = ? WHERE id IN ({$placeholders}) AND tenant_id = ?", array_merge([$priority], $ids, [$tid]));
+                    $this->setFlash('success', 'Đã cập nhật ưu tiên.');
+                }
+                break;
+            default:
+                $this->setFlash('error', 'Hành động không hợp lệ.');
+        }
+
+        return $this->back();
+    }
+
+    // ---- Calendar View ----
+    public function calendar()
+    {
+        $this->authorize('tasks', 'view');
+        return $this->view('tasks.calendar');
+    }
+
+    public function calendarEvents()
+    {
+        $start = $this->input('start');
+        $end = $this->input('end');
+
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $params = [Database::tenantId()];
+
+        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        if ($ownerScope['where']) {
+            $where[] = $ownerScope['where'];
+            $params = array_merge($params, $ownerScope['params']);
+        }
+
+        if ($start) { $where[] = "t.due_date >= ?"; $params[] = $start; }
+        if ($end) { $where[] = "t.due_date <= ?"; $params[] = $end; }
+
+        $whereClause = implode(' AND ', $where);
+        $tasks = Database::fetchAll(
+            "SELECT t.id, t.title, t.due_date, t.start_date, t.status, t.priority, u.name as assigned_name
+             FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id
+             WHERE {$whereClause} AND t.due_date IS NOT NULL",
+            $params
+        );
+
+        $pc = ['low'=>'#299cdb','medium'=>'#f7b84b','high'=>'#f06548','urgent'=>'#cc563d'];
+        $events = [];
+        foreach ($tasks as $t) {
+            $events[] = [
+                'id' => $t['id'],
+                'title' => $t['title'],
+                'start' => $t['start_date'] ?: $t['due_date'],
+                'end' => $t['due_date'],
+                'url' => url('tasks/' . $t['id']),
+                'backgroundColor' => $t['status'] === 'done' ? '#45cb85' : ($pc[$t['priority']] ?? '#405189'),
+                'borderColor' => 'transparent',
+                'extendedProps' => ['status' => $t['status'], 'assigned' => $t['assigned_name'] ?? ''],
+            ];
+        }
+
+        return $this->json($events);
+    }
+
+    // ---- Export ----
+    public function export()
+    {
+        $this->authorize('tasks', 'view');
+
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $params = [Database::tenantId()];
+        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
+
+        $tasks = Database::fetchAll(
+            "SELECT t.title, t.status, t.priority, t.due_date, t.created_at, t.completed_at,
+                    u.name as assigned_name, c.first_name as contact_name, d.title as deal_title
+             FROM tasks t
+             LEFT JOIN users u ON t.assigned_to = u.id
+             LEFT JOIN contacts c ON t.contact_id = c.id
+             LEFT JOIN deals d ON t.deal_id = d.id
+             WHERE " . implode(' AND ', $where) . " ORDER BY t.created_at DESC",
+            $params
+        );
+
+        $format = $this->input('format') ?: 'csv';
+
+        if ($format === 'csv') {
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="tasks_' . date('Y-m-d') . '.csv"');
+            echo "\xEF\xBB\xBF"; // BOM for Excel
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Tiêu đề', 'Trạng thái', 'Ưu tiên', 'Phụ trách', 'Hạn', 'Ngày tạo', 'Hoàn thành', 'Khách hàng', 'Deal']);
+            $sl = ['todo'=>'Cần làm','in_progress'=>'Đang làm','review'=>'Review','done'=>'Hoàn thành'];
+            $pl = ['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn'];
+            foreach ($tasks as $t) {
+                fputcsv($out, [
+                    $t['title'], $sl[$t['status']] ?? $t['status'], $pl[$t['priority']] ?? $t['priority'],
+                    $t['assigned_name'] ?? '', $t['due_date'] ?? '', $t['created_at'] ?? '',
+                    $t['completed_at'] ?? '', $t['contact_name'] ?? '', $t['deal_title'] ?? '',
+                ]);
+            }
+            fclose($out);
+            exit;
+        }
+    }
+
+    // ---- Dependencies ----
+    public function addDependency($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $dependsOn = (int)$this->input('depends_on_id');
+        if ($dependsOn == $id) return $this->json(['error' => 'Không thể phụ thuộc chính nó'], 422);
+
+        $depTask = Database::fetch("SELECT id, title FROM tasks WHERE id = ? AND tenant_id = ?", [$dependsOn, Database::tenantId()]);
+        if (!$depTask) return $this->json(['error' => 'Task phụ thuộc không tồn tại'], 404);
+
+        // Check circular
+        $existing = Database::fetch("SELECT id FROM task_dependencies WHERE task_id = ? AND depends_on_id = ?", [$id, $dependsOn]);
+        if ($existing) return $this->json(['error' => 'Đã tồn tại'], 422);
+
+        Database::query(
+            "INSERT INTO task_dependencies (task_id, depends_on_id, type) VALUES (?, ?, ?)",
+            [$id, $dependsOn, $this->input('type') ?: 'finish_to_start']
+        );
+
+        return $this->json(['success' => true, 'depends_on' => $depTask]);
+    }
+
+    public function removeDependency($id, $depId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        Database::query("DELETE FROM task_dependencies WHERE id = ? AND task_id = ?", [$depId, $id]);
+        return $this->json(['success' => true]);
+    }
+
+    // ---- Templates ----
+    public function templates()
+    {
+        $this->authorize('tasks', 'view');
+        $templates = Database::fetchAll(
+            "SELECT * FROM task_templates WHERE tenant_id = ? ORDER BY name",
+            [Database::tenantId()]
+        );
+        return $this->view('tasks.templates', ['templates' => $templates]);
+    }
+
+    public function createFromTemplate($templateId)
+    {
+        $this->authorize('tasks', 'create');
+        $tpl = Database::fetch("SELECT * FROM task_templates WHERE id = ? AND tenant_id = ?", [$templateId, Database::tenantId()]);
+        if (!$tpl) { $this->setFlash('error', 'Template không tồn tại.'); return $this->redirect('tasks/templates'); }
+
+        $dueDate = $tpl['due_days'] ? date('Y-m-d H:i:s', strtotime("+{$tpl['due_days']} days")) : null;
+
+        $taskId = Database::insert('tasks', [
+            'title' => $tpl['name'],
+            'description' => $tpl['description'],
+            'status' => $tpl['default_status'] ?: 'todo',
+            'priority' => $tpl['default_priority'] ?: 'medium',
+            'due_date' => $dueDate,
+            'assigned_to' => $this->userId(),
+            'created_by' => $this->userId(),
+        ]);
+
+        // Create subtasks from checklist
+        $checklist = json_decode($tpl['checklist'] ?? '[]', true);
+        foreach ($checklist as $item) {
+            if (is_string($item)) {
+                Database::insert('tasks', [
+                    'title' => $item, 'parent_id' => $taskId, 'status' => 'todo',
+                    'priority' => $tpl['default_priority'] ?: 'medium', 'created_by' => $this->userId(),
+                ]);
+            } elseif (is_array($item) && isset($item['title'])) {
+                Database::insert('tasks', [
+                    'title' => $item['title'], 'parent_id' => $taskId, 'status' => 'todo',
+                    'priority' => $tpl['default_priority'] ?: 'medium', 'created_by' => $this->userId(),
+                ]);
+            }
+        }
+
+        $this->setFlash('success', 'Đã tạo task từ template.');
+        return $this->redirect('tasks/' . $taskId);
+    }
+
+    public function storeTemplate()
+    {
+        if (!$this->isPost()) return $this->redirect('tasks/templates');
+        $this->authorize('tasks', 'create');
+
+        $name = trim($this->input('name') ?? '');
+        if (empty($name)) { $this->setFlash('error', 'Tên template không được trống.'); return $this->back(); }
+
+        $checklist = array_filter(array_map('trim', explode("\n", $this->input('checklist') ?? '')));
+
+        Database::insert('task_templates', [
+            'name' => $name,
+            'description' => trim($this->input('description') ?? ''),
+            'checklist' => json_encode(array_values($checklist)),
+            'default_priority' => $this->input('default_priority') ?: 'medium',
+            'default_status' => 'todo',
+            'due_days' => (int)($this->input('due_days') ?: 0) ?: null,
+            'created_by' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã tạo template.');
+        return $this->redirect('tasks/templates');
+    }
+
+    public function deleteTemplate($id)
+    {
+        if (!$this->isPost()) return $this->redirect('tasks/templates');
+        Database::query("DELETE FROM task_templates WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        $this->setFlash('success', 'Đã xóa template.');
+        return $this->redirect('tasks/templates');
+    }
+
+    // ---- Gantt Chart ----
+    public function gantt()
+    {
+        $this->authorize('tasks', 'view');
+        return $this->view('tasks.gantt');
+    }
+
+    public function ganttData()
+    {
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $params = [Database::tenantId()];
+        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
+
+        $tasks = Database::fetchAll(
+            "SELECT t.id, t.title, t.start_date, t.due_date, t.created_at, t.status, t.priority, t.progress, t.parent_id,
+                    u.name as assigned_name
+             FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id
+             WHERE " . implode(' AND ', $where) . " ORDER BY t.created_at ASC",
+            $params
+        );
+
+        $deps = Database::fetchAll("SELECT task_id, depends_on_id FROM task_dependencies");
+        $depMap = [];
+        foreach ($deps as $d) $depMap[$d['task_id']][] = $d['depends_on_id'];
+
+        $data = [];
+        foreach ($tasks as $t) {
+            $data[] = [
+                'id' => $t['id'],
+                'name' => $t['title'],
+                'start' => $t['start_date'] ?: $t['created_at'],
+                'end' => $t['due_date'] ?: date('Y-m-d', strtotime($t['created_at'] . ' +3 days')),
+                'progress' => (int)($t['progress'] ?? 0),
+                'dependencies' => isset($depMap[$t['id']]) ? implode(',', $depMap[$t['id']]) : '',
+                'status' => $t['status'],
+                'assigned' => $t['assigned_name'] ?? '',
+            ];
+        }
+
+        return $this->json($data);
     }
 }

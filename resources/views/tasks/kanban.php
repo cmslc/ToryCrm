@@ -47,7 +47,10 @@
                                 ?>
                                 <div class="card border shadow-none mb-2 task-card <?= $overdue ? 'border-danger' : '' ?>" data-task-id="<?= $task['id'] ?>" <?= $overdue ? 'style="border-color: #f06548 !important; border-width: 2px !important;"' : '' ?>>
                                     <div class="card-body p-3">
-                                        <a href="<?= url('tasks/' . $task['id']) ?>" class="fw-medium text-dark d-block mb-1"><?= e($task['title']) ?></a>
+                                        <a href="<?= url('tasks/' . $task['id']) ?>" class="fw-medium text-dark d-block mb-1" ondblclick="event.preventDefault();this.style.display='none';var i=this.nextElementSibling;i.style.display='';i.focus()"><?= e($task['title']) ?></a>
+                                        <input type="text" class="form-control form-control-sm mb-1 kanban-title-edit" value="<?= e($task['title']) ?>" data-id="<?= $task['id'] ?>" style="display:none" onblur="this.style.display='none';this.previousElementSibling.style.display=''"
+                                            onkeydown="if(event.key==='Enter'){var el=this;fetch('<?= url('tasks') ?>/'+el.dataset.id+'/quick-update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'_token=<?= csrf_token() ?>&field=title&value='+encodeURIComponent(el.value)}).then(function(){el.previousElementSibling.textContent=el.value;el.blur()});}"
+                                        >
                                         <div class="d-flex justify-content-between align-items-center">
                                             <?php $pc=['low'=>'info','medium'=>'warning','high'=>'danger','urgent'=>'danger']; ?>
                                             <span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $task['priority'] ?></span>

@@ -16,6 +16,8 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
     <h4 class="mb-0">Công việc</h4>
     <div class="d-flex gap-2">
         <a href="<?= url('tasks/kanban') ?>" class="btn btn-soft-info"><i class="ri-layout-masonry-line me-1"></i> Kanban</a>
+        <a href="<?= url('tasks/calendar') ?>" class="btn btn-soft-warning"><i class="ri-calendar-line me-1"></i> Lịch</a>
+        <a href="<?= url('tasks/gantt') ?>" class="btn btn-soft-secondary"><i class="ri-bar-chart-horizontal-line me-1"></i> Gantt</a>
         <a href="<?= url('tasks/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm công việc</a>
     </div>
 </div>
@@ -41,6 +43,8 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                     <option value="<?= $u['id'] ?>" <?= ($filters['assigned_to'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
                 <?php endforeach; ?>
             </select>
+            <input type="date" name="due_from" class="form-control" style="width:auto" value="<?= e($filters['due_from'] ?? '') ?>" placeholder="Hạn từ" title="Hạn từ ngày">
+            <input type="date" name="due_to" class="form-control" style="width:auto" value="<?= e($filters['due_to'] ?? '') ?>" placeholder="Hạn đến" title="Hạn đến ngày">
             <input type="hidden" name="status" id="statusInput" value="<?= e($currentStatus) ?>">
             <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
             <?php if (!empty(array_filter($filters ?? []))): ?>
@@ -104,11 +108,34 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                         <i class="ri-more-fill"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="<?= url('tasks/templates') ?>"><i class="ri-file-copy-line me-2"></i>Mẫu công việc</a></li>
+                        <li><a class="dropdown-item" href="<?= url('tasks/export?format=csv') ?>"><i class="ri-download-line me-2"></i>Xuất CSV</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="<?= url('tasks/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
                     </ul>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Bulk Action Bar (hidden by default) -->
+<div class="card mb-2 d-none" id="bulkBar">
+    <div class="card-body py-2">
+        <form method="POST" action="<?= url('tasks/bulk') ?>" id="bulkForm" class="d-flex align-items-center gap-2 flex-wrap">
+            <?= csrf_field() ?>
+            <span class="fw-medium"><span id="bulkCount">0</span> đã chọn</span>
+            <div id="bulkIds"></div>
+            <button type="submit" name="action" value="done" class="btn btn-soft-success"><i class="ri-check-line me-1"></i> Hoàn thành</button>
+            <select name="bulk_priority" class="form-select" style="width:auto" onchange="if(this.value){this.form.querySelector('[name=action]').value='priority';this.form.submit()}">
+                <option value="">Đổi ưu tiên</option><option value="urgent">Khẩn</option><option value="high">Cao</option><option value="medium">TB</option><option value="low">Thấp</option>
+            </select>
+            <select name="bulk_assign_to" class="form-select" style="width:auto" onchange="if(this.value){this.form.querySelector('[name=action]').value='assign';this.form.submit()}">
+                <option value="">Gán cho</option>
+                <?php foreach ($users ?? [] as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+            </select>
+            <button type="submit" name="action" value="delete" class="btn btn-soft-danger" data-confirm="Xóa các công việc đã chọn?"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
+        </form>
     </div>
 </div>
 
@@ -119,6 +146,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
             <table class="table table-hover align-middle table-nowrap mb-0">
                 <thead class="text-muted table-light">
                     <tr>
+                        <th style="width:40px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <th class="col-task">Công việc</th>
                         <th class="col-status">Trạng thái</th>
                         <th class="col-priority">Ưu tiên</th>
@@ -132,6 +160,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                 <tbody>
                     <?php if (!empty($tasks['items'])): foreach ($tasks['items'] as $task): ?>
                         <tr>
+                            <td><input type="checkbox" class="form-check-input row-check" value="<?= $task['id'] ?>"></td>
                             <td class="col-task">
                                 <a href="<?= url('tasks/' . $task['id']) ?>" class="fw-medium text-dark"><?= e($task['title']) ?></a>
                                 <?php if (!empty($task['description'])): ?>
@@ -167,7 +196,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="8" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
+                        <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -219,5 +248,37 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
     });
 
     applyColumns();
+})();
+
+// Bulk actions
+(function() {
+    var checkAll = document.getElementById('checkAll');
+    var bulkBar = document.getElementById('bulkBar');
+    var bulkIds = document.getElementById('bulkIds');
+    var bulkCount = document.getElementById('bulkCount');
+
+    function updateBulk() {
+        var checked = document.querySelectorAll('.row-check:checked');
+        if (checked.length > 0) {
+            bulkBar.classList.remove('d-none');
+            bulkCount.textContent = checked.length;
+            bulkIds.innerHTML = '';
+            checked.forEach(function(cb) {
+                var input = document.createElement('input');
+                input.type = 'hidden'; input.name = 'ids[]'; input.value = cb.value;
+                bulkIds.appendChild(input);
+            });
+        } else {
+            bulkBar.classList.add('d-none');
+        }
+    }
+
+    if (checkAll) {
+        checkAll.addEventListener('change', function() {
+            document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = checkAll.checked; });
+            updateBulk();
+        });
+    }
+    document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
 })();
 </script>
