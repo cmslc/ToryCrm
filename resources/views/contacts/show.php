@@ -990,41 +990,6 @@
                             </div>
 
                             <!-- Tab: KH phản hồi -->
-                            <div class="tab-pane" id="tab-feedback" role="tabpanel">
-                                <h6 class="mb-3">Phản hồi từ khách hàng</h6>
-                                <?php
-                                $feedbacks = \Core\Database::fetchAll(
-                                    "SELECT a.*, u.name as user_name FROM activities a LEFT JOIN users u ON a.user_id = u.id
-                                     WHERE a.contact_id = ? AND a.type = 'feedback'
-                                     ORDER BY a.created_at DESC LIMIT 20",
-                                    [$contact['id']]
-                                );
-                                ?>
-                                <?php if (!empty($feedbacks)): ?>
-                                    <div style="max-height: 400px; overflow-y: auto;">
-                                        <?php foreach ($feedbacks as $fb): ?>
-                                            <div class="d-flex mb-3 p-3 bg-light rounded">
-                                                <div class="avatar-xs flex-shrink-0 me-3">
-                                                    <span class="avatar-title bg-warning-subtle text-warning rounded-circle"><i class="ri-chat-quote-line"></i></span>
-                                                </div>
-                                                <div class="flex-grow-1">
-                                                    <p class="mb-1"><?= e($fb['title']) ?></p>
-                                                    <?php if (!empty($fb['description'])): ?>
-                                                        <p class="text-muted mb-1 fs-12"><?= e($fb['description']) ?></p>
-                                                    <?php endif; ?>
-                                                    <small class="text-muted"><?= time_ago($fb['created_at']) ?></small>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="text-center py-4">
-                                        <i class="ri-chat-quote-line fs-36 text-muted"></i>
-                                        <p class="text-muted mt-2">Chưa có phản hồi từ khách hàng</p>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-
                             <!-- Tab: Công nợ -->
                             <div class="tab-pane" id="tab-debt" role="tabpanel">
                                 <h6 class="mb-3">Công nợ</h6>
