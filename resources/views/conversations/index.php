@@ -350,7 +350,7 @@
                             <form method="POST" action="<?= url('conversations/' . $activeConversation['id'] . '/reply') ?>">
                                 <?= csrf_field() ?>
                                 <div class="mb-2">
-                                    <textarea name="content" class="form-control" rows="3" placeholder="Nhập tin nhắn..." required id="replyContent"></textarea>
+                                    <textarea name="content" class="form-control" rows="3" placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter xuống dòng)" required id="replyContent"></textarea>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="d-flex gap-2">
@@ -399,6 +399,17 @@
                 if (simplebar) {
                     simplebar.getScrollElement().scrollTop = simplebar.getScrollElement().scrollHeight;
                 }
+            }
+
+            // Enter to send (Shift+Enter for new line)
+            var replyEl = document.getElementById('replyContent');
+            if (replyEl) {
+                replyEl.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (this.value.trim()) this.closest('form').submit();
+                    }
+                });
             }
 
             // Canned responses
