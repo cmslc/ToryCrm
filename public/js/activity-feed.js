@@ -15,10 +15,6 @@
     function init() {
         var style = document.createElement('style');
         style.textContent =
-            '#af-btn{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--vz-primary,#405189);color:#fff;border:none;box-shadow:0 4px 16px rgba(0,0,0,.2);cursor:pointer;z-index:10400;display:flex;align-items:center;justify-content:center;transition:transform .2s}' +
-            '#af-btn:hover{transform:scale(1.08)}' +
-            '#af-btn i{font-size:24px}' +
-            '#af-badge{position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;border-radius:10px;background:#f06548;color:#fff;font-size:11px;font-weight:600;display:none;align-items:center;justify-content:center;padding:0 5px}' +
             '#af-badge.show{display:flex}' +
             '#af-panel{position:fixed;top:0;right:0;width:380px;max-width:100%;height:100%;background:var(--vz-card-bg,#fff);box-shadow:-4px 0 24px rgba(0,0,0,.15);z-index:10500;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}' +
             '#af-panel.open{transform:translateX(0)}' +
@@ -39,12 +35,16 @@
 
         document.head.appendChild(style);
 
-        // Floating button
-        var btn = document.createElement('button');
-        btn.id = 'af-btn';
-        btn.title = 'Hoạt động';
-        btn.innerHTML = '<i class="ri-pulse-line"></i><span id="af-badge">0</span>';
-        document.body.appendChild(btn);
+        // Use existing topbar button (don't create floating button)
+        var btn = document.getElementById('af-btn');
+        if (!btn) {
+            // Fallback: create if not in header
+            btn = document.createElement('button');
+            btn.id = 'af-btn';
+            btn.title = 'Hoạt động';
+            btn.className = 'btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative';
+            btn.innerHTML = '<i class="ri-pulse-line fs-22"></i><span id="af-badge" class="position-absolute topbar-badge badge rounded-pill bg-danger" style="display:none">0</span>';
+        }
         badge = document.getElementById('af-badge');
 
         // Overlay
