@@ -7,10 +7,11 @@
 
     var isOpen = false;
     var csrfToken = '';
+    var historyLoaded = false;
 
     // Find CSRF token from page
     function getCsrfToken() {
-        var el = document.querySelector('[name=csrf_token]');
+        var el = document.querySelector('[name=csrf_token]') || document.querySelector('[name=_token]');
         return el ? el.value : '';
     }
 
@@ -95,6 +96,14 @@
             btn.innerHTML = '<i class="ri-close-line"></i>';
             document.getElementById('aiWidgetInput').focus();
             csrfToken = getCsrfToken();
+            if (!historyLoaded) {
+                historyLoaded = true;
+                fetch('/ai-chat/history').then(function(r){return r.json()}).then(function(d) {
+                    if (d.messages && d.messages.length > 0) {
+                        d.messages.forEach(function(m) { appendMsg(m.role, m.message || m.content); });
+                    }
+                }).catch(function(){});
+            }
         } else {
             popup.style.display = 'none';
             btn.innerHTML = '<i class="ri-robot-line"></i>';
@@ -123,7 +132,9 @@
 
         var formData = new FormData();
         formData.append('message', text);
-        formData.append('csrf_token', csrfToken || getCsrfToken());
+        var tk = csrfToken || getCsrfToken();
+        formData.append('csrf_token', tk);
+        formData.append('_token', tk);
 
         fetch('/ai-chat/send', { method: 'POST', body: formData })
             .then(function(r) { return r.json(); })
@@ -147,7 +158,9 @@
     function clearChat() {
         if (!confirm('Xóa lịch sử trò chuyện?')) return;
         var formData = new FormData();
-        formData.append('csrf_token', csrfToken || getCsrfToken());
+        var tk = csrfToken || getCsrfToken();
+        formData.append('csrf_token', tk);
+        formData.append('_token', tk);
 
         fetch('/ai-chat/clear', { method: 'POST', body: formData })
             .then(function() {

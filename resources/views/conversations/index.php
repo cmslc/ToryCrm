@@ -233,7 +233,7 @@
                         fetch('/ai-chat/history').then(function(r){return r.json()}).then(function(d) {
                             if (d.messages && d.messages.length > 0) {
                                 document.getElementById('aiSuggestions')?.remove();
-                                d.messages.forEach(function(m) { addMsg(m.role, m.content); });
+                                d.messages.forEach(function(m) { addMsg(m.role, m.message || m.content); });
                             }
                         }).catch(function(){});
                     })();
