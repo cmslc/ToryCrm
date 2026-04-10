@@ -24,7 +24,7 @@
 <?php if (!empty($insights)): ?>
 <div class="row" id="insights-row">
     <?php foreach ($insights as $insight): ?>
-        <div class="col-xl-3 col-md-6" id="insight-<?= $insight['id'] ?>">
+        <div class="col-xl-4 col-md-6" id="insight-<?= $insight['id'] ?>">
             <div class="card border-<?= e($insight['color'] ?? 'primary') ?> border-opacity-25">
                 <div class="card-body">
                     <div class="d-flex align-items-start">
@@ -94,7 +94,7 @@
     ];
     ?>
     <?php foreach ($statCards as $card): ?>
-        <div class="col-xl-3 col-md-6">
+        <div class="col-md-6 col-xl-3">
             <div class="card card-animate">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
@@ -140,10 +140,39 @@
     <div class="col-xl-8">
         <div class="card">
             <div class="card-header border-0 align-items-center d-flex">
-                <h4 class="card-title mb-0 flex-grow-1">Doanh thu theo tháng</h4>
+                <h4 class="card-title mb-0 flex-grow-1">Doanh thu</h4>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-soft-secondary btn-sm active" data-period="1y">1Y</button>
+                    <button class="btn btn-soft-secondary btn-sm" data-period="6m">6M</button>
+                    <button class="btn btn-soft-secondary btn-sm" data-period="1m">1M</button>
+                </div>
             </div>
-            <div class="card-body p-0 pb-2">
-                <div class="w-100" style="height:350px;padding:0 15px">
+            <div class="card-body">
+                <?php
+                $yearRevenue = array_sum($revenueData ?? []);
+                $yearOrders = $stats['total_orders'] ?? 0;
+                $wonDeals = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM deals WHERE status='won' AND tenant_id=?", [$tid])['c'] ?? 0);
+                $convRate = $stats['total_deals'] > 0 ? round($wonDeals / ($stats['total_deals'] + $wonDeals) * 100, 1) : 0;
+                ?>
+                <div class="row text-center mb-3">
+                    <div class="col-3">
+                        <h5 class="mb-1 ff-secondary"><?= number_format($yearOrders) ?></h5>
+                        <p class="text-muted mb-0 fs-12">Đơn hàng</p>
+                    </div>
+                    <div class="col-3">
+                        <h5 class="mb-1 text-success ff-secondary"><?= format_money($yearRevenue) ?></h5>
+                        <p class="text-muted mb-0 fs-12">Doanh thu</p>
+                    </div>
+                    <div class="col-3">
+                        <h5 class="mb-1 ff-secondary"><?= $wonDeals ?></h5>
+                        <p class="text-muted mb-0 fs-12">Deal thắng</p>
+                    </div>
+                    <div class="col-3">
+                        <h5 class="mb-1 text-success ff-secondary"><?= $convRate ?>%</h5>
+                        <p class="text-muted mb-0 fs-12">Tỷ lệ chuyển đổi</p>
+                    </div>
+                </div>
+                <div style="height:300px">
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
@@ -453,29 +482,80 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Revenue Chart
+    // Revenue Chart - Velzon style (bar + line + area)
     var revenueCtx = document.getElementById('revenueChart');
     if (revenueCtx) {
+        var revenueRaw = <?= json_encode($revenueData ?? array_fill(0, 12, 0)) ?>;
+        <?php
+        // Orders per month
+        $orderMonthly = array_fill(0, 12, 0);
+        try {
+            $omRows = \Core\Database::fetchAll("SELECT MONTH(created_at) as m, COUNT(*) as c FROM orders WHERE tenant_id = ? AND YEAR(created_at) = YEAR(CURDATE()) AND is_deleted = 0 GROUP BY MONTH(created_at)", [$tid]);
+            foreach ($omRows as $om) $orderMonthly[$om['m'] - 1] = (int)$om['c'];
+        } catch (\Exception $e) {}
+        // Tasks completed per month
+        $taskMonthly = array_fill(0, 12, 0);
+        try {
+            $tmRows = \Core\Database::fetchAll("SELECT MONTH(completed_at) as m, COUNT(*) as c FROM tasks WHERE tenant_id = ? AND status = 'done' AND YEAR(completed_at) = YEAR(CURDATE()) GROUP BY MONTH(completed_at)", [$tid]);
+            foreach ($tmRows as $tm) $taskMonthly[$tm['m'] - 1] = (int)$tm['c'];
+        } catch (\Exception $e) {}
+        ?>
+        var ordersData = <?= json_encode($orderMonthly) ?>;
+        var tasksData = <?= json_encode($taskMonthly) ?>;
+
         new Chart(revenueCtx, {
-            type: 'bar',
             data: {
                 labels: ['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'],
-                datasets: [{
-                    label: 'Doanh thu',
-                    data: <?= json_encode($revenueData ?? array_fill(0, 12, 0)) ?>,
-                    backgroundColor: 'rgba(64, 81, 137, 0.85)',
-                    borderColor: '#405189',
-                    borderWidth: 0,
-                    borderRadius: 4,
-                    barPercentage: 0.6,
-                }]
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Doanh thu',
+                        data: revenueRaw,
+                        backgroundColor: 'rgba(10, 179, 156, 0.8)',
+                        borderColor: '#0ab39c',
+                        borderWidth: 0,
+                        borderRadius: 3,
+                        barPercentage: 0.5,
+                        order: 2,
+                    },
+                    {
+                        type: 'line',
+                        label: 'Đơn hàng',
+                        data: ordersData,
+                        borderColor: '#405189',
+                        backgroundColor: 'rgba(64, 81, 137, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y1',
+                        order: 1,
+                    },
+                    {
+                        type: 'line',
+                        label: 'Task hoàn thành',
+                        data: tasksData,
+                        borderColor: '#f06548',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0.4,
+                        yAxisID: 'y1',
+                        order: 0,
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { size: 12 } } }
+                },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: function(v) { return (v/1000000).toFixed(0) + 'M'; } } },
+                    y: { beginAtZero: true, position: 'left', grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: function(v) { return v >= 1000000 ? (v/1000000).toFixed(0) + 'M' : v >= 1000 ? (v/1000).toFixed(0) + 'k' : v; } } },
+                    y1: { beginAtZero: true, position: 'right', grid: { display: false }, ticks: { stepSize: 1 } },
                     x: { grid: { display: false } }
                 }
             }
