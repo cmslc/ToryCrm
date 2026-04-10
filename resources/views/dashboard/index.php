@@ -537,13 +537,13 @@
 
 <!-- Right sidebar: Recent Activity (Velzon style) -->
 <div class="col-xl-2">
-    <div class="card card-height-100">
+    <div class="card">
         <div class="card-header border-bottom-dashed align-items-center d-flex">
             <h4 class="card-title mb-0 flex-grow-1 fs-14">Hoạt động</h4>
             <a href="<?= url('activities') ?>" class="text-muted fs-12">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
         </div>
         <div class="card-body p-0">
-            <div data-simplebar style="max-height: calc(100vh - 200px);">
+            <div data-simplebar style="max-height: 500px;">
                 <?php if (!empty($recentActivities)): ?>
                     <?php
                     $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','contact'=>'ri-user-add-line','system'=>'ri-settings-3-line','order'=>'ri-shopping-cart-line'];
