@@ -72,7 +72,13 @@ class ContactController extends Controller
 
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
-        $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM contacts WHERE is_deleted = 0 AND tenant_id = ? GROUP BY status", [Database::tenantId()]);
+        $statusCountsWhere = "is_deleted = 0 AND tenant_id = ?";
+        $statusCountsParams = [Database::tenantId()];
+        if (!$this->isAdminOrManager()) {
+            $statusCountsWhere .= " AND owner_id = ?";
+            $statusCountsParams[] = $this->userId();
+        }
+        $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM contacts WHERE {$statusCountsWhere} GROUP BY status", $statusCountsParams);
 
         $totalPages = ceil($total / $perPage);
 
