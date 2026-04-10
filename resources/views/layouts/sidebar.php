@@ -240,15 +240,30 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
                 <?php endif; /* end $_role !== 'staff' */ ?>
 
+                <?php $settingsOpen = isOpen(['settings','custom-fields','tags','help'], $currentUrl); ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('settings', $currentUrl) || isActive('custom-fields', $currentUrl) || isActive('tags', $currentUrl) ? 'active' : '' ?>" href="<?= url('settings') ?>">
+                    <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
                         <i class="ri-tools-line"></i> <span>Cài đặt</span>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('help', $currentUrl) ?>" href="<?= url('help') ?>">
-                        <i class="ri-question-line"></i> <span>Trợ giúp</span>
-                    </a>
+                    <div class="collapse <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('settings') ?>" class="nav-link <?= $currentUrl === 'settings' || str_starts_with($currentUrl, 'settings?') ? 'active' : '' ?>">Tài khoản</a></li>
+                            <?php if ($_role !== 'staff'): ?>
+                            <li class="nav-item"><a href="<?= url('settings/widgets') ?>" class="nav-link <?= isActive('settings/widgets', $currentUrl) ?>">Dashboard</a></li>
+                            <?php endif; ?>
+                            <?php if ($_role === 'admin'): ?>
+                            <li class="nav-item"><a href="<?= url('settings/permissions') ?>" class="nav-link <?= isActive('settings/permissions', $currentUrl) ?>">Phân quyền</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">Thương hiệu</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive('settings/contact-statuses', $currentUrl) ?>">Trạng thái KH</a></li>
+                            <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
+                            <li class="nav-item"><a href="<?= url('tags') ?>" class="nav-link <?= isActive('tags', $currentUrl) ?>">Nhãn</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/api-keys') ?>" class="nav-link <?= isActive('settings/api-keys', $currentUrl) ?>">API Keys</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/audit-log') ?>" class="nav-link <?= isActive('settings/audit-log', $currentUrl) ?>">Audit Log</a></li>
+                            <?php endif; ?>
+                            <li class="nav-item"><a href="<?= url('help') ?>" class="nav-link <?= isActive('help', $currentUrl) ?>">Trợ giúp</a></li>
+                        </ul>
+                    </div>
                 </li>
 
             </ul>
