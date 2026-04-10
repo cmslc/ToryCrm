@@ -277,12 +277,76 @@ class AiService
     {
         $msg = mb_strtolower(trim($message));
 
+        // Tra cứu khách hàng theo SĐT
+        if (preg_match('/(\d{9,11})/', $msg, $m)) {
+            $phone = $m[1];
+            $contacts = Database::fetchAll(
+                "SELECT c.id, c.first_name, c.last_name, c.phone, c.email, c.status, c.position, comp.name as company_name
+                 FROM contacts c LEFT JOIN companies comp ON c.company_id = comp.id
+                 WHERE c.tenant_id = ? AND c.is_deleted = 0 AND REPLACE(REPLACE(c.phone, ' ', ''), '.', '') LIKE ?
+                 LIMIT 5",
+                [$tenantId, '%' . $phone . '%']
+            );
+            if (!empty($contacts)) {
+                $text = "📱 Tìm thấy " . count($contacts) . " khách hàng với SĐT chứa {$phone}:\n";
+                foreach ($contacts as $c) {
+                    $name = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                    $text .= "• **{$name}**";
+                    if ($c['phone']) $text .= " | SĐT: " . $c['phone'];
+                    if ($c['email']) $text .= " | " . $c['email'];
+                    if ($c['company_name']) $text .= " | Cty: " . $c['company_name'];
+                    if ($c['position']) $text .= " | " . $c['position'];
+                    $text .= " | TT: " . $c['status'] . "\n";
+                }
+                return trim($text);
+            }
+            return "❌ Không tìm thấy khách hàng nào với SĐT: {$phone}";
+        }
+
+        // Tra cứu khách hàng theo tên/email
+        $searchKeywords = ['khách hàng', 'khach hang', 'liên hệ', 'lien he', 'contact', 'ai là', 'tìm', 'tra cứu', 'của ai', 'số này', 'email'];
+        $isSearch = false;
+        foreach ($searchKeywords as $kw) {
+            if (str_contains($msg, $kw)) { $isSearch = true; break; }
+        }
+        if ($isSearch) {
+            // Extract search term: remove keywords, keep the rest
+            $searchTerm = $msg;
+            foreach ($searchKeywords as $kw) {
+                $searchTerm = str_replace($kw, '', $searchTerm);
+            }
+            $searchTerm = trim(preg_replace('/\s+/', ' ', $searchTerm));
+            if (mb_strlen($searchTerm) >= 2) {
+                $contacts = Database::fetchAll(
+                    "SELECT c.id, c.first_name, c.last_name, c.phone, c.email, c.status, comp.name as company_name
+                     FROM contacts c LEFT JOIN companies comp ON c.company_id = comp.id
+                     WHERE c.tenant_id = ? AND c.is_deleted = 0
+                       AND (CONCAT(c.first_name, ' ', c.last_name) LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)
+                     LIMIT 5",
+                    [$tenantId, '%' . $searchTerm . '%', '%' . $searchTerm . '%', '%' . $searchTerm . '%']
+                );
+                if (!empty($contacts)) {
+                    $text = "🔍 Tìm thấy " . count($contacts) . " khách hàng:\n";
+                    foreach ($contacts as $c) {
+                        $name = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                        $text .= "• **{$name}**";
+                        if ($c['phone']) $text .= " | " . $c['phone'];
+                        if ($c['email']) $text .= " | " . $c['email'];
+                        if ($c['company_name']) $text .= " | " . $c['company_name'];
+                        $text .= "\n";
+                    }
+                    return trim($text);
+                }
+                return "❌ Không tìm thấy khách hàng nào khớp: \"{$searchTerm}\"";
+            }
+        }
+
         if (str_contains($msg, 'doanh thu') || str_contains($msg, 'revenue')) {
             $won = Database::fetch("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE tenant_id = ? AND status = 'won' AND MONTH(actual_close_date) = MONTH(CURDATE()) AND YEAR(actual_close_date) = YEAR(CURDATE())", [$tenantId]);
             $ord = Database::fetch("SELECT COUNT(*) as c, COALESCE(SUM(total),0) as v FROM orders WHERE tenant_id = ? AND is_deleted = 0 AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())", [$tenantId]);
             return "💰 Doanh thu tháng " . date('m/Y') . ":\n• Deal: " . ($won['c'] ?? 0) . " - " . number_format($won['v'] ?? 0) . " VNĐ\n• Đơn hàng: " . ($ord['c'] ?? 0) . " - " . number_format($ord['v'] ?? 0) . " VNĐ";
         }
-        if (str_contains($msg, 'quá hạn') || str_contains($msg, 'task')) {
+        if (str_contains($msg, 'quá hạn') || str_contains($msg, 'task') || str_contains($msg, 'công việc')) {
             $tasks = Database::fetchAll("SELECT t.title, t.due_date FROM tasks t WHERE t.tenant_id = ? AND t.is_deleted = 0 AND t.due_date < NOW() AND t.status != 'done' ORDER BY t.due_date LIMIT 5", [$tenantId]);
             if (empty($tasks)) return "✅ Không có task quá hạn!";
             $text = "⚠️ " . count($tasks) . " task quá hạn:\n";
@@ -295,7 +359,13 @@ class AiService
             foreach ($stages as $s) $text .= "• " . $s['name'] . ": " . $s['c'] . " deal (" . number_format($s['v']) . "đ)\n";
             return trim($text);
         }
+        if (str_contains($msg, 'tổng quan') || str_contains($msg, 'báo cáo') || str_contains($msg, 'thống kê')) {
+            $contacts = Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE tenant_id = ? AND is_deleted = 0", [$tenantId]);
+            $deals = Database::fetch("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE tenant_id = ? AND status = 'open'", [$tenantId]);
+            $overdue = Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND due_date < NOW() AND status != 'done'", [$tenantId]);
+            return "📊 Tổng quan:\n• Khách hàng: " . number_format($contacts['c'] ?? 0) . "\n• Deal đang mở: " . ($deals['c'] ?? 0) . " (" . number_format($deals['v'] ?? 0) . "đ)\n• Task quá hạn: " . ($overdue['c'] ?? 0) . "\n• Ngày: " . date('d/m/Y');
+        }
 
-        return "Tôi chưa hiểu. Thử hỏi:\n• \"Doanh thu tháng này\"\n• \"Task quá hạn\"\n• \"Pipeline\"\n\n💡 Thêm GROQ_API_KEY hoặc GEMINI_API_KEY vào .env để AI thông minh hơn.";
+        return "Tôi có thể giúp bạn:\n• Tra cứu SĐT/tên khách hàng\n• \"Doanh thu tháng này\"\n• \"Task quá hạn\" / \"Công việc\"\n• \"Pipeline\" / \"Tổng quan\"\n\n💡 Cấu hình API key tại Cài đặt → API để AI thông minh hơn.";
     }
 }
