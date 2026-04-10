@@ -164,6 +164,140 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     </script>
     <?php endif; ?>
 
+    <!-- Theme Customizer Toggle -->
+    <button class="btn btn-danger btn-icon" data-bs-toggle="offcanvas" data-bs-target="#theme-settings-offcanvas" style="position:fixed;bottom:24px;right:24px;z-index:1000;width:40px;height:40px;border-radius:50%;box-shadow:0 4px 12px rgba(0,0,0,.25)">
+        <i class="ri-settings-5-line fs-20" style="animation:spin 3s linear infinite"></i>
+    </button>
+    <style>@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>
+
+    <!-- Theme Customizer Offcanvas -->
+    <div class="offcanvas offcanvas-end border-0" tabindex="-1" id="theme-settings-offcanvas">
+        <div class="d-flex align-items-center bg-primary p-3 offcanvas-header">
+            <h5 class="text-white mb-0 me-2">Theme Customizer</h5>
+            <button type="button" class="btn-close btn-close-white ms-auto" id="customizerclose-btn" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0" data-simplebar>
+            <div class="p-4">
+                <!-- Color Scheme -->
+                <h6 class="fw-semibold fs-13 mb-3">Chế độ sáng / tối</h6>
+                <div class="row g-2" id="themeOptions">
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-bs-theme" id="layout-mode-light" value="light" <?= $userTheme === 'light' ? 'checked' : '' ?>>
+                            <label class="form-check-label bg-light p-2 rounded text-center" for="layout-mode-light">
+                                <i class="ri-sun-line fs-20 d-block mb-1"></i> Sáng
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-bs-theme" id="layout-mode-dark" value="dark" <?= $userTheme === 'dark' ? 'checked' : '' ?>>
+                            <label class="form-check-label bg-dark text-white p-2 rounded text-center" for="layout-mode-dark">
+                                <i class="ri-moon-line fs-20 d-block mb-1"></i> Tối
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Topbar Color -->
+                <h6 class="fw-semibold fs-13 mt-4 mb-3">Topbar</h6>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-topbar" id="topbar-light" value="light" checked>
+                            <label class="form-check-label p-2 rounded text-center" for="topbar-light">Sáng</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-topbar" id="topbar-dark" value="dark">
+                            <label class="form-check-label bg-dark text-white p-2 rounded text-center" for="topbar-dark">Tối</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Color -->
+                <h6 class="fw-semibold fs-13 mt-4 mb-3">Sidebar</h6>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-sidebar" id="sidebar-dark" value="dark" checked>
+                            <label class="form-check-label bg-dark text-white p-2 rounded text-center" for="sidebar-dark">Tối</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-sidebar" id="sidebar-light" value="light">
+                            <label class="form-check-label p-2 rounded text-center" for="sidebar-light">Sáng</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-sidebar" id="sidebar-gradient" value="gradient">
+                            <label class="form-check-label p-2 rounded text-center" style="background:linear-gradient(135deg,#405189,#0ab39c)"><span class="text-white">Gradient</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Size -->
+                <h6 class="fw-semibold fs-13 mt-4 mb-3">Kích thước Sidebar</h6>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-sidebar-size" id="sidebar-size-lg" value="lg" checked>
+                            <label class="form-check-label p-2 rounded text-center" for="sidebar-size-lg">Lớn</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-sidebar-size" id="sidebar-size-sm-hover" value="sm-hover">
+                            <label class="form-check-label p-2 rounded text-center" for="sidebar-size-sm-hover">Icon</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout Width -->
+                <h6 class="fw-semibold fs-13 mt-4 mb-3">Chiều rộng</h6>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-layout-width" id="layout-width-fluid" value="fluid" checked>
+                            <label class="form-check-label p-2 rounded text-center" for="layout-width-fluid">Rộng</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-check card-radio">
+                            <input class="form-check-input" type="radio" name="data-layout-width" id="layout-width-boxed" value="boxed">
+                            <label class="form-check-label p-2 rounded text-center" for="layout-width-boxed">Hẹp</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Theme customizer: apply changes to document and save to server
+    document.querySelectorAll('#theme-settings-offcanvas input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            var attr = this.name;
+            var val = this.value;
+            document.documentElement.setAttribute(attr, val);
+
+            // Save theme to server if it's the color scheme
+            if (attr === 'data-bs-theme') {
+                fetch('<?= url("theme/toggle") ?>', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: '_token=<?= csrf_token() ?>&theme=' + val
+                });
+                // Also update topbar
+                document.documentElement.setAttribute('data-topbar', val === 'dark' ? 'dark' : 'light');
+            }
+        });
+    });
+    </script>
+
     <!-- Service Worker -->
     <script>
     if ('serviceWorker' in navigator) {
