@@ -171,7 +171,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                             </td>
                             <td class="col-status"><span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span></td>
                             <td class="col-priority"><span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span></td>
-                            <td class="col-assigned"><?= e($task['assigned_name'] ?? '-') ?></td>
+                            <td class="col-assigned"><?= user_avatar($task['assigned_name'] ?? null) ?></td>
                             <td class="col-followers">
                                 <?php
                                 $taskFollowers = \Core\Database::fetchAll("SELECT u.name FROM task_followers tf JOIN users u ON tf.user_id = u.id WHERE tf.task_id = ? ORDER BY u.name", [$task['id']]);
@@ -180,13 +180,8 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                                     <span class="badge bg-light text-body"><?= e($tf['name']) ?></span>
                                 <?php endforeach; else: ?>-<?php endif; ?>
                             </td>
-                            <td class="col-created"><span class="text-muted"><?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '-' ?></span></td>
-                            <td class="col-due">
-                                <?php if ($task['due_date']): ?>
-                                    <?php $isOverdue = strtotime($task['due_date']) < time() && $task['status'] !== 'done'; ?>
-                                    <span class="<?= $isOverdue ? 'text-danger fw-medium' : 'text-muted' ?>"><?= date('d/m/Y H:i', strtotime($task['due_date'])) ?></span>
-                                <?php else: ?>-<?php endif; ?>
-                            </td>
+                            <td class="col-created"><span class="text-muted" title="<?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '' ?>"><?= created_ago($task['created_at'] ?? null) ?></span></td>
+                            <td class="col-due"><?= due_label($task['due_date'] ?? null, $task['status']) ?></td>
                             <td class="col-related">
                                 <?php if ($task['contact_first_name']): ?>
                                     <span><?= e($task['contact_first_name']) ?></span>

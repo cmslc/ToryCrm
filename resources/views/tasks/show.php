@@ -145,8 +145,8 @@ function formatDuration($s) {
                 <table class="table table-borderless mb-0">
                     <tr><th class="text-muted" style="width:120px">Trạng thái</th><td><span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span></td></tr>
                     <tr><th class="text-muted">Ưu tiên</th><td><span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span></td></tr>
-                    <tr><th class="text-muted">Giao cho</th><td><?php if ($task['assigned_name']): ?><div class="d-flex align-items-center gap-2"><div class="avatar-xs"><div class="avatar-title rounded-circle bg-primary-subtle text-primary"><?= mb_strtoupper(mb_substr($task['assigned_name'], 0, 1)) ?></div></div><?= e($task['assigned_name']) ?></div><?php else: ?>-<?php endif; ?></td></tr>
-                    <tr><th class="text-muted">Tạo bởi</th><td><?php if ($task['creator_name']): ?><div class="d-flex align-items-center gap-2"><div class="avatar-xs"><div class="avatar-title rounded-circle bg-success-subtle text-success"><?= mb_strtoupper(mb_substr($task['creator_name'], 0, 1)) ?></div></div><?= e($task['creator_name']) ?></div><?php else: ?>-<?php endif; ?></td></tr>
+                    <tr><th class="text-muted">Giao cho</th><td><?= user_avatar($task['assigned_name'] ?? null) ?></td></tr>
+                    <tr><th class="text-muted">Tạo bởi</th><td><?= user_avatar($task['creator_name'] ?? null, 'success') ?></td></tr>
                     <tr><th class="text-muted">Hạn</th><td><?= $task['due_date'] ? date('d/m/Y H:i', strtotime($task['due_date'])) : '-' ?></td></tr>
                     <tr><th class="text-muted">Ngày tạo</th><td><?= date('d/m/Y H:i', strtotime($task['created_at'])) ?></td></tr>
                     <?php if ($task['completed_at']): ?><tr><th class="text-muted">Hoàn thành</th><td class="text-success"><?= date('d/m/Y H:i', strtotime($task['completed_at'])) ?></td></tr><?php endif; ?>

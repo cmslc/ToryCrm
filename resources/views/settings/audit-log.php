@@ -42,7 +42,7 @@
                                 <?php foreach ($logs['items'] as $log): ?>
                                 <tr>
                                     <td class="small"><?= format_datetime($log['created_at']) ?></td>
-                                    <td><?= e($log['user_name'] ?? 'System') ?></td>
+                                    <td><?= user_avatar($log['user_name'] ?? null) ?></td>
                                     <td>
                                         <?php
                                         $ac = ['create'=>'success','update'=>'warning','delete'=>'danger','login'=>'info','export'=>'primary'];

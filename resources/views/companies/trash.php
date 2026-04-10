@@ -28,7 +28,7 @@
                             <td><?= e($c['industry'] ?? '-') ?></td>
                             <td><?= e($c['email'] ?? '-') ?></td>
                             <td><?= e($c['phone'] ?? '-') ?></td>
-                            <td><?= e($c['owner_name'] ?? '-') ?></td>
+                            <td><?= user_avatar($c['owner_name'] ?? null) ?></td>
                             <td class="text-muted"><?= $c['deleted_at'] ? format_datetime($c['deleted_at']) : '-' ?></td>
                             <td>
                                 <form method="POST" action="<?= url('companies/' . $c['id'] . '/restore') ?>" class="d-inline" data-confirm="Khôi phục doanh nghiệp này?">

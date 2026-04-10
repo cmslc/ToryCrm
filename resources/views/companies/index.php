@@ -111,7 +111,7 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
                             <td><span class="badge bg-primary-subtle text-primary"><?= $c['contact_count'] ?? 0 ?></span></td>
                             <td><span class="badge bg-warning-subtle text-warning"><?= $c['deal_count'] ?? 0 ?></span></td>
                             <td class="fw-medium"><?= ($c['total_revenue'] ?? 0) > 0 ? format_money($c['total_revenue']) : '-' ?></td>
-                            <td class="fs-13"><?= e($c['owner_name'] ?? '-') ?></td>
+                            <td><?= user_avatar($c['owner_name'] ?? null) ?></td>
                             <td class="text-muted fs-12"><?= !empty($c['last_activity_at']) ? time_ago($c['last_activity_at']) : '-' ?></td>
                             <td>
                                 <div class="dropdown">

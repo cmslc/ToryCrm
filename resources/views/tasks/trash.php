@@ -17,7 +17,7 @@
                         <?php foreach ($tasks as $t): ?>
                         <tr>
                             <td class="fw-medium"><?= e($t['title']) ?></td>
-                            <td><?= e($t['assigned_name'] ?? '-') ?></td>
+                            <td><?= user_avatar($t['assigned_name'] ?? null) ?></td>
                             <td>
                                 <?php $pc = ['low'=>'info','medium'=>'warning','high'=>'danger','urgent'=>'danger']; ?>
                                 <span class="badge bg-<?= $pc[$t['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$t['priority']] ?? 'secondary' ?>"><?= ucfirst($t['priority'] ?? '') ?></span>

@@ -79,6 +79,53 @@ function time_ago(string $datetime): string
     return format_date($datetime);
 }
 
+function due_label(?string $dueDate, string $status = ''): string
+{
+    if (empty($dueDate)) return '-';
+    $due = strtotime($dueDate);
+    $now = time();
+    $diffDays = (int) floor(($now - $due) / 86400);
+
+    if ($status === 'done') {
+        return '<span class="text-success"><i class="ri-check-line me-1"></i>' . date('d/m/Y', $due) . '</span>';
+    }
+    if ($diffDays > 0) {
+        return '<span class="text-danger fw-medium"><i class="ri-alarm-warning-line me-1"></i>Chậm ' . $diffDays . ' ngày</span>';
+    }
+    if ($diffDays === 0) {
+        return '<span class="text-warning fw-medium"><i class="ri-time-line me-1"></i>Hôm nay</span>';
+    }
+    $remaining = abs($diffDays);
+    if ($remaining <= 3) {
+        return '<span class="text-warning">Còn ' . $remaining . ' ngày</span>';
+    }
+    return '<span class="text-muted">' . date('d/m/Y', $due) . '</span>';
+}
+
+function created_ago(?string $datetime): string
+{
+    if (empty($datetime)) return '-';
+    $time = strtotime($datetime);
+    $diff = time() - $time;
+
+    if ($diff < 60) return 'Vừa xong';
+    if ($diff < 3600) return floor($diff / 60) . ' phút trước';
+    if ($diff < 86400) return floor($diff / 3600) . ' giờ trước';
+    $days = (int) floor($diff / 86400);
+    if ($days === 0) return 'Hôm nay';
+    if ($days === 1) return 'Hôm qua';
+    if ($days < 30) return $days . ' ngày trước';
+    if ($days < 365) return floor($days / 30) . ' tháng trước';
+    return date('d/m/Y', $time);
+}
+
+function user_avatar(?string $name, string $color = 'primary'): string
+{
+    if (empty($name)) return '-';
+    $initial = mb_strtoupper(mb_substr(trim($name), 0, 1));
+    return '<div class="d-flex align-items-center gap-2"><div class="avatar-xs"><div class="avatar-title rounded-circle bg-' . $color . '-subtle text-' . $color . '">' . $initial . '</div></div>' . e($name) . '</div>';
+}
+
 function avatar_url(?string $avatar): string
 {
     if ($avatar && file_exists(BASE_PATH . '/public/uploads/avatars/' . $avatar)) {

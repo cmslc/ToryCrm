@@ -124,7 +124,7 @@
                                             <span class="text-muted">-</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= e($cl['user_name'] ?? '-') ?></td>
+                                    <td><?= user_avatar($cl['user_name'] ?? null) ?></td>
                                     <td>
                                         <?php
                                         $dur = (int)$cl['duration'];

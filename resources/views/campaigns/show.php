@@ -144,7 +144,7 @@
                             </tr>
                             <tr>
                                 <th class="text-muted">Phụ trách</th>
-                                <td><?= e($campaign['owner_name'] ?? '-') ?></td>
+                                <td><?= user_avatar($campaign['owner_name'] ?? null) ?></td>
                             </tr>
                             <tr>
                                 <th class="text-muted">Ngày tạo</th>

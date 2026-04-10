@@ -183,9 +183,9 @@
                             </td></tr>
                             <tr><th class="text-muted">Khách hàng</th><td><?= $ticket['contact_id'] ? '<a href="' . url('contacts/' . $ticket['contact_id']) . '">' . e($ticket['contact_name'] ?? '') . '</a>' : '-' ?></td></tr>
                             <tr><th class="text-muted">Công ty</th><td><?= $ticket['company_id'] ? '<a href="' . url('companies/' . $ticket['company_id']) . '">' . e($ticket['company_name'] ?? '') . '</a>' : '-' ?></td></tr>
-                            <tr><th class="text-muted">Phụ trách</th><td><?= e($ticket['assigned_name'] ?? '-') ?></td></tr>
+                            <tr><th class="text-muted">Phụ trách</th><td><?= user_avatar($ticket['assigned_name'] ?? null) ?></td></tr>
                             <tr><th class="text-muted">Hạn xử lý</th><td><?= !empty($ticket['due_date']) ? format_datetime($ticket['due_date']) : '-' ?></td></tr>
-                            <tr><th class="text-muted">Người tạo</th><td><?= e($ticket['created_by_name'] ?? '-') ?></td></tr>
+                            <tr><th class="text-muted">Người tạo</th><td><?= user_avatar($ticket['created_by_name'] ?? null, 'success') ?></td></tr>
                             <tr><th class="text-muted">Ngày tạo</th><td><?= format_datetime($ticket['created_at']) ?></td></tr>
                             <tr><th class="text-muted">Cập nhật</th><td><?= format_datetime($ticket['updated_at']) ?></td></tr>
                         </table>

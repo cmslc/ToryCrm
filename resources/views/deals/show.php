@@ -79,7 +79,7 @@
                             <tr><th class="text-muted" width="40%"><i class="ri-bar-chart-line me-2"></i>Giai đoạn</th><td><span class="badge" style="background:<?= safe_color($deal['stage_color'] ?? null) ?>"><?= e($deal['stage_name'] ?? '') ?></span></td></tr>
                             <tr><th class="text-muted"><i class="ri-flag-line me-2"></i>Ưu tiên</th><td><?php $pl=['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn']; echo $pl[$deal['priority']] ?? ''; ?></td></tr>
                             <tr><th class="text-muted"><i class="ri-calendar-line me-2"></i>Ngày dự kiến</th><td><?= $deal['expected_close_date'] ? format_date($deal['expected_close_date']) : '-' ?></td></tr>
-                            <tr><th class="text-muted"><i class="ri-user-star-line me-2"></i>Phụ trách</th><td><?= e($deal['owner_name'] ?? '-') ?></td></tr>
+                            <tr><th class="text-muted"><i class="ri-user-star-line me-2"></i>Phụ trách</th><td><?= user_avatar($deal['owner_name'] ?? null) ?></td></tr>
                             <tr><th class="text-muted"><i class="ri-time-line me-2"></i>Ngày tạo</th><td><?= format_datetime($deal['created_at']) ?></td></tr>
                             <?php if ($deal['status'] !== 'open' && !empty($deal['close_reason'])): ?>
                                 <tr><th class="text-muted"><i class="ri-information-line me-2"></i>Lý do đóng</th><td><?= e($deal['close_reason']) ?></td></tr>

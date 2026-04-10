@@ -120,7 +120,7 @@
                                                 <span class="badge bg-<?= $dotColor ?>-subtle text-<?= $dotColor ?>" title="SLA: <?= $dotLabel ?>"><i class="ri-circle-fill fs-6 align-middle"></i> <?= $dotLabel ?></span>
                                             <?php endif; endif; ?>
                                         </td>
-                                        <td><?= e($ticket['assigned_name'] ?? '-') ?></td>
+                                        <td><?= user_avatar($ticket['assigned_name'] ?? null) ?></td>
                                         <td><?= format_date($ticket['created_at']) ?></td>
                                         <td>
                                             <div class="dropdown">

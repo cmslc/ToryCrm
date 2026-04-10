@@ -65,7 +65,7 @@
                                             <span class="badge bg-<?= $pc[$deal['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$deal['priority']] ?? 'secondary' ?>"><?= $pl[$deal['priority']] ?? '' ?></span>
                                         </td>
                                         <td><?= $deal['expected_close_date'] ? format_date($deal['expected_close_date']) : '-' ?></td>
-                                        <td><?= e($deal['owner_name'] ?? '-') ?></td>
+                                        <td><?= user_avatar($deal['owner_name'] ?? null) ?></td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>

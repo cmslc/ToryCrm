@@ -67,7 +67,7 @@ $typeIcons = ['meeting'=>'ri-team-line','call'=>'ri-phone-line','visit'=>'ri-map
                                     <?php endif; ?>
                                     <tr>
                                         <th><i class="ri-user-line me-1"></i>Người thực hiện</th>
-                                        <td><?= e($event['user_name'] ?? '-') ?></td>
+                                        <td><?= user_avatar($event['user_name'] ?? null) ?></td>
                                     </tr>
                                     <tr>
                                         <th><i class="ri-user-add-line me-1"></i>Người tạo</th>
