@@ -72,6 +72,25 @@ class TaskController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
+        // Status counts for tabs (respect owner scope)
+        $scopeWhere = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $scopeParams = [Database::tenantId()];
+        if ($ownerScope['where']) {
+            $scopeWhere[] = $ownerScope['where'];
+            $scopeParams = array_merge($scopeParams, $ownerScope['params']);
+        }
+        $scopeClause = implode(' AND ', $scopeWhere);
+        $statusCounts = Database::fetchAll(
+            "SELECT t.status, COUNT(*) as count FROM tasks t WHERE {$scopeClause} GROUP BY t.status",
+            $scopeParams
+        );
+
+        // Users for filter dropdown
+        $users = Database::fetchAll(
+            "SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name",
+            [Database::tenantId()]
+        );
+
         return $this->view('tasks.index', [
             'tasks' => [
                 'items' => $tasks,
@@ -85,6 +104,8 @@ class TaskController extends Controller
                 'priority' => $priority,
                 'assigned_to' => $assignedTo,
             ],
+            'statusCounts' => $statusCounts,
+            'users' => $users,
         ]);
     }
 
