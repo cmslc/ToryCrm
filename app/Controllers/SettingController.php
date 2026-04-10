@@ -286,6 +286,7 @@ class SettingController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('settings/api');
 
+        $deepseekKey = trim($this->input('deepseek_api_key') ?? '');
         $openrouterKey = trim($this->input('openrouter_api_key') ?? '');
         $groqKey = trim($this->input('groq_api_key') ?? '');
         $geminiKey = trim($this->input('gemini_api_key') ?? '');
@@ -295,7 +296,7 @@ class SettingController extends Controller
         $envPath = BASE_PATH . '/.env';
         $envContent = file_get_contents($envPath);
 
-        foreach (['OPENROUTER_API_KEY' => $openrouterKey, 'GROQ_API_KEY' => $groqKey, 'GEMINI_API_KEY' => $geminiKey, 'GOOGLE_MAPS_API_KEY' => $gmapsKey] as $envKey => $envVal) {
+        foreach (['DEEPSEEK_API_KEY' => $deepseekKey, 'OPENROUTER_API_KEY' => $openrouterKey, 'GROQ_API_KEY' => $groqKey, 'GEMINI_API_KEY' => $geminiKey, 'GOOGLE_MAPS_API_KEY' => $gmapsKey] as $envKey => $envVal) {
             if (str_contains($envContent, $envKey . '=')) {
                 $envContent = preg_replace('/' . $envKey . '=.*/', $envKey . '=' . $envVal, $envContent);
             } else {

@@ -1,9 +1,11 @@
 <?php
 $pageTitle = 'Cấu hình API';
+$deepseekKey = $_ENV['DEEPSEEK_API_KEY'] ?? getenv('DEEPSEEK_API_KEY') ?: '';
 $openrouterKey = $_ENV['OPENROUTER_API_KEY'] ?? getenv('OPENROUTER_API_KEY') ?: '';
 $groqKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY') ?: '';
 $geminiKey = $_ENV['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?: '';
 $gmapsKey = $_ENV['GOOGLE_MAPS_API_KEY'] ?? getenv('GOOGLE_MAPS_API_KEY') ?: '';
+$hasDeepSeek = !empty($deepseekKey);
 $hasOpenRouter = !empty($openrouterKey);
 $hasGroq = !empty($groqKey);
 $hasGmaps = !empty($gmapsKey);
@@ -78,10 +80,23 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                 <form method="POST" action="<?= url('settings/api/save') ?>">
                     <?= csrf_field() ?>
 
-                    <!-- OpenRouter (ưu tiên) -->
-                    <div class="mb-4 p-3 border rounded <?= $hasOpenRouter ? 'border-success' : '' ?>">
+                    <!-- DeepSeek (ưu tiên cho Asia/HK) -->
+                    <div class="mb-4 p-3 border rounded <?= $hasDeepSeek ? 'border-success' : '' ?>">
                         <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1"><i class="ri-global-line me-1 text-success"></i> OpenRouter <span class="badge bg-success-subtle text-success">Khuyên dùng</span></h6>
+                            <h6 class="mb-0 flex-grow-1"><i class="ri-brain-line me-1 text-success"></i> DeepSeek <span class="badge bg-success-subtle text-success">Khuyên dùng (Asia)</span></h6>
+                            <?php if ($hasDeepSeek): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
+                        </div>
+                        <div class="input-group mb-2">
+                            <input type="password" class="form-control" name="deepseek_api_key" id="deepseekKeyInput" value="<?= e($deepseekKey) ?>" placeholder="sk-xxxxxxxxxxxxx...">
+                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('deepseekKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
+                        </div>
+                        <small class="text-muted">Model: DeepSeek-V3 | $5 free credit | Hoạt động tốt ở châu Á | <a href="https://platform.deepseek.com/api_keys" target="_blank">Lấy key</a></small>
+                    </div>
+
+                    <!-- OpenRouter -->
+                    <div class="mb-4 p-3 border rounded <?= !$hasDeepSeek && $hasOpenRouter ? 'border-success' : '' ?>">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 flex-grow-1"><i class="ri-global-line me-1 text-info"></i> OpenRouter</h6>
                             <?php if ($hasOpenRouter): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
                         </div>
                         <div class="input-group mb-2">
