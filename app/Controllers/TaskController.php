@@ -207,6 +207,30 @@ class TaskController extends Controller
             try { Database::query("INSERT INTO task_followers (task_id, user_id) VALUES (?, ?)", [$taskId, $fid]); } catch (\Exception $e) {}
         }
 
+        // Handle file attachments
+        if (!empty($_FILES['attachments']['name'][0])) {
+            $uploadDir = BASE_PATH . '/public/uploads/tasks/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+            foreach ($_FILES['attachments']['name'] as $i => $name) {
+                if ($_FILES['attachments']['error'][$i] !== UPLOAD_ERR_OK) continue;
+                if ($_FILES['attachments']['size'][$i] > 10 * 1024 * 1024) continue;
+
+                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                $filename = 'task_' . $taskId . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['attachments']['tmp_name'][$i], $uploadDir . $filename);
+
+                Database::insert('task_attachments', [
+                    'task_id' => $taskId,
+                    'user_id' => $this->userId(),
+                    'filename' => $filename,
+                    'original_name' => $name,
+                    'file_size' => $_FILES['attachments']['size'][$i],
+                    'mime_type' => $_FILES['attachments']['type'][$i],
+                ]);
+            }
+        }
+
         // Log activity
         Database::insert('activities', [
             'type' => 'task',
@@ -401,6 +425,30 @@ class TaskController extends Controller
             $description .= " Status changed from {$oldStatus} to {$newStatus}.";
         }
 
+        // Handle file attachments
+        if (!empty($_FILES['attachments']['name'][0])) {
+            $uploadDir = BASE_PATH . '/public/uploads/tasks/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+            foreach ($_FILES['attachments']['name'] as $i => $name) {
+                if ($_FILES['attachments']['error'][$i] !== UPLOAD_ERR_OK) continue;
+                if ($_FILES['attachments']['size'][$i] > 10 * 1024 * 1024) continue;
+
+                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                $filename = 'task_' . $id . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['attachments']['tmp_name'][$i], $uploadDir . $filename);
+
+                Database::insert('task_attachments', [
+                    'task_id' => (int)$id,
+                    'user_id' => $this->userId(),
+                    'filename' => $filename,
+                    'original_name' => $name,
+                    'file_size' => $_FILES['attachments']['size'][$i],
+                    'mime_type' => $_FILES['attachments']['type'][$i],
+                ]);
+            }
+        }
+
         Database::insert('activities', [
             'type' => 'task',
             'title' => "Task updated: {$title}",
@@ -408,7 +456,7 @@ class TaskController extends Controller
             'user_id' => $this->userId(),
         ]);
 
-        $this->setFlash('success', 'Task updated successfully.');
+        $this->setFlash('success', 'Đã cập nhật công việc.');
         return $this->redirect('tasks/' . $id);
     }
 

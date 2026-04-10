@@ -5,7 +5,7 @@
             <ol class="breadcrumb m-0"><li class="breadcrumb-item"><a href="<?= url('tasks') ?>">Công việc</a></li><li class="breadcrumb-item active">Sửa</li></ol>
         </div>
 
-        <form method="POST" action="<?= url('tasks/' . $task['id'] . '/update') ?>">
+        <form method="POST" action="<?= url('tasks/' . $task['id'] . '/update') ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row">
                 <div class="col-lg-8">
@@ -18,6 +18,15 @@
                             <div class="col-md-6 mb-3"><label class="form-label">Cơ hội</label><select name="deal_id" class="form-select"><option value="">Chọn</option><?php foreach ($deals ?? [] as $d): ?><option value="<?= $d['id'] ?>" <?= ($task['deal_id'] ?? '') == $d['id'] ? 'selected' : '' ?>><?= e($d['title']) ?></option><?php endforeach; ?></select></div>
                         </div>
                     </div></div>
+                    <div class="card">
+                        <div class="card-header"><h6 class="card-title mb-0"><i class="ri-attachment-2 me-1"></i> Đính kèm thêm</h6></div>
+                        <div class="card-body">
+                            <input type="file" name="attachments[]" id="fileInput" class="d-none" multiple>
+                            <div id="fileList" class="d-flex flex-wrap gap-2 mb-3"></div>
+                            <button type="button" class="btn btn-soft-primary" onclick="document.getElementById('fileInput').click()"><i class="ri-upload-2-line me-1"></i> Chọn file</button>
+                            <small class="text-muted ms-2">Tối đa 10MB / file</small>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="card"><div class="card-body">
@@ -32,3 +41,15 @@
                 </div>
             </div>
         </form>
+<script>
+document.getElementById('fileInput')?.addEventListener('change', function() {
+    var list = document.getElementById('fileList');
+    Array.from(this.files).forEach(function(file) {
+        var size = (file.size / 1024).toFixed(1);
+        var div = document.createElement('div');
+        div.className = 'border rounded p-2 d-flex align-items-center gap-2';
+        div.innerHTML = '<i class="ri-file-line text-primary fs-18"></i><div><div class="fw-medium fs-13">' + file.name + '</div><small class="text-muted">' + size + ' KB</small></div>';
+        list.appendChild(div);
+    });
+});
+</script>
