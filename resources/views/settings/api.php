@@ -78,11 +78,24 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                 <form method="POST" action="<?= url('settings/api/save') ?>">
                     <?= csrf_field() ?>
 
-                    <!-- Groq (ưu tiên) -->
-                    <div class="mb-4 p-3 border rounded <?= $hasGroq ? 'border-success' : '' ?>">
+                    <!-- OpenRouter (ưu tiên) -->
+                    <div class="mb-4 p-3 border rounded <?= $hasOpenRouter ? 'border-success' : '' ?>">
                         <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1"><i class="ri-speed-line me-1 text-success"></i> Groq <span class="badge bg-success-subtle text-success">Khuyên dùng</span></h6>
-                            <?php if ($hasGroq): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
+                            <h6 class="mb-0 flex-grow-1"><i class="ri-global-line me-1 text-success"></i> OpenRouter <span class="badge bg-success-subtle text-success">Khuyên dùng</span></h6>
+                            <?php if ($hasOpenRouter): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
+                        </div>
+                        <div class="input-group mb-2">
+                            <input type="password" class="form-control" name="openrouter_api_key" id="openrouterKeyInput" value="<?= e($openrouterKey) ?>" placeholder="sk-or-v1-xxxxxxxxxxxxx...">
+                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('openrouterKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
+                        </div>
+                        <small class="text-muted">Model: Llama 3.3 70B | Không bị chặn location | <a href="https://openrouter.ai/keys" target="_blank">Lấy key</a></small>
+                    </div>
+
+                    <!-- Groq -->
+                    <div class="mb-4 p-3 border rounded <?= !$hasOpenRouter && $hasGroq ? 'border-success' : '' ?>">
+                        <div class="d-flex align-items-center mb-2">
+                            <h6 class="mb-0 flex-grow-1"><i class="ri-speed-line me-1 text-info"></i> Groq</h6>
+                            <?php if (!$hasOpenRouter && $hasGroq): ?><span class="badge bg-info">Đang dùng</span><?php endif; ?>
                         </div>
                         <div class="input-group mb-2">
                             <input type="password" class="form-control" name="groq_api_key" id="groqKeyInput" value="<?= e($groqKey) ?>" placeholder="gsk_xxxxxxxxxxxxx...">
