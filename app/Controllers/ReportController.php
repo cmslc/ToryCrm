@@ -9,6 +9,7 @@ class ReportController extends Controller
 {
     public function index()
     {
+        $this->authorize('reports', 'view');
         return $this->view('reports.index');
     }
 

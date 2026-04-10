@@ -9,6 +9,10 @@ class FinanceReportController extends Controller
 {
     public function index()
     {
+        if (!$this->isAdminOrManager()) {
+            $this->setFlash('error', 'Bạn không có quyền xem báo cáo tài chính.');
+            return $this->redirect('dashboard');
+        }
         $tid = $this->tenantId();
         $monthStart = date('Y-m-01');
         $monthEnd = date('Y-m-t');
@@ -65,6 +69,7 @@ class FinanceReportController extends Controller
 
     public function profitLoss()
     {
+        if (!$this->isAdminOrManager()) { $this->setFlash("error", "Bạn không có quyền."); return $this->redirect("dashboard"); }
         $tid = $this->tenantId();
         $periodType = $this->input('period_type', 'month'); // month, quarter, year
         $year = (int) ($this->input('year') ?: date('Y'));
@@ -222,6 +227,7 @@ class FinanceReportController extends Controller
 
     public function cashFlow()
     {
+        if (!$this->isAdminOrManager()) { $this->setFlash('error', 'Bạn không có quyền.'); return $this->redirect('dashboard'); }
         $tid = $this->tenantId();
         $year = (int) ($this->input('year') ?: date('Y'));
 
@@ -281,6 +287,7 @@ class FinanceReportController extends Controller
 
     public function aging()
     {
+        if (!$this->isAdminOrManager()) { $this->setFlash('error', 'Bạn không có quyền.'); return $this->redirect('dashboard'); }
         $tid = $this->tenantId();
 
         // Get orders with outstanding balance
