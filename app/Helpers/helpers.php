@@ -140,9 +140,29 @@ function created_ago(?string $datetime): string
     return date('d/m/Y', $time);
 }
 
-function user_avatar(?string $name, string $color = 'primary'): string
+function user_avatar(?string $name, string $color = 'primary', ?string $avatar = null, string $dir = 'avatars'): string
 {
     if (empty($name)) return '-';
+
+    // Auto-lookup avatar from users table if not provided
+    if ($avatar === null) {
+        static $avatarCache = [];
+        $cacheKey = trim($name);
+        if (!isset($avatarCache[$cacheKey])) {
+            try {
+                $row = \Core\Database::fetch("SELECT avatar FROM users WHERE name = ? LIMIT 1", [$cacheKey]);
+                $avatarCache[$cacheKey] = $row['avatar'] ?? '';
+            } catch (\Exception $e) {
+                $avatarCache[$cacheKey] = '';
+            }
+        }
+        $avatar = $avatarCache[$cacheKey] ?: null;
+    }
+
+    if ($avatar && file_exists(BASE_PATH . '/public/uploads/' . $dir . '/' . $avatar)) {
+        $src = url('uploads/' . $dir . '/' . $avatar);
+        return '<div class="d-flex align-items-center gap-2"><div class="avatar-xs"><img src="' . $src . '" class="rounded-circle object-fit-cover" style="width:100%;height:100%"></div>' . e($name) . '</div>';
+    }
     $initial = mb_strtoupper(mb_substr(trim($name), 0, 1));
     return '<div class="d-flex align-items-center gap-2"><div class="avatar-xs"><div class="avatar-title rounded-circle bg-' . $color . '-subtle text-' . $color . '">' . $initial . '</div></div>' . e($name) . '</div>';
 }
