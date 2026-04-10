@@ -240,28 +240,8 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
                 <?php endif; /* end $_role !== 'staff' */ ?>
 
-                <?php if (canSee('settings', 'manage') || $_role === 'admin'): ?>
-                <?php $settingsOpen = isOpen(['settings','custom-fields','tags','help'], $currentUrl); ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
-                        <i class="ri-tools-line"></i> <span>Cài đặt</span>
-                    </a>
-                    <div class="collapse <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('settings') ?>" class="nav-link <?= $currentUrl === 'settings' ? 'active' : '' ?>">Cài đặt chung</a></li>
-                            <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive('settings/contact-statuses', $currentUrl) ?>">Trạng thái KH</a></li>
-                            <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
-                            <li class="nav-item"><a href="<?= url('tags') ?>" class="nav-link <?= isActive('tags', $currentUrl) ?>">Nhãn</a></li>
-                            <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
-                            <?php if ($_role === 'admin'): ?><li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">White-label</a></li><?php endif; ?>
-                            <li class="nav-item"><a href="<?= url('help') ?>" class="nav-link <?= isActive('help', $currentUrl) ?>">Trợ giúp</a></li>
-                        </ul>
-                    </div>
-                </li>
-                <?php else: ?>
-                <!-- Staff chỉ thấy Cài đặt cá nhân + Trợ giúp -->
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('settings', $currentUrl) ?>" href="<?= url('settings') ?>">
+                    <a class="nav-link menu-link <?= isActive('settings', $currentUrl) || isActive('custom-fields', $currentUrl) || isActive('tags', $currentUrl) ? 'active' : '' ?>" href="<?= url('settings') ?>">
                         <i class="ri-tools-line"></i> <span>Cài đặt</span>
                     </a>
                 </li>

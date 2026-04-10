@@ -76,5 +76,28 @@
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if (($user['role'] ?? '') === 'admin'): ?>
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0">Thương hiệu</h5></div>
+                    <div class="list-group list-group-flush">
+                        <a href="<?= url('settings/white-label') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="ri-palette-line me-2 text-primary"></i> White-label (Logo, màu sắc)
+                        </a>
+                        <a href="<?= url('settings/api') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="ri-plug-line me-2 text-success"></i> Cấu hình API
+                        </a>
+                        <a href="<?= url('settings/contact-statuses') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="ri-list-settings-line me-2 text-info"></i> Trạng thái KH
+                        </a>
+                        <a href="<?= url('custom-fields') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="ri-input-method-line me-2 text-warning"></i> Trường tùy chỉnh
+                        </a>
+                        <a href="<?= url('tags') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                            <i class="ri-price-tag-3-line me-2 text-danger"></i> Nhãn
+                        </a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>

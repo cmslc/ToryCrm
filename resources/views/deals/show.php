@@ -96,7 +96,7 @@
 
                 <!-- Contact & Company -->
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0">Khách hàng / Công ty</h5></div>
+                    <div class="card-header p-2"><h5 class="card-title mb-0">Khách hàng / Công ty</h5></div>
                     <div class="card-body">
                         <table class="table table-borderless mb-0">
                             <tr>
@@ -133,7 +133,7 @@
             <!-- Right Column -->
             <div class="col-xl-8">
                 <div class="card">
-                    <div class="card-header p-0">
+                    <div class="card-header p-2">
                         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" data-bs-toggle="tab" href="#tab-activities" role="tab">
