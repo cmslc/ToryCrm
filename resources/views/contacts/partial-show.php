@@ -51,6 +51,75 @@ $st = $contact['status'] ?? 'new';
     </tbody>
 </table>
 
+<?php
+// Stats
+$cid = $contact['id'];
+$dealStats = \Core\Database::fetch("SELECT COUNT(*) as cnt, COALESCE(SUM(value),0) as total FROM deals WHERE contact_id = ? AND status = 'open'", [$cid]);
+$wonStats = \Core\Database::fetch("SELECT COUNT(*) as cnt, COALESCE(SUM(value),0) as total FROM deals WHERE contact_id = ? AND status = 'won'", [$cid]);
+$orderStats = \Core\Database::fetch("SELECT COUNT(*) as cnt, COALESCE(SUM(total),0) as total FROM orders WHERE contact_id = ? AND is_deleted = 0", [$cid]);
+$ticketStats = \Core\Database::fetch("SELECT COUNT(*) as cnt FROM tickets WHERE contact_id = ? AND status IN ('open','in_progress')", [$cid]);
+$lastContact = \Core\Database::fetch("SELECT MAX(created_at) as last_at FROM activities WHERE contact_id = ?", [$cid]);
+?>
+
+<!-- Stats Grid -->
+<div class="row g-2 mb-4">
+    <div class="col-6">
+        <div class="border rounded p-2 text-center">
+            <div class="fw-semibold text-primary"><?= $dealStats['cnt'] ?? 0 ?></div>
+            <div class="text-muted fs-12">Cơ hội mở</div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="border rounded p-2 text-center">
+            <div class="fw-semibold text-success"><?= $wonStats['cnt'] ?? 0 ?></div>
+            <div class="text-muted fs-12">Đã chốt</div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="border rounded p-2 text-center">
+            <div class="fw-semibold text-info"><?= $orderStats['cnt'] ?? 0 ?></div>
+            <div class="text-muted fs-12">Đơn hàng</div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="border rounded p-2 text-center">
+            <div class="fw-semibold text-warning"><?= $ticketStats['cnt'] ?? 0 ?></div>
+            <div class="text-muted fs-12">Ticket mở</div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Summary -->
+<?php $totalRevenue = ($wonStats['total'] ?? 0) + ($orderStats['total'] ?? 0); ?>
+<?php if ($totalRevenue > 0): ?>
+<div class="border rounded p-3 mb-4 bg-success-subtle">
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="text-muted fs-13"><i class="ri-money-dollar-circle-line me-1"></i>Tổng doanh thu</span>
+        <span class="fw-semibold text-success"><?= format_money($totalRevenue) ?></span>
+    </div>
+    <?php if (($wonStats['total'] ?? 0) > 0): ?>
+    <div class="d-flex justify-content-between mt-1">
+        <small class="text-muted">Deal thắng</small>
+        <small><?= format_money($wonStats['total']) ?></small>
+    </div>
+    <?php endif; ?>
+    <?php if (($orderStats['total'] ?? 0) > 0): ?>
+    <div class="d-flex justify-content-between mt-1">
+        <small class="text-muted">Đơn hàng</small>
+        <small><?= format_money($orderStats['total']) ?></small>
+    </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<!-- Last Contact -->
+<?php if (!empty($lastContact['last_at'])): ?>
+<div class="d-flex justify-content-between align-items-center mb-3 px-1">
+    <span class="text-muted fs-13"><i class="ri-time-line me-1"></i>Liên hệ lần cuối</span>
+    <span class="fs-13"><?= time_ago($lastContact['last_at']) ?></span>
+</div>
+<?php endif; ?>
+
 <?php if (!empty($activities)): ?>
 <h6 class="mb-3"><i class="ri-history-line me-1"></i> Hoạt động gần đây</h6>
 <div class="vstack gap-2 mb-4">
