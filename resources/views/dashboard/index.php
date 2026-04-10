@@ -18,6 +18,8 @@
     </div>
 </div>
 
+<div class="row">
+<div class="col-xl-9">
 <!-- ROW 1: Smart Insights -->
 <?php if (!empty($insights)): ?>
 <div class="row" id="insights-row">
@@ -345,86 +347,10 @@
     </div>
 </div>
 
-<!-- ROW 5: Activity Timeline + Today's Calendar -->
+<!-- Today's Calendar -->
 <div class="row">
-    <div class="col-xl-6">
-        <div class="card card-height-100">
-            <div class="card-header align-items-center d-flex border-bottom-dashed">
-                <h4 class="card-title mb-0 flex-grow-1">Hoạt động gần đây</h4>
-                <a href="<?= url('activities') ?>" class="btn btn-soft-primary">Xem tất cả</a>
-            </div>
-            <div class="card-body p-0">
-                <div data-simplebar style="max-height:420px" class="p-3">
-                    <?php if (!empty($recentActivities)): ?>
-                        <?php
-                        $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','contact'=>'ri-user-add-line','system'=>'ri-settings-3-line','order'=>'ri-shopping-cart-line'];
-                        $colors = ['note'=>'primary','call'=>'success','email'=>'info','meeting'=>'warning','task'=>'danger','deal'=>'success','contact'=>'info','system'=>'secondary','order'=>'warning'];
-
-                        $groupedByDate = [];
-                        foreach ($recentActivities as $a) {
-                            $dateKey = date('Y-m-d', strtotime($a['created_at']));
-                            $groupedByDate[$dateKey][] = $a;
-                        }
-                        ?>
-                        <?php foreach ($groupedByDate as $date => $items): ?>
-                            <p class="text-muted fs-12 fw-semibold mb-2 mt-2">
-                                <?php
-                                $today = date('Y-m-d');
-                                $yesterday = date('Y-m-d', strtotime('-1 day'));
-                                if ($date === $today) echo 'Hôm nay';
-                                elseif ($date === $yesterday) echo 'Hôm qua';
-                                else echo date('d/m/Y', strtotime($date));
-                                ?>
-                                <small class="text-muted fw-normal ms-1"><?= date('H:i', strtotime($items[0]['created_at'])) ?></small>
-                            </p>
-                            <?php foreach ($items as $a):
-                                $avatarHtml = '';
-                                $userName = $a['user_name'] ?? '';
-                                if ($userName) {
-                                    // Try to get user avatar
-                                    static $dashAvatarCache = [];
-                                    if (!isset($dashAvatarCache[$userName])) {
-                                        try { $dashAvatarCache[$userName] = \Core\Database::fetch("SELECT avatar FROM users WHERE name = ? LIMIT 1", [$userName])['avatar'] ?? ''; } catch (\Exception $e) { $dashAvatarCache[$userName] = ''; }
-                                    }
-                                    $av = $dashAvatarCache[$userName];
-                                    if ($av && file_exists(BASE_PATH . '/public/uploads/avatars/' . $av)) {
-                                        $avatarHtml = '<img src="' . url('uploads/avatars/' . $av) . '" class="rounded-circle" style="width:32px;height:32px;object-fit:cover">';
-                                    } else {
-                                        $initial = mb_strtoupper(mb_substr($userName, 0, 1));
-                                        $avatarHtml = '<div class="avatar-title rounded-circle bg-' . ($colors[$a['type']] ?? 'primary') . '-subtle text-' . ($colors[$a['type']] ?? 'primary') . '" style="width:32px;height:32px;font-size:13px">' . $initial . '</div>';
-                                    }
-                                } else {
-                                    $avatarHtml = '<div class="avatar-title rounded-circle bg-secondary-subtle text-secondary" style="width:32px;height:32px"><i class="' . ($icons[$a['type']] ?? 'ri-file-text-line') . '"></i></div>';
-                                }
-                            ?>
-                                <div class="d-flex align-items-start mb-3">
-                                    <div class="flex-shrink-0 me-3"><?= $avatarHtml ?></div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1 fs-13">
-                                            <?php if ($userName): ?><span class="fw-semibold"><?= e($userName) ?></span> <?php endif; ?>
-                                            <?= e($a['title']) ?>
-                                        </h6>
-                                        <?php if (!empty($a['description'])): ?>
-                                            <p class="text-muted mb-1 fs-12"><?= e(mb_substr($a['description'], 0, 80)) ?></p>
-                                        <?php endif; ?>
-                                        <small class="text-muted"><?= date('d M, Y', strtotime($a['created_at'])) ?></small>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="text-center py-5 text-muted">
-                            <i class="ri-history-line fs-1 d-block mb-2"></i>
-                            Chưa có hoạt động
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-6">
-        <div class="card card-height-100">
+    <div class="col-12">
+        <div class="card">
             <div class="card-header align-items-center d-flex">
                 <h4 class="card-title mb-0 flex-grow-1"><i class="ri-calendar-2-line me-1 text-primary"></i> Lịch hẹn hôm nay</h4>
                 <a href="<?= url('calendar') ?>" class="btn btn-soft-primary">Xem lịch</a>
@@ -445,15 +371,85 @@
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="text-center py-3">
-                        <lord-icon src="https://cdn.lordicon.com/abgtphft.json" trigger="loop" colors="primary:#405189,secondary:#0ab39c" style="width:70px;height:70px"></lord-icon>
-                        <p class="text-muted mb-0 mt-2">Không có lịch hẹn hôm nay</p>
+                    <div class="text-center py-3 text-muted">
+                        <i class="ri-calendar-line fs-1 d-block mb-2"></i>
+                        Không có lịch hẹn hôm nay
                     </div>
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </div>
+
+</div><!-- end col-xl-9 -->
+
+<!-- Right sidebar: Recent Activity (Velzon style) -->
+<div class="col-xl-3">
+    <div class="card card-height-100">
+        <div class="card-header border-bottom-dashed align-items-center d-flex">
+            <h4 class="card-title mb-0 flex-grow-1">Hoạt động gần đây</h4>
+            <a href="<?= url('activities') ?>" class="text-muted fs-12">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
+        </div>
+        <div class="card-body p-0">
+            <div data-simplebar style="max-height: calc(100vh - 200px);">
+                <?php if (!empty($recentActivities)): ?>
+                    <?php
+                    $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','contact'=>'ri-user-add-line','system'=>'ri-settings-3-line','order'=>'ri-shopping-cart-line'];
+                    $colors = ['note'=>'primary','call'=>'success','email'=>'info','meeting'=>'warning','task'=>'danger','deal'=>'success','contact'=>'info','system'=>'secondary','order'=>'warning'];
+
+                    $lastDate = '';
+                    foreach ($recentActivities as $a):
+                        $dateKey = date('Y-m-d', strtotime($a['created_at']));
+                        $today = date('Y-m-d');
+                        $yesterday = date('Y-m-d', strtotime('-1 day'));
+                        if ($dateKey !== $lastDate):
+                            $lastDate = $dateKey;
+                    ?>
+                        <p class="text-muted fs-11 fw-semibold mb-0 px-3 pt-3 pb-1 text-uppercase">
+                            <?= date('h:i A', strtotime($a['created_at'])) ?>
+                            <?php if ($dateKey === $today) echo 'Hôm nay'; elseif ($dateKey === $yesterday) echo 'Hôm qua'; else echo date('d/m/Y', strtotime($dateKey)); ?>
+                        </p>
+                    <?php endif;
+                        $userName = $a['user_name'] ?? '';
+                        $avatarHtml = '';
+                        if ($userName) {
+                            static $dashAvatarCache2 = [];
+                            if (!isset($dashAvatarCache2[$userName])) {
+                                try { $dashAvatarCache2[$userName] = \Core\Database::fetch("SELECT avatar FROM users WHERE name = ? LIMIT 1", [$userName])['avatar'] ?? ''; } catch (\Exception $e) { $dashAvatarCache2[$userName] = ''; }
+                            }
+                            $av = $dashAvatarCache2[$userName];
+                            if ($av && file_exists(BASE_PATH . '/public/uploads/avatars/' . $av)) {
+                                $avatarHtml = '<img src="' . url('uploads/avatars/' . $av) . '" class="rounded-circle" style="width:32px;height:32px;object-fit:cover">';
+                            } else {
+                                $c = $colors[$a['type']] ?? 'primary';
+                                $avatarHtml = '<div class="avatar-title rounded-circle bg-' . $c . '-subtle text-' . $c . '" style="width:32px;height:32px;font-size:13px">' . mb_strtoupper(mb_substr($userName, 0, 1)) . '</div>';
+                            }
+                        } else {
+                            $avatarHtml = '<div class="avatar-title rounded-circle bg-secondary-subtle text-secondary" style="width:32px;height:32px"><i class="' . ($icons[$a['type']] ?? 'ri-file-text-line') . ' fs-14"></i></div>';
+                        }
+                    ?>
+                    <div class="d-flex px-3 py-2 border-bottom">
+                        <div class="flex-shrink-0 me-2"><?= $avatarHtml ?></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <h6 class="mb-1 fs-13 text-truncate"><?php if ($userName): ?><span class="fw-semibold"><?= e($userName) ?></span> <?php endif; ?><?= e($a['title']) ?></h6>
+                            <?php if (!empty($a['description'])): ?>
+                                <p class="text-muted mb-1 fs-12 text-truncate"><?= e(mb_substr($a['description'], 0, 60)) ?></p>
+                            <?php endif; ?>
+                            <small class="text-muted"><?= date('d M, Y', strtotime($a['created_at'])) ?></small>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="text-center py-5 px-3 text-muted">
+                        <i class="ri-history-line fs-1 d-block mb-2"></i>
+                        Chưa có hoạt động
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div><!-- end col-xl-3 -->
+</div><!-- end row -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
