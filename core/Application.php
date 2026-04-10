@@ -25,7 +25,7 @@ class Application
         return self::$instance;
     }
 
-    public function getConfig(string $key = null, $default = null)
+    public function getConfig(?string $key = null, $default = null)
     {
         if ($key === null) return $this->config;
         return $this->config[$key] ?? $default;
