@@ -31,6 +31,11 @@ class Campaign extends Model
             $params[] = $filters['status'];
         }
 
+        if (!empty($filters['owner_id'])) {
+            $where .= " AND c.owner_id = ?";
+            $params[] = $filters['owner_id'];
+        }
+
         $total = Database::fetch(
             "SELECT COUNT(*) as total FROM campaigns c WHERE {$where}", $params
         )['total'];

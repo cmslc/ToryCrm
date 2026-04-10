@@ -42,6 +42,13 @@ class ContactController extends Controller
             $params[] = $ownerId;
         }
 
+        // Owner-based data scoping: staff only sees own records
+        $ownerScope = $this->ownerScope('c', 'owner_id');
+        if ($ownerScope['where']) {
+            $where[] = $ownerScope['where'];
+            $params = array_merge($params, $ownerScope['params']);
+        }
+
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch(
@@ -186,6 +193,12 @@ class ContactController extends Controller
             return $this->redirect('contacts');
         }
 
+        // Ownership check: staff can only view own records
+        if (!$this->isAdminOrManager() && ($contact['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('contacts');
+        }
+
         $activities = Database::fetchAll(
             "SELECT a.*, u.name as user_name
              FROM activities a
@@ -249,6 +262,12 @@ class ContactController extends Controller
             return $this->redirect('contacts');
         }
 
+        // Ownership check: staff can only edit own records
+        if (!$this->isAdminOrManager() && ($contact['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('contacts');
+        }
+
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
@@ -272,6 +291,12 @@ class ContactController extends Controller
 
         if (!$contact) {
             $this->setFlash('error', 'Contact not found.');
+            return $this->redirect('contacts');
+        }
+
+        // Ownership check: staff can only update own records
+        if (!$this->isAdminOrManager() && ($contact['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('contacts');
         }
 
@@ -349,6 +374,12 @@ class ContactController extends Controller
         $contact = $this->findSecure('contacts', (int)$id);
         if (!$contact) {
             $this->setFlash('error', 'Khách hàng không tồn tại.');
+            return $this->redirect('contacts');
+        }
+
+        // Ownership check: staff can only delete own records
+        if (!$this->isAdminOrManager() && ($contact['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('contacts');
         }
 

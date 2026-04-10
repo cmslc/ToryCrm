@@ -33,6 +33,13 @@ class CompanyController extends Controller
         if ($city) { $where[] = "c.city = ?"; $params[] = $city; }
         if ($ownerId) { $where[] = "c.owner_id = ?"; $params[] = $ownerId; }
 
+        // Owner-based data scoping: staff only sees own records
+        $ownerScope = $this->ownerScope('c', 'owner_id');
+        if ($ownerScope['where']) {
+            $where[] = $ownerScope['where'];
+            $params = array_merge($params, $ownerScope['params']);
+        }
+
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch("SELECT COUNT(*) as count FROM companies c WHERE {$whereClause}", $params)['count'];
@@ -145,6 +152,12 @@ class CompanyController extends Controller
             return $this->redirect('companies');
         }
 
+        // Ownership check: staff can only view own records
+        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('companies');
+        }
+
         $contacts = Database::fetchAll(
             "SELECT * FROM contacts WHERE company_id = ? AND is_deleted = 0 ORDER BY first_name",
             [$id]
@@ -201,6 +214,12 @@ class CompanyController extends Controller
             return $this->redirect('companies');
         }
 
+        // Ownership check: staff can only edit own records
+        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('companies');
+        }
+
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
 
         return $this->view('companies.edit', [
@@ -220,6 +239,12 @@ class CompanyController extends Controller
 
         if (!$company) {
             $this->setFlash('error', 'Company not found.');
+            return $this->redirect('companies');
+        }
+
+        // Ownership check: staff can only update own records
+        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('companies');
         }
 
@@ -265,6 +290,12 @@ class CompanyController extends Controller
 
         if (!$company) {
             $this->setFlash('error', 'Company not found.');
+            return $this->redirect('companies');
+        }
+
+        // Ownership check: staff can only delete own records
+        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('companies');
         }
 

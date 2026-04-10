@@ -14,10 +14,17 @@ class CampaignController extends Controller
         $campaignModel = new Campaign();
         $page = max(1, (int) $this->input('page') ?: 1);
 
+        // Owner-based data scoping: staff only sees own campaigns
+        $ownerFilter = null;
+        if (!$this->isAdminOrManager()) {
+            $ownerFilter = $this->userId();
+        }
+
         $campaigns = $campaignModel->getWithRelations($page, 10, [
             'search' => $this->input('search'),
             'type' => $this->input('type'),
             'status' => $this->input('status'),
+            'owner_id' => $ownerFilter,
         ]);
 
         return $this->view('campaigns.index', [
@@ -92,6 +99,12 @@ class CampaignController extends Controller
             return $this->redirect('campaigns');
         }
 
+        // Ownership check: staff can only view own campaigns
+        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('campaigns');
+        }
+
         $campaignModel = new Campaign();
         $contacts = $campaignModel->getContacts($id);
         $contactStats = $campaignModel->getContactStats($id);
@@ -112,6 +125,12 @@ class CampaignController extends Controller
             return $this->redirect('campaigns');
         }
 
+        // Ownership check: staff can only edit own campaigns
+        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('campaigns');
+        }
+
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
 
         return $this->view('campaigns.edit', [
@@ -128,6 +147,12 @@ class CampaignController extends Controller
         $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');
+            return $this->redirect('campaigns');
+        }
+
+        // Ownership check: staff can only update own campaigns
+        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('campaigns');
         }
 
@@ -194,6 +219,12 @@ class CampaignController extends Controller
         $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');
+            return $this->redirect('campaigns');
+        }
+
+        // Ownership check: staff can only delete own campaigns
+        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('campaigns');
         }
 

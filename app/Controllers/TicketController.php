@@ -15,12 +15,18 @@ class TicketController extends Controller
         $ticketModel = new Ticket();
         $page = max(1, (int) $this->input('page') ?: 1);
 
+        // Owner-based data scoping: staff only sees own tickets
+        $assignedToFilter = $this->input('assigned_to');
+        if (!$this->isAdminOrManager()) {
+            $assignedToFilter = $this->userId();
+        }
+
         $tickets = $ticketModel->getWithRelations($page, 10, [
             'search' => $this->input('search'),
             'status' => $this->input('status'),
             'priority' => $this->input('priority'),
             'category_id' => $this->input('category_id'),
-            'assigned_to' => $this->input('assigned_to'),
+            'assigned_to' => $assignedToFilter,
         ]);
 
         $categories = $ticketModel->getCategories();
@@ -128,6 +134,12 @@ class TicketController extends Controller
             return $this->redirect('tickets');
         }
 
+        // Ownership check: staff can only view own tickets
+        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('tickets');
+        }
+
         $ticketModel = new Ticket();
         $comments = $ticketModel->getComments($id);
         $slaStatus = SlaService::getSlaStatus($ticket);
@@ -145,6 +157,12 @@ class TicketController extends Controller
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
         if (!$ticket) {
             $this->setFlash('error', 'Ticket không tồn tại.');
+            return $this->redirect('tickets');
+        }
+
+        // Ownership check: staff can only edit own tickets
+        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }
 
@@ -171,6 +189,12 @@ class TicketController extends Controller
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
         if (!$ticket) {
             $this->setFlash('error', 'Ticket không tồn tại.');
+            return $this->redirect('tickets');
+        }
+
+        // Ownership check: staff can only update own tickets
+        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }
 
@@ -290,6 +314,12 @@ class TicketController extends Controller
         $ticket = $this->findSecure('tickets', (int)$id);
         if (!$ticket) {
             $this->setFlash('error', 'Ticket không tồn tại.');
+            return $this->redirect('tickets');
+        }
+
+        // Ownership check: staff can only delete own tickets
+        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }
 

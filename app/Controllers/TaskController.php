@@ -42,6 +42,13 @@ class TaskController extends Controller
             $params[] = $assignedTo;
         }
 
+        // Owner-based data scoping: staff only sees own tasks
+        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        if ($ownerScope['where']) {
+            $where[] = $ownerScope['where'];
+            $params = array_merge($params, $ownerScope['params']);
+        }
+
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch(
@@ -188,6 +195,12 @@ class TaskController extends Controller
             return $this->redirect('tasks');
         }
 
+        // Ownership check: staff can only view own tasks
+        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('tasks');
+        }
+
         return $this->view('tasks.show', [
             'task' => $task,
         ]);
@@ -200,6 +213,12 @@ class TaskController extends Controller
 
         if (!$task) {
             $this->setFlash('error', 'Task not found.');
+            return $this->redirect('tasks');
+        }
+
+        // Ownership check: staff can only edit own tasks
+        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }
 
@@ -230,6 +249,12 @@ class TaskController extends Controller
 
         if (!$task) {
             $this->setFlash('error', 'Task not found.');
+            return $this->redirect('tasks');
+        }
+
+        // Ownership check: staff can only update own tasks
+        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }
 
@@ -378,6 +403,12 @@ class TaskController extends Controller
         $task = $this->findSecure('tasks', (int)$id);
         if (!$task) {
             $this->setFlash('error', 'Công việc không tồn tại.');
+            return $this->redirect('tasks');
+        }
+
+        // Ownership check: staff can only delete own tasks
+        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }
 

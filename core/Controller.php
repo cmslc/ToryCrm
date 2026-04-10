@@ -83,6 +83,33 @@ class Controller
     }
 
     /**
+     * Check if current user is admin or manager (can see all data).
+     */
+    protected function isAdminOrManager(): bool
+    {
+        $role = $_SESSION['user']['role'] ?? 'staff';
+        return in_array($role, ['admin', 'manager']);
+    }
+
+    /**
+     * Get owner scope SQL for list queries.
+     * Admin/Manager: no filter (see all). Staff: only own records.
+     * Returns ['where' => string, 'params' => array]
+     */
+    protected function ownerScope(string $alias = '', string $ownerField = 'owner_id'): array
+    {
+        if ($this->isAdminOrManager()) {
+            return ['where' => '', 'params' => []];
+        }
+
+        $col = $alias ? "{$alias}.{$ownerField}" : $ownerField;
+        return [
+            'where' => "{$col} = ?",
+            'params' => [$this->userId()],
+        ];
+    }
+
+    /**
      * Check permission. Redirects with error if denied.
      */
     protected function authorize(string $module, string $action): void

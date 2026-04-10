@@ -43,6 +43,13 @@ class OrderController extends Controller
             $params[] = $paymentStatus;
         }
 
+        // Owner-based data scoping: staff only sees own records
+        $ownerScope = $this->ownerScope('o', 'owner_id');
+        if ($ownerScope['where']) {
+            $where[] = $ownerScope['where'];
+            $params = array_merge($params, $ownerScope['params']);
+        }
+
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch(
@@ -287,6 +294,12 @@ class OrderController extends Controller
             return $this->redirect('orders');
         }
 
+        // Ownership check: staff can only view own records
+        if (!$this->isAdminOrManager() && ($order['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('orders');
+        }
+
         $items = Database::fetchAll(
             "SELECT oi.*, p.sku as product_sku
              FROM order_items oi
@@ -309,6 +322,12 @@ class OrderController extends Controller
 
         if (!$order) {
             $this->setFlash('error', 'Đơn hàng không tồn tại.');
+            return $this->redirect('orders');
+        }
+
+        // Ownership check: staff can only edit own records
+        if (!$this->isAdminOrManager() && ($order['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('orders');
         }
 
@@ -349,6 +368,12 @@ class OrderController extends Controller
 
         if (!$order) {
             $this->setFlash('error', 'Đơn hàng không tồn tại.');
+            return $this->redirect('orders');
+        }
+
+        // Ownership check: staff can only update own records
+        if (!$this->isAdminOrManager() && ($order['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('orders');
         }
 
@@ -500,6 +525,12 @@ class OrderController extends Controller
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+
+        // Ownership check: staff can only delete own records
+        if (!$this->isAdminOrManager() && ($order['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('orders');
+        }
 
         Database::softDelete('orders', 'id = ?', [$id]);
 

@@ -42,6 +42,13 @@ class DealController extends Controller
             $params[] = $ownerId;
         }
 
+        // Owner-based data scoping: staff only sees own records
+        $ownerScope = $this->ownerScope('d', 'owner_id');
+        if ($ownerScope['where']) {
+            $where[] = $ownerScope['where'];
+            $params = array_merge($params, $ownerScope['params']);
+        }
+
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch(
@@ -198,6 +205,12 @@ class DealController extends Controller
             return $this->redirect('deals');
         }
 
+        // Ownership check: staff can only view own records
+        if (!$this->isAdminOrManager() && ($deal['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('deals');
+        }
+
         $activities = Database::fetchAll(
             "SELECT a.*, u.name as user_name
              FROM activities a
@@ -255,6 +268,12 @@ class DealController extends Controller
             return $this->redirect('deals');
         }
 
+        // Ownership check: staff can only edit own records
+        if (!$this->isAdminOrManager() && ($deal['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('deals');
+        }
+
         $contacts = Database::fetchAll(
             "SELECT id, first_name, last_name FROM contacts ORDER BY first_name"
         );
@@ -284,6 +303,12 @@ class DealController extends Controller
 
         if (!$deal) {
             $this->setFlash('error', 'Deal not found.');
+            return $this->redirect('deals');
+        }
+
+        // Ownership check: staff can only update own records
+        if (!$this->isAdminOrManager() && ($deal['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('deals');
         }
 
@@ -360,6 +385,12 @@ class DealController extends Controller
 
         if (!$deal) {
             $this->setFlash('error', 'Deal not found.');
+            return $this->redirect('deals');
+        }
+
+        // Ownership check: staff can only delete own records
+        if (!$this->isAdminOrManager() && ($deal['owner_id'] ?? null) != $this->userId()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('deals');
         }
 
