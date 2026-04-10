@@ -20,62 +20,45 @@ if (empty($sLabels)) {
 $currentStatus = $filters['status'] ?? '';
 ?>
 
-<!-- Toolbar Row 1: Title + Search + Filters + Actions -->
-<div class="card mb-2">
-    <div class="card-body py-1 px-3">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <!-- Icon + Title -->
-            <div class="d-flex align-items-center me-2">
-                <div class="avatar-xs flex-shrink-0 me-2">
-                    <span class="avatar-title bg-primary-subtle text-primary rounded">
-                        <i class="ri-contacts-line"></i>
-                    </span>
-                </div>
-                <h5 class="mb-0 text-nowrap">Quản lý khách hàng</h5>
-            </div>
-
-            <!-- Search -->
-            <form method="GET" action="<?= url('contacts') ?>" class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap" id="filterForm">
-                <div class="search-box" style="min-width:200px;max-width:300px">
-                    <input type="text" class="form-control" name="search" placeholder="Tên khách hàng, số điện thoại, email..." value="<?= e($filters['search'] ?? '') ?>">
-                    <i class="ri-search-line search-icon"></i>
-                </div>
-
-                <!-- Quick Filters -->
-                <select name="source_id" class="form-select" style="width:auto;min-width:160px" onchange="this.form.submit()">
-                    <option value="">Chọn nguồn</option>
-                    <?php foreach ($sources ?? [] as $s): ?>
-                        <option value="<?= $s['id'] ?>" <?= ($filters['source_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-
-                <select name="owner_id" class="form-select" style="width:auto;min-width:170px" onchange="this.form.submit()">
-                    <option value="">Chọn người phụ trách</option>
-                    <?php foreach ($users ?? [] as $u): ?>
-                        <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-
-                <!-- Hidden status from tab click -->
-                <input type="hidden" name="status" id="statusInput" value="<?= e($currentStatus) ?>">
-
-                <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm kiếm</button>
-
-                <?php if (!empty(array_filter($filters ?? []))): ?>
-                    <a href="<?= url('contacts') ?>" class="btn btn-soft-danger" title="Xóa bộ lọc"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
-                <?php endif; ?>
-            </form>
-
-            <!-- Right Actions -->
-            <div class="d-flex gap-2 ms-auto">
-                <a href="<?= url('import-export') ?>" class="btn btn-soft-info" title="Tải lên"><i class="ri-upload-2-line me-1"></i> Tải lên</a>
-                <a href="<?= url('contacts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
-            </div>
-        </div>
+<!-- Title Row -->
+<div class="page-title-box d-flex align-items-center justify-content-between">
+    <h4 class="mb-0">Khách hàng</h4>
+    <div class="d-flex gap-2">
+        <a href="<?= url('import-export') ?>" class="btn btn-soft-info"><i class="ri-upload-2-line me-1"></i> Tải lên</a>
+        <a href="<?= url('contacts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
     </div>
 </div>
 
-<!-- Toolbar Row 2: Status Tabs + Saved Views + Pagination Info + Column Toggle -->
+<!-- Filter Row -->
+<div class="card mb-2">
+    <div class="card-body py-1 px-3">
+        <form method="GET" action="<?= url('contacts') ?>" class="d-flex align-items-center gap-2 flex-wrap" id="filterForm">
+            <div class="search-box" style="min-width:200px;max-width:300px">
+                <input type="text" class="form-control" name="search" placeholder="Tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
+                <i class="ri-search-line search-icon"></i>
+            </div>
+            <select name="source_id" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                <option value="">Chọn nguồn</option>
+                <?php foreach ($sources ?? [] as $s): ?>
+                    <option value="<?= $s['id'] ?>" <?= ($filters['source_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="owner_id" class="form-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
+                <option value="">Phụ trách</option>
+                <?php foreach ($users ?? [] as $u): ?>
+                    <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="hidden" name="status" id="statusInput" value="<?= e($currentStatus) ?>">
+            <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+            <?php if (!empty(array_filter($filters ?? []))): ?>
+                <a href="<?= url('contacts') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+            <?php endif; ?>
+        </form>
+    </div>
+</div>
+
+<!-- Tabs Row -->
 <div class="card mb-3">
     <div class="card-body py-1 px-3">
         <div class="d-flex align-items-center justify-content-between">
