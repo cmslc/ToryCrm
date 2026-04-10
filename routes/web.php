@@ -160,6 +160,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('tasks/{id}/restore', 'TaskController@restore');
     Router::post('tasks/{id}/status', 'TaskController@updateStatus');
     Router::post('tasks/{id}/quick-update', 'TaskController@quickUpdate');
+    Router::post('tasks/{id}/followers', 'TaskController@followers');
     Router::post('tasks/{id}/subtask', 'TaskController@addSubtask');
     Router::post('tasks/{id}/toggle-subtask', 'TaskController@toggleSubtask');
     Router::post('tasks/{id}/comment', 'TaskController@addComment');

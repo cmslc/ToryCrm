@@ -196,6 +196,17 @@ class TaskController extends Controller
             'created_by' => $this->userId(),
         ]);
 
+        // Auto-add followers: creator + all admins
+        $followerIds = [$this->userId()];
+        $admins = Database::fetchAll("SELECT id FROM users WHERE tenant_id = ? AND role = 'admin' AND is_active = 1", [Database::tenantId()]);
+        foreach ($admins as $a) $followerIds[] = $a['id'];
+        // Add assigned user
+        if (!empty($data['assigned_to'])) $followerIds[] = (int)$data['assigned_to'];
+        $followerIds = array_unique($followerIds);
+        foreach ($followerIds as $fid) {
+            try { Database::query("INSERT INTO task_followers (task_id, user_id) VALUES (?, ?)", [$taskId, $fid]); } catch (\Exception $e) {}
+        }
+
         // Log activity
         Database::insert('activities', [
             'type' => 'task',
@@ -204,7 +215,7 @@ class TaskController extends Controller
             'user_id' => $this->userId(),
         ]);
 
-        $this->setFlash('success', 'Task created successfully.');
+        $this->setFlash('success', 'Đã tạo công việc.');
         return $this->redirect('tasks/' . $taskId);
     }
 
@@ -273,6 +284,18 @@ class TaskController extends Controller
             [Database::tenantId(), $id]
         );
 
+        // Followers
+        $followers = Database::fetchAll(
+            "SELECT tf.user_id, u.name FROM task_followers tf JOIN users u ON tf.user_id = u.id WHERE tf.task_id = ? ORDER BY u.name",
+            [$id]
+        );
+
+        // All users for follower picker
+        $allUsers = Database::fetchAll(
+            "SELECT id, name, role FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name",
+            [Database::tenantId()]
+        );
+
         return $this->view('tasks.show', [
             'task' => $task,
             'subtasks' => $subtasks,
@@ -283,6 +306,8 @@ class TaskController extends Controller
             'attachments' => $attachments,
             'dependencies' => $dependencies,
             'allTasks' => $allTasks,
+            'followers' => $followers,
+            'allUsers' => $allUsers,
         ]);
     }
 
@@ -588,6 +613,31 @@ class TaskController extends Controller
         ]);
 
         return $this->json(['success' => true, 'status' => $newStatus]);
+    }
+
+    // ---- Followers ----
+    public function followers($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $task = Database::fetch("SELECT id FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$task) return $this->json(['error' => 'Task không tồn tại'], 404);
+
+        $action = $this->input('action'); // add or remove
+        $userId = (int)$this->input('user_id');
+
+        if ($action === 'add' && $userId) {
+            try {
+                Database::query("INSERT INTO task_followers (task_id, user_id) VALUES (?, ?)", [$id, $userId]);
+            } catch (\Exception $e) {} // duplicate ignore
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$userId]);
+            return $this->json(['success' => true, 'user_name' => $user['name'] ?? '']);
+        } elseif ($action === 'remove' && $userId) {
+            Database::query("DELETE FROM task_followers WHERE task_id = ? AND user_id = ?", [$id, $userId]);
+            return $this->json(['success' => true]);
+        }
+
+        return $this->json(['error' => 'Invalid action'], 422);
     }
 
     // ---- Subtasks ----

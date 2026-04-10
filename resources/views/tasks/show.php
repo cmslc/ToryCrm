@@ -163,6 +163,29 @@ function formatDuration($s) {
             </div>
         </div>
 
+        <!-- Followers -->
+        <div class="card">
+            <div class="card-header"><h6 class="card-title mb-0"><i class="ri-user-follow-line me-1"></i> Người theo dõi</h6></div>
+            <div class="card-body">
+                <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
+                    <?php foreach ($followers ?? [] as $f):
+                        $isAdmin = false;
+                        foreach ($allUsers as $au) { if ($au['id'] == $f['user_id'] && $au['role'] === 'admin') { $isAdmin = true; break; } }
+                    ?>
+                    <span class="badge bg-primary-subtle text-primary d-flex align-items-center gap-1 follower-tag" data-uid="<?= $f['user_id'] ?>">
+                        <?= e($f['name']) ?>
+                        <?php if ($isAdmin): ?><i class="ri-shield-star-line" title="Admin"></i><?php endif; ?>
+                        <i class="ri-close-line" style="cursor:pointer" onclick="removeFollower(<?= $f['user_id'] ?>, this.closest('.follower-tag'))"></i>
+                    </span>
+                    <?php endforeach; ?>
+                </div>
+                <div class="position-relative">
+                    <input type="text" class="form-control" id="followerInput" placeholder="Gõ tên để thêm..." autocomplete="off">
+                    <div id="followerDropdown" class="dropdown-menu w-100" style="display:none;max-height:200px;overflow-y:auto"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Time Tracking -->
         <div class="card">
             <div class="card-header"><h6 class="card-title mb-0"><i class="ri-time-line me-1"></i> Thời gian</h6></div>
@@ -231,6 +254,8 @@ function formatDuration($s) {
     var taskId = <?= $task['id'] ?>;
     var token = '<?= $csrfToken ?>';
     var base = '<?= url("tasks") ?>';
+    var allUsers = <?= json_encode(array_map(fn($u) => ['id' => $u['id'], 'name' => $u['name'], 'role' => $u['role']], $allUsers)) ?>;
+    var existingFollowers = [<?= implode(',', array_column($followers ?? [], 'user_id')) ?>];
 
     function post(url, data) {
         data._token = token;
@@ -377,5 +402,57 @@ function formatDuration($s) {
             });
         };
     });
+
+    // Followers
+    var fInput = document.getElementById('followerInput');
+    var fDrop = document.getElementById('followerDropdown');
+    var fTags = document.getElementById('followerTags');
+
+    if (fInput) {
+        fInput.addEventListener('input', function() {
+            var q = this.value.toLowerCase().trim();
+            if (q.length < 1) { fDrop.style.display = 'none'; return; }
+            var html = '';
+            allUsers.forEach(function(u) {
+                if (existingFollowers.indexOf(u.id) >= 0) return;
+                if (u.name.toLowerCase().indexOf(q) >= 0) {
+                    var badge = u.role === 'admin' ? ' <span class="badge bg-danger-subtle text-danger">Admin</span>' : '';
+                    html += '<a href="#" class="dropdown-item" data-uid="' + u.id + '" data-name="' + u.name + '" data-role="' + u.role + '">' + u.name + badge + '</a>';
+                }
+            });
+            fDrop.innerHTML = html || '<span class="dropdown-item text-muted">Không tìm thấy</span>';
+            fDrop.style.display = 'block';
+            fDrop.querySelectorAll('[data-uid]').forEach(function(a) {
+                a.onclick = function(e) {
+                    e.preventDefault();
+                    var uid = parseInt(this.dataset.uid);
+                    var name = this.dataset.name;
+                    var role = this.dataset.role;
+                    post(base + '/' + taskId + '/followers', {action: 'add', user_id: uid}).then(function(d) {
+                        if (d.success) {
+                            existingFollowers.push(uid);
+                            var adminIcon = role === 'admin' ? '<i class="ri-shield-star-line" title="Admin"></i>' : '';
+                            fTags.insertAdjacentHTML('beforeend',
+                                '<span class="badge bg-primary-subtle text-primary d-flex align-items-center gap-1 follower-tag" data-uid="' + uid + '">'
+                                + name + adminIcon
+                                + '<i class="ri-close-line" style="cursor:pointer" onclick="removeFollower(' + uid + ', this.closest(\'.follower-tag\'))"></i></span>');
+                            fInput.value = '';
+                            fDrop.style.display = 'none';
+                        }
+                    });
+                };
+            });
+        });
+        fInput.addEventListener('blur', function() { setTimeout(function() { fDrop.style.display = 'none'; }, 200); });
+    }
+
+    window.removeFollower = function(uid, el) {
+        post(base + '/' + taskId + '/followers', {action: 'remove', user_id: uid}).then(function(d) {
+            if (d.success) {
+                el?.remove();
+                existingFollowers = existingFollowers.filter(function(id) { return id !== uid; });
+            }
+        });
+    };
 })();
 </script>

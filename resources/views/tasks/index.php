@@ -89,6 +89,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                             'col-status' => 'Trạng thái',
                             'col-priority' => 'Ưu tiên',
                             'col-assigned' => 'Phụ trách',
+                            'col-followers' => 'Theo dõi',
                             'col-created' => 'Ngày tạo',
                             'col-due' => 'Hạn',
                             'col-related' => 'Liên quan',
@@ -151,6 +152,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                         <th class="col-status">Trạng thái</th>
                         <th class="col-priority">Ưu tiên</th>
                         <th class="col-assigned">Phụ trách</th>
+                        <th class="col-followers">Theo dõi</th>
                         <th class="col-created">Ngày tạo</th>
                         <th class="col-due">Hạn</th>
                         <th class="col-related">Liên quan</th>
@@ -170,6 +172,14 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                             <td class="col-status"><span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span></td>
                             <td class="col-priority"><span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span></td>
                             <td class="col-assigned"><?= e($task['assigned_name'] ?? '-') ?></td>
+                            <td class="col-followers">
+                                <?php
+                                $taskFollowers = \Core\Database::fetchAll("SELECT u.name FROM task_followers tf JOIN users u ON tf.user_id = u.id WHERE tf.task_id = ? ORDER BY u.name", [$task['id']]);
+                                if (!empty($taskFollowers)):
+                                    foreach ($taskFollowers as $tf): ?>
+                                    <span class="badge bg-light text-body"><?= e($tf['name']) ?></span>
+                                <?php endforeach; else: ?>-<?php endif; ?>
+                            </td>
                             <td class="col-created"><span class="text-muted"><?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '-' ?></span></td>
                             <td class="col-due">
                                 <?php if ($task['due_date']): ?>
@@ -196,7 +206,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
+                        <tr><td colspan="10" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
