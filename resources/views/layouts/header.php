@@ -37,6 +37,13 @@
                     </button>
                 </div>
 
+                <!-- Theme Customizer -->
+                <div class="ms-1 header-item d-none d-sm-flex">
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle" data-bs-toggle="offcanvas" data-bs-target="#theme-settings-offcanvas" title="Theme Customizer">
+                        <i class="ri-settings-5-line fs-22"></i>
+                    </button>
+                </div>
+
                 <!-- Dark/Light Mode -->
                 <div class="ms-1 header-item d-none d-sm-flex">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle" id="theme-toggle" title="Chế độ tối/sáng">
