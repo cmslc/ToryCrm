@@ -16,11 +16,11 @@
             $activeId = $activeConversation['id'] ?? 0;
         ?>
 
-        <div class="row">
+        <div class="row" style="--conv-height: calc(100vh - 200px)">
             <!-- Left sidebar: conversation list -->
             <div class="col-xl-4">
-                <div class="card">
-                    <div class="card-body p-0">
+                <div class="card" style="height: var(--conv-height)">
+                    <div class="card-body p-0 d-flex flex-column" style="height:100%">
                         <!-- Search -->
                         <div class="p-3 border-bottom">
                             <form method="GET" action="<?= url('conversations') ?>">
@@ -43,7 +43,7 @@
                         </div>
 
                         <!-- Conversation list -->
-                        <div data-simplebar style="max-height: 600px;">
+                        <div data-simplebar style="flex:1;overflow-y:auto">
                             <!-- AI Trợ lý - pinned -->
                             <a href="<?= url('conversations?active=ai') ?>"
                                class="d-flex align-items-start p-3 border-bottom text-decoration-none <?= ($activeId ?? '') === 'ai' ? 'bg-light' : '' ?>"
@@ -138,7 +138,7 @@
             <div class="col-xl-8">
                 <?php if (($this->input('active') ?? '') === 'ai'): ?>
                     <!-- AI Chat Panel -->
-                    <div class="card">
+                    <div class="card d-flex flex-column" style="height: var(--conv-height)">
                         <div class="card-header p-2">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width:36px;height:36px">
@@ -150,8 +150,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body p-0">
-                            <div id="aiChatMessages" style="height:400px;overflow-y:auto;padding:16px">
+                        <div class="card-body p-0 d-flex flex-column" style="flex:1;min-height:0">
+                            <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:16px">
                                 <!-- Suggested prompts -->
                                 <div id="aiSuggestions" class="text-center py-4">
                                     <i class="ri-robot-line text-primary" style="font-size:48px"></i>
@@ -240,7 +240,7 @@
                     </script>
 
                 <?php elseif ($activeConversation): ?>
-                    <div class="card">
+                    <div class="card d-flex flex-column" style="height: var(--conv-height)">
                         <!-- Header -->
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -317,8 +317,8 @@
                         </div>
 
                         <!-- Message area -->
-                        <div class="card-body p-0">
-                            <div data-simplebar style="max-height: 500px; padding: 1rem;" id="messageArea">
+                        <div class="card-body p-0" style="flex:1;min-height:0">
+                            <div data-simplebar style="height:100%; padding: 1rem;" id="messageArea">
                                 <?php if (!empty($messages)): ?>
                                     <?php foreach ($messages as $msg): ?>
                                         <?php $isOutbound = ($msg['direction'] === 'outbound'); ?>
@@ -379,7 +379,7 @@
                         </div>
                     </div>
                 <?php else: ?>
-                    <div class="card">
+                    <div class="card d-flex align-items-center justify-content-center" style="height: var(--conv-height)">
                         <div class="card-body text-center py-5">
                             <i class="ri-chat-1-line display-4 text-muted d-block mb-3"></i>
                             <h5 class="text-muted">Chọn một cuộc hội thoại</h5>
