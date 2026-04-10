@@ -54,7 +54,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
 <div class="card mb-3">
     <div class="card-header p-2">
         <div class="d-flex align-items-center justify-content-between">
-            <ul class="nav nav-tabs nav-tabs-custom border-0 mb-0">
+            <ul class="nav nav-custom mb-0">
                 <li class="nav-item">
                     <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('tasks?' . http_build_query(array_diff_key($filters, ['status'=>'','page'=>'']))) ?>">
                         Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>

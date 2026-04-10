@@ -65,7 +65,7 @@ $currentStatus = $filters['status'] ?? '';
             <!-- Left: Status Tabs + Quick Filters -->
             <div class="d-flex align-items-center gap-0 overflow-auto" style="white-space:nowrap">
                 <!-- Status Tabs -->
-                <ul class="nav nav-tabs nav-tabs-custom border-0 mb-0">
+                <ul class="nav nav-custom mb-0">
                     <li class="nav-item">
                         <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('contacts') ?>">
                             Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>
