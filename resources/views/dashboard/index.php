@@ -78,7 +78,7 @@
             'format' => 'money',
             'icon' => 'ri-money-dollar-circle-line',
             'color' => 'success',
-            'link' => 'reports/revenue',
+            'link' => ($_SESSION['user']['role'] ?? 'staff') !== 'staff' ? 'reports/revenue' : 'deals',
         ],
         [
             'label' => 'Đơn hàng',
