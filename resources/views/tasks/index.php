@@ -74,6 +74,32 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
             </ul>
             <div class="d-flex align-items-center gap-2 ms-auto">
                 <div class="dropdown">
+                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
+                        <i class="ri-layout-column-line me-1"></i> Cột
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
+                        <h6 class="dropdown-header px-0">Hiển thị cột</h6>
+                        <?php
+                        $columns = [
+                            'col-task' => 'Công việc',
+                            'col-status' => 'Trạng thái',
+                            'col-priority' => 'Ưu tiên',
+                            'col-assigned' => 'Phụ trách',
+                            'col-created' => 'Ngày tạo',
+                            'col-due' => 'Hạn',
+                            'col-related' => 'Liên quan',
+                        ];
+                        foreach ($columns as $colId => $colLabel): ?>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                            <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                        </div>
+                        <?php endforeach; ?>
+                        <hr class="my-2">
+                        <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                    </div>
+                </div>
+                <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
                         <i class="ri-more-fill"></i>
                     </button>
@@ -93,36 +119,36 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
             <table class="table table-hover align-middle table-nowrap mb-0">
                 <thead class="text-muted table-light">
                     <tr>
-                        <th>Công việc</th>
-                        <th>Trạng thái</th>
-                        <th>Ưu tiên</th>
-                        <th>Phụ trách</th>
-                        <th>Ngày tạo</th>
-                        <th>Hạn</th>
-                        <th>Liên quan</th>
+                        <th class="col-task">Công việc</th>
+                        <th class="col-status">Trạng thái</th>
+                        <th class="col-priority">Ưu tiên</th>
+                        <th class="col-assigned">Phụ trách</th>
+                        <th class="col-created">Ngày tạo</th>
+                        <th class="col-due">Hạn</th>
+                        <th class="col-related">Liên quan</th>
                         <th style="width:60px">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!empty($tasks['items'])): foreach ($tasks['items'] as $task): ?>
                         <tr>
-                            <td>
+                            <td class="col-task">
                                 <a href="<?= url('tasks/' . $task['id']) ?>" class="fw-medium text-dark"><?= e($task['title']) ?></a>
                                 <?php if (!empty($task['description'])): ?>
                                     <div class="text-muted fs-12 text-truncate" style="max-width:300px"><?= e(mb_substr($task['description'], 0, 60)) ?></div>
                                 <?php endif; ?>
                             </td>
-                            <td><span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span></td>
-                            <td><span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span></td>
-                            <td><?= e($task['assigned_name'] ?? '-') ?></td>
-                            <td><span class="text-muted"><?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '-' ?></span></td>
-                            <td>
+                            <td class="col-status"><span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span></td>
+                            <td class="col-priority"><span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span></td>
+                            <td class="col-assigned"><?= e($task['assigned_name'] ?? '-') ?></td>
+                            <td class="col-created"><span class="text-muted"><?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '-' ?></span></td>
+                            <td class="col-due">
                                 <?php if ($task['due_date']): ?>
                                     <?php $isOverdue = strtotime($task['due_date']) < time() && $task['status'] !== 'done'; ?>
                                     <span class="<?= $isOverdue ? 'text-danger fw-medium' : 'text-muted' ?>"><?= date('d/m/Y H:i', strtotime($task['due_date'])) ?></span>
                                 <?php else: ?>-<?php endif; ?>
                             </td>
-                            <td>
+                            <td class="col-related">
                                 <?php if ($task['contact_first_name']): ?>
                                     <span><?= e($task['contact_first_name']) ?></span>
                                 <?php endif; ?>
@@ -161,3 +187,37 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+(function() {
+    var storageKey = 'task_columns';
+    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+    function applyColumns() {
+        document.querySelectorAll('.column-toggle').forEach(function(cb) {
+            var col = cb.dataset.column;
+            var visible = saved[col] !== false;
+            cb.checked = visible;
+            document.querySelectorAll('.' + col).forEach(function(el) {
+                el.style.display = visible ? '' : 'none';
+            });
+        });
+    }
+
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            saved[this.dataset.column] = this.checked;
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+            applyColumns();
+        });
+    });
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        saved = {};
+        localStorage.removeItem(storageKey);
+        applyColumns();
+    });
+
+    applyColumns();
+})();
+</script>
