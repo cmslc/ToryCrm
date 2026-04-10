@@ -155,25 +155,38 @@ class ApprovalController extends Controller
      */
     private function getEntityTitle(string $entityType, int $entityId): string
     {
+        $typeLabels = ['order' => 'Đơn hàng', 'orders' => 'Đơn hàng', 'deal' => 'Cơ hội', 'deals' => 'Cơ hội',
+            'fund' => 'Thu/Chi quỹ', 'fund_transactions' => 'Thu/Chi quỹ', 'contract' => 'Hợp đồng', 'contracts' => 'Hợp đồng',
+            'purchase_order' => 'Đơn mua', 'purchase_orders' => 'Đơn mua'];
+
         switch ($entityType) {
+            case 'order':
             case 'orders':
                 $row = Database::fetch("SELECT order_number FROM orders WHERE id = ?", [$entityId]);
-                return $row ? 'Đơn hàng ' . $row['order_number'] : "#{$entityId}";
+                return $row ? 'Đơn hàng ' . $row['order_number'] : "Đơn hàng #{$entityId}";
 
+            case 'deal':
             case 'deals':
                 $row = Database::fetch("SELECT title FROM deals WHERE id = ?", [$entityId]);
                 return $row ? $row['title'] : "Cơ hội #{$entityId}";
 
+            case 'purchase_order':
             case 'purchase_orders':
                 $row = Database::fetch("SELECT po_number FROM purchase_orders WHERE id = ?", [$entityId]);
-                return $row ? 'PO ' . $row['po_number'] : "#{$entityId}";
+                return $row ? 'PO ' . $row['po_number'] : "Đơn mua #{$entityId}";
 
+            case 'fund':
             case 'fund_transactions':
                 $row = Database::fetch("SELECT transaction_code FROM fund_transactions WHERE id = ?", [$entityId]);
-                return $row ? $row['transaction_code'] : "#{$entityId}";
+                return $row ? 'Quỹ ' . $row['transaction_code'] : "Thu/Chi #{$entityId}";
+
+            case 'contract':
+            case 'contracts':
+                $row = Database::fetch("SELECT title, contract_number FROM contracts WHERE id = ?", [$entityId]);
+                return $row ? 'HĐ ' . ($row['contract_number'] ?? $row['title'] ?? '') : "Hợp đồng #{$entityId}";
 
             default:
-                return "{$entityType} #{$entityId}";
+                return ($typeLabels[$entityType] ?? $entityType) . " #{$entityId}";
         }
     }
 }
