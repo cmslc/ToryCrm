@@ -127,6 +127,10 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <script src="<?= asset('libs/feather-icons/feather.min.js') ?>"></script>
     <script src="<?= asset('js/plugins.js') ?>"></script>
     <script src="<?= asset('js/layout.js') ?>"></script>
+
+    <!-- Velzon Theme Customizer (must be before app.js) -->
+    <?php include BASE_PATH . '/public/velzon/layouts/customizer.php'; ?>
+
     <script src="<?= asset('js/app.js') ?>"></script>
 
     <!-- Chart.js -->
@@ -170,9 +174,6 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     }, 4000);
     </script>
     <?php endif; ?>
-
-    <!-- Velzon Theme Customizer -->
-    <?php include BASE_PATH . '/public/velzon/layouts/customizer.php'; ?>
 
     <script>
     // Save theme to server when color scheme changes
