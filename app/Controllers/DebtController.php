@@ -70,14 +70,21 @@ class DebtController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        // Summary cards
+        // Summary cards (same scope as list)
+        $summaryWhere = "1=1";
+        $summaryParams = [];
+        if (!$this->isAdminOrManager()) {
+            $summaryWhere = "created_by = ?";
+            $summaryParams = [$this->userId()];
+        }
         $summary = Database::fetch(
             "SELECT
                 COALESCE(SUM(CASE WHEN type = 'receivable' THEN amount - paid_amount ELSE 0 END), 0) as total_receivable,
                 COALESCE(SUM(CASE WHEN type = 'payable' THEN amount - paid_amount ELSE 0 END), 0) as total_payable,
                 COALESCE(SUM(CASE WHEN status = 'overdue' THEN amount - paid_amount ELSE 0 END), 0) as total_overdue,
                 COALESCE(SUM(CASE WHEN status = 'paid' AND MONTH(updated_at) = MONTH(CURDATE()) AND YEAR(updated_at) = YEAR(CURDATE()) THEN paid_amount ELSE 0 END), 0) as collected_this_month
-             FROM debts"
+             FROM debts WHERE {$summaryWhere}",
+            $summaryParams
         );
 
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
