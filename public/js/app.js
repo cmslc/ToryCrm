@@ -780,14 +780,20 @@ File: Main Js File
 		if (document.documentElement.getAttribute("data-layout") === "vertical") {
 			if (windowSize <= 1025 && windowSize > 767) {
 				document.body.classList.remove("vertical-sidebar-enable");
-				document.documentElement.getAttribute("data-sidebar-size") == "sm" ?
-					document.documentElement.setAttribute("data-sidebar-size", "") :
-					document.documentElement.setAttribute("data-sidebar-size", "sm");				
+				var curSize = document.documentElement.getAttribute("data-sidebar-size");
+				if (curSize === "sm-hover" || curSize === "sm") {
+					document.documentElement.setAttribute("data-sidebar-size", "");
+				} else {
+					document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
+				}				
 			} else if (windowSize > 1025) {
 				document.body.classList.remove("vertical-sidebar-enable");
-				document.documentElement.getAttribute("data-sidebar-size") == "lg" ?
-					document.documentElement.setAttribute("data-sidebar-size", "sm") :
+				var curSize = document.documentElement.getAttribute("data-sidebar-size");
+				if (curSize === "lg") {
+					document.documentElement.setAttribute("data-sidebar-size", "sm-hover");
+				} else {
 					document.documentElement.setAttribute("data-sidebar-size", "lg");
+				}
 			} else if (windowSize <= 767) {
 				document.body.classList.add("vertical-sidebar-enable");
 				document.documentElement.setAttribute("data-sidebar-size", "lg");
