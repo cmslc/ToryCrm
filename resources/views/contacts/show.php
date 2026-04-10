@@ -19,9 +19,9 @@
             <div class="col-xl-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <div class="avatar-lg mx-auto mb-3">
-                            <div class="avatar-title rounded-circle bg-primary-subtle text-primary fs-24">
-                                <?= strtoupper(substr($contact['first_name'], 0, 1)) ?>
+                        <div class="mx-auto mb-3" style="width:80px;height:80px">
+                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold" style="width:80px;height:80px;font-size:32px">
+                                <?= strtoupper(mb_substr($contact['first_name'], 0, 1)) ?>
                             </div>
                         </div>
                         <h5 class="mb-1"><?= e($contact['first_name'] . ' ' . ($contact['last_name'] ?? '')) ?></h5>
