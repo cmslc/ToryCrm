@@ -59,33 +59,43 @@ class AiService
     private static function callOpenRouter(string $apiKey, string $system, string $message): string
     {
         $url = 'https://openrouter.ai/api/v1/chat/completions';
-        $payload = json_encode([
-            'model' => 'meta-llama/llama-3.3-70b-instruct:free',
-            'messages' => [
-                ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => $message],
-            ],
-            'temperature' => 0.7,
-            'max_tokens' => 500,
-        ]);
-
-        $response = self::curlPost($url, $payload, [
+        $models = [
+            'meta-llama/llama-3.3-70b-instruct:free',
+            'google/gemma-3-27b-it:free',
+            'nousresearch/hermes-3-llama-3.1-405b:free',
+            'mistralai/mistral-small-3.1-24b-instruct:free',
+        ];
+        $headers = [
             'Content-Type: application/json',
             'Authorization: Bearer ' . $apiKey,
             'HTTP-Referer: https://torycrm.com',
             'X-Title: ToryCRM',
-        ]);
+        ];
 
-        if (!$response['success']) {
-            return "⚠️ OpenRouter lỗi: " . $response['error'];
+        foreach ($models as $model) {
+            $payload = json_encode([
+                'model' => $model,
+                'messages' => [
+                    ['role' => 'system', 'content' => $system],
+                    ['role' => 'user', 'content' => $message],
+                ],
+                'temperature' => 0.7,
+                'max_tokens' => 500,
+            ]);
+
+            $response = self::curlPost($url, $payload, $headers);
+            if (!$response['success']) continue;
+
+            $data = json_decode($response['body'], true);
+            if (isset($data['error']['code']) && $data['error']['code'] == 429) continue;
+            if (isset($data['error'])) continue;
+
+            $text = trim($data['choices'][0]['message']['content'] ?? '');
+            if (!empty($text)) return $text;
         }
 
-        $data = json_decode($response['body'], true);
-        if (isset($data['error'])) {
-            return "⚠️ OpenRouter: " . ($data['error']['message'] ?? 'Unknown error');
-        }
-
-        return trim($data['choices'][0]['message']['content'] ?? '');
+        // All models failed
+        return self::fallbackRuleBased($message, 0, 0);
     }
 
     private static function callGroq(string $apiKey, string $system, string $message): string
