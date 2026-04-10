@@ -76,21 +76,33 @@
                     </div>
                 </div>
 
-                <!-- Người phụ trách (tag style) -->
+                <!-- Phụ trách & Theo dõi -->
                 <div class="card">
-                    <div class="card-header p-2"><h5 class="card-title mb-0"><i class="ri-team-line me-1"></i> Người phụ trách</h5></div>
+                    <div class="card-header p-2"><h5 class="card-title mb-0"><i class="ri-team-line me-1"></i> Phụ trách & Theo dõi</h5></div>
                     <div class="card-body py-2">
                         <?php $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
+
+                        <!-- Phụ trách chính -->
+                        <label class="text-muted fs-12">Phụ trách chính</label>
+                        <div class="d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-xs me-2">
+                                    <span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(substr($contact['owner_name'] ?? 'N', 0, 1)) ?></span>
+                                </div>
+                                <span class="fw-medium" id="ownerName"><?= e($contact['owner_name'] ?? 'Chưa gán') ?></span>
+                            </div>
+                            <div class="position-relative">
+                                <button type="button" class="btn btn-soft-primary py-0 px-2" id="changeOwnerBtn">Đổi</button>
+                                <div id="ownerSearchBox" class="position-absolute end-0 bg-white border rounded shadow p-2" style="display:none;width:220px;z-index:1060;top:100%;margin-top:4px">
+                                    <input type="text" class="form-control mb-1" id="ownerSearchInput" placeholder="Tìm người..." autocomplete="off">
+                                    <div id="ownerSearchResults" style="max-height:150px;overflow-y:auto"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Người theo dõi -->
+                        <label class="text-muted fs-12">Người theo dõi</label>
                         <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
-                            <?php
-                            // Owner hiển thị đầu tiên với badge khác
-                            if (!empty($contact['owner_name'])):
-                            ?>
-                                <span class="badge bg-primary d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $contact['owner_id'] ?>">
-                                    <i class="ri-star-fill" style="font-size:10px"></i> <?= e($contact['owner_name']) ?>
-                                    <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $contact['owner_id'] ?>, this)"></i>
-                                </span>
-                            <?php endif; ?>
                             <?php foreach ($followers ?? [] as $f):
                                 if ($f['user_id'] == ($contact['owner_id'] ?? 0)) continue;
                             ?>
@@ -106,6 +118,52 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Owner change script -->
+                <script>
+                (function() {
+                    var cid = <?= $contact['id'] ?>, tok = '<?= $_SESSION['csrf_token'] ?? '' ?>';
+                    var users = <?= json_encode($allUsers) ?>;
+                    var btn = document.getElementById('changeOwnerBtn');
+                    var box = document.getElementById('ownerSearchBox');
+                    var input = document.getElementById('ownerSearchInput');
+                    var results = document.getElementById('ownerSearchResults');
+
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+                        if (box.style.display === 'block') { input.value = ''; renderOwnerList(''); input.focus(); }
+                    });
+
+                    function renderOwnerList(q) {
+                        results.innerHTML = '';
+                        users.forEach(function(u) {
+                            if (q && u.name.toLowerCase().indexOf(q.toLowerCase()) === -1) return;
+                            var div = document.createElement('div');
+                            div.className = 'px-2 py-1 rounded';
+                            div.style.cursor = 'pointer';
+                            div.textContent = u.name;
+                            div.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
+                            div.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+                            div.addEventListener('click', function() {
+                                fetch('/contacts/' + cid + '/change-owner', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                    body: '_token=' + tok + '&owner_id=' + u.id
+                                }).then(function() {
+                                    document.getElementById('ownerName').textContent = u.name;
+                                    document.querySelector('#changeOwnerBtn').closest('.mb-3').querySelector('.avatar-title').textContent = u.name.charAt(0).toUpperCase();
+                                    box.style.display = 'none';
+                                });
+                            });
+                            results.appendChild(div);
+                        });
+                    }
+
+                    input.addEventListener('input', function() { renderOwnerList(this.value); });
+                    document.addEventListener('click', function(e) { if (!box.contains(e.target) && e.target !== btn) box.style.display = 'none'; });
+                })();
+                </script>
                 <script>
                 (function() {
                     var cid = <?= $contact['id'] ?>, tok = '<?= $_SESSION['csrf_token'] ?? '' ?>';
