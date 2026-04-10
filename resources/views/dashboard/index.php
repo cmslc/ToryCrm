@@ -19,7 +19,7 @@
 </div>
 
 <div class="row">
-<div class="col-xl-9">
+<div class="col-xl-10">
 <!-- ROW 1: Smart Insights -->
 <?php if (!empty($insights)): ?>
 <div class="row" id="insights-row">
@@ -151,7 +151,7 @@
                 <?php
                 $yearRevenue = array_sum($revenueData ?? []);
                 $yearOrders = $stats['total_orders'] ?? 0;
-                $wonDeals = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM deals WHERE status='won' AND tenant_id=?", [$tid])['c'] ?? 0);
+                $wonDeals = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM deals WHERE status='won' AND tenant_id=?", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0);
                 $convRate = $stats['total_deals'] > 0 ? round($wonDeals / ($stats['total_deals'] + $wonDeals) * 100, 1) : 0;
                 ?>
                 <div class="row text-center mb-3">
@@ -410,13 +410,13 @@
     </div>
 </div>
 
-</div><!-- end col-xl-9 -->
+</div><!-- end col-xl-10 -->
 
 <!-- Right sidebar: Recent Activity (Velzon style) -->
-<div class="col-xl-3">
+<div class="col-xl-2">
     <div class="card card-height-100">
         <div class="card-header border-bottom-dashed align-items-center d-flex">
-            <h4 class="card-title mb-0 flex-grow-1">Hoạt động gần đây</h4>
+            <h4 class="card-title mb-0 flex-grow-1 fs-14">Hoạt động</h4>
             <a href="<?= url('activities') ?>" class="text-muted fs-12">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
         </div>
         <div class="card-body p-0">
@@ -477,7 +477,7 @@
             </div>
         </div>
     </div>
-</div><!-- end col-xl-3 -->
+</div><!-- end col-xl-2 -->
 </div><!-- end row -->
 
 <script>
@@ -490,13 +490,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Orders per month
         $orderMonthly = array_fill(0, 12, 0);
         try {
-            $omRows = \Core\Database::fetchAll("SELECT MONTH(created_at) as m, COUNT(*) as c FROM orders WHERE tenant_id = ? AND YEAR(created_at) = YEAR(CURDATE()) AND is_deleted = 0 GROUP BY MONTH(created_at)", [$tid]);
+            $omRows = \Core\Database::fetchAll("SELECT MONTH(created_at) as m, COUNT(*) as c FROM orders WHERE tenant_id = ? AND YEAR(created_at) = YEAR(CURDATE()) AND is_deleted = 0 GROUP BY MONTH(created_at)", [$_SESSION['tenant_id'] ?? 1]);
             foreach ($omRows as $om) $orderMonthly[$om['m'] - 1] = (int)$om['c'];
         } catch (\Exception $e) {}
         // Tasks completed per month
         $taskMonthly = array_fill(0, 12, 0);
         try {
-            $tmRows = \Core\Database::fetchAll("SELECT MONTH(completed_at) as m, COUNT(*) as c FROM tasks WHERE tenant_id = ? AND status = 'done' AND YEAR(completed_at) = YEAR(CURDATE()) GROUP BY MONTH(completed_at)", [$tid]);
+            $tmRows = \Core\Database::fetchAll("SELECT MONTH(completed_at) as m, COUNT(*) as c FROM tasks WHERE tenant_id = ? AND status = 'done' AND YEAR(completed_at) = YEAR(CURDATE()) GROUP BY MONTH(completed_at)", [$_SESSION['tenant_id'] ?? 1]);
             foreach ($tmRows as $tm) $taskMonthly[$tm['m'] - 1] = (int)$tm['c'];
         } catch (\Exception $e) {}
         ?>
