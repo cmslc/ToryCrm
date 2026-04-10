@@ -196,7 +196,7 @@ class DashboardController extends Controller
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.tenant_id = ?
              ORDER BY a.created_at DESC
-             LIMIT 8",
+             LIMIT 5",
             [$tid]
         );
 

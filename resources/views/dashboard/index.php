@@ -223,22 +223,6 @@
             </div>
             <div class="card-body">
                 <div style="height:220px" class="d-flex justify-content-center"><canvas id="dealStatusChart"></canvas></div>
-                <div class="mt-3">
-                    <?php
-                    $dsColors = ['open'=>'primary','won'=>'success','lost'=>'danger'];
-                    $dsLabels = ['open'=>'Đang mở','won'=>'Thắng','lost'=>'Thua'];
-                    $dsTotal = array_sum(array_column($dealStatusDist ?? [], 'count')) ?: 1;
-                    foreach ($dealStatusDist ?? [] as $ds):
-                        $pct = round($ds['count'] / $dsTotal * 100);
-                    ?>
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-<?= $dsColors[$ds['status']] ?? 'secondary' ?> me-2" style="width:10px;height:10px;padding:0;border-radius:50%"></span>
-                        <span class="flex-grow-1"><?= $dsLabels[$ds['status']] ?? $ds['status'] ?></span>
-                        <span class="fw-semibold"><?= $ds['count'] ?></span>
-                        <span class="text-muted ms-2 fs-12">(<?= $pct ?>%)</span>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
             </div>
         </div>
     </div>
@@ -251,17 +235,6 @@
             </div>
             <div class="card-body">
                 <div style="height:220px" class="d-flex justify-content-center"><canvas id="sourceChart"></canvas></div>
-                <div class="mt-3">
-                    <?php
-                    $srcColors = ['#405189','#0ab39c','#f7b84b','#f06548','#299cdb','#6c757d','#3577f1','#e83e8c'];
-                    foreach ($sourceDist ?? [] as $i => $src): ?>
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="me-2" style="width:10px;height:10px;border-radius:50%;background:<?= $srcColors[$i % 8] ?>;display:inline-block"></span>
-                        <span class="flex-grow-1 text-truncate"><?= e($src['source_name']) ?></span>
-                        <span class="fw-semibold"><?= $src['count'] ?></span>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
             </div>
         </div>
     </div>
@@ -543,7 +516,7 @@
             <a href="<?= url('activities') ?>" class="text-muted fs-12">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
         </div>
         <div class="card-body p-0">
-            <div data-simplebar style="max-height: 500px;">
+            <div data-simplebar style="max-height: 300px;">
                 <?php if (!empty($recentActivities)): ?>
                     <?php
                     $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','contact'=>'ri-user-add-line','system'=>'ri-settings-3-line','order'=>'ri-shopping-cart-line'];
@@ -766,6 +739,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Deal Status Donut
+    // Shared datalabels config for donut charts
+    var donutLabelOpts = {
+        color: '#fff',
+        font: { weight: 'bold', size: 12 },
+        formatter: function(value, ctx) {
+            var sum = ctx.dataset.data.reduce(function(a,b){return a+b},0);
+            return sum > 0 ? (value/sum*100).toFixed(1)+'%' : '';
+        },
+        display: function(ctx) {
+            var sum = ctx.dataset.data.reduce(function(a,b){return a+b},0);
+            return sum > 0 && ctx.dataset.data[ctx.dataIndex] > 0;
+        }
+    };
+
+    // Deal Status Donut
     var dealCtx = document.getElementById('dealStatusChart');
     if (dealCtx) {
         <?php
@@ -779,22 +767,24 @@ document.addEventListener('DOMContentLoaded', function() {
         ?>
         new Chart(dealCtx, {
             type: 'doughnut',
-            data: { labels: <?= json_encode($dsLbl) ?>, datasets: [{ data: <?= json_encode($dsData) ?>, backgroundColor: <?= json_encode($dsCl) ?>, borderWidth: 0 }] },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+            plugins: [ChartDataLabels],
+            data: { labels: <?= json_encode($dsLbl) ?>, datasets: [{ data: <?= json_encode($dsData) ?>, backgroundColor: <?= json_encode($dsCl) ?>, borderWidth: 2, borderColor: '#fff' }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: {size:11} } }, datalabels: donutLabelOpts } }
         });
     }
 
-    // Source Pie
+    // Source Donut
     var srcCtx = document.getElementById('sourceChart');
     if (srcCtx) {
         var srcColors = ['#405189','#0ab39c','#f7b84b','#f06548','#299cdb','#6c757d','#3577f1','#e83e8c'];
         new Chart(srcCtx, {
             type: 'doughnut',
+            plugins: [ChartDataLabels],
             data: {
                 labels: <?= json_encode(array_column($sourceDist ?? [], 'source_name')) ?>,
-                datasets: [{ data: <?= json_encode(array_column($sourceDist ?? [], 'count')) ?>, backgroundColor: srcColors.slice(0, <?= count($sourceDist ?? []) ?>), borderWidth: 0 }]
+                datasets: [{ data: <?= json_encode(array_column($sourceDist ?? [], 'count')) ?>, backgroundColor: srcColors.slice(0, <?= count($sourceDist ?? []) ?>), borderWidth: 2, borderColor: '#fff' }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+            options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: {size:11} } }, datalabels: donutLabelOpts } }
         });
     }
 
@@ -804,8 +794,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var done = <?= $taskStats['done'] ?? 0 ?>, remaining = <?= ($taskStats['total'] ?? 0) - ($taskStats['done'] ?? 0) ?>;
         new Chart(taskCtx, {
             type: 'doughnut',
-            data: { labels: ['Hoàn thành','Còn lại'], datasets: [{ data: [done, remaining], backgroundColor: ['#0ab39c','#e9ebec'], borderWidth: 0 }] },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: false } } }
+            plugins: [ChartDataLabels],
+            data: { labels: ['Hoàn thành','Còn lại'], datasets: [{ data: [done, remaining], backgroundColor: ['#0ab39c','#e9ebec'], borderWidth: 2, borderColor: '#fff' }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, datalabels: { color: function(ctx){return ctx.dataIndex===0?'#fff':'#878a99'}, font:{weight:'bold',size:13}, formatter: function(v,ctx){var s=ctx.dataset.data.reduce(function(a,b){return a+b},0); return s>0?(v/s*100).toFixed(0)+'%':'';}, display: function(ctx){return ctx.dataset.data[ctx.dataIndex]>0;} } } }
         });
     }
 });
