@@ -600,6 +600,60 @@
             </div>
         </div>
     </div>
+
+    <!-- Quick Stats mini cards -->
+    <?php
+    $openTickets = 0;
+    try { $openTickets = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM tickets WHERE tenant_id = ? AND status IN ('open','in_progress')", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
+    $pendingApprovals = 0;
+    try { $pendingApprovals = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM approval_requests WHERE tenant_id = ? AND status = 'pending'", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
+    $newContactsWeek = 0;
+    try { $newContactsWeek = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE tenant_id = ? AND is_deleted = 0 AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
+    ?>
+    <div class="card">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-center mb-3">
+                <div class="avatar-xs me-2"><span class="avatar-title rounded bg-danger-subtle text-danger"><i class="ri-customer-service-line"></i></span></div>
+                <div class="flex-grow-1"><p class="mb-0 fs-12 text-muted">Ticket mở</p><h6 class="mb-0"><?= $openTickets ?></h6></div>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <div class="avatar-xs me-2"><span class="avatar-title rounded bg-warning-subtle text-warning"><i class="ri-checkbox-circle-line"></i></span></div>
+                <div class="flex-grow-1"><p class="mb-0 fs-12 text-muted">Chờ duyệt</p><h6 class="mb-0"><?= $pendingApprovals ?></h6></div>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="avatar-xs me-2"><span class="avatar-title rounded bg-info-subtle text-info"><i class="ri-user-add-line"></i></span></div>
+                <div class="flex-grow-1"><p class="mb-0 fs-12 text-muted">KH mới (7 ngày)</p><h6 class="mb-0"><?= $newContactsWeek ?></h6></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events mini -->
+    <?php
+    $upcomingEvents = [];
+    try {
+        $upcomingEvents = \Core\Database::fetchAll(
+            "SELECT title, start_at, color FROM calendar_events WHERE (user_id = ? OR created_by = ?) AND start_at > NOW() ORDER BY start_at LIMIT 4",
+            [$_SESSION['user']['id'] ?? 0, $_SESSION['user']['id'] ?? 0]
+        );
+    } catch (\Exception $e) {}
+    ?>
+    <?php if (!empty($upcomingEvents)): ?>
+    <div class="card">
+        <div class="card-header p-3 pb-0"><h6 class="card-title mb-0 fs-13">Lịch sắp tới</h6></div>
+        <div class="card-body p-3 pt-2">
+            <?php foreach ($upcomingEvents as $ev): ?>
+            <div class="d-flex align-items-center mb-2">
+                <span class="me-2" style="width:8px;height:8px;border-radius:50%;background:<?= safe_color($ev['color']) ?>;display:inline-block;flex-shrink:0"></span>
+                <div class="flex-grow-1 overflow-hidden">
+                    <p class="mb-0 fs-12 text-truncate"><?= e($ev['title']) ?></p>
+                    <small class="text-muted fs-11"><?= date('d/m H:i', strtotime($ev['start_at'])) ?></small>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
 </div><!-- end col-xl-2 -->
 </div><!-- end row -->
 
