@@ -261,9 +261,13 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('settings/api-keys') ?>" class="nav-link <?= isActive('settings/api-keys', $currentUrl) ?>">API Keys</a></li>
                             <li class="nav-item"><a href="<?= url('settings/audit-log') ?>" class="nav-link <?= isActive('settings/audit-log', $currentUrl) ?>">Audit Log</a></li>
                             <?php endif; ?>
-                            <li class="nav-item"><a href="<?= url('help') ?>" class="nav-link <?= isActive('help', $currentUrl) ?>">Trợ giúp</a></li>
                         </ul>
                     </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('help', $currentUrl) ?>" href="<?= url('help') ?>">
+                        <i class="ri-question-line"></i> <span>Trợ giúp</span>
+                    </a>
                 </li>
 
             </ul>
