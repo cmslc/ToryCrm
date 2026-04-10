@@ -20,7 +20,7 @@ class TaskController extends Controller
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
 
         if ($search) {
@@ -84,7 +84,7 @@ class TaskController extends Controller
         $totalPages = ceil($total / $perPage);
 
         // Status counts for tabs (respect owner scope)
-        $scopeWhere = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $scopeWhere = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $scopeParams = [Database::tenantId()];
         if ($ownerScope['where']) {
             $scopeWhere[] = $ownerScope['where'];
@@ -137,7 +137,7 @@ class TaskController extends Controller
                  LEFT JOIN users u ON t.assigned_to = u.id
                  LEFT JOIN contacts c ON t.contact_id = c.id
                  LEFT JOIN deals d ON t.deal_id = d.id
-                 WHERE t.status = ?
+                 WHERE t.status = ? AND t.is_deleted = 0 AND t.parent_id IS NULL
                  ORDER BY t.priority DESC, t.due_date ASC",
                 [$status]
             );
@@ -916,7 +916,7 @@ class TaskController extends Controller
         $start = $this->input('start');
         $end = $this->input('end');
 
-        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
 
         $ownerScope = $this->ownerScope('t', 'assigned_to');
@@ -959,7 +959,7 @@ class TaskController extends Controller
     {
         $this->authorize('tasks', 'view');
 
-        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
         $ownerScope = $this->ownerScope('t', 'assigned_to');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
@@ -1117,7 +1117,7 @@ class TaskController extends Controller
 
     public function ganttData()
     {
-        $where = ["t.is_deleted = 0", "t.tenant_id = ?"];
+        $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
         $ownerScope = $this->ownerScope('t', 'assigned_to');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
