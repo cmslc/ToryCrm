@@ -56,11 +56,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('ai-chat', $currentUrl) ?>" href="<?= url('ai-chat') ?>">
-                        <i class="ri-robot-line"></i> <span>AI Trợ lý</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('conversations', $currentUrl) ?>" href="<?= url('conversations') ?>">
                         <i class="ri-chat-1-line"></i> <span>Hộp thư</span>
                         <?php if ($convUnread > 0): ?><span class="badge badge-pill bg-danger" data-key="t-new"><?= $convUnread ?></span><?php endif; ?>

@@ -44,6 +44,24 @@
 
                         <!-- Conversation list -->
                         <div data-simplebar style="max-height: 600px;">
+                            <!-- AI Trợ lý - pinned -->
+                            <a href="<?= url('conversations?active=ai') ?>"
+                               class="d-flex align-items-start p-3 border-bottom text-decoration-none <?= ($activeId ?? '') === 'ai' ? 'bg-light' : '' ?>"
+                               style="cursor:pointer;">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width:40px;height:40px;font-size:18px">
+                                        <i class="ri-robot-line"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="mb-0 text-dark">AI Trợ lý</h6>
+                                        <span class="badge bg-primary-subtle text-primary">AI</span>
+                                    </div>
+                                    <p class="text-muted mb-0 text-truncate fs-13">Hỏi bất kỳ điều gì về CRM...</p>
+                                </div>
+                            </a>
+
                             <?php if (!empty($conversations)): ?>
                                 <?php foreach ($conversations as $conv): ?>
                                     <?php
@@ -118,7 +136,110 @@
 
             <!-- Right content: conversation detail -->
             <div class="col-xl-8">
-                <?php if ($activeConversation): ?>
+                <?php if (($this->input('active') ?? '') === 'ai'): ?>
+                    <!-- AI Chat Panel -->
+                    <div class="card">
+                        <div class="card-header p-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width:36px;height:36px">
+                                    <i class="ri-robot-line"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">AI Trợ lý</h5>
+                                    <small class="text-muted">Hỏi bất kỳ điều gì về CRM</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="aiChatMessages" style="height:400px;overflow-y:auto;padding:16px">
+                                <!-- Suggested prompts -->
+                                <div id="aiSuggestions" class="text-center py-4">
+                                    <i class="ri-robot-line text-primary" style="font-size:48px"></i>
+                                    <p class="text-muted mt-2">Tôi có thể giúp gì cho bạn?</p>
+                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                        <button class="btn btn-soft-primary ai-suggest" data-msg="Doanh thu tháng này">💰 Doanh thu</button>
+                                        <button class="btn btn-soft-warning ai-suggest" data-msg="Công việc quá hạn">⚠️ Task quá hạn</button>
+                                        <button class="btn btn-soft-info ai-suggest" data-msg="Khách hàng cần liên hệ">📞 KH cần liên hệ</button>
+                                        <button class="btn btn-soft-success ai-suggest" data-msg="Pipeline">📊 Pipeline</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 border-top">
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" id="aiInput" placeholder="Nhập tin nhắn... (VD: Doanh thu tháng này)" autocomplete="off">
+                                    <button class="btn btn-primary" id="aiSendBtn"><i class="ri-send-plane-fill"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                    (function() {
+                        var chatBox = document.getElementById('aiChatMessages');
+                        var input = document.getElementById('aiInput');
+                        var sendBtn = document.getElementById('aiSendBtn');
+                        var token = '<?= $_SESSION["csrf_token"] ?? "" ?>';
+
+                        function addMsg(role, text) {
+                            var suggestions = document.getElementById('aiSuggestions');
+                            if (suggestions) suggestions.remove();
+
+                            var div = document.createElement('div');
+                            div.className = 'd-flex mb-3 ' + (role === 'user' ? 'justify-content-end' : '');
+                            var bubble = role === 'user'
+                                ? '<div class="bg-primary text-white rounded p-2 px-3" style="max-width:80%">' + text.replace(/\n/g,'<br>') + '</div>'
+                                : '<div class="d-flex gap-2"><div class="flex-shrink-0"><div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width:32px;height:32px"><i class="ri-robot-line"></i></div></div><div class="bg-light rounded p-2 px-3" style="max-width:80%">' + text.replace(/\n/g,'<br>') + '</div></div>';
+                            div.innerHTML = bubble;
+                            chatBox.appendChild(div);
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        }
+
+                        function send(msg) {
+                            if (!msg.trim()) return;
+                            addMsg('user', msg);
+                            input.value = '';
+
+                            var typing = document.createElement('div');
+                            typing.id = 'aiTyping';
+                            typing.className = 'd-flex mb-3';
+                            typing.innerHTML = '<div class="bg-light rounded p-2 px-3"><span class="spinner-border spinner-border-sm me-1"></span> Đang suy nghĩ...</div>';
+                            chatBox.appendChild(typing);
+                            chatBox.scrollTop = chatBox.scrollHeight;
+
+                            fetch('/ai-chat/send', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                body: '_token=' + token + '&message=' + encodeURIComponent(msg)
+                            })
+                            .then(function(r) { return r.json(); })
+                            .then(function(d) {
+                                var t = document.getElementById('aiTyping');
+                                if (t) t.remove();
+                                addMsg('assistant', d.message || d.error || 'Lỗi');
+                            })
+                            .catch(function() {
+                                var t = document.getElementById('aiTyping');
+                                if (t) t.remove();
+                                addMsg('assistant', 'Lỗi kết nối');
+                            });
+                        }
+
+                        sendBtn.addEventListener('click', function() { send(input.value); });
+                        input.addEventListener('keydown', function(e) { if (e.key === 'Enter') send(input.value); });
+                        document.querySelectorAll('.ai-suggest').forEach(function(btn) {
+                            btn.addEventListener('click', function() { send(this.dataset.msg); });
+                        });
+
+                        // Load history
+                        fetch('/ai-chat/history').then(function(r){return r.json()}).then(function(d) {
+                            if (d.messages && d.messages.length > 0) {
+                                document.getElementById('aiSuggestions')?.remove();
+                                d.messages.forEach(function(m) { addMsg(m.role, m.content); });
+                            }
+                        }).catch(function(){});
+                    })();
+                    </script>
+
+                <?php elseif ($activeConversation): ?>
                     <div class="card">
                         <!-- Header -->
                         <div class="card-header">
