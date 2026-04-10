@@ -41,16 +41,15 @@
                             <?= $sLabels[$contact['status']] ?? $contact['status'] ?>
                         </span>
 
-                        <!-- Tags -->
-                        <div class="mt-3">
-                            <?php
-                            $contactTags = \App\Services\TagService::getForEntity('contact', $contact['id']);
-                            $entityType = 'contact';
-                            $entityId = $contact['id'];
-                            $selectedTags = $contactTags;
-                            include __DIR__ . '/../components/tag-input.php';
-                            ?>
+                        <!-- Tags (inline badges only) -->
+                        <?php $contactTags = \App\Services\TagService::getForEntity('contact', $contact['id']); ?>
+                        <?php if (!empty($contactTags)): ?>
+                        <div class="mt-2 d-flex gap-1 justify-content-center flex-wrap">
+                            <?php foreach ($contactTags as $t): ?>
+                                <span class="badge" style="background-color:<?= e($t['color'] ?? '#405189') ?>"><?= e($t['name']) ?></span>
+                            <?php endforeach; ?>
                         </div>
+                        <?php endif; ?>
 
                         <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
                             <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary">
@@ -61,6 +60,19 @@
                                 <button type="submit" class="btn btn-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-price-tag-3-line me-1"></i> Nhãn</h5></div>
+                    <div class="card-body py-2">
+                        <?php
+                        $entityType = 'contact';
+                        $entityId = $contact['id'];
+                        $selectedTags = $contactTags;
+                        include __DIR__ . '/../components/tag-input.php';
+                        ?>
                     </div>
                 </div>
 
