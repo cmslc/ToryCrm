@@ -83,6 +83,22 @@ class Controller
     }
 
     /**
+     * Check permission. Redirects with error if denied.
+     */
+    protected function authorize(string $module, string $action): void
+    {
+        \App\Services\PermissionService::canOrFail($module, $action);
+    }
+
+    /**
+     * Check permission. Returns bool without redirect.
+     */
+    protected function can(string $module, string $action): bool
+    {
+        return \App\Services\PermissionService::can($module, $action);
+    }
+
+    /**
      * Find a record by ID with automatic tenant scope.
      * Returns null if not found or belongs to different tenant.
      */

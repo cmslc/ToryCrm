@@ -10,6 +10,7 @@ class OrderController extends Controller
 {
     public function index()
     {
+        $this->authorize('orders', 'view');
         $search = $this->input('search');
         $type = $this->input('type');
         $status = $this->input('status');
@@ -88,6 +89,7 @@ class OrderController extends Controller
 
     public function create()
     {
+        $this->authorize('orders', 'create');
         $orderModel = new Order();
         $type = $this->input('type') ?: 'order';
         $orderNumber = $orderModel->generateOrderNumber($type);
@@ -121,6 +123,7 @@ class OrderController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('orders');
         }
+        $this->authorize('orders', 'create');
 
         $data = $this->allInput();
         $type = $data['type'] ?? 'order';
@@ -200,6 +203,7 @@ class OrderController extends Controller
 
     public function pdf($id)
     {
+        $this->authorize('orders', 'view');
         $order = Database::fetch(
             "SELECT o.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
@@ -231,6 +235,7 @@ class OrderController extends Controller
      */
     public function invoicePdf($id)
     {
+        $this->authorize('orders', 'view');
         $html = \App\Services\PdfService::generateInvoicePdf((int) $id);
 
         if (empty($html)) {
@@ -247,6 +252,7 @@ class OrderController extends Controller
      */
     public function quotationPdf($id)
     {
+        $this->authorize('orders', 'view');
         $html = \App\Services\PdfService::generateQuotationPdf((int) $id);
 
         if (empty($html)) {
@@ -260,6 +266,7 @@ class OrderController extends Controller
 
     public function show($id)
     {
+        $this->authorize('orders', 'view');
         $order = Database::fetch(
             "SELECT o.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
@@ -297,6 +304,7 @@ class OrderController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('orders', 'edit');
         $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$id]);
 
         if (!$order) {
@@ -335,6 +343,7 @@ class OrderController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('orders/' . $id);
         }
+        $this->authorize('orders', 'edit');
 
         $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$id]);
 
@@ -403,6 +412,7 @@ class OrderController extends Controller
     public function approve($id)
     {
         if (!$this->isPost()) return $this->redirect('orders/' . $id);
+        $this->authorize('orders', 'approve');
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
@@ -432,6 +442,7 @@ class OrderController extends Controller
     public function cancel($id)
     {
         if (!$this->isPost()) return $this->redirect('orders/' . $id);
+        $this->authorize('orders', 'edit');
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
@@ -460,6 +471,7 @@ class OrderController extends Controller
     // ---- Khôi phục đơn hàng ----
     public function trash()
     {
+        $this->authorize('orders', 'delete');
         $tid = Database::tenantId();
         $orders = Database::fetchAll(
             "SELECT o.*, c.first_name as contact_first_name, c.last_name as contact_last_name
@@ -474,6 +486,7 @@ class OrderController extends Controller
     public function restore($id)
     {
         if (!$this->isPost()) return $this->redirect('orders/trash');
+        $this->authorize('orders', 'delete');
         Database::restore('orders', 'id = ?', [$id]);
         $this->setFlash('success', 'Đã khôi phục đơn hàng.');
         return $this->redirect('orders/trash');
@@ -483,6 +496,7 @@ class OrderController extends Controller
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('orders');
+        $this->authorize('orders', 'delete');
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
@@ -503,6 +517,7 @@ class OrderController extends Controller
     public function payment($id)
     {
         if (!$this->isPost()) return $this->redirect('orders/' . $id);
+        $this->authorize('orders', 'edit');
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
@@ -559,6 +574,7 @@ class OrderController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('orders', 'edit');
 
         $order = Database::fetch("SELECT * FROM orders WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$order) {
@@ -593,6 +609,7 @@ class OrderController extends Controller
     public function updateStatus($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $this->authorize('orders', 'edit');
 
         $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$id]);
         if (!$order) return $this->json(['error' => 'Order not found'], 404);

@@ -9,6 +9,7 @@ class TaskController extends Controller
 {
     public function index()
     {
+        $this->authorize('tasks', 'view');
         $search = $this->input('search');
         $status = $this->input('status');
         $priority = $this->input('priority');
@@ -82,6 +83,7 @@ class TaskController extends Controller
 
     public function kanban()
     {
+        $this->authorize('tasks', 'view');
         $statuses = ['todo', 'in_progress', 'review', 'done'];
         $board = [];
 
@@ -108,6 +110,7 @@ class TaskController extends Controller
 
     public function create()
     {
+        $this->authorize('tasks', 'create');
         $contacts = Database::fetchAll(
             "SELECT id, first_name, last_name FROM contacts ORDER BY first_name"
         );
@@ -128,6 +131,7 @@ class TaskController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('tasks');
         }
+        $this->authorize('tasks', 'create');
 
         $data = $this->allInput();
 
@@ -165,6 +169,7 @@ class TaskController extends Controller
 
     public function show($id)
     {
+        $this->authorize('tasks', 'view');
         $task = Database::fetch(
             "SELECT t.*, u.name as assigned_name, creator.name as creator_name,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
@@ -190,6 +195,7 @@ class TaskController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('tasks', 'edit');
         $task = Database::fetch("SELECT * FROM tasks WHERE id = ?", [$id]);
 
         if (!$task) {
@@ -218,6 +224,7 @@ class TaskController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('tasks/' . $id);
         }
+        $this->authorize('tasks', 'edit');
 
         $task = Database::fetch("SELECT * FROM tasks WHERE id = ?", [$id]);
 
@@ -279,6 +286,7 @@ class TaskController extends Controller
     public function complete($id)
     {
         if (!$this->isPost()) return $this->redirect('tasks/' . $id);
+        $this->authorize('tasks', 'edit');
 
         $task = $this->findSecure('tasks', (int)$id);
         if (!$task) {
@@ -308,6 +316,7 @@ class TaskController extends Controller
     public function cancel($id)
     {
         if (!$this->isPost()) return $this->redirect('tasks/' . $id);
+        $this->authorize('tasks', 'delete');
 
         $task = $this->findSecure('tasks', (int)$id);
         if (!$task) {
@@ -335,6 +344,7 @@ class TaskController extends Controller
     // ---- Khôi phục công việc ----
     public function trash()
     {
+        $this->authorize('tasks', 'delete');
         $tid = Database::tenantId();
         $tasks = Database::fetchAll(
             "SELECT t.*, u.name as assigned_name
@@ -350,6 +360,7 @@ class TaskController extends Controller
     public function restore($id)
     {
         if (!$this->isPost()) return $this->redirect('tasks/trash');
+        $this->authorize('tasks', 'delete');
 
         Database::restore('tasks', 'id = ?', [$id]);
         Database::update('tasks', ['cancelled_at' => null, 'status' => 'todo'], 'id = ?', [$id]);
@@ -362,6 +373,7 @@ class TaskController extends Controller
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('tasks');
+        $this->authorize('tasks', 'delete');
 
         $task = $this->findSecure('tasks', (int)$id);
         if (!$task) {
@@ -386,6 +398,7 @@ class TaskController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('tasks', 'edit');
 
         $task = Database::fetch("SELECT * FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$task) {
@@ -429,6 +442,7 @@ class TaskController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('tasks', 'edit');
 
         $task = Database::fetch("SELECT * FROM tasks WHERE id = ?", [$id]);
 

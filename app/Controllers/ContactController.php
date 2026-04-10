@@ -9,6 +9,7 @@ class ContactController extends Controller
 {
     public function index()
     {
+        $this->authorize('contacts', 'view');
         $search = $this->input('search');
         $status = $this->input('status');
         $sourceId = $this->input('source_id');
@@ -95,6 +96,7 @@ class ContactController extends Controller
 
     public function create()
     {
+        $this->authorize('contacts', 'create');
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
@@ -111,6 +113,7 @@ class ContactController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('contacts');
         }
+        $this->authorize('contacts', 'create');
 
         $data = $this->allInput();
 
@@ -167,6 +170,7 @@ class ContactController extends Controller
 
     public function show($id)
     {
+        $this->authorize('contacts', 'view');
         $contact = Database::fetch(
             "SELECT c.*, comp.name as company_name, u.name as owner_name, cs.name as source_name
              FROM contacts c
@@ -237,6 +241,7 @@ class ContactController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('contacts', 'edit');
         $contact = Database::fetch("SELECT * FROM contacts WHERE id = ?", [$id]);
 
         if (!$contact) {
@@ -261,6 +266,7 @@ class ContactController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('contacts/' . $id);
         }
+        $this->authorize('contacts', 'edit');
 
         $contact = Database::fetch("SELECT * FROM contacts WHERE id = ?", [$id]);
 
@@ -311,6 +317,7 @@ class ContactController extends Controller
     public function followers($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $this->authorize('contacts', 'edit');
 
         $userId = (int) $this->input('user_id');
         $action = $this->input('action');
@@ -337,6 +344,7 @@ class ContactController extends Controller
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('contacts');
+        $this->authorize('contacts', 'delete');
 
         $contact = $this->findSecure('contacts', (int)$id);
         if (!$contact) {
@@ -361,6 +369,7 @@ class ContactController extends Controller
     // ---- Khôi phục khách hàng đã xóa ----
     public function trash()
     {
+        $this->authorize('contacts', 'delete');
         $tid = Database::tenantId();
         $contacts = Database::fetchAll(
             "SELECT c.*, comp.name as company_name
@@ -377,6 +386,7 @@ class ContactController extends Controller
     public function restore($id)
     {
         if (!$this->isPost()) return $this->redirect('contacts/trash');
+        $this->authorize('contacts', 'delete');
 
         Database::restore('contacts', 'id = ?', [$id]);
 
@@ -390,6 +400,7 @@ class ContactController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('contacts', 'edit');
 
         $contact = Database::fetch("SELECT * FROM contacts WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$contact) {
@@ -430,6 +441,7 @@ class ContactController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('contacts', 'edit');
 
         $ids = $_POST['ids'] ?? [];
         $action = $this->input('action');
@@ -492,6 +504,7 @@ class ContactController extends Controller
     public function changeOwner($id)
     {
         if (!$this->isPost()) return $this->redirect('contacts/' . $id);
+        $this->authorize('contacts', 'edit');
 
         $contact = $this->findSecure('contacts', (int)$id);
         if (!$contact) {

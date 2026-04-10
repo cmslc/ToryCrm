@@ -10,6 +10,7 @@ class FundController extends Controller
 {
     public function index()
     {
+        $this->authorize('fund', 'view');
         $model = new FundTransaction();
         $page = max(1, (int) $this->input('page') ?: 1);
 
@@ -45,6 +46,7 @@ class FundController extends Controller
 
     public function create()
     {
+        $this->authorize('fund', 'create');
         $model = new FundTransaction();
         $type = $this->input('type') ?: 'receipt';
         $code = $model->generateCode($type);
@@ -64,6 +66,7 @@ class FundController extends Controller
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('fund');
+        $this->authorize('fund', 'create');
 
         $data = $this->allInput();
         $type = $data['type'] ?? 'receipt';
@@ -99,6 +102,7 @@ class FundController extends Controller
 
     public function pdf($id)
     {
+        $this->authorize('fund', 'view');
         $transaction = Database::fetch(
             "SELECT ft.*, fa.name as fund_account_name,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
@@ -122,6 +126,7 @@ class FundController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('fund', 'edit');
         $transaction = Database::fetch("SELECT * FROM fund_transactions WHERE id = ?", [$id]);
         if (!$transaction) {
             $this->setFlash('error', 'Phiếu không tồn tại.');
@@ -149,6 +154,7 @@ class FundController extends Controller
     public function update($id)
     {
         if (!$this->isPost()) return $this->redirect('fund/' . $id);
+        $this->authorize('fund', 'edit');
 
         $transaction = Database::fetch("SELECT * FROM fund_transactions WHERE id = ?", [$id]);
         if (!$transaction || $transaction['status'] !== 'draft') {
@@ -179,6 +185,7 @@ class FundController extends Controller
 
     public function show($id)
     {
+        $this->authorize('fund', 'view');
         $transaction = Database::fetch(
             "SELECT ft.*,
                     fa.name as fund_account_name, fa.type as fund_account_type,
@@ -207,6 +214,7 @@ class FundController extends Controller
     public function confirm($id)
     {
         if (!$this->isPost()) return $this->redirect('fund/' . $id);
+        $this->authorize('fund', 'approve');
 
         $transaction = Database::fetch("SELECT * FROM fund_transactions WHERE id = ?", [$id]);
         if (!$transaction || $transaction['status'] !== 'draft') {
@@ -236,6 +244,7 @@ class FundController extends Controller
     public function cancel($id)
     {
         if (!$this->isPost()) return $this->redirect('fund/' . $id);
+        $this->authorize('fund', 'edit');
 
         $transaction = Database::fetch("SELECT * FROM fund_transactions WHERE id = ?", [$id]);
         if (!$transaction) {
@@ -260,6 +269,7 @@ class FundController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('fund', 'delete');
         $transaction = Database::fetch("SELECT * FROM fund_transactions WHERE id = ?", [$id]);
         if ($transaction && $transaction['status'] === 'confirmed') {
             $this->setFlash('error', 'Không thể xóa phiếu đã xác nhận. Hãy hủy trước.');

@@ -10,6 +10,7 @@ class CampaignController extends Controller
 {
     public function index()
     {
+        $this->authorize('campaigns', 'view');
         $campaignModel = new Campaign();
         $page = max(1, (int) $this->input('page') ?: 1);
 
@@ -31,6 +32,7 @@ class CampaignController extends Controller
 
     public function create()
     {
+        $this->authorize('campaigns', 'create');
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
         return $this->view('campaigns.create', ['users' => $users]);
     }
@@ -38,6 +40,7 @@ class CampaignController extends Controller
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('campaigns');
+        $this->authorize('campaigns', 'create');
 
         $data = $this->allInput();
         $name = trim($data['name'] ?? '');
@@ -74,6 +77,7 @@ class CampaignController extends Controller
 
     public function show($id)
     {
+        $this->authorize('campaigns', 'view');
         $campaign = Database::fetch(
             "SELECT c.*, u.name as owner_name, uc.name as created_by_name
              FROM campaigns c
@@ -101,6 +105,7 @@ class CampaignController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('campaigns', 'edit');
         $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');
@@ -118,6 +123,7 @@ class CampaignController extends Controller
     public function update($id)
     {
         if (!$this->isPost()) return $this->redirect('campaigns/' . $id);
+        $this->authorize('campaigns', 'edit');
 
         $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
         if (!$campaign) {
@@ -152,6 +158,7 @@ class CampaignController extends Controller
     public function addContact($id)
     {
         if (!$this->isPost()) return $this->redirect('campaigns/' . $id);
+        $this->authorize('campaigns', 'edit');
 
         $contactId = $this->input('contact_id');
         if (empty($contactId)) {
@@ -183,6 +190,7 @@ class CampaignController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('campaigns', 'delete');
         $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');

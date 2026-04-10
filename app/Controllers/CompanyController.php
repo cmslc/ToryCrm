@@ -9,6 +9,7 @@ class CompanyController extends Controller
 {
     public function index()
     {
+        $this->authorize('companies', 'view');
         $search = $this->input('search');
         $industry = $this->input('industry');
         $companySize = $this->input('company_size');
@@ -76,6 +77,7 @@ class CompanyController extends Controller
 
     public function create()
     {
+        $this->authorize('companies', 'create');
         $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
 
         return $this->view('companies.create', [
@@ -88,6 +90,7 @@ class CompanyController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('companies');
         }
+        $this->authorize('companies', 'create');
 
         $data = $this->allInput();
 
@@ -128,6 +131,7 @@ class CompanyController extends Controller
 
     public function show($id)
     {
+        $this->authorize('companies', 'view');
         $company = Database::fetch(
             "SELECT c.*, u.name as owner_name
              FROM companies c
@@ -189,6 +193,7 @@ class CompanyController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('companies', 'edit');
         $company = Database::fetch("SELECT * FROM companies WHERE id = ?", [$id]);
 
         if (!$company) {
@@ -209,6 +214,7 @@ class CompanyController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('companies/' . $id);
         }
+        $this->authorize('companies', 'edit');
 
         $company = Database::fetch("SELECT * FROM companies WHERE id = ?", [$id]);
 
@@ -254,6 +260,7 @@ class CompanyController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('companies', 'delete');
         $company = Database::fetch("SELECT * FROM companies WHERE id = ?", [$id]);
 
         if (!$company) {
@@ -281,6 +288,7 @@ class CompanyController extends Controller
 
     public function trash()
     {
+        $this->authorize('companies', 'delete');
         $tid = Database::tenantId();
         $companies = Database::fetchAll(
             "SELECT c.*, u.name as owner_name
@@ -297,6 +305,7 @@ class CompanyController extends Controller
     public function restore($id)
     {
         if (!$this->isPost()) return $this->redirect('companies/trash');
+        $this->authorize('companies', 'delete');
 
         Database::restore('companies', 'id = ?', [$id]);
 
@@ -307,6 +316,7 @@ class CompanyController extends Controller
     public function changeOwner($id)
     {
         if (!$this->isPost()) return $this->redirect('companies/' . $id);
+        $this->authorize('companies', 'edit');
 
         $company = Database::fetch("SELECT * FROM companies WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$company) {
@@ -342,6 +352,7 @@ class CompanyController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('companies', 'edit');
 
         $company = Database::fetch("SELECT * FROM companies WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$company) {

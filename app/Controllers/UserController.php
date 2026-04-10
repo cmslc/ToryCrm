@@ -10,6 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
+        $this->authorize('users', 'view');
         $search = $this->input('search');
         $role = $this->input('role');
         $page = max(1, (int) $this->input('page') ?: 1);
@@ -56,12 +57,14 @@ class UserController extends Controller
 
     public function create()
     {
+        $this->authorize('users', 'create');
         return $this->view('users.create');
     }
 
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('users');
+        $this->authorize('users', 'create');
 
         $data = $this->allInput();
         $name = trim($data['name'] ?? '');
@@ -100,6 +103,7 @@ class UserController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('users', 'edit');
         $user = Database::fetch("SELECT * FROM users WHERE id = ?", [$id]);
         if (!$user) {
             $this->setFlash('error', 'Người dùng không tồn tại.');
@@ -112,6 +116,7 @@ class UserController extends Controller
     public function update($id)
     {
         if (!$this->isPost()) return $this->redirect('users');
+        $this->authorize('users', 'edit');
 
         $user = Database::fetch("SELECT * FROM users WHERE id = ?", [$id]);
         if (!$user) {
@@ -161,6 +166,7 @@ class UserController extends Controller
     public function toggleActive($id)
     {
         if (!$this->isPost()) return $this->redirect('users');
+        $this->authorize('users', 'edit');
 
         $user = Database::fetch("SELECT * FROM users WHERE id = ?", [$id]);
         if (!$user) {

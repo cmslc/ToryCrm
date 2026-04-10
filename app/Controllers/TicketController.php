@@ -11,6 +11,7 @@ class TicketController extends Controller
 {
     public function index()
     {
+        $this->authorize('tickets', 'view');
         $ticketModel = new Ticket();
         $page = max(1, (int) $this->input('page') ?: 1);
 
@@ -40,6 +41,7 @@ class TicketController extends Controller
 
     public function create()
     {
+        $this->authorize('tickets', 'create');
         $ticketModel = new Ticket();
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
@@ -59,6 +61,7 @@ class TicketController extends Controller
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('tickets');
+        $this->authorize('tickets', 'create');
 
         $data = $this->allInput();
         $title = trim($data['title'] ?? '');
@@ -102,6 +105,7 @@ class TicketController extends Controller
 
     public function show($id)
     {
+        $this->authorize('tickets', 'view');
         $ticket = Database::fetch(
             "SELECT t.*,
                     tc.name as category_name, tc.color as category_color,
@@ -137,6 +141,7 @@ class TicketController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('tickets', 'edit');
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
         if (!$ticket) {
             $this->setFlash('error', 'Ticket không tồn tại.');
@@ -161,6 +166,7 @@ class TicketController extends Controller
     public function update($id)
     {
         if (!$this->isPost()) return $this->redirect('tickets/' . $id);
+        $this->authorize('tickets', 'edit');
 
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
         if (!$ticket) {
@@ -206,6 +212,7 @@ class TicketController extends Controller
     public function comment($id)
     {
         if (!$this->isPost()) return $this->redirect('tickets/' . $id);
+        $this->authorize('tickets', 'edit');
 
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
         if (!$ticket) return $this->redirect('tickets');
@@ -235,6 +242,7 @@ class TicketController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('tickets', 'edit');
 
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$ticket) {
@@ -277,6 +285,7 @@ class TicketController extends Controller
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('tickets');
+        $this->authorize('tickets', 'delete');
 
         $ticket = $this->findSecure('tickets', (int)$id);
         if (!$ticket) {

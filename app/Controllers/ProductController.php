@@ -9,6 +9,7 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $this->authorize('products', 'view');
         $search = $this->input('search');
         $categoryId = $this->input('category_id');
         $type = $this->input('type');
@@ -73,6 +74,7 @@ class ProductController extends Controller
 
     public function create()
     {
+        $this->authorize('products', 'create');
         $categories = Database::fetchAll("SELECT * FROM product_categories ORDER BY sort_order, name");
 
         return $this->view('products.create', [
@@ -85,6 +87,7 @@ class ProductController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('products');
         }
+        $this->authorize('products', 'create');
 
         $data = $this->allInput();
         $name = trim($data['name'] ?? '');
@@ -131,6 +134,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
+        $this->authorize('products', 'view');
         $product = Database::fetch(
             "SELECT p.*, pc.name as category_name, u.name as created_by_name
              FROM products p
@@ -164,6 +168,7 @@ class ProductController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('products', 'edit');
         $product = Database::fetch("SELECT * FROM products WHERE id = ?", [$id]);
 
         if (!$product) {
@@ -184,6 +189,7 @@ class ProductController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('products/' . $id);
         }
+        $this->authorize('products', 'edit');
 
         $product = Database::fetch("SELECT * FROM products WHERE id = ?", [$id]);
 
@@ -230,6 +236,7 @@ class ProductController extends Controller
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('products');
+        $this->authorize('products', 'delete');
 
         $product = $this->findSecure('products', (int)$id);
         if (!$product) {
@@ -251,6 +258,7 @@ class ProductController extends Controller
 
     public function trash()
     {
+        $this->authorize('products', 'delete');
         $tid = Database::tenantId();
         $products = Database::fetchAll(
             "SELECT p.*, pc.name as category_name
@@ -267,6 +275,7 @@ class ProductController extends Controller
     public function restore($id)
     {
         if (!$this->isPost()) return $this->redirect('products/trash');
+        $this->authorize('products', 'delete');
 
         Database::restore('products', 'id = ?', [$id]);
 

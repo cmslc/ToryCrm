@@ -9,6 +9,7 @@ class DealController extends Controller
 {
     public function index()
     {
+        $this->authorize('deals', 'view');
         $search = $this->input('search');
         $stageId = $this->input('stage_id');
         $status = $this->input('status');
@@ -88,6 +89,7 @@ class DealController extends Controller
 
     public function pipeline()
     {
+        $this->authorize('deals', 'view');
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
 
         $pipeline = [];
@@ -113,6 +115,7 @@ class DealController extends Controller
 
     public function create()
     {
+        $this->authorize('deals', 'create');
         $contacts = Database::fetchAll(
             "SELECT id, first_name, last_name FROM contacts ORDER BY first_name"
         );
@@ -137,6 +140,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('deals');
         }
+        $this->authorize('deals', 'create');
 
         $data = $this->allInput();
 
@@ -176,6 +180,7 @@ class DealController extends Controller
 
     public function show($id)
     {
+        $this->authorize('deals', 'view');
         $deal = Database::fetch(
             "SELECT d.*, c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
                     comp.name as company_name, u.name as owner_name, ds.name as stage_name, ds.color as stage_color, ds.sort_order as stage_order
@@ -242,6 +247,7 @@ class DealController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('deals', 'edit');
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ?", [$id]);
 
         if (!$deal) {
@@ -272,6 +278,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('deals/' . $id);
         }
+        $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ?", [$id]);
 
@@ -348,6 +355,7 @@ class DealController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('deals', 'delete');
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ?", [$id]);
 
         if (!$deal) {
@@ -373,6 +381,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$deal) {
@@ -409,6 +418,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ?", [$id]);
 
@@ -447,6 +457,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('deals/' . $id);
         }
+        $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$deal) {
@@ -503,6 +514,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('deals/' . $id);
         }
+        $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$deal) {
@@ -562,6 +574,7 @@ class DealController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('deals/' . $id);
         }
+        $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$deal) {
@@ -595,6 +608,7 @@ class DealController extends Controller
 
     public function forecast()
     {
+        $this->authorize('deals', 'view');
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
 
         $forecastData = [];
