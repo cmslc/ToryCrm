@@ -31,7 +31,7 @@ $currentStatus = $filters['status'] ?? '';
 
 <!-- Filter Row -->
 <div class="card mb-2">
-    <div class="card-body py-1 px-3">
+    <div class="card-header p-2">
         <form method="GET" action="<?= url('contacts') ?>" class="d-flex align-items-center gap-2 flex-wrap" id="filterForm">
             <div class="search-box" style="min-width:200px;max-width:300px">
                 <input type="text" class="form-control" name="search" placeholder="Tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
@@ -60,7 +60,7 @@ $currentStatus = $filters['status'] ?? '';
 
 <!-- Tabs Row -->
 <div class="card mb-3">
-    <div class="card-body py-1 px-3">
+    <div class="card-header p-2">
         <div class="d-flex align-items-center justify-content-between">
             <!-- Left: Status Tabs + Quick Filters -->
             <div class="d-flex align-items-center gap-0 overflow-auto" style="white-space:nowrap">

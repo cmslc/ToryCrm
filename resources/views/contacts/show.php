@@ -65,7 +65,7 @@
 
                 <!-- Tags -->
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-price-tag-3-line me-1"></i> Nhãn</h5></div>
+                    <div class="card-header p-2"><h5 class="card-title mb-0"><i class="ri-price-tag-3-line me-1"></i> Nhãn</h5></div>
                     <div class="card-body py-2">
                         <?php
                         $entityType = 'contact';
@@ -76,41 +76,33 @@
                     </div>
                 </div>
 
-                <!-- Phụ trách & Theo dõi -->
+                <!-- Người phụ trách (tag style) -->
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-team-line me-1"></i> Phụ trách & Theo dõi</h5></div>
-                    <div class="card-body">
-                        <!-- Người phụ trách -->
-                        <div class="mb-3">
-                            <label class="text-muted fs-12 mb-1">Người phụ trách</label>
-                            <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/change-owner') ?>" class="d-flex gap-2">
-                                <?= csrf_field() ?>
-                                <?php $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
-                                <select name="owner_id" class="form-select searchable-select">
-                                    <option value="">Chọn...</option>
-                                    <?php foreach ($allUsers as $u): ?>
-                                        <option value="<?= $u['id'] ?>" <?= ($contact['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <button type="submit" class="btn btn-soft-primary flex-shrink-0"><i class="ri-refresh-line"></i></button>
-                            </form>
+                    <div class="card-header p-2"><h5 class="card-title mb-0"><i class="ri-team-line me-1"></i> Người phụ trách</h5></div>
+                    <div class="card-body py-2">
+                        <?php $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
+                        <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
+                            <?php
+                            // Owner hiển thị đầu tiên với badge khác
+                            if (!empty($contact['owner_name'])):
+                            ?>
+                                <span class="badge bg-primary d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $contact['owner_id'] ?>">
+                                    <i class="ri-star-fill" style="font-size:10px"></i> <?= e($contact['owner_name']) ?>
+                                    <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $contact['owner_id'] ?>, this)"></i>
+                                </span>
+                            <?php endif; ?>
+                            <?php foreach ($followers ?? [] as $f):
+                                if ($f['user_id'] == ($contact['owner_id'] ?? 0)) continue;
+                            ?>
+                                <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
+                                    <?= e($f['name']) ?>
+                                    <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $f['user_id'] ?>, this)"></i>
+                                </span>
+                            <?php endforeach; ?>
                         </div>
-
-                        <!-- Người theo dõi -->
-                        <div>
-                            <label class="text-muted fs-12 mb-1">Người theo dõi</label>
-                            <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
-                                <?php foreach ($followers ?? [] as $f): ?>
-                                    <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
-                                        <?= e($f['name']) ?>
-                                        <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $f['user_id'] ?>, this)"></i>
-                                    </span>
-                                <?php endforeach; ?>
-                            </div>
-                            <div class="position-relative">
-                                <input type="text" class="form-control" id="followerInput" placeholder="Gõ tên để thêm..." autocomplete="off">
-                                <div id="followerDropdown" class="dropdown-menu w-100" style="display:none;max-height:200px;overflow-y:auto"></div>
-                            </div>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="followerInput" placeholder="Gõ tên để thêm..." autocomplete="off">
+                            <div id="followerDropdown" class="dropdown-menu w-100" style="display:none;max-height:200px;overflow-y:auto"></div>
                         </div>
                     </div>
                 </div>
@@ -176,7 +168,7 @@
 
                 <!-- Contact Info -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header p-2">
                         <h5 class="card-title mb-0">Thông tin liên hệ</h5>
                     </div>
                     <div class="card-body">
@@ -271,7 +263,7 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header p-0">
+                    <div class="card-header p-2">
                         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" data-bs-toggle="tab" href="#tab-exchange" role="tab">
