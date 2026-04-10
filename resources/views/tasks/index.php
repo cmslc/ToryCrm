@@ -40,7 +40,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr><th>Công việc</th><th>Trạng thái</th><th>Ưu tiên</th><th>Phụ trách</th><th>Hạn</th><th>Liên quan</th><th>Thao tác</th></tr>
+                            <tr><th>Công việc</th><th>Trạng thái</th><th>Ưu tiên</th><th>Phụ trách</th><th>Ngày tạo</th><th>Hạn</th><th>Liên quan</th><th>Thao tác</th></tr>
                         </thead>
                         <tbody>
                             <?php if (!empty($tasks['items'])): foreach ($tasks['items'] as $task): ?>
@@ -55,6 +55,7 @@
                                         <span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span>
                                     </td>
                                     <td><?= e($task['assigned_name'] ?? '-') ?></td>
+                                    <td><span class="text-muted"><?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '-' ?></span></td>
                                     <td>
                                         <?php if ($task['due_date']): ?>
                                             <?php $isOverdue = strtotime($task['due_date']) < time() && $task['status'] !== 'done'; ?>
@@ -76,7 +77,7 @@
                                     </td>
                                 </tr>
                             <?php endforeach; else: ?>
-                                <tr><td colspan="7" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
+                                <tr><td colspan="8" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
