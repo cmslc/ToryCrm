@@ -312,6 +312,20 @@ class SettingController extends Controller
         $_ENV['GEMINI_API_KEY'] = $geminiKey;
         $_ENV['GOOGLE_MAPS_API_KEY'] = $gmapsKey;
 
+        // Save toggle states to tenant settings
+        $enabledInput = $this->input('api_enabled') ?? [];
+        $apiEnabled = [
+            'deepseek' => isset($enabledInput['ds']),
+            'openrouter' => isset($enabledInput['or']),
+            'groq' => isset($enabledInput['gq']),
+            'gemini' => isset($enabledInput['gm']),
+            'google_maps' => isset($enabledInput['mp']),
+        ];
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $settings['ai']['api_enabled'] = $apiEnabled;
+        Database::update('tenants', ['settings' => json_encode($settings)], 'id = ?', [$this->tenantId()]);
+
         $this->setFlash('success', 'Đã lưu cấu hình AI.');
         return $this->redirect('settings/api');
     }

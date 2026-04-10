@@ -26,11 +26,19 @@ class AiService
 
     public static function ask(string $message, int $tenantId, int $userId): string
     {
+        // Load toggle states from tenant settings
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$tenantId]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $apiEnabled = $settings['ai']['api_enabled'] ?? [];
+        $on = function($key) use ($apiEnabled) {
+            return !isset($apiEnabled[$key]) || $apiEnabled[$key];
+        };
+
         // Detect which provider to use
-        $deepseekKey = self::getEnvKey('DEEPSEEK_API_KEY');
-        $openrouterKey = self::getEnvKey('OPENROUTER_API_KEY');
-        $groqKey = self::getEnvKey('GROQ_API_KEY');
-        $geminiKey = self::getEnvKey('GEMINI_API_KEY');
+        $deepseekKey = $on('deepseek') ? self::getEnvKey('DEEPSEEK_API_KEY') : '';
+        $openrouterKey = $on('openrouter') ? self::getEnvKey('OPENROUTER_API_KEY') : '';
+        $groqKey = $on('groq') ? self::getEnvKey('GROQ_API_KEY') : '';
+        $geminiKey = $on('gemini') ? self::getEnvKey('GEMINI_API_KEY') : '';
 
         $context = self::buildContext($tenantId, $userId);
 

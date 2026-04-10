@@ -11,9 +11,11 @@ $hasGroq = !empty($groqKey);
 $hasGmaps = !empty($gmapsKey);
 $hasGemini = !empty($geminiKey);
 $hasKey = $hasGroq || $hasGemini;
-$activeProvider = $hasGroq ? 'Groq (Llama 3.3 70B)' : ($hasGemini ? 'Google Gemini 2.0 Flash' : 'Rule-based');
-$maskedGroq = $hasGroq ? substr($groqKey, 0, 8) . '••••••' . substr($groqKey, -4) : '';
-$maskedGemini = $hasGemini ? substr($geminiKey, 0, 8) . '••••••' . substr($geminiKey, -4) : '';
+$apiEnabled = $aiConfig['api_enabled'] ?? [];
+$isEnabled = function($key) use ($apiEnabled) {
+    // Mặc định bật nếu chưa cấu hình
+    return !isset($apiEnabled[$key]) || $apiEnabled[$key];
+};
 
 $aiStatus = 'inactive';
 $aiModel = $activeProvider;
@@ -90,11 +92,11 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                         <tbody>
                             <?php
                             $apis = [
-                                ['key'=>'deepseek_api_key', 'id'=>'ds', 'name'=>'DeepSeek', 'icon'=>'ri-brain-line', 'color'=>'success', 'value'=>$deepseekKey, 'has'=>$hasDeepSeek, 'placeholder'=>'sk-xxx...', 'hint'=>'Châu Á', 'url'=>'https://platform.deepseek.com/api_keys'],
-                                ['key'=>'openrouter_api_key', 'id'=>'or', 'name'=>'OpenRouter', 'icon'=>'ri-global-line', 'color'=>'info', 'value'=>$openrouterKey, 'has'=>$hasOpenRouter, 'placeholder'=>'sk-or-v1-xxx...', 'hint'=>'Free', 'url'=>'https://openrouter.ai/keys'],
-                                ['key'=>'groq_api_key', 'id'=>'gq', 'name'=>'Groq', 'icon'=>'ri-speed-line', 'color'=>'warning', 'value'=>$groqKey, 'has'=>$hasGroq, 'placeholder'=>'gsk_xxx...', 'hint'=>'Nhanh', 'url'=>'https://console.groq.com/keys'],
-                                ['key'=>'gemini_api_key', 'id'=>'gm', 'name'=>'Gemini', 'icon'=>'ri-google-line', 'color'=>'primary', 'value'=>$geminiKey, 'has'=>$hasGemini, 'placeholder'=>'AIzaSy...', 'hint'=>'Google', 'url'=>'https://aistudio.google.com/apikey'],
-                                ['key'=>'google_maps_api_key', 'id'=>'mp', 'name'=>'Google Maps', 'icon'=>'ri-map-pin-line', 'color'=>'danger', 'value'=>$gmapsKey, 'has'=>$hasGmaps, 'placeholder'=>'AIzaSy...', 'hint'=>'Bản đồ', 'url'=>'https://console.cloud.google.com/apis/credentials'],
+                                ['key'=>'deepseek_api_key', 'id'=>'ds', 'name'=>'DeepSeek', 'icon'=>'ri-brain-line', 'color'=>'success', 'value'=>$deepseekKey, 'has'=>$hasDeepSeek, 'enabled'=>$isEnabled('deepseek'), 'placeholder'=>'sk-xxx...', 'hint'=>'Châu Á', 'url'=>'https://platform.deepseek.com/api_keys'],
+                                ['key'=>'openrouter_api_key', 'id'=>'or', 'name'=>'OpenRouter', 'icon'=>'ri-global-line', 'color'=>'info', 'value'=>$openrouterKey, 'has'=>$hasOpenRouter, 'enabled'=>$isEnabled('openrouter'), 'placeholder'=>'sk-or-v1-xxx...', 'hint'=>'Free', 'url'=>'https://openrouter.ai/keys'],
+                                ['key'=>'groq_api_key', 'id'=>'gq', 'name'=>'Groq', 'icon'=>'ri-speed-line', 'color'=>'warning', 'value'=>$groqKey, 'has'=>$hasGroq, 'enabled'=>$isEnabled('groq'), 'placeholder'=>'gsk_xxx...', 'hint'=>'Nhanh', 'url'=>'https://console.groq.com/keys'],
+                                ['key'=>'gemini_api_key', 'id'=>'gm', 'name'=>'Gemini', 'icon'=>'ri-google-line', 'color'=>'primary', 'value'=>$geminiKey, 'has'=>$hasGemini, 'enabled'=>$isEnabled('gemini'), 'placeholder'=>'AIzaSy...', 'hint'=>'Google', 'url'=>'https://aistudio.google.com/apikey'],
+                                ['key'=>'google_maps_api_key', 'id'=>'mp', 'name'=>'Google Maps', 'icon'=>'ri-map-pin-line', 'color'=>'danger', 'value'=>$gmapsKey, 'has'=>$hasGmaps, 'enabled'=>$isEnabled('google_maps'), 'placeholder'=>'AIzaSy...', 'hint'=>'Bản đồ', 'url'=>'https://console.cloud.google.com/apis/credentials'],
                             ];
                             foreach ($apis as $api):
                             ?>
@@ -115,11 +117,9 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($api['has']): ?>
-                                        <span class="badge bg-success-subtle text-success"><i class="ri-check-line"></i></span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary-subtle text-secondary">-</span>
-                                    <?php endif; ?>
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input" type="checkbox" name="api_enabled[<?= $api['id'] ?>]" value="1" <?= $api['enabled'] ? 'checked' : '' ?> <?= !$api['has'] ? 'disabled title="Nhập API key trước"' : '' ?>>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -261,6 +261,22 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
 </div>
 
 <script>
+// Auto-enable toggle when key is entered, disable when cleared
+document.querySelectorAll('input[type="password"][id^="key_"]').forEach(function(input) {
+    var id = input.id.replace('key_', '');
+    var toggle = document.querySelector('input[name="api_enabled[' + id + ']"]');
+    if (!toggle) return;
+    input.addEventListener('input', function() {
+        if (this.value.trim()) {
+            toggle.disabled = false;
+            toggle.checked = true;
+        } else {
+            toggle.checked = false;
+            toggle.disabled = true;
+        }
+    });
+});
+
 document.getElementById('tempSlider')?.addEventListener('input', function() {
     document.getElementById('tempValue').textContent = (this.value / 10).toFixed(1);
 });
