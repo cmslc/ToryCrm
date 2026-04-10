@@ -96,40 +96,38 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('products') || canSee('orders')): ?>
-                <?php if (canSee('products')): ?>
+                <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations'], $currentUrl); ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('products', $currentUrl) ?>" href="<?= url('products') ?>">
+                    <a class="nav-link menu-link <?= $prodOpen ? '' : 'collapsed' ?>" href="#sidebarProducts" data-bs-toggle="collapse" role="button" aria-expanded="<?= $prodOpen ? 'true' : 'false' ?>">
                         <i class="ri-shopping-bag-line"></i> <span>Sản phẩm</span>
                     </a>
-                </li>
-                <?php endif; ?>
-                <?php if (canSee('orders')): ?>
-                <?php $orderOpen = isOpen(['orders','purchase-orders','quotations'], $currentUrl); ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= $orderOpen ? '' : 'collapsed' ?>" href="#sidebarOrders" data-bs-toggle="collapse" role="button" aria-expanded="<?= $orderOpen ? 'true' : 'false' ?>">
-                        <i class="ri-file-list-3-line"></i> <span>Đơn hàng</span>
-                    </a>
-                    <div class="collapse <?= $orderOpen ? 'show' : '' ?>" id="sidebarOrders">
+                    <div class="collapse <?= $prodOpen ? 'show' : '' ?>" id="sidebarProducts">
                         <ul class="nav nav-sm flex-column">
+                            <?php if (canSee('products')): ?>
+                            <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Danh sách</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('orders')): ?>
                             <li class="nav-item"><a href="<?= url('orders') ?>" class="nav-link <?= isActive('orders', $currentUrl) ?>">Đơn hàng bán</a></li>
                             <li class="nav-item"><a href="<?= url('purchase-orders') ?>" class="nav-link <?= isActive('purchase-orders', $currentUrl) ?>">Đơn hàng mua</a></li>
                             <li class="nav-item"><a href="<?= url('quotations') ?>" class="nav-link <?= isActive('quotations', $currentUrl) ?>">Báo giá</a></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </li>
                 <?php endif; ?>
-                <?php endif; ?>
 
                 <?php if (canSee('campaigns')): ?>
+                <?php $campOpen = isOpen(['campaigns','email-templates'], $currentUrl); ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('campaigns', $currentUrl) ?>" href="<?= url('campaigns') ?>">
+                    <a class="nav-link menu-link <?= $campOpen ? '' : 'collapsed' ?>" href="#sidebarCampaigns" data-bs-toggle="collapse" role="button" aria-expanded="<?= $campOpen ? 'true' : 'false' ?>">
                         <i class="ri-megaphone-line"></i> <span>Chiến dịch</span>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('email-templates', $currentUrl) ?>" href="<?= url('email-templates') ?>">
-                        <i class="ri-mail-settings-line"></i> <span>Email Templates</span>
-                    </a>
+                    <div class="collapse <?= $campOpen ? 'show' : '' ?>" id="sidebarCampaigns">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Danh sách</a></li>
+                            <li class="nav-item"><a href="<?= url('email-templates') ?>" class="nav-link <?= isActive('email-templates', $currentUrl) ?>">Mẫu email</a></li>
+                        </ul>
+                    </div>
                 </li>
                 <?php endif; ?>
 
