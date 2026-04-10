@@ -4,6 +4,7 @@ $user = $_SESSION['user'] ?? null;
 $_branding = \App\Services\BrandingService::get();
 $_brandName = $_branding['name'] ?? 'ToryCRM';
 $_brandLogo = $_branding['logo_url'] ?? '';
+$_role = $user['role'] ?? 'staff';
 
 function isActive(string $path, string $cur): string {
     return ($cur === trim($path, '/') || str_starts_with($cur, trim($path, '/') . '/')) ? 'active' : '';
@@ -11,6 +12,9 @@ function isActive(string $path, string $cur): string {
 function isOpen(array $paths, string $cur): bool {
     foreach ($paths as $p) { if ($cur === $p || str_starts_with($cur, $p . '/')) return true; }
     return false;
+}
+function canSee(string $module, string $action = 'view'): bool {
+    return \App\Services\PermissionService::can($module, $action);
 }
 
 $convUnread = 0;
@@ -63,23 +67,25 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                 </li>
 
+                <?php if (canSee('contacts')): ?>
                 <li class="menu-title"><span>CRM</span></li>
-
                 <?php $crmOpen = isOpen(['contacts','companies','deals','checkins','bookings'], $currentUrl); ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>" aria-controls="sidebarCrm">
+                    <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>">
                         <i class="ri-contacts-line"></i> <span>Khách hàng</span>
                     </a>
                     <div class="collapse <?= $crmOpen ? 'show' : '' ?>" id="sidebarCrm">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('contacts') ?>" class="nav-link <?= isActive('contacts', $currentUrl) ?>">Danh sách KH</a></li>
-                            <li class="nav-item"><a href="<?= url('companies') ?>" class="nav-link <?= isActive('companies', $currentUrl) ?>">Doanh nghiệp</a></li>
+                            <?php if (canSee('companies')): ?><li class="nav-item"><a href="<?= url('companies') ?>" class="nav-link <?= isActive('companies', $currentUrl) ?>">Doanh nghiệp</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li>
                             <li class="nav-item"><a href="<?= url('bookings') ?>" class="nav-link <?= isActive('bookings', $currentUrl) ?>">Đặt lịch hẹn</a></li>
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
 
+                <?php if (canSee('deals')): ?>
                 <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
@@ -93,15 +99,18 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
 
+                <?php if (canSee('products') || canSee('orders')): ?>
                 <li class="menu-title"><span>Bán hàng</span></li>
-
+                <?php if (canSee('products')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('products', $currentUrl) ?>" href="<?= url('products') ?>">
                         <i class="ri-shopping-bag-line"></i> <span>Sản phẩm</span>
                     </a>
                 </li>
-
+                <?php endif; ?>
+                <?php if (canSee('orders')): ?>
                 <?php $orderOpen = isOpen(['orders','purchase-orders','quotations'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $orderOpen ? '' : 'collapsed' ?>" href="#sidebarOrders" data-bs-toggle="collapse" role="button" aria-expanded="<?= $orderOpen ? 'true' : 'false' ?>">
@@ -115,9 +124,11 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
+                <?php endif; ?>
 
+                <?php if (canSee('campaigns')): ?>
                 <li class="menu-title"><span>Marketing</span></li>
-
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('campaigns', $currentUrl) ?>" href="<?= url('campaigns') ?>">
                         <i class="ri-megaphone-line"></i> <span>Chiến dịch</span>
@@ -128,9 +139,11 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-mail-settings-line"></i> <span>Email Templates</span>
                     </a>
                 </li>
+                <?php endif; ?>
 
                 <li class="menu-title"><span>Quản lý</span></li>
 
+                <?php if (canSee('tasks')): ?>
                 <?php $taskOpen = isOpen(['tasks','calendar','activities'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $taskOpen ? '' : 'collapsed' ?>" href="#sidebarTasks" data-bs-toggle="collapse" role="button" aria-expanded="<?= $taskOpen ? 'true' : 'false' ?>">
@@ -145,7 +158,9 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
 
+                <?php if (canSee('tickets')): ?>
                 <?php $supportOpen = isOpen(['tickets','sla'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $supportOpen ? '' : 'collapsed' ?>" href="#sidebarSupport" data-bs-toggle="collapse" role="button" aria-expanded="<?= $supportOpen ? 'true' : 'false' ?>">
@@ -158,12 +173,15 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
 
+                <?php if (canSee('automation')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('workflows', $currentUrl) ?>" href="<?= url('workflows') ?>">
                         <i class="ri-flow-chart"></i> <span>Workflow</span>
                     </a>
                 </li>
+                <?php endif; ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('approvals', $currentUrl) ?>" href="<?= url('approvals/pending') ?>">
                         <i class="ri-checkbox-circle-line"></i> <span>Phê duyệt</span>
@@ -175,8 +193,8 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                 </li>
 
+                <?php if (canSee('fund')): ?>
                 <li class="menu-title"><span>Tài chính</span></li>
-
                 <?php $financeOpen = isOpen(['fund','debts','contracts','budgets','commissions','finance-reports'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $financeOpen ? '' : 'collapsed' ?>" href="#sidebarFinance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $financeOpen ? 'true' : 'false' ?>">
@@ -193,6 +211,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
 
                 <li class="menu-title"><span>Hệ thống</span></li>
 
@@ -202,6 +221,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                 </li>
 
+                <?php if (canSee('reports') || canSee('users') || canSee('automation') || canSee('webhooks')): ?>
                 <?php $sysOpen = isOpen(['reports','import-export','automation','users','call-logs','integrations','webhooks','plugins','duplicates','billing'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
@@ -209,22 +229,23 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                     <div class="collapse <?= $sysOpen ? 'show' : '' ?>" id="sidebarSystem">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= isActive('reports', $currentUrl) ?>">Báo cáo</a></li>
-                            <li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li>
-                            <li class="nav-item"><a href="<?= url('import-export') ?>" class="nav-link <?= isActive('import-export', $currentUrl) ?>">Import / Export</a></li>
-                            <li class="nav-item"><a href="<?= url('automation') ?>" class="nav-link <?= isActive('automation', $currentUrl) ?>">Automation</a></li>
-                            <li class="nav-item"><a href="<?= url('integrations') ?>" class="nav-link <?= isActive('integrations', $currentUrl) ?>">Tích hợp</a></li>
-                            <li class="nav-item"><a href="<?= url('webhooks') ?>" class="nav-link <?= isActive('webhooks', $currentUrl) ?>">Webhook</a></li>
+                            <?php if (canSee('reports')): ?><li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= isActive('reports', $currentUrl) ?>">Báo cáo</a></li><?php endif; ?>
+                            <?php if (canSee('users')): ?><li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li><?php endif; ?>
+                            <?php if (canSee('import_export', 'use')): ?><li class="nav-item"><a href="<?= url('import-export') ?>" class="nav-link <?= isActive('import-export', $currentUrl) ?>">Import / Export</a></li><?php endif; ?>
+                            <?php if (canSee('automation')): ?><li class="nav-item"><a href="<?= url('automation') ?>" class="nav-link <?= isActive('automation', $currentUrl) ?>">Automation</a></li><?php endif; ?>
+                            <?php if (canSee('webhooks')): ?><li class="nav-item"><a href="<?= url('integrations') ?>" class="nav-link <?= isActive('integrations', $currentUrl) ?>">Tích hợp</a></li><?php endif; ?>
+                            <?php if (canSee('webhooks')): ?><li class="nav-item"><a href="<?= url('webhooks') ?>" class="nav-link <?= isActive('webhooks', $currentUrl) ?>">Webhook</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('call-logs') ?>" class="nav-link <?= isActive('call-logs', $currentUrl) ?>">Tổng đài</a></li>
                             <li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li>
-                            <li class="nav-item"><a href="<?= url('plugins/marketplace') ?>" class="nav-link <?= isActive('plugins', $currentUrl) ?>">Marketplace</a></li>
+                            <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins/marketplace') ?>" class="nav-link <?= isActive('plugins', $currentUrl) ?>">Marketplace</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
 
+                <?php if (canSee('settings', 'manage') || $_role === 'admin'): ?>
                 <li class="menu-title"><span>Cài đặt</span></li>
-
                 <?php $settingsOpen = isOpen(['settings','custom-fields','tags','help'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
@@ -237,11 +258,24 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
                             <li class="nav-item"><a href="<?= url('tags') ?>" class="nav-link <?= isActive('tags', $currentUrl) ?>">Nhãn</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
-                            <li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">White-label</a></li>
+                            <?php if ($_role === 'admin'): ?><li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">White-label</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('help') ?>" class="nav-link <?= isActive('help', $currentUrl) ?>">Trợ giúp</a></li>
                         </ul>
                     </div>
                 </li>
+                <?php else: ?>
+                <!-- Staff chỉ thấy Cài đặt cá nhân + Trợ giúp -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('settings', $currentUrl) ?>" href="<?= url('settings') ?>">
+                        <i class="ri-tools-line"></i> <span>Cài đặt</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('help', $currentUrl) ?>" href="<?= url('help') ?>">
+                        <i class="ri-question-line"></i> <span>Trợ giúp</span>
+                    </a>
+                </li>
+                <?php endif; ?>
 
             </ul>
         </div>
