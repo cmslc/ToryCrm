@@ -436,7 +436,6 @@
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                            </div>
 
                                 <!-- Trao đổi nội bộ -->
                                 <hr>
