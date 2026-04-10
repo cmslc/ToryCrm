@@ -585,7 +585,7 @@
                                                         <td><a href="<?= url('tickets/' . $tk['id']) ?>"><?= e($tk['subject'] ?? $tk['title'] ?? '') ?></a></td>
                                                         <td><span class="badge bg-<?= $pColors[$tk['priority']] ?? 'secondary' ?>"><?= $pLabels[$tk['priority']] ?? $tk['priority'] ?></span></td>
                                                         <td><span class="badge bg-<?= $tColors[$tk['status']] ?? 'secondary' ?>-subtle text-<?= $tColors[$tk['status']] ?? 'secondary' ?>"><?= $tLabels[$tk['status']] ?? $tk['status'] ?></span></td>
-                                                        <td><?= e($tk['assigned_name'] ?? '-') ?></td>
+                                                        <td><?= user_avatar($tk['assigned_name'] ?? null) ?></td>
                                                         <td class="text-muted"><?= time_ago($tk['created_at']) ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>

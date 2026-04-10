@@ -270,7 +270,7 @@
                                     </tr>
                                     <tr>
                                         <th class="text-muted"><i class="ri-user-star-line me-2"></i>Phụ trách</th>
-                                        <td><?= e($contact['owner_name'] ?? '-') ?></td>
+                                        <td><?= user_avatar($contact['owner_name'] ?? null) ?></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -691,7 +691,7 @@
                                                         <?php $qColors = ['draft'=>'secondary','pending'=>'warning','confirmed'=>'success','cancelled'=>'danger']; ?>
                                                         <span class="badge bg-<?= $qColors[$q['status']] ?? 'secondary' ?>-subtle text-<?= $qColors[$q['status']] ?? 'secondary' ?>"><?= e($q['status']) ?></span>
                                                     </td>
-                                                    <td class="text-muted"><?= e($q['owner_name'] ?? '-') ?></td>
+                                                    <td><?= user_avatar($q['owner_name'] ?? null) ?></td>
                                                     <td class="text-muted"><?= time_ago($q['created_at']) ?></td>
                                                 </tr>
                                                 <?php endforeach; ?>
@@ -741,7 +741,7 @@
                                                         <span class="badge bg-<?= $ctColors[$ct['status']] ?? 'secondary' ?>-subtle text-<?= $ctColors[$ct['status']] ?? 'secondary' ?>"><?= e($ct['status']) ?></span>
                                                     </td>
                                                     <td class="text-muted"><?= $ct['due_date'] ? format_date($ct['due_date']) : '-' ?></td>
-                                                    <td class="text-muted"><?= e($ct['owner_name'] ?? '-') ?></td>
+                                                    <td><?= user_avatar($ct['owner_name'] ?? null) ?></td>
                                                     <td class="text-muted"><?= time_ago($ct['created_at']) ?></td>
                                                 </tr>
                                                 <?php endforeach; ?>
@@ -982,7 +982,7 @@
                                                         <td><?= e($ticket['title']) ?></td>
                                                         <td><span class="badge bg-<?= $tColors[$ticket['status']] ?? 'secondary' ?>-subtle text-<?= $tColors[$ticket['status']] ?? 'secondary' ?>"><?= e($ticket['status']) ?></span></td>
                                                         <td><span class="badge bg-<?= $pColors[$ticket['priority']] ?? 'secondary' ?>"><?= e($ticket['priority']) ?></span></td>
-                                                        <td><?= e($ticket['assigned_name'] ?? '-') ?></td>
+                                                        <td><?= user_avatar($ticket['assigned_name'] ?? null) ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
@@ -1025,7 +1025,7 @@
                                             <tr><th class="text-muted">Địa chỉ</th><td><?= e($contact['address'] ?? '-') ?></td></tr>
                                             <tr><th class="text-muted">Thành phố</th><td><?= e($contact['city'] ?? '-') ?></td></tr>
                                             <tr><th class="text-muted">Nguồn</th><td><?= e($contact['source_name'] ?? '-') ?></td></tr>
-                                            <tr><th class="text-muted">Người phụ trách</th><td><?= e($contact['owner_name'] ?? '-') ?></td></tr>
+                                            <tr><th class="text-muted">Người phụ trách</th><td><?= user_avatar($contact['owner_name'] ?? null) ?></td></tr>
                                             <tr><th class="text-muted">Ngày tạo</th><td><?= format_datetime($contact['created_at']) ?></td></tr>
                                             <tr><th class="text-muted">Cập nhật</th><td><?= format_datetime($contact['updated_at']) ?></td></tr>
                                         </tbody>

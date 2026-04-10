@@ -222,7 +222,7 @@ $currentStatus = $filters['status'] ?? '';
                             <td class="col-owner">
                                 <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="owner_id" data-type="user"
                                       data-value="<?= e($c['owner_id'] ?? '') ?>">
-                                    <?= e($c['owner_name'] ?? '-') ?>
+                                    <?= user_avatar($c['owner_name'] ?? null) ?>
                                 </span>
                             </td>
                             <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>

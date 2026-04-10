@@ -37,7 +37,7 @@ $st = $contact['status'] ?? 'new';
                 <tr><td class="text-muted py-1 ps-0"><i class="ri-focus-line me-1"></i>Nguồn</td><td class="py-1"><?= e($contact['source_name']) ?></td></tr>
                 <?php endif; ?>
                 <?php if (!empty($contact['owner_name'])): ?>
-                <tr><td class="text-muted py-1 ps-0"><i class="ri-user-star-line me-1"></i>Phụ trách</td><td class="py-1"><?= e($contact['owner_name']) ?></td></tr>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-user-star-line me-1"></i>Phụ trách</td><td class="py-1"><?= user_avatar($contact['owner_name'] ?? null) ?></td></tr>
                 <?php endif; ?>
                 <?php if (!empty($contact['address'])): ?>
                 <tr><td class="text-muted py-1 ps-0"><i class="ri-map-pin-line me-1"></i>Địa chỉ</td><td class="py-1"><?= e($contact['address']) ?><?= $contact['city'] ? ', ' . e($contact['city']) : '' ?></td></tr>
