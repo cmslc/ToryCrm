@@ -516,7 +516,7 @@
             <a href="<?= url('activities') ?>" class="text-muted fs-12">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
         </div>
         <div class="card-body p-0">
-            <div data-simplebar style="max-height: 300px;">
+            <div>
                 <?php if (!empty($recentActivities)): ?>
                     <?php
                     $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','contact'=>'ri-user-add-line','system'=>'ri-settings-3-line','order'=>'ri-shopping-cart-line'];
