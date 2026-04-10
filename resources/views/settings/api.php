@@ -73,106 +73,62 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
             </div>
         </div>
 
-        <!-- API Keys -->
+        <!-- API Keys - Compact -->
         <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0">API Keys</h5></div>
-            <div class="card-body">
+            <div class="card-header p-2"><h5 class="card-title mb-0">API Keys</h5></div>
+            <div class="card-body p-0">
                 <form method="POST" action="<?= url('settings/api/save') ?>">
                     <?= csrf_field() ?>
-
-                    <!-- DeepSeek (ưu tiên cho Asia/HK) -->
-                    <div class="mb-4 p-3 border rounded <?= $hasDeepSeek ? 'border-success' : '' ?>">
-                        <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1"><i class="ri-brain-line me-1 text-success"></i> DeepSeek <span class="badge bg-success-subtle text-success">Khuyên dùng (Asia)</span></h6>
-                            <?php if ($hasDeepSeek): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
-                        </div>
-                        <div class="input-group mb-2">
-                            <input type="password" class="form-control" name="deepseek_api_key" id="deepseekKeyInput" value="<?= e($deepseekKey) ?>" placeholder="sk-xxxxxxxxxxxxx...">
-                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('deepseekKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
-                        </div>
-                        <small class="text-muted">Model: DeepSeek-V3 | $5 free credit | Hoạt động tốt ở châu Á | <a href="https://platform.deepseek.com/api_keys" target="_blank">Lấy key</a></small>
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:160px">Dịch vụ</th>
+                                <th>API Key</th>
+                                <th style="width:80px">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $apis = [
+                                ['key'=>'deepseek_api_key', 'id'=>'ds', 'name'=>'DeepSeek', 'icon'=>'ri-brain-line', 'color'=>'success', 'value'=>$deepseekKey, 'has'=>$hasDeepSeek, 'placeholder'=>'sk-xxx...', 'hint'=>'Châu Á', 'url'=>'https://platform.deepseek.com/api_keys'],
+                                ['key'=>'openrouter_api_key', 'id'=>'or', 'name'=>'OpenRouter', 'icon'=>'ri-global-line', 'color'=>'info', 'value'=>$openrouterKey, 'has'=>$hasOpenRouter, 'placeholder'=>'sk-or-v1-xxx...', 'hint'=>'Free', 'url'=>'https://openrouter.ai/keys'],
+                                ['key'=>'groq_api_key', 'id'=>'gq', 'name'=>'Groq', 'icon'=>'ri-speed-line', 'color'=>'warning', 'value'=>$groqKey, 'has'=>$hasGroq, 'placeholder'=>'gsk_xxx...', 'hint'=>'Nhanh', 'url'=>'https://console.groq.com/keys'],
+                                ['key'=>'gemini_api_key', 'id'=>'gm', 'name'=>'Gemini', 'icon'=>'ri-google-line', 'color'=>'primary', 'value'=>$geminiKey, 'has'=>$hasGemini, 'placeholder'=>'AIzaSy...', 'hint'=>'Google', 'url'=>'https://aistudio.google.com/apikey'],
+                                ['key'=>'google_maps_api_key', 'id'=>'mp', 'name'=>'Google Maps', 'icon'=>'ri-map-pin-line', 'color'=>'danger', 'value'=>$gmapsKey, 'has'=>$hasGmaps, 'placeholder'=>'AIzaSy...', 'hint'=>'Bản đồ', 'url'=>'https://console.cloud.google.com/apis/credentials'],
+                            ];
+                            foreach ($apis as $api):
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="<?= $api['icon'] ?> text-<?= $api['color'] ?> fs-16"></i>
+                                        <div>
+                                            <span class="fw-medium"><?= $api['name'] ?></span>
+                                            <div class="text-muted fs-12"><?= $api['hint'] ?> · <a href="<?= $api['url'] ?>" target="_blank" class="text-decoration-none">Lấy key</a></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" name="<?= $api['key'] ?>" id="key_<?= $api['id'] ?>" value="<?= e($api['value']) ?>" placeholder="<?= $api['placeholder'] ?>">
+                                        <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('key_<?= $api['id'] ?>');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <?php if ($api['has']): ?>
+                                        <span class="badge bg-success-subtle text-success"><i class="ri-check-line"></i></span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary-subtle text-secondary">-</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+                        <small class="text-muted"><i class="ri-information-line me-1"></i>Ưu tiên: DeepSeek → OpenRouter → Groq → Gemini → Rule-based</small>
+                        <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu</button>
                     </div>
-
-                    <!-- OpenRouter -->
-                    <div class="mb-4 p-3 border rounded <?= !$hasDeepSeek && $hasOpenRouter ? 'border-success' : '' ?>">
-                        <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1"><i class="ri-global-line me-1 text-info"></i> OpenRouter</h6>
-                            <?php if ($hasOpenRouter): ?><span class="badge bg-success">Đang dùng</span><?php endif; ?>
-                        </div>
-                        <div class="input-group mb-2">
-                            <input type="password" class="form-control" name="openrouter_api_key" id="openrouterKeyInput" value="<?= e($openrouterKey) ?>" placeholder="sk-or-v1-xxxxxxxxxxxxx...">
-                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('openrouterKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
-                        </div>
-                        <small class="text-muted">Model: Llama 3.3 70B | Không bị chặn location | <a href="https://openrouter.ai/keys" target="_blank">Lấy key</a></small>
-                    </div>
-
-                    <!-- Groq -->
-                    <div class="mb-4 p-3 border rounded <?= !$hasOpenRouter && $hasGroq ? 'border-success' : '' ?>">
-                        <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1"><i class="ri-speed-line me-1 text-info"></i> Groq</h6>
-                            <?php if (!$hasOpenRouter && $hasGroq): ?><span class="badge bg-info">Đang dùng</span><?php endif; ?>
-                        </div>
-                        <div class="input-group mb-2">
-                            <input type="password" class="form-control" name="groq_api_key" id="groqKeyInput" value="<?= e($groqKey) ?>" placeholder="gsk_xxxxxxxxxxxxx...">
-                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('groqKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
-                        </div>
-                        <?php if ($hasGroq): ?>
-                            <small class="text-success d-block mb-1"><i class="ri-check-line me-1"></i>Key: <?= e($maskedGroq) ?></small>
-                        <?php endif; ?>
-                        <small class="text-muted">Model: Llama 3.3 70B | Free: 30 req/phút, 14.400/ngày | <a href="https://console.groq.com/keys" target="_blank">Lấy key</a></small>
-                    </div>
-
-                    <!-- Gemini (backup) -->
-                    <div class="mb-4 p-3 border rounded <?= !$hasGroq && $hasGemini ? 'border-primary' : '' ?>">
-                        <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1"><i class="ri-google-line me-1 text-primary"></i> Google Gemini</h6>
-                            <?php if (!$hasGroq && $hasGemini): ?><span class="badge bg-primary">Đang dùng</span><?php endif; ?>
-                        </div>
-                        <div class="input-group mb-2">
-                            <input type="password" class="form-control" name="gemini_api_key" id="geminiKeyInput" value="<?= e($geminiKey) ?>" placeholder="AIzaSyxxxxxxxxxx...">
-                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('geminiKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
-                        </div>
-                        <?php if ($hasGemini): ?>
-                            <small class="text-success d-block mb-1"><i class="ri-check-line me-1"></i>Key: <?= e($maskedGemini) ?></small>
-                        <?php endif; ?>
-                        <small class="text-muted">Model: Gemini 2.0 Flash | Free: 1.500 req/ngày | <a href="https://aistudio.google.com/apikey" target="_blank">Lấy key</a></small>
-                    </div>
-
-                    <div class="alert alert-light mb-3">
-                        <i class="ri-information-line me-1"></i> Ưu tiên: <strong>Groq</strong> → Gemini → Rule-based. Chỉ cần 1 key là đủ.
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu cấu hình</button>
-                        <button type="button" class="btn btn-soft-info" id="testBtn"><i class="ri-play-line me-1"></i> Test kết nối</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Google Maps API -->
-        <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Google Maps API</h5></div>
-            <div class="card-body">
-                <form method="POST" action="<?= url('settings/api/save') ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="groq_api_key" value="<?= e($groqKey) ?>">
-                    <input type="hidden" name="gemini_api_key" value="<?= e($geminiKey) ?>">
-                    <div class="mb-3 p-3 border rounded <?= $hasGmaps ? 'border-success' : '' ?>">
-                        <div class="d-flex align-items-center mb-2">
-                            <h6 class="mb-0 flex-grow-1">Google Maps API Key</h6>
-                            <?php if ($hasGmaps): ?><span class="badge bg-success">Đã cấu hình</span><?php endif; ?>
-                        </div>
-                        <div class="input-group mb-2">
-                            <input type="password" class="form-control" name="google_maps_api_key" id="gmapsKeyInput" value="<?= e($gmapsKey) ?>" placeholder="AIzaSyxxxxxxxxxx...">
-                            <button type="button" class="btn btn-soft-secondary" onclick="var i=document.getElementById('gmapsKeyInput');i.type=i.type==='password'?'text':'password'"><i class="ri-eye-line"></i></button>
-                        </div>
-                        <small class="text-muted">Dùng cho: Check-in bản đồ, geocoding địa chỉ, hiển thị vị trí KH. <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Lấy key tại Google Cloud Console</a></small>
-                        <div class="mt-2">
-                            <small class="text-muted">Cần bật APIs: Maps JavaScript API, Geocoding API, Places API</small>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu</button>
                 </form>
             </div>
         </div>
@@ -246,7 +202,7 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
                 </div>
                 <div class="d-flex justify-content-between">
                     <span class="text-muted">Chế độ</span>
-                    <span class="badge bg-<?= $hasKey ? 'success' : 'warning' ?>"><?= $hasKey ? 'Gemini AI' : 'Rule-based' ?></span>
+                    <span class="badge bg-<?= ($hasDeepSeek || $hasOpenRouter || $hasKey) ? 'success' : 'warning' ?>"><?= $hasDeepSeek ? 'DeepSeek' : ($hasOpenRouter ? 'OpenRouter' : ($hasGroq ? 'Groq' : ($hasGemini ? 'Gemini' : 'Rule-based'))) ?></span>
                 </div>
             </div>
         </div>
@@ -257,20 +213,30 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
-                        <tr><th>Provider</th><th>Model</th><th>Free Tier</th></tr>
+                        <tr><th>Provider</th><th>Model</th><th>Gói miễn phí</th></tr>
                     </thead>
                     <tbody>
-                        <tr class="<?= $hasGroq ? 'table-success' : '' ?>">
-                            <td><strong>Groq</strong> <span class="badge bg-success-subtle text-success">Nhanh nhất</span></td>
-                            <td>Llama 3.3 70B</td>
-                            <td>30 req/phút, 14.400/ngày</td>
+                        <tr class="<?= $hasDeepSeek ? 'table-success' : '' ?>">
+                            <td><strong>DeepSeek</strong> <span class="badge bg-success-subtle text-success">Châu Á</span></td>
+                            <td>DeepSeek Chat</td>
+                            <td>Trả phí, rẻ</td>
                         </tr>
-                        <tr class="<?= !$hasGroq && $hasGemini ? 'table-primary' : '' ?>">
+                        <tr class="<?= $hasOpenRouter ? 'table-info' : '' ?>">
+                            <td><strong>OpenRouter</strong></td>
+                            <td>Llama 3.3 70B</td>
+                            <td>Free, auto-retry</td>
+                        </tr>
+                        <tr class="<?= $hasGroq ? 'table-success' : '' ?>">
+                            <td><strong>Groq</strong> <span class="badge bg-warning-subtle text-warning">Nhanh</span></td>
+                            <td>Llama 3.3 70B</td>
+                            <td>30 req/phút</td>
+                        </tr>
+                        <tr class="<?= $hasGemini ? 'table-primary' : '' ?>">
                             <td><strong>Gemini</strong></td>
                             <td>2.0 Flash</td>
-                            <td>15 req/phút, 1.500/ngày</td>
+                            <td>15 req/phút</td>
                         </tr>
-                        <tr class="<?= !$hasKey ? 'table-warning' : '' ?>">
+                        <tr class="<?= !$hasDeepSeek && !$hasOpenRouter && !$hasKey ? 'table-warning' : '' ?>">
                             <td><strong>Rule-based</strong></td>
                             <td>Tích hợp sẵn</td>
                             <td>Không giới hạn</td>

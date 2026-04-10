@@ -305,14 +305,12 @@ class SettingController extends Controller
         }
         file_put_contents($envPath, $envContent);
 
-        // Save model to tenant settings
-        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
-        $settings = json_decode($tenant['settings'] ?? '{}', true);
-        $settings['ai']['model'] = $model;
-        Database::update('tenants', ['settings' => json_encode($settings)], 'id = ?', [$this->tenantId()]);
-
         // Update $_ENV for current request
-        $_ENV['GEMINI_API_KEY'] = $apiKey;
+        $_ENV['DEEPSEEK_API_KEY'] = $deepseekKey;
+        $_ENV['OPENROUTER_API_KEY'] = $openrouterKey;
+        $_ENV['GROQ_API_KEY'] = $groqKey;
+        $_ENV['GEMINI_API_KEY'] = $geminiKey;
+        $_ENV['GOOGLE_MAPS_API_KEY'] = $gmapsKey;
 
         $this->setFlash('success', 'Đã lưu cấu hình AI.');
         return $this->redirect('settings/api');
