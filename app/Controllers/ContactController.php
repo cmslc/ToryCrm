@@ -538,6 +538,21 @@ class ContactController extends Controller
     }
 
     // ---- Đổi người phụ trách ----
+    public function updateAvatar($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $contact = Database::fetch("SELECT avatar FROM contacts WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$contact) return $this->json(['error' => 'Không tồn tại'], 404);
+
+        $filename = upload_avatar('avatar', 'avatars', $contact['avatar'] ?? null);
+        if ($filename) {
+            Database::update('contacts', ['avatar' => $filename], 'id = ?', [$id]);
+            return $this->json(['success' => true, 'url' => url('uploads/avatars/' . $filename)]);
+        }
+        return $this->json(['error' => 'Không thể tải ảnh'], 422);
+    }
+
     public function changeOwner($id)
     {
         if (!$this->isPost()) return $this->redirect('contacts/' . $id);

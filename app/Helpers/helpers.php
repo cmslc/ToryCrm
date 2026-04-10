@@ -79,6 +79,27 @@ function time_ago(string $datetime): string
     return format_date($datetime);
 }
 
+function upload_avatar(string $inputName, string $dir, ?string $oldFile = null): ?string
+{
+    if (empty($_FILES[$inputName]) || $_FILES[$inputName]['error'] !== UPLOAD_ERR_OK) return null;
+
+    $file = $_FILES[$inputName];
+    $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($file['type'], $allowed)) return null;
+    if ($file['size'] > 5 * 1024 * 1024) return null; // 5MB max
+
+    $uploadDir = BASE_PATH . '/public/uploads/' . $dir . '/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    // Delete old file
+    if ($oldFile && file_exists($uploadDir . $oldFile)) unlink($uploadDir . $oldFile);
+
+    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = $dir . '_' . uniqid() . '.' . $ext;
+    move_uploaded_file($file['tmp_name'], $uploadDir . $filename);
+    return $filename;
+}
+
 function due_label(?string $dueDate, string $status = ''): string
 {
     if (empty($dueDate)) return '-';

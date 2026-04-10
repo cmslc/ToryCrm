@@ -63,15 +63,35 @@
         <!-- Avatar + Info -->
         <div class="card">
             <div class="card-body text-center">
-                <div class="mx-auto mb-2" style="width:70px;height:70px">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold" style="width:70px;height:70px;font-size:28px">
-                        <?= strtoupper(mb_substr($user['name'] ?? 'U', 0, 1)) ?>
-                    </div>
+                <div class="mx-auto mb-2 position-relative" style="width:80px;height:80px">
+                    <?php if (!empty($user['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $user['avatar'])): ?>
+                        <img src="<?= url('uploads/avatars/' . $user['avatar']) ?>" class="rounded-circle object-fit-cover" style="width:80px;height:80px" id="avatarPreview">
+                    <?php else: ?>
+                        <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold" style="width:80px;height:80px;font-size:32px" id="avatarPreview">
+                            <?= strtoupper(mb_substr($user['name'] ?? 'U', 0, 1)) ?>
+                        </div>
+                    <?php endif; ?>
+                    <label class="position-absolute bottom-0 end-0 bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;cursor:pointer" title="Đổi ảnh">
+                        <i class="ri-camera-line text-white fs-14"></i>
+                        <input type="file" class="d-none" id="avatarInput" accept="image/*">
+                    </label>
                 </div>
                 <h5 class="mb-0"><?= e($user['name'] ?? '') ?></h5>
                 <p class="text-muted mb-1"><?= e($user['email'] ?? '') ?></p>
                 <span class="badge bg-primary"><?= ucfirst($user['role'] ?? 'staff') ?></span>
             </div>
         </div>
+        <form id="avatarForm" method="POST" action="<?= url('settings/avatar') ?>" enctype="multipart/form-data" class="d-none">
+            <?= csrf_field() ?>
+            <input type="file" name="avatar" id="avatarFile">
+        </form>
+        <script>
+        document.getElementById('avatarInput')?.addEventListener('change', function() {
+            if (!this.files[0]) return;
+            var form = document.getElementById('avatarForm');
+            form.querySelector('[name=avatar]').files = this.files;
+            form.submit();
+        });
+        </script>
     </div>
 </div>

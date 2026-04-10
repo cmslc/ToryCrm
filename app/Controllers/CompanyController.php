@@ -344,6 +344,21 @@ class CompanyController extends Controller
         return $this->redirect('companies/trash');
     }
 
+    public function updateLogo($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $company = Database::fetch("SELECT logo FROM companies WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$company) return $this->json(['error' => 'Không tồn tại'], 404);
+
+        $filename = upload_avatar('avatar', 'logos', $company['logo'] ?? null);
+        if ($filename) {
+            Database::update('companies', ['logo' => $filename], 'id = ?', [$id]);
+            return $this->json(['success' => true, 'url' => url('uploads/logos/' . $filename)]);
+        }
+        return $this->json(['error' => 'Không thể tải ảnh'], 422);
+    }
+
     public function changeOwner($id)
     {
         if (!$this->isPost()) return $this->redirect('companies/' . $id);

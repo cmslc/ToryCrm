@@ -100,6 +100,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('contacts/{id}', 'ContactController@show');
     Router::get('contacts/{id}/edit', 'ContactController@edit');
     Router::post('contacts/{id}/update', 'ContactController@update');
+    Router::post('contacts/{id}/avatar', 'ContactController@updateAvatar');
     Router::post('contacts/{id}/delete', 'ContactController@delete');
     Router::post('contacts/{id}/restore', 'ContactController@restore');
     Router::post('contacts/{id}/change-owner', 'ContactController@changeOwner');
@@ -114,6 +115,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('companies/{id}', 'CompanyController@show');
     Router::get('companies/{id}/edit', 'CompanyController@edit');
     Router::post('companies/{id}/update', 'CompanyController@update');
+    Router::post('companies/{id}/avatar', 'CompanyController@updateLogo');
     Router::post('companies/{id}/delete', 'CompanyController@delete');
     Router::post('companies/{id}/restore', 'CompanyController@restore');
     Router::post('companies/{id}/change-owner', 'CompanyController@changeOwner');
@@ -529,6 +531,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // Settings
     Router::get('settings', 'SettingController@index');
     Router::post('settings/profile', 'SettingController@updateProfile');
+    Router::post('settings/avatar', 'SettingController@updateAvatar');
     Router::post('settings/password', 'SettingController@updatePassword');
     Router::get('settings/widgets', 'SettingController@widgets');
     Router::post('settings/widgets', 'SettingController@saveWidgets');

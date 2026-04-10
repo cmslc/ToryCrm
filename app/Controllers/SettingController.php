@@ -55,6 +55,24 @@ class SettingController extends Controller
         return $this->redirect('settings');
     }
 
+    public function updateAvatar()
+    {
+        if (!$this->isPost()) return $this->redirect('settings');
+
+        $user = Database::fetch("SELECT avatar FROM users WHERE id = ?", [$this->userId()]);
+        $filename = upload_avatar('avatar', 'avatars', $user['avatar'] ?? null);
+
+        if ($filename) {
+            Database::update('users', ['avatar' => $filename], 'id = ?', [$this->userId()]);
+            $_SESSION['user']['avatar'] = $filename;
+            $this->setFlash('success', 'Đã cập nhật ảnh đại diện.');
+        } else {
+            $this->setFlash('error', 'Không thể tải ảnh. Chỉ chấp nhận JPG, PNG, GIF, WebP (tối đa 5MB).');
+        }
+
+        return $this->redirect('settings');
+    }
+
     public function updatePassword()
     {
         if (!$this->isPost()) {

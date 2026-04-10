@@ -19,10 +19,18 @@
             <div class="col-xl-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <div class="avatar-lg mx-auto mb-3">
-                            <div class="avatar-title rounded-circle bg-info-subtle text-info fs-24">
-                                <?= strtoupper(substr($company['name'], 0, 1)) ?>
-                            </div>
+                        <div class="mx-auto mb-3 position-relative" style="width:80px;height:80px">
+                            <?php if (!empty($company['logo']) && file_exists(BASE_PATH . '/public/uploads/logos/' . $company['logo'])): ?>
+                                <img src="<?= url('uploads/logos/' . $company['logo']) ?>" class="rounded-circle object-fit-cover" style="width:80px;height:80px" id="companyLogo">
+                            <?php else: ?>
+                                <div class="d-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info fw-bold" style="width:80px;height:80px;font-size:32px" id="companyLogo">
+                                    <?= strtoupper(substr($company['name'], 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
+                            <label class="position-absolute bottom-0 end-0 bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;cursor:pointer" title="Đổi logo">
+                                <i class="ri-camera-line text-white fs-12"></i>
+                                <input type="file" class="d-none" accept="image/*" onchange="uploadCompanyLogo(this)">
+                            </label>
                         </div>
                         <h5 class="mb-1"><?= e($company['name']) ?></h5>
                         <p class="text-muted mb-0"><?= e($company['industry'] ?? '') ?></p>
@@ -631,4 +639,20 @@ document.querySelectorAll('.activity-type-btn').forEach(btn => {
         document.getElementById('activityType').value = this.dataset.type;
     });
 });
+
+function uploadCompanyLogo(input) {
+    if (!input.files[0]) return;
+    var fd = new FormData();
+    fd.append('avatar', input.files[0]);
+    fd.append('_token', '<?= csrf_token() ?>');
+    fetch('<?= url("companies/" . $company["id"] . "/avatar") ?>', {method:'POST', body:fd})
+        .then(function(r){return r.json()})
+        .then(function(d){
+            if (d.success) {
+                var el = document.getElementById('companyLogo');
+                if (el.tagName === 'IMG') { el.src = d.url; }
+                else { el.outerHTML = '<img src="' + d.url + '" class="rounded-circle object-fit-cover" style="width:80px;height:80px" id="companyLogo">'; }
+            }
+        });
+}
 </script>

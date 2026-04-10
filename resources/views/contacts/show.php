@@ -19,10 +19,18 @@
             <div class="col-xl-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <div class="mx-auto mb-3" style="width:80px;height:80px">
-                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold" style="width:80px;height:80px;font-size:32px">
-                                <?= strtoupper(mb_substr($contact['first_name'], 0, 1)) ?>
-                            </div>
+                        <div class="mx-auto mb-3 position-relative" style="width:80px;height:80px">
+                            <?php if (!empty($contact['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $contact['avatar'])): ?>
+                                <img src="<?= url('uploads/avatars/' . $contact['avatar']) ?>" class="rounded-circle object-fit-cover" style="width:80px;height:80px" id="contactAvatar">
+                            <?php else: ?>
+                                <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fw-bold" style="width:80px;height:80px;font-size:32px" id="contactAvatar">
+                                    <?= strtoupper(mb_substr($contact['first_name'], 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
+                            <label class="position-absolute bottom-0 end-0 bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;cursor:pointer" title="Đổi ảnh">
+                                <i class="ri-camera-line text-white fs-12"></i>
+                                <input type="file" class="d-none" accept="image/*" onchange="uploadContactAvatar(this)">
+                            </label>
                         </div>
                         <h5 class="mb-1"><?= e($contact['first_name'] . ' ' . ($contact['last_name'] ?? '')) ?></h5>
                         <p class="text-muted mb-0"><?= e($contact['position'] ?? '') ?></p>
@@ -1269,5 +1277,21 @@ function filterActivities() {
 document.getElementById('activitySearch')?.addEventListener('input', filterActivities);
 document.getElementById('activityUserFilter')?.addEventListener('change', filterActivities);
 document.getElementById('activityTypeFilter')?.addEventListener('change', filterActivities);
+
+function uploadContactAvatar(input) {
+    if (!input.files[0]) return;
+    var fd = new FormData();
+    fd.append('avatar', input.files[0]);
+    fd.append('_token', '<?= csrf_token() ?>');
+    fetch('<?= url("contacts/" . $contact["id"] . "/avatar") ?>', {method:'POST', body:fd})
+        .then(function(r){return r.json()})
+        .then(function(d){
+            if (d.success) {
+                var el = document.getElementById('contactAvatar');
+                if (el.tagName === 'IMG') { el.src = d.url; }
+                else { el.outerHTML = '<img src="' + d.url + '" class="rounded-circle object-fit-cover" style="width:80px;height:80px" id="contactAvatar">'; }
+            }
+        });
+}
 </script>
 
