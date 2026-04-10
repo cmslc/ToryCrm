@@ -2,6 +2,10 @@
    ToryCRM - Custom overrides (Velzon app.min.css handles everything else)
    ========================================================================== */
 
+/* ---------- Fix avatar-title icon overlay ---------- */
+.avatar-title { font-family: inherit; }
+.avatar-title::before, .avatar-title::after { display: none !important; }
+
 /* ---------- Kanban / Pipeline ---------- */
 .pipeline-board { overflow-x: auto; }
 .deal-card, .task-card {
