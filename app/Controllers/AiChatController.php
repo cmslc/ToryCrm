@@ -49,7 +49,7 @@ class AiChatController extends Controller
         $uid = $this->userId();
 
         $messages = Database::fetchAll(
-            "SELECT role, message, created_at FROM ai_chat_history
+            "SELECT role, content as message, created_at FROM ai_chat_history
              WHERE tenant_id = ? AND user_id = ?
              ORDER BY created_at ASC
              LIMIT 200",
@@ -80,7 +80,7 @@ class AiChatController extends Controller
     {
         try {
             Database::query(
-                "INSERT INTO ai_chat_history (tenant_id, user_id, role, message, created_at) VALUES (?, ?, ?, ?, NOW())",
+                "INSERT INTO ai_chat_history (tenant_id, user_id, role, content, created_at) VALUES (?, ?, ?, ?, NOW())",
                 [$tid, $uid, $role, $message]
             );
         } catch (\Exception $e) {
