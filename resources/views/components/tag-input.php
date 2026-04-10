@@ -42,9 +42,9 @@ $componentId = 'tagInput_' . md5($entityType . $entityId);
         selectedIds.forEach(function(id) {
             formData.append('tag_ids[]', id);
         });
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+        formData.append('_token', (document.querySelector('input[name=_token]')?.value || '<?= $_SESSION['csrf_token'] ?? '' ?>'));
 
-        fetch(BASE_URL + '/tags/assign', {
+        fetch('/tags/assign', {
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' },
             body: formData
@@ -90,7 +90,7 @@ $componentId = 'tagInput_' . md5($entityType . $entityId);
             return;
         }
         searchTimer = setTimeout(function() {
-            fetch(BASE_URL + '/tags/search?q=' + encodeURIComponent(q), {
+            fetch('/tags/search?q=' + encodeURIComponent(q), {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(function(r) { return r.json(); })
@@ -122,9 +122,9 @@ $componentId = 'tagInput_' . md5($entityType . $entityId);
                     var formData = new FormData();
                     formData.append('name', q);
                     formData.append('color', '#405189');
-                    formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+                    formData.append('_token', (document.querySelector('input[name=_token]')?.value || '<?= $_SESSION['csrf_token'] ?? '' ?>'));
 
-                    fetch(BASE_URL + '/tags/store', {
+                    fetch('/tags/store', {
                         method: 'POST',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' },
                         body: formData
