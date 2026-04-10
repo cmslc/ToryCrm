@@ -4,52 +4,48 @@ $statusColors = ['new' => 'info', 'contacted' => 'primary', 'qualified' => 'warn
 $st = $contact['status'] ?? 'new';
 ?>
 
-<div class="text-center mb-4">
-    <div class="avatar-lg mx-auto mb-3">
-        <div class="avatar-title rounded-circle bg-primary-subtle text-primary fs-24">
-            <?= strtoupper(substr($contact['first_name'] ?? '', 0, 1)) ?>
+<!-- Header: 2 columns - left avatar+name, right info -->
+<div class="d-flex gap-3 mb-4 pb-3 border-bottom">
+    <!-- Left: Avatar + Name -->
+    <div class="text-center flex-shrink-0" style="min-width:120px">
+        <div class="avatar-lg mx-auto mb-2">
+            <div class="avatar-title rounded-circle bg-primary-subtle text-primary fs-24">
+                <?= strtoupper(substr($contact['first_name'] ?? '', 0, 1)) ?>
+            </div>
         </div>
+        <h6 class="mb-1"><?= e(($contact['first_name'] ?? '') . ' ' . ($contact['last_name'] ?? '')) ?></h6>
+        <?php if ($contact['position']): ?><div class="text-muted fs-12 mb-1"><?= e($contact['position']) ?></div><?php endif; ?>
+        <span class="badge bg-<?= $statusColors[$st] ?? 'secondary' ?>-subtle text-<?= $statusColors[$st] ?? 'secondary' ?>">
+            <?= $statusLabels[$st] ?? $st ?>
+        </span>
     </div>
-    <h5 class="mb-1"><?= e(($contact['first_name'] ?? '') . ' ' . ($contact['last_name'] ?? '')) ?></h5>
-    <span class="badge bg-<?= $statusColors[$st] ?? 'secondary' ?>-subtle text-<?= $statusColors[$st] ?? 'secondary' ?>">
-        <?= $statusLabels[$st] ?? $st ?>
-    </span>
-</div>
 
-<table class="table table-borderless mb-4">
-    <tbody>
-        <?php if (!empty($contact['email'])): ?>
-        <tr>
-            <td class="text-muted" style="width:120px"><i class="ri-mail-line me-1"></i> Email</td>
-            <td><?= e($contact['email']) ?></td>
-        </tr>
-        <?php endif; ?>
-        <?php if (!empty($contact['phone'])): ?>
-        <tr>
-            <td class="text-muted"><i class="ri-phone-line me-1"></i> Điện thoại</td>
-            <td><?= e($contact['phone']) ?></td>
-        </tr>
-        <?php endif; ?>
-        <?php if (!empty($contact['company_name'])): ?>
-        <tr>
-            <td class="text-muted"><i class="ri-building-line me-1"></i> Công ty</td>
-            <td><?= e($contact['company_name']) ?></td>
-        </tr>
-        <?php endif; ?>
-        <?php if (!empty($contact['source_name'])): ?>
-        <tr>
-            <td class="text-muted"><i class="ri-focus-line me-1"></i> Nguồn</td>
-            <td><?= e($contact['source_name']) ?></td>
-        </tr>
-        <?php endif; ?>
-        <?php if (!empty($contact['owner_name'])): ?>
-        <tr>
-            <td class="text-muted"><i class="ri-user-star-line me-1"></i> Phụ trách</td>
-            <td><?= e($contact['owner_name']) ?></td>
-        </tr>
-        <?php endif; ?>
-    </tbody>
-</table>
+    <!-- Right: Contact Info -->
+    <div class="flex-grow-1">
+        <table class="table table-borderless mb-0">
+            <tbody>
+                <?php if (!empty($contact['email'])): ?>
+                <tr><td class="text-muted py-1 ps-0" style="width:90px"><i class="ri-mail-line me-1"></i>Email</td><td class="py-1"><?= e($contact['email']) ?></td></tr>
+                <?php endif; ?>
+                <?php if (!empty($contact['phone'])): ?>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-phone-line me-1"></i>SĐT</td><td class="py-1"><?= e($contact['phone']) ?></td></tr>
+                <?php endif; ?>
+                <?php if (!empty($contact['company_name'])): ?>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-building-line me-1"></i>Công ty</td><td class="py-1"><a href="<?= url('companies/' . $contact['company_id']) ?>"><?= e($contact['company_name']) ?></a></td></tr>
+                <?php endif; ?>
+                <?php if (!empty($contact['source_name'])): ?>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-focus-line me-1"></i>Nguồn</td><td class="py-1"><?= e($contact['source_name']) ?></td></tr>
+                <?php endif; ?>
+                <?php if (!empty($contact['owner_name'])): ?>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-user-star-line me-1"></i>Phụ trách</td><td class="py-1"><?= e($contact['owner_name']) ?></td></tr>
+                <?php endif; ?>
+                <?php if (!empty($contact['address'])): ?>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-map-pin-line me-1"></i>Địa chỉ</td><td class="py-1"><?= e($contact['address']) ?><?= $contact['city'] ? ', ' . e($contact['city']) : '' ?></td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <?php
 // Stats
