@@ -141,6 +141,15 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <script src="<?= asset('js/split-view.js') ?>?v=<?= time() ?>"></script>
     <script src="<?= asset('js/activity-feed.js') ?>?v=<?= time() ?>"></script>
 
+    <!-- AI Chat Widget (controlled by settings/api toggle) -->
+    <?php
+    $__tenant = \Core\Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$_SESSION['tenant_id'] ?? 1]);
+    $__aiCfg = json_decode($__tenant['settings'] ?? '{}', true)['ai'] ?? [];
+    if ($__aiCfg['show_widget'] ?? false):
+    ?>
+    <script src="<?= asset('js/ai-chat-widget.js') ?>?v=<?= time() ?>"></script>
+    <?php endif; ?>
+
     <!-- Flash Toast -->
     <?php if ($flashMsg): ?>
     <div class="position-fixed top-0 end-0 p-3" style="z-index:9999;margin-top:70px">
