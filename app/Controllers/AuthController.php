@@ -123,16 +123,29 @@ class AuthController extends Controller
         $existing = Database::fetch("SELECT id FROM users WHERE email = ? LIMIT 1", [$email]);
 
         if ($existing) {
-            $this->setFlash('error', 'An account with this email already exists.');
+            $this->setFlash('error', 'Email này đã được sử dụng bởi tài khoản khác.');
             return $this->back();
         }
 
         $hashedPassword = Auth::hashPassword($password);
 
+        // Resolve tenant_id (from session or default)
+        $tenantId = $_SESSION['tenant_id'] ?? null;
+        if (!$tenantId) {
+            $host = strtok($_SERVER['HTTP_HOST'] ?? '', ':');
+            $tenant = Database::fetch("SELECT id FROM tenants WHERE domain = ? AND is_active = 1 LIMIT 1", [$host]);
+            if (!$tenant) {
+                $tenant = Database::fetch("SELECT id FROM tenants WHERE id = 1 LIMIT 1");
+            }
+            $tenantId = $tenant['id'] ?? 1;
+        }
+
         $userId = Database::insert('users', [
             'name' => $name,
             'email' => $email,
             'password' => $hashedPassword,
+            'role' => 'staff',
+            'tenant_id' => (int) $tenantId,
             'is_active' => 1,
         ]);
 
@@ -140,7 +153,14 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        $this->setFlash('success', 'Account created successfully.');
+        // Set tenant session for immediate dashboard access
+        $_SESSION['tenant_id'] = (int) $tenantId;
+        if (empty($_SESSION['tenant'])) {
+            $tenant = Database::fetch("SELECT * FROM tenants WHERE id = ? LIMIT 1", [$tenantId]);
+            $_SESSION['tenant'] = $tenant ?: ['id' => $tenantId, 'name' => 'Default', 'slug' => 'default'];
+        }
+
+        $this->setFlash('success', 'Đăng ký thành công! Chào mừng bạn đến với ToryCRM.');
         return $this->redirect('dashboard');
     }
 
