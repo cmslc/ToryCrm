@@ -69,7 +69,7 @@
                                         <td>
                                             <?= $rule['last_run_at'] ? time_ago($rule['last_run_at']) : '<span class="text-muted">-</span>' ?>
                                         </td>
-                                        <td><?= e($rule['created_by_name'] ?? '-') ?></td>
+                                        <td><?= user_avatar($rule['created_by_name'] ?? null) ?></td>
                                         <td>
                                             <div class="d-flex gap-1">
                                                 <form method="POST" action="<?= url('automation/' . $rule['id'] . '/toggle-active') ?>">

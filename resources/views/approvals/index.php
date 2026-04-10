@@ -64,7 +64,7 @@
                                         <span class="badge bg-secondary-subtle text-secondary">Tắt</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= e($flow['created_by_name'] ?? '-') ?></td>
+                                <td><?= user_avatar($flow['created_by_name'] ?? null) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

@@ -130,7 +130,7 @@ $typeLabel = $debt['type'] === 'receivable' ? 'Phải thu' : 'Phải trả';
                                                 <td class="fw-medium text-success"><?= format_money($p['amount']) ?></td>
                                                 <td><?= $methodLabels[$p['payment_method'] ?? ''] ?? ($p['payment_method'] ?? '-') ?></td>
                                                 <td><?= e($p['note'] ?? '-') ?></td>
-                                                <td><?= e($p['created_by_name'] ?? '-') ?></td>
+                                                <td><?= user_avatar($p['created_by_name'] ?? null) ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>

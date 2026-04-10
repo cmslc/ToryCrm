@@ -71,7 +71,7 @@ $typeIcons = ['meeting'=>'ri-team-line','call'=>'ri-phone-line','visit'=>'ri-map
                                     </tr>
                                     <tr>
                                         <th><i class="ri-user-add-line me-1"></i>Người tạo</th>
-                                        <td><?= e($event['created_by_name'] ?? '-') ?></td>
+                                        <td><?= user_avatar($event['created_by_name'] ?? null, 'success') ?></td>
                                     </tr>
                                 </tbody>
                             </table>

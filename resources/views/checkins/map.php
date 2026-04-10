@@ -94,7 +94,7 @@
                     <tbody>
                         <?php foreach ($checkins as $ci): ?>
                             <tr>
-                                <td><?= e($ci['user_name'] ?? '') ?></td>
+                                <td><?= user_avatar($ci['user_name'] ?? null) ?></td>
                                 <td>
                                     <?= e($ci['contact_first_name'] ?? '') ?> <?= e($ci['contact_last_name'] ?? '') ?>
                                     <?php if (!empty($ci['company_name'])): ?>

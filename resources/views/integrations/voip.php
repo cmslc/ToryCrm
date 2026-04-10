@@ -108,7 +108,7 @@
                                     <tbody>
                                         <?php foreach ($callLogs as $log): ?>
                                         <tr>
-                                            <td><?= e($log['user_name'] ?? 'N/A') ?></td>
+                                            <td><?= user_avatar($log['user_name'] ?? null) ?></td>
                                             <td><code><?= e($log['caller_number'] ?? '') ?></code></td>
                                             <td><code><?= e($log['callee_number'] ?? '') ?></code></td>
                                             <td>

@@ -144,7 +144,7 @@
                                 <?php foreach ($commissions as $c): ?>
                                     <tr>
                                         <td><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
-                                        <td class="fw-medium"><?= e($c['user_name'] ?? '') ?></td>
+                                        <td><?= user_avatar($c['user_name'] ?? null) ?></td>
                                         <td><span class="badge bg-<?= $c['entity_type'] === 'deal' ? 'primary' : 'success' ?>"><?= $typeLabels[$c['entity_type']] ?? $c['entity_type'] ?></span></td>
                                         <td>
                                             <?php if ($c['entity_type'] === 'deal'): ?>
