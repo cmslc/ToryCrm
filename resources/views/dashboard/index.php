@@ -625,6 +625,92 @@
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
+
+        <!-- Recent Logins -->
+        <?php
+        $recentLogins = [];
+        try {
+            $recentLogins = \Core\Database::fetchAll(
+                "SELECT name, avatar, last_login FROM users WHERE tenant_id = ? AND is_active = 1 AND last_login IS NOT NULL ORDER BY last_login DESC LIMIT 5",
+                [$_SESSION['tenant_id'] ?? 1]
+            );
+        } catch (\Exception $e) {}
+        ?>
+        <?php if (!empty($recentLogins)): ?>
+        <div class="card-body border-top p-3">
+            <h6 class="text-uppercase fs-11 text-muted mb-3">Đăng nhập gần đây</h6>
+            <?php foreach ($recentLogins as $rl): ?>
+            <div class="d-flex align-items-center mb-2">
+                <?php
+                $rlAvatar = '';
+                if (!empty($rl['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $rl['avatar'])) {
+                    $rlAvatar = '<img src="' . url('uploads/avatars/' . $rl['avatar']) . '" class="rounded-circle" style="width:22px;height:22px;object-fit:cover">';
+                } else {
+                    $rlAvatar = '<div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width:22px;height:22px;font-size:10px">' . mb_strtoupper(mb_substr($rl['name'], 0, 1)) . '</div>';
+                }
+                ?>
+                <div class="me-2"><?= $rlAvatar ?></div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <p class="mb-0 fs-12 text-truncate"><?= e($rl['name']) ?></p>
+                </div>
+                <small class="text-muted fs-11"><?= $rl['last_login'] ? time_ago($rl['last_login']) : '' ?></small>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- Recent Deals -->
+        <?php
+        $recentDeals = [];
+        try {
+            $recentDeals = \Core\Database::fetchAll(
+                "SELECT d.title, d.value, d.status, d.created_at FROM deals WHERE d.tenant_id = ? ORDER BY d.created_at DESC LIMIT 5",
+                [$_SESSION['tenant_id'] ?? 1]
+            );
+        } catch (\Exception $e) {}
+        ?>
+        <?php if (!empty($recentDeals)): ?>
+        <div class="card-body border-top p-3">
+            <h6 class="text-uppercase fs-11 text-muted mb-3">Deal gần đây</h6>
+            <?php
+            $dealColors = ['open'=>'primary','won'=>'success','lost'=>'danger'];
+            foreach ($recentDeals as $rd): ?>
+            <div class="d-flex align-items-center mb-2">
+                <span class="me-2" style="width:8px;height:8px;border-radius:50%;background:var(--vz-<?= $dealColors[$rd['status']] ?? 'secondary' ?>);display:inline-block;flex-shrink:0"></span>
+                <div class="flex-grow-1 overflow-hidden">
+                    <p class="mb-0 fs-12 text-truncate"><?= e($rd['title']) ?></p>
+                    <small class="text-muted fs-11"><?= format_money($rd['value'] ?? 0) ?></small>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- Extra Stats -->
+        <?php
+        $overdueCnt = count($overdueTasks ?? []);
+        $monthOrders = 0;
+        try { $monthOrders = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM orders WHERE tenant_id = ? AND is_deleted = 0 AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
+        $monthRevenue = $stats['this_month_revenue'] ?? 0;
+        ?>
+        <div class="card-body border-top p-3">
+            <h6 class="text-uppercase fs-11 text-muted mb-3">Tháng này</h6>
+            <div class="d-flex align-items-center mb-2">
+                <div class="avatar-xs me-2"><span class="avatar-title rounded bg-danger-subtle text-danger fs-12"><i class="ri-alarm-warning-line"></i></span></div>
+                <div class="flex-grow-1"><p class="mb-0 fs-12 text-muted">Task quá hạn</p></div>
+                <h6 class="mb-0 <?= $overdueCnt > 0 ? 'text-danger' : '' ?>"><?= $overdueCnt ?></h6>
+            </div>
+            <div class="d-flex align-items-center mb-2">
+                <div class="avatar-xs me-2"><span class="avatar-title rounded bg-success-subtle text-success fs-12"><i class="ri-shopping-cart-line"></i></span></div>
+                <div class="flex-grow-1"><p class="mb-0 fs-12 text-muted">Đơn hàng</p></div>
+                <h6 class="mb-0"><?= $monthOrders ?></h6>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="avatar-xs me-2"><span class="avatar-title rounded bg-primary-subtle text-primary fs-12"><i class="ri-money-dollar-circle-line"></i></span></div>
+                <div class="flex-grow-1"><p class="mb-0 fs-12 text-muted">Doanh thu</p></div>
+                <h6 class="mb-0 fs-12"><?= format_money($monthRevenue) ?></h6>
+            </div>
+        </div>
     </div>
 </div><!-- end col-xl-2 -->
 </div><!-- end row -->
