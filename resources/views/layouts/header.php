@@ -22,6 +22,14 @@
             </div>
 
             <div class="d-flex align-items-center">
+                <!-- Activity Feed -->
+                <div class="ms-1 header-item">
+                    <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative" id="af-btn" title="Hoạt động">
+                        <i class="ri-pulse-line fs-22"></i>
+                        <span id="af-badge" class="position-absolute topbar-badge badge rounded-pill bg-danger" style="display:none">0</span>
+                    </button>
+                </div>
+
                 <!-- Fullscreen -->
                 <div class="ms-1 header-item d-none d-sm-flex">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle" data-toggle="fullscreen">
