@@ -213,6 +213,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
+                <?php if ($_role !== 'staff'): ?>
                 <li class="menu-title"><span>Hệ thống</span></li>
 
                 <li class="nav-item">
@@ -243,6 +244,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </div>
                 </li>
                 <?php endif; ?>
+                <?php endif; /* end $_role !== 'staff' */ ?>
 
                 <?php if (canSee('settings', 'manage') || $_role === 'admin'): ?>
                 <li class="menu-title"><span>Cài đặt</span></li>
