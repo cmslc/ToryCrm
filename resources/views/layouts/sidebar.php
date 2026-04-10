@@ -250,7 +250,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-question-line"></i> <span>Trợ giúp</span>
                     </a>
                 </li>
-                <?php endif; ?>
 
             </ul>
         </div>
