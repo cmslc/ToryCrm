@@ -39,6 +39,9 @@ class BudgetController extends Controller
             $params[] = $type;
         }
 
+        $ownerScope = $this->ownerScope('b', 'created_by');
+        if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
+
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch("SELECT COUNT(*) as count FROM budgets b WHERE {$whereClause}", $params)['count'];

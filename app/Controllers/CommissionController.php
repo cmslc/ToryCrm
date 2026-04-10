@@ -48,6 +48,11 @@ class CommissionController extends Controller
             $params[] = $entityType;
         }
 
+        if (!$this->isAdminOrManager()) {
+            $where .= " AND c.user_id = ?";
+            $params[] = $this->userId();
+        }
+
         $total = (int) Database::fetch(
             "SELECT COUNT(*) as cnt FROM commissions c WHERE {$where}",
             $params

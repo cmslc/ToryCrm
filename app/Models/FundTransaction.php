@@ -46,6 +46,11 @@ class FundTransaction extends Model
             $params[] = $filters['date_to'];
         }
 
+        if (!empty($filters['created_by'])) {
+            $where .= " AND ft.created_by = ?";
+            $params[] = $filters['created_by'];
+        }
+
         $total = Database::fetch(
             "SELECT COUNT(*) as total FROM fund_transactions ft WHERE {$where}", $params
         )['total'];

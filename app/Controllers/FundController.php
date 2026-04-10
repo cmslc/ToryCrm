@@ -14,14 +14,18 @@ class FundController extends Controller
         $model = new FundTransaction();
         $page = max(1, (int) $this->input('page') ?: 1);
 
-        $transactions = $model->getWithRelations($page, 10, [
+        $filters = [
             'search' => $this->input('search'),
             'type' => $this->input('type'),
             'status' => $this->input('status'),
             'fund_account_id' => $this->input('fund_account_id'),
             'date_from' => $this->input('date_from'),
             'date_to' => $this->input('date_to'),
-        ]);
+        ];
+        if (!$this->isAdminOrManager()) {
+            $filters['created_by'] = $this->userId();
+        }
+        $transactions = $model->getWithRelations($page, 10, $filters);
 
         $accounts = $model->getAccounts();
         $summary = $model->getSummary(
