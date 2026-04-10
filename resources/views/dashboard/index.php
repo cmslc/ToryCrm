@@ -213,7 +213,130 @@
     </div>
 </div>
 
-<!-- ROW 4: Action Items + Health Score -->
+<!-- ROW 4: Deal Status + Source + Task Rate -->
+<div class="row">
+    <!-- Deal Status Donut -->
+    <div class="col-xl-4">
+        <div class="card card-height-100">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">Trạng thái Deal</h4>
+            </div>
+            <div class="card-body">
+                <div style="height:220px" class="d-flex justify-content-center"><canvas id="dealStatusChart"></canvas></div>
+                <div class="mt-3">
+                    <?php
+                    $dsColors = ['open'=>'primary','won'=>'success','lost'=>'danger'];
+                    $dsLabels = ['open'=>'Đang mở','won'=>'Thắng','lost'=>'Thua'];
+                    $dsTotal = array_sum(array_column($dealStatusDist ?? [], 'count')) ?: 1;
+                    foreach ($dealStatusDist ?? [] as $ds):
+                        $pct = round($ds['count'] / $dsTotal * 100);
+                    ?>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-<?= $dsColors[$ds['status']] ?? 'secondary' ?> me-2" style="width:10px;height:10px;padding:0;border-radius:50%"></span>
+                        <span class="flex-grow-1"><?= $dsLabels[$ds['status']] ?? $ds['status'] ?></span>
+                        <span class="fw-semibold"><?= $ds['count'] ?></span>
+                        <span class="text-muted ms-2 fs-12">(<?= $pct ?>%)</span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Source -->
+    <div class="col-xl-4">
+        <div class="card card-height-100">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">Nguồn khách hàng</h4>
+            </div>
+            <div class="card-body">
+                <div style="height:220px" class="d-flex justify-content-center"><canvas id="sourceChart"></canvas></div>
+                <div class="mt-3">
+                    <?php
+                    $srcColors = ['#405189','#0ab39c','#f7b84b','#f06548','#299cdb','#6c757d','#3577f1','#e83e8c'];
+                    foreach ($sourceDist ?? [] as $i => $src): ?>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="me-2" style="width:10px;height:10px;border-radius:50%;background:<?= $srcColors[$i % 8] ?>;display:inline-block"></span>
+                        <span class="flex-grow-1 text-truncate"><?= e($src['source_name']) ?></span>
+                        <span class="fw-semibold"><?= $src['count'] ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Completion Rate -->
+    <div class="col-xl-4">
+        <div class="card card-height-100">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">Tiến độ công việc</h4>
+            </div>
+            <div class="card-body text-center">
+                <?php
+                $tPct = ($taskStats['total'] ?? 0) > 0 ? round(($taskStats['done'] ?? 0) / $taskStats['total'] * 100) : 0;
+                $twPct = ($taskStats['week_total'] ?? 0) > 0 ? round(($taskStats['week_done'] ?? 0) / $taskStats['week_total'] * 100) : 0;
+                ?>
+                <div style="height:180px" class="d-flex justify-content-center"><canvas id="taskRateChart"></canvas></div>
+                <h5 class="mt-3 mb-1"><?= $tPct ?>%</h5>
+                <p class="text-muted mb-3">Tổng hoàn thành (<?= $taskStats['done'] ?? 0 ?>/<?= $taskStats['total'] ?? 0 ?>)</p>
+                <div class="row text-start border-top pt-3">
+                    <div class="col-6">
+                        <p class="text-muted mb-1 fs-12">Tuần này</p>
+                        <h6 class="mb-0"><?= $taskStats['week_done'] ?? 0 ?>/<?= $taskStats['week_total'] ?? 0 ?> <small class="text-success">(<?= $twPct ?>%)</small></h6>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted mb-1 fs-12">Quá hạn</p>
+                        <h6 class="mb-0 text-danger"><?= count($overdueTasks ?? []) ?></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ROW 5: Top Staff -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header align-items-center d-flex">
+                <h4 class="card-title mb-0 flex-grow-1">Top nhân viên theo doanh thu</h4>
+                <a href="<?= url('leaderboard') ?>" class="btn btn-soft-primary">Bảng xếp hạng</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>#</th><th>Nhân viên</th><th>Deal thắng</th><th>Doanh thu</th><th>Tiến độ</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $maxRev = max(array_column($topStaff ?? [], 'revenue') ?: [1]) ?: 1;
+                            foreach ($topStaff ?? [] as $i => $staff): ?>
+                            <tr>
+                                <td><span class="fw-semibold"><?= $i + 1 ?></span></td>
+                                <td><?= user_avatar($staff['name'] ?? null, 'primary', $staff['avatar'] ?? null) ?></td>
+                                <td><span class="badge bg-success-subtle text-success"><?= $staff['deal_count'] ?></span></td>
+                                <td class="fw-semibold"><?= format_money($staff['revenue']) ?></td>
+                                <td style="min-width:120px">
+                                    <div class="progress" style="height:6px">
+                                        <div class="progress-bar bg-primary" style="width:<?= round($staff['revenue'] / $maxRev * 100) ?>%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php if (empty($topStaff)): ?>
+                            <tr><td colspan="5" class="text-center text-muted py-3">Chưa có dữ liệu</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ROW 6: Action Items + Health Score -->
 <div class="row">
     <div class="col-xl-6">
         <div class="card card-height-100">
@@ -533,15 +656,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     {
                         type: 'line',
-                        label: 'Task hoàn thành',
-                        data: tasksData,
+                        label: 'Năm trước',
+                        data: <?= json_encode($lastMonthRevenueData ?? array_fill(0, 12, 0)) ?>,
                         borderColor: '#f06548',
                         borderDash: [5, 5],
                         borderWidth: 2,
                         pointRadius: 0,
                         fill: false,
                         tension: 0.4,
-                        yAxisID: 'y1',
                         order: 0,
                     }
                 ]
@@ -587,6 +709,50 @@ document.addEventListener('DOMContentLoaded', function() {
                     legend: { display: false }
                 }
             }
+        });
+    }
+
+    // Deal Status Donut
+    var dealCtx = document.getElementById('dealStatusChart');
+    if (dealCtx) {
+        <?php
+        $dsData = []; $dsLbl = []; $dsCl = [];
+        $dsMap = ['open'=>['Đang mở','#405189'],'won'=>['Thắng','#0ab39c'],'lost'=>['Thua','#f06548']];
+        foreach ($dealStatusDist ?? [] as $ds) {
+            $dsLbl[] = $dsMap[$ds['status']][0] ?? $ds['status'];
+            $dsData[] = (int)$ds['count'];
+            $dsCl[] = $dsMap[$ds['status']][1] ?? '#6c757d';
+        }
+        ?>
+        new Chart(dealCtx, {
+            type: 'doughnut',
+            data: { labels: <?= json_encode($dsLbl) ?>, datasets: [{ data: <?= json_encode($dsData) ?>, backgroundColor: <?= json_encode($dsCl) ?>, borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Source Pie
+    var srcCtx = document.getElementById('sourceChart');
+    if (srcCtx) {
+        var srcColors = ['#405189','#0ab39c','#f7b84b','#f06548','#299cdb','#6c757d','#3577f1','#e83e8c'];
+        new Chart(srcCtx, {
+            type: 'doughnut',
+            data: {
+                labels: <?= json_encode(array_column($sourceDist ?? [], 'source_name')) ?>,
+                datasets: [{ data: <?= json_encode(array_column($sourceDist ?? [], 'count')) ?>, backgroundColor: srcColors.slice(0, <?= count($sourceDist ?? []) ?>), borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
+        });
+    }
+
+    // Task Rate Ring
+    var taskCtx = document.getElementById('taskRateChart');
+    if (taskCtx) {
+        var done = <?= $taskStats['done'] ?? 0 ?>, remaining = <?= ($taskStats['total'] ?? 0) - ($taskStats['done'] ?? 0) ?>;
+        new Chart(taskCtx, {
+            type: 'doughnut',
+            data: { labels: ['Hoàn thành','Còn lại'], datasets: [{ data: [done, remaining], backgroundColor: ['#0ab39c','#e9ebec'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: false } } }
         });
     }
 });

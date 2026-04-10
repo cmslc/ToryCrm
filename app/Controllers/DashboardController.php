@@ -200,18 +200,65 @@ class DashboardController extends Controller
             [$tid]
         );
 
+        // ---- Deal status distribution (for donut chart) ----
+        $dealStatusDist = Database::fetchAll(
+            "SELECT status, COUNT(*) as count, COALESCE(SUM(value),0) as total FROM deals WHERE tenant_id = ? GROUP BY status",
+            [$tid]
+        );
+
+        // ---- Top 5 staff by revenue ----
+        $topStaff = Database::fetchAll(
+            "SELECT u.id, u.name, u.avatar, COUNT(d.id) as deal_count, COALESCE(SUM(d.value),0) as revenue
+             FROM deals d JOIN users u ON d.user_id = u.id
+             WHERE d.tenant_id = ? AND d.status = 'won'
+             GROUP BY u.id, u.name, u.avatar
+             ORDER BY revenue DESC LIMIT 5",
+            [$tid]
+        );
+
+        // ---- Contact source distribution ----
+        $sourceDist = Database::fetchAll(
+            "SELECT COALESCE(cs.name, 'Không rõ') as source_name, COUNT(*) as count
+             FROM contacts c LEFT JOIN contact_sources cs ON c.source_id = cs.id
+             WHERE c.tenant_id = ? AND c.is_deleted = 0
+             GROUP BY cs.name ORDER BY count DESC LIMIT 8",
+            [$tid]
+        );
+
+        // ---- Last month revenue for comparison ----
+        $lastMonthRevenueData = array_fill(0, 12, 0);
+        $lastYear = date('Y', strtotime('-1 year'));
+        $lmRows = Database::fetchAll(
+            "SELECT MONTH(actual_close_date) as month, SUM(value) as revenue
+             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ?
+             GROUP BY MONTH(actual_close_date)",
+            [$lastYear, $tid]
+        );
+        foreach ($lmRows as $r) $lastMonthRevenueData[$r['month'] - 1] = (float)$r['revenue'];
+
+        // ---- Task completion rate this week/month ----
+        $taskTotal = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL", [$tid])['c'] ?? 0);
+        $taskDone = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL AND status = 'done'", [$tid])['c'] ?? 0);
+        $taskWeekDone = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL AND status = 'done' AND completed_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)", [$tid])['c'] ?? 0);
+        $taskWeekTotal = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)", [$tid])['c'] ?? 0);
+
         return $this->view('dashboard.index', [
             'insights' => $insights,
             'stats' => $stats,
             'healthDist' => $healthDist,
             'criticalContacts' => $criticalContacts,
             'revenueData' => $revenueData,
+            'lastMonthRevenueData' => $lastMonthRevenueData,
             'pipelineSummary' => $pipelineSummary,
             'overdueTasks' => $overdueTasks,
             'dealsClosingSoon' => $dealsClosingSoon,
             'inactiveContacts' => $inactiveContacts,
             'todayEvents' => $todayEvents,
             'recentActivities' => $recentActivities,
+            'dealStatusDist' => $dealStatusDist,
+            'topStaff' => $topStaff,
+            'sourceDist' => $sourceDist,
+            'taskStats' => ['total' => $taskTotal, 'done' => $taskDone, 'week_done' => $taskWeekDone, 'week_total' => $taskWeekTotal],
         ]);
     }
 
