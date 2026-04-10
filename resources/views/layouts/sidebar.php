@@ -68,7 +68,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
 
                 <?php if (canSee('contacts')): ?>
-                <li class="menu-title"><span>CRM</span></li>
                 <?php $crmOpen = isOpen(['contacts','companies','deals','checkins','bookings'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>">
@@ -102,7 +101,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('products') || canSee('orders')): ?>
-                <li class="menu-title"><span>Bán hàng</span></li>
                 <?php if (canSee('products')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('products', $currentUrl) ?>" href="<?= url('products') ?>">
@@ -128,7 +126,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('campaigns')): ?>
-                <li class="menu-title"><span>Marketing</span></li>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('campaigns', $currentUrl) ?>" href="<?= url('campaigns') ?>">
                         <i class="ri-megaphone-line"></i> <span>Chiến dịch</span>
@@ -141,7 +138,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
-                <li class="menu-title"><span>Quản lý</span></li>
 
                 <?php if (canSee('tasks')): ?>
                 <?php $taskOpen = isOpen(['tasks','calendar','activities'], $currentUrl); ?>
@@ -194,7 +190,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
 
                 <?php if (canSee('fund')): ?>
-                <li class="menu-title"><span>Tài chính</span></li>
                 <?php $financeOpen = isOpen(['fund','debts','contracts','budgets','commissions','finance-reports'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $financeOpen ? '' : 'collapsed' ?>" href="#sidebarFinance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $financeOpen ? 'true' : 'false' ?>">
@@ -214,7 +209,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if ($_role !== 'staff'): ?>
-                <li class="menu-title"><span>Hệ thống</span></li>
 
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('departments', $currentUrl) ?>" href="<?= url('departments') ?>">
@@ -247,7 +241,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; /* end $_role !== 'staff' */ ?>
 
                 <?php if (canSee('settings', 'manage') || $_role === 'admin'): ?>
-                <li class="menu-title"><span>Cài đặt</span></li>
                 <?php $settingsOpen = isOpen(['settings','custom-fields','tags','help'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
