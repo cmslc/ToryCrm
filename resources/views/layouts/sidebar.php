@@ -68,7 +68,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
 
                 <?php if (canSee('contacts')): ?>
-                <?php $crmOpen = isOpen(['contacts','companies','deals','checkins','bookings'], $currentUrl); ?>
+                <?php $crmOpen = isOpen(['contacts','companies','checkins','bookings'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>">
                         <i class="ri-contacts-line"></i> <span>Khách hàng</span>
