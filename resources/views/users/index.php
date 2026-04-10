@@ -59,7 +59,7 @@
                                                 ? '<span class="badge bg-success-subtle text-success">Hoạt động</span>'
                                                 : '<span class="badge bg-danger-subtle text-danger">Bị khóa</span>' ?>
                                         </td>
-                                        <td><?= !empty($user['last_login_at']) ? time_ago($user['last_login_at']) : '-' ?></td>
+                                        <td><?= !empty($user['last_login']) ? time_ago($user['last_login']) : '-' ?></td>
                                         <td>
                                             <div class="d-flex gap-1">
                                                 <a href="<?= url('users/' . $user['id'] . '/edit') ?>" class="btn btn btn-soft-primary" title="Sửa"><i class="ri-pencil-line"></i></a>
