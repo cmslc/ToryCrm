@@ -68,7 +68,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>">
                         <i class="ri-contacts-line"></i> <span>Khách hàng</span>
                     </a>
-                    <div class="collapse <?= $crmOpen ? 'show' : '' ?>" id="sidebarCrm">
+                    <div class="collapse menu-dropdown <?= $crmOpen ? 'show' : '' ?>" id="sidebarCrm">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('contacts') ?>" class="nav-link <?= isActive('contacts', $currentUrl) ?>">Danh sách KH</a></li>
                             <?php if (canSee('companies')): ?><li class="nav-item"><a href="<?= url('companies') ?>" class="nav-link <?= isActive('companies', $currentUrl) ?>">Doanh nghiệp</a></li><?php endif; ?>
@@ -85,7 +85,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
                         <i class="ri-hand-coin-line"></i> <span>Cơ hội</span>
                     </a>
-                    <div class="collapse <?= $dealOpen ? 'show' : '' ?>" id="sidebarDeals">
+                    <div class="collapse menu-dropdown <?= $dealOpen ? 'show' : '' ?>" id="sidebarDeals">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('deals') ?>" class="nav-link <?= isActive('deals', $currentUrl) && !str_contains($currentUrl, 'pipeline') && !str_contains($currentUrl, 'forecast') ? 'active' : '' ?>">Danh sách</a></li>
                             <li class="nav-item"><a href="<?= url('deals/pipeline') ?>" class="nav-link <?= isActive('deals/pipeline', $currentUrl) ?>">Pipeline</a></li>
@@ -101,7 +101,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $prodOpen ? '' : 'collapsed' ?>" href="#sidebarProducts" data-bs-toggle="collapse" role="button" aria-expanded="<?= $prodOpen ? 'true' : 'false' ?>">
                         <i class="ri-shopping-bag-line"></i> <span>Sản phẩm</span>
                     </a>
-                    <div class="collapse <?= $prodOpen ? 'show' : '' ?>" id="sidebarProducts">
+                    <div class="collapse menu-dropdown <?= $prodOpen ? 'show' : '' ?>" id="sidebarProducts">
                         <ul class="nav nav-sm flex-column">
                             <?php if (canSee('products')): ?>
                             <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Danh sách</a></li>
@@ -122,7 +122,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $campOpen ? '' : 'collapsed' ?>" href="#sidebarCampaigns" data-bs-toggle="collapse" role="button" aria-expanded="<?= $campOpen ? 'true' : 'false' ?>">
                         <i class="ri-megaphone-line"></i> <span>Chiến dịch</span>
                     </a>
-                    <div class="collapse <?= $campOpen ? 'show' : '' ?>" id="sidebarCampaigns">
+                    <div class="collapse menu-dropdown <?= $campOpen ? 'show' : '' ?>" id="sidebarCampaigns">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Danh sách</a></li>
                             <li class="nav-item"><a href="<?= url('email-templates') ?>" class="nav-link <?= isActive('email-templates', $currentUrl) ?>">Mẫu email</a></li>
@@ -138,7 +138,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $taskOpen ? '' : 'collapsed' ?>" href="#sidebarTasks" data-bs-toggle="collapse" role="button" aria-expanded="<?= $taskOpen ? 'true' : 'false' ?>">
                         <i class="ri-task-line"></i> <span>Công việc</span>
                     </a>
-                    <div class="collapse <?= $taskOpen ? 'show' : '' ?>" id="sidebarTasks">
+                    <div class="collapse menu-dropdown <?= $taskOpen ? 'show' : '' ?>" id="sidebarTasks">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('tasks') ?>" class="nav-link <?= isActive('tasks', $currentUrl) && !str_contains($currentUrl, 'kanban') ? 'active' : '' ?>">Danh sách</a></li>
                             <li class="nav-item"><a href="<?= url('tasks/kanban') ?>" class="nav-link <?= isActive('tasks/kanban', $currentUrl) ?>">Kanban</a></li>
@@ -155,7 +155,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $supportOpen ? '' : 'collapsed' ?>" href="#sidebarSupport" data-bs-toggle="collapse" role="button" aria-expanded="<?= $supportOpen ? 'true' : 'false' ?>">
                         <i class="ri-customer-service-line"></i> <span>Hỗ trợ</span>
                     </a>
-                    <div class="collapse <?= $supportOpen ? 'show' : '' ?>" id="sidebarSupport">
+                    <div class="collapse menu-dropdown <?= $supportOpen ? 'show' : '' ?>" id="sidebarSupport">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('tickets') ?>" class="nav-link <?= isActive('tickets', $currentUrl) ?>">Ticket</a></li>
                             <li class="nav-item"><a href="<?= url('sla') ?>" class="nav-link <?= isActive('sla', $currentUrl) ?>">Chính sách SLA</a></li>
@@ -188,7 +188,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $financeOpen ? '' : 'collapsed' ?>" href="#sidebarFinance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $financeOpen ? 'true' : 'false' ?>">
                         <i class="ri-money-dollar-circle-line"></i> <span>Tài chính</span>
                     </a>
-                    <div class="collapse <?= $financeOpen ? 'show' : '' ?>" id="sidebarFinance">
+                    <div class="collapse menu-dropdown <?= $financeOpen ? 'show' : '' ?>" id="sidebarFinance">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('fund') ?>" class="nav-link <?= isActive('fund', $currentUrl) ?>">Quỹ thu/chi</a></li>
                             <li class="nav-item"><a href="<?= url('debts') ?>" class="nav-link <?= isActive('debts', $currentUrl) ?>">Công nợ</a></li>
@@ -215,7 +215,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
                         <i class="ri-settings-3-line"></i> <span>Hệ thống</span>
                     </a>
-                    <div class="collapse <?= $sysOpen ? 'show' : '' ?>" id="sidebarSystem">
+                    <div class="collapse menu-dropdown <?= $sysOpen ? 'show' : '' ?>" id="sidebarSystem">
                         <ul class="nav nav-sm flex-column">
                             <?php if (canSee('reports')): ?><li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= isActive('reports', $currentUrl) ?>">Báo cáo</a></li><?php endif; ?>
                             <?php if (canSee('users')): ?><li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li><?php endif; ?>
@@ -238,7 +238,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
                         <i class="ri-tools-line"></i> <span>Cài đặt</span>
                     </a>
-                    <div class="collapse <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
+                    <div class="collapse menu-dropdown <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('settings') ?>" class="nav-link <?= $currentUrl === 'settings' || str_starts_with($currentUrl, 'settings?') ? 'active' : '' ?>">Tài khoản</a></li>
                             <?php if ($_role !== 'staff'): ?>
