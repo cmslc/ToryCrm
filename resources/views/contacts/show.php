@@ -51,7 +51,17 @@
                         </div>
                         <?php endif; ?>
 
-                        <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
+                        <!-- Nhãn (inline) -->
+                        <div class="mt-3">
+                            <?php
+                            $entityType = 'contact';
+                            $entityId = $contact['id'];
+                            $selectedTags = $contactTags;
+                            include __DIR__ . '/../components/tag-input.php';
+                            ?>
+                        </div>
+
+                        <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
                             <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary">
                                 <i class="ri-pencil-line me-1"></i> Sửa
                             </a>
@@ -60,19 +70,6 @@
                                 <button type="submit" class="btn btn-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Tags -->
-                <div class="card">
-                    <div class="card-header p-2"><h5 class="card-title mb-0"><i class="ri-price-tag-3-line me-1"></i> Nhãn</h5></div>
-                    <div class="card-body py-2">
-                        <?php
-                        $entityType = 'contact';
-                        $entityId = $contact['id'];
-                        $selectedTags = $contactTags;
-                        include __DIR__ . '/../components/tag-input.php';
-                        ?>
                     </div>
                 </div>
 
