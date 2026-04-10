@@ -27,6 +27,7 @@ class AiService
     public static function ask(string $message, int $tenantId, int $userId): string
     {
         // Detect which provider to use
+        $openrouterKey = self::getEnvKey('OPENROUTER_API_KEY');
         $groqKey = self::getEnvKey('GROQ_API_KEY');
         $geminiKey = self::getEnvKey('GEMINI_API_KEY');
 
@@ -36,7 +37,12 @@ class AiService
             . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp. "
             . "Dữ liệu CRM:\n" . $context;
 
-        // Try Groq first (faster, bigger free tier)
+        // Try OpenRouter first (no location block)
+        if (!empty($openrouterKey)) {
+            return self::callOpenRouter($openrouterKey, $systemPrompt, $message);
+        }
+
+        // Then Groq
         if (!empty($groqKey)) {
             return self::callGroq($groqKey, $systemPrompt, $message);
         }
@@ -48,6 +54,38 @@ class AiService
 
         // Fallback rule-based
         return self::fallbackRuleBased($message, $tenantId, $userId);
+    }
+
+    private static function callOpenRouter(string $apiKey, string $system, string $message): string
+    {
+        $url = 'https://openrouter.ai/api/v1/chat/completions';
+        $payload = json_encode([
+            'model' => 'meta-llama/llama-3.3-70b-instruct:free',
+            'messages' => [
+                ['role' => 'system', 'content' => $system],
+                ['role' => 'user', 'content' => $message],
+            ],
+            'temperature' => 0.7,
+            'max_tokens' => 500,
+        ]);
+
+        $response = self::curlPost($url, $payload, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+            'HTTP-Referer: https://torycrm.com',
+            'X-Title: ToryCRM',
+        ]);
+
+        if (!$response['success']) {
+            return "⚠️ OpenRouter lỗi: " . $response['error'];
+        }
+
+        $data = json_decode($response['body'], true);
+        if (isset($data['error'])) {
+            return "⚠️ OpenRouter: " . ($data['error']['message'] ?? 'Unknown error');
+        }
+
+        return trim($data['choices'][0]['message']['content'] ?? '');
     }
 
     private static function callGroq(string $apiKey, string $system, string $message): string

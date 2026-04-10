@@ -1,8 +1,10 @@
 <?php
 $pageTitle = 'Cấu hình API';
+$openrouterKey = $_ENV['OPENROUTER_API_KEY'] ?? getenv('OPENROUTER_API_KEY') ?: '';
 $groqKey = $_ENV['GROQ_API_KEY'] ?? getenv('GROQ_API_KEY') ?: '';
 $geminiKey = $_ENV['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?: '';
 $gmapsKey = $_ENV['GOOGLE_MAPS_API_KEY'] ?? getenv('GOOGLE_MAPS_API_KEY') ?: '';
+$hasOpenRouter = !empty($openrouterKey);
 $hasGroq = !empty($groqKey);
 $hasGmaps = !empty($gmapsKey);
 $hasGemini = !empty($geminiKey);

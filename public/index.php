@@ -13,7 +13,7 @@ $dotenv = Dotenv\Dotenv::createImmutable(BASE_PATH);
 $dotenv->safeLoad();
 
 // Ensure $_ENV is populated (PHP-FPM may use putenv instead)
-foreach (['APP_NAME','APP_URL','APP_ENV','APP_DEBUG','APP_KEY','DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD','GEMINI_API_KEY','GROQ_API_KEY','GOOGLE_MAPS_API_KEY','MAIL_HOST','MAIL_PORT','MAIL_USERNAME','MAIL_PASSWORD','MAIL_FROM','MAIL_FROM_NAME'] as $key) {
+foreach (['APP_NAME','APP_URL','APP_ENV','APP_DEBUG','APP_KEY','DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD','OPENROUTER_API_KEY','GEMINI_API_KEY','GROQ_API_KEY','GOOGLE_MAPS_API_KEY','MAIL_HOST','MAIL_PORT','MAIL_USERNAME','MAIL_PASSWORD','MAIL_FROM','MAIL_FROM_NAME'] as $key) {
     if (!isset($_ENV[$key]) && getenv($key) !== false) {
         $_ENV[$key] = getenv($key);
     }
