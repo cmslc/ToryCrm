@@ -72,7 +72,7 @@
                         <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/change-owner') ?>">
                             <?= csrf_field() ?>
                             <div class="input-group">
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn người mới</option>
                                     <?php
                                     $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");

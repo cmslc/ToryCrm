@@ -68,7 +68,7 @@
     <div class="card-header border-0">
         <form method="GET" action="<?= url('checkins') ?>" class="row g-2 align-items-center">
             <div class="col-md-2">
-                <select name="user_id" class="form-select">
+                <select name="user_id" class="form-select searchable-select">
                     <option value="">Nhân viên</option>
                     <?php foreach ($users ?? [] as $u): ?>
                         <option value="<?= $u['id'] ?>" <?= ($filters['user_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>

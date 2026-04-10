@@ -66,7 +66,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Khách hàng</label>
-                                <select name="contact_id" class="form-select">
+                                <select name="contact_id" class="form-select searchable-select">
                                     <option value="">Chọn khách hàng</option>
                                     <?php foreach ($contacts ?? [] as $c): ?>
                                         <option value="<?= $c['id'] ?>"><?= e(trim($c['first_name'] . ' ' . $c['last_name'])) ?></option>
@@ -75,7 +75,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select">
+                                <select name="company_id" class="form-select searchable-select">
                                     <option value="">Chọn công ty</option>
                                     <?php foreach ($companies ?? [] as $co): ?>
                                         <option value="<?= $co['id'] ?>"><?= e($co['name']) ?></option>

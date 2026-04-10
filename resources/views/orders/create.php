@@ -35,7 +35,7 @@ $pageTitle = $isQuote ? 'Tạo báo giá' : 'Tạo đơn hàng';
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Khách hàng</label>
-                                    <select name="contact_id" class="form-select">
+                                    <select name="contact_id" class="form-select searchable-select">
                                         <option value="">Chọn khách hàng</option>
                                         <?php foreach ($contacts ?? [] as $c): ?>
                                             <option value="<?= $c['id'] ?>" <?= ($selectedContactId ?? 0) == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
@@ -44,7 +44,7 @@ $pageTitle = $isQuote ? 'Tạo báo giá' : 'Tạo đơn hàng';
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Công ty</label>
-                                    <select name="company_id" class="form-select">
+                                    <select name="company_id" class="form-select searchable-select">
                                         <option value="">Chọn công ty</option>
                                         <?php foreach ($companies ?? [] as $comp): ?>
                                             <option value="<?= $comp['id'] ?>" <?= ($selectedCompanyId ?? 0) == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
@@ -151,7 +151,7 @@ $pageTitle = $isQuote ? 'Tạo báo giá' : 'Tạo đơn hàng';
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>

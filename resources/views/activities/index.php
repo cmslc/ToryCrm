@@ -31,7 +31,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Người thực hiện</label>
-                        <select name="user_id" class="form-select">
+                        <select name="user_id" class="form-select searchable-select">
                             <option value="">Tất cả</option>
                             <?php foreach ($users ?? [] as $u): ?>
                                 <option value="<?= $u['id'] ?>" <?= ($filters['user_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>

@@ -103,7 +103,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select name="contact_id" class="form-select">
+                        <select name="contact_id" class="form-select searchable-select">
                             <option value="">Khách hàng</option>
                             <?php foreach ($contacts ?? [] as $c): ?>
                                 <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>

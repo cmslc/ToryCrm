@@ -60,7 +60,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="assigned_to" class="form-select">
+                                <select name="assigned_to" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
@@ -73,7 +73,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Khách hàng</label>
-                                <select name="contact_id" class="form-select">
+                                <select name="contact_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($contacts ?? [] as $c): ?>
                                         <option value="<?= $c['id'] ?>" <?= ($_GET['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
@@ -84,7 +84,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select">
+                                <select name="company_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($companies ?? [] as $comp): ?>
                                         <option value="<?= $comp['id'] ?>" <?= ($_GET['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>>

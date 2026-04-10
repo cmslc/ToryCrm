@@ -66,7 +66,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>

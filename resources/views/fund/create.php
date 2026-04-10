@@ -75,7 +75,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Liên hệ</label>
-                                <select name="contact_id" class="form-select">
+                                <select name="contact_id" class="form-select searchable-select">
                                     <option value="">Chọn liên hệ</option>
                                     <?php foreach ($contacts ?? [] as $contact): ?>
                                         <option value="<?= $contact['id'] ?>" <?= ($old['contact_id'] ?? '') == $contact['id'] ? 'selected' : '' ?>><?= e($contact['first_name'] . ' ' . ($contact['last_name'] ?? '')) ?></option>
@@ -84,7 +84,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select">
+                                <select name="company_id" class="form-select searchable-select">
                                     <option value="">Chọn công ty</option>
                                     <?php foreach ($companies ?? [] as $company): ?>
                                         <option value="<?= $company['id'] ?>" <?= ($old['company_id'] ?? '') == $company['id'] ? 'selected' : '' ?>><?= e($company['name']) ?></option>

@@ -43,7 +43,7 @@
                         <form method="POST" action="<?= url('campaigns/' . $campaign['id'] . '/add-contact') ?>" class="row g-2 mb-4">
                             <?= csrf_field() ?>
                             <div class="col-md-8">
-                                <select name="contact_id" class="form-select" required>
+                                <select name="contact_id" class="form-select searchable-select" required>
                                     <option value="">Chọn liên hệ...</option>
                                     <?php foreach ($contacts ?? [] as $c): ?>
                                         <option value="<?= $c['id'] ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>

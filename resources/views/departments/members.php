@@ -72,7 +72,7 @@
                     <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Chọn nhân viên</label>
-                        <select name="user_id" class="form-select" required>
+                        <select name="user_id" class="form-select searchable-select" required>
                             <option value="">Chọn nhân viên...</option>
                             <?php foreach ($allUsers as $u): ?>
                                 <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>

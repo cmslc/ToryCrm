@@ -50,7 +50,7 @@
                         <form method="POST" action="<?= url('companies/' . $company['id'] . '/change-owner') ?>">
                             <?= csrf_field() ?>
                             <div class="input-group">
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn người mới</option>
                                     <?php foreach ($users as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($company['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>

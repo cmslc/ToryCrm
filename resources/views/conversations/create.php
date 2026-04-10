@@ -18,7 +18,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Khách hàng</label>
-                                    <select name="contact_id" class="form-select">
+                                    <select name="contact_id" class="form-select searchable-select">
                                         <option value="">-- Chọn khách hàng --</option>
                                         <?php foreach ($contacts as $c): ?>
                                             <option value="<?= $c['id'] ?>" <?= ($selectedContactId ?? 0) == $c['id'] ? 'selected' : '' ?>>

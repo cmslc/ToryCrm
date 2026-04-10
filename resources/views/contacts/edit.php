@@ -82,7 +82,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select">
+                                <select name="company_id" class="form-select searchable-select">
                                     <option value="">Chọn công ty</option>
                                     <?php foreach ($companies ?? [] as $company): ?>
                                         <option value="<?= $company['id'] ?>" <?= ($contact['company_id'] ?? '') == $company['id'] ? 'selected' : '' ?>><?= e($company['name']) ?></option>
@@ -109,7 +109,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($contact['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>

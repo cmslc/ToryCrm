@@ -58,7 +58,7 @@ $pageTitle = 'Sửa ' . ($isReceipt ? 'phiếu thu' : 'phiếu chi') . ' ' . $tr
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Khách hàng</label>
-                                <select name="contact_id" class="form-select">
+                                <select name="contact_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($contacts ?? [] as $c): ?>
                                         <option value="<?= $c['id'] ?>" <?= ($transaction['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
@@ -67,7 +67,7 @@ $pageTitle = 'Sửa ' . ($isReceipt ? 'phiếu thu' : 'phiếu chi') . ' ' . $tr
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select">
+                                <select name="company_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($companies ?? [] as $comp): ?>
                                         <option value="<?= $comp['id'] ?>" <?= ($transaction['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>

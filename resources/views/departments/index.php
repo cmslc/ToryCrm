@@ -107,7 +107,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Trưởng phòng</label>
-                        <select name="manager_id" class="form-select" id="deptManager">
+                        <select name="manager_id" class="form-select searchable-select" id="deptManager">
                             <option value="">Chưa chọn</option>
                             <?php foreach ($users as $u): ?>
                                 <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>

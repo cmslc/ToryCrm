@@ -101,7 +101,7 @@
                 <form method="GET" action="<?= url('debts') ?>" class="row g-3 mb-4">
                     <input type="hidden" name="type" value="<?= e($filters['type'] ?? 'receivable') ?>">
                     <div class="col-md-2">
-                        <select name="contact_id" class="form-select">
+                        <select name="contact_id" class="form-select searchable-select">
                             <option value="">Tất cả KH</option>
                             <?php foreach ($contacts ?? [] as $c): ?>
                                 <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e(trim($c['first_name'] . ' ' . $c['last_name'])) ?></option>
@@ -109,7 +109,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select name="company_id" class="form-select">
+                        <select name="company_id" class="form-select searchable-select">
                             <option value="">Tất cả công ty</option>
                             <?php foreach ($companies ?? [] as $co): ?>
                                 <option value="<?= $co['id'] ?>" <?= ($filters['company_id'] ?? '') == $co['id'] ? 'selected' : '' ?>><?= e($co['name']) ?></option>

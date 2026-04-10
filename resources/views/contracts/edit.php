@@ -84,7 +84,7 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Khách hàng</label>
-                                <select name="contact_id" class="form-select">
+                                <select name="contact_id" class="form-select searchable-select">
                                     <option value="">Chọn khách hàng</option>
                                     <?php foreach ($contacts ?? [] as $c): ?>
                                         <option value="<?= $c['id'] ?>" <?= ($contract['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e(trim($c['first_name'] . ' ' . $c['last_name'])) ?></option>
@@ -93,7 +93,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select">
+                                <select name="company_id" class="form-select searchable-select">
                                     <option value="">Chọn công ty</option>
                                     <?php foreach ($companies ?? [] as $co): ?>
                                         <option value="<?= $co['id'] ?>" <?= ($contract['company_id'] ?? '') == $co['id'] ? 'selected' : '' ?>><?= e($co['name']) ?></option>
@@ -127,7 +127,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn người phụ trách</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($contract['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>

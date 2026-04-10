@@ -34,7 +34,7 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Khách hàng</label>
-                                    <select name="contact_id" class="form-select">
+                                    <select name="contact_id" class="form-select searchable-select">
                                         <option value="">Chọn</option>
                                         <?php foreach ($contacts ?? [] as $c): ?>
                                             <option value="<?= $c['id'] ?>" <?= ($order['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
@@ -43,7 +43,7 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Công ty</label>
-                                    <select name="company_id" class="form-select">
+                                    <select name="company_id" class="form-select searchable-select">
                                         <option value="">Chọn</option>
                                         <?php foreach ($companies ?? [] as $comp): ?>
                                             <option value="<?= $comp['id'] ?>" <?= ($order['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
@@ -161,7 +161,7 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($order['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>

@@ -32,7 +32,7 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Khách hàng</label>
-                            <select name="contact_id" class="form-select">
+                            <select name="contact_id" class="form-select searchable-select">
                                 <option value="">-- Chọn khách hàng --</option>
                                 <?php foreach ($contacts ?? [] as $c): ?>
                                     <option value="<?= $c['id'] ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
@@ -42,7 +42,7 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Doanh nghiệp</label>
-                            <select name="company_id" class="form-select">
+                            <select name="company_id" class="form-select searchable-select">
                                 <option value="">-- Chọn doanh nghiệp --</option>
                                 <?php foreach ($companies ?? [] as $comp): ?>
                                     <option value="<?= $comp['id'] ?>"><?= e($comp['name']) ?></option>

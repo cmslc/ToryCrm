@@ -132,6 +132,7 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
     <!-- ToryCRM Custom JS -->
+    <script src="<?= asset('js/searchable-select.js') ?>?v=<?= time() ?>"></script>
     <script src="<?= asset('js/torycrm.js') ?>?v=<?= time() ?>"></script>
 
     <!-- UI Enhancements -->

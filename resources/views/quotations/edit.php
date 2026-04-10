@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Khách hàng</label>
-                                    <select name="contact_id" class="form-select">
+                                    <select name="contact_id" class="form-select searchable-select">
                                         <option value="">Chọn khách hàng</option>
                                         <?php foreach ($contacts ?? [] as $c): ?>
                                             <option value="<?= $c['id'] ?>" <?= ($quotation['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
@@ -36,7 +36,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Công ty</label>
-                                    <select name="company_id" class="form-select">
+                                    <select name="company_id" class="form-select searchable-select">
                                         <option value="">Chọn công ty</option>
                                         <?php foreach ($companies ?? [] as $comp): ?>
                                             <option value="<?= $comp['id'] ?>" <?= ($quotation['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
@@ -140,7 +140,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select">
+                                <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
                                     <?php foreach ($users ?? [] as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($quotation['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
