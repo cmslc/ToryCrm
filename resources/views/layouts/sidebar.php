@@ -207,7 +207,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('contracts') ?>" class="nav-link <?= isActive('contracts', $currentUrl) ?>">Hợp đồng</a></li>
                             <li class="nav-item"><a href="<?= url('budgets') ?>" class="nav-link <?= isActive('budgets', $currentUrl) ?>">Ngân sách</a></li>
                             <li class="nav-item"><a href="<?= url('commissions') ?>" class="nav-link <?= isActive('commissions', $currentUrl) ?>">Hoa hồng</a></li>
-                            <li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Báo cáo tài chính</a></li>
+                            <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Báo cáo tài chính</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
