@@ -55,12 +55,14 @@
                     </div>
                 </div>
 
+                <?php if (($user['role'] ?? 'staff') !== 'staff'): ?>
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0">Quản trị hệ thống</h5></div>
                     <div class="list-group list-group-flush">
                         <a href="<?= url('settings/widgets') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="ri-layout-grid-line me-2 text-primary"></i> Tùy chỉnh Dashboard
                         </a>
+                        <?php if (($user['role'] ?? '') === 'admin'): ?>
                         <a href="<?= url('settings/permissions') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="ri-shield-check-line me-2 text-warning"></i> Phân quyền vai trò
                         </a>
@@ -70,7 +72,9 @@
                         <a href="<?= url('settings/audit-log') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
                             <i class="ri-history-line me-2 text-info"></i> Audit Log
                         </a>
+                        <?php endif; ?>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
