@@ -209,7 +209,7 @@ class DashboardController extends Controller
         // ---- Top 5 staff by revenue ----
         $topStaff = Database::fetchAll(
             "SELECT u.id, u.name, u.avatar, COUNT(d.id) as deal_count, COALESCE(SUM(d.value),0) as revenue
-             FROM deals d JOIN users u ON d.user_id = u.id
+             FROM deals d JOIN users u ON d.owner_id = u.id
              WHERE d.tenant_id = ? AND d.status = 'won'
              GROUP BY u.id, u.name, u.avatar
              ORDER BY revenue DESC LIMIT 5",
