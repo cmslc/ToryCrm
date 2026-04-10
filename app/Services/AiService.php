@@ -27,6 +27,7 @@ class AiService
     public static function ask(string $message, int $tenantId, int $userId): string
     {
         // Detect which provider to use
+        $deepseekKey = self::getEnvKey('DEEPSEEK_API_KEY');
         $openrouterKey = self::getEnvKey('OPENROUTER_API_KEY');
         $groqKey = self::getEnvKey('GROQ_API_KEY');
         $geminiKey = self::getEnvKey('GEMINI_API_KEY');
@@ -37,7 +38,12 @@ class AiService
             . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp. "
             . "Dữ liệu CRM:\n" . $context;
 
-        // Try OpenRouter first (no location block)
+        // Try DeepSeek first (works in Asia/HK)
+        if (!empty($deepseekKey)) {
+            return self::callDeepSeek($deepseekKey, $systemPrompt, $message);
+        }
+
+        // Then OpenRouter
         if (!empty($openrouterKey)) {
             return self::callOpenRouter($openrouterKey, $systemPrompt, $message);
         }
@@ -54,6 +60,36 @@ class AiService
 
         // Fallback rule-based
         return self::fallbackRuleBased($message, $tenantId, $userId);
+    }
+
+    private static function callDeepSeek(string $apiKey, string $system, string $message): string
+    {
+        $url = 'https://api.deepseek.com/chat/completions';
+        $payload = json_encode([
+            'model' => 'deepseek-chat',
+            'messages' => [
+                ['role' => 'system', 'content' => $system],
+                ['role' => 'user', 'content' => $message],
+            ],
+            'temperature' => 0.7,
+            'max_tokens' => 500,
+        ]);
+
+        $response = self::curlPost($url, $payload, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        ]);
+
+        if (!$response['success']) {
+            return "⚠️ DeepSeek lỗi: " . $response['error'];
+        }
+
+        $data = json_decode($response['body'], true);
+        if (isset($data['error'])) {
+            return "⚠️ DeepSeek: " . ($data['error']['message'] ?? 'Unknown error');
+        }
+
+        return trim($data['choices'][0]['message']['content'] ?? '');
     }
 
     private static function callOpenRouter(string $apiKey, string $system, string $message): string
