@@ -3,7 +3,7 @@
  * ToryCRM - Entry Point
  */
 
-define('BASE_PATH', dirname(__DIR__));
+if (!defined('BASE_PATH')) define('BASE_PATH', dirname(__DIR__));
 
 // Autoload
 require BASE_PATH . '/vendor/autoload.php';
