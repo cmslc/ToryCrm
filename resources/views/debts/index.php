@@ -10,7 +10,7 @@
         </div>
 
         <!-- Tabs -->
-        <ul class="nav nav-tabs mb-3">
+        <ul class="nav nav-pills mb-3">
             <li class="nav-item">
                 <a class="nav-link <?= ($filters['type'] ?? 'receivable') === 'receivable' ? 'active' : '' ?>" href="<?= url('debts?type=receivable') ?>">
                     <i class="ri-arrow-down-circle-line me-1"></i> Phải thu

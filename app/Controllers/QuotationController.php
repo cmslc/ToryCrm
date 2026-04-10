@@ -31,12 +31,15 @@ class QuotationController extends Controller
                 SUM(status = 'accepted') as accepted,
                 SUM(status = 'rejected') as rejected,
                 SUM(status = 'expired') as expired
-             FROM quotations WHERE tenant_id = ?",
+             FROM quotations WHERE tenant_id = ?" . (!$this->isAdminOrManager() ? " AND owner_id = " . (int)$this->userId() : ''),
             [$tid]
         );
 
         $where = ["q.tenant_id = ?"];
         $params = [$tid];
+
+        $ownerScope = $this->ownerScope('q', 'owner_id');
+        if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         if ($search) {
             $where[] = "(q.quote_number LIKE ? OR q.title LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ?)";

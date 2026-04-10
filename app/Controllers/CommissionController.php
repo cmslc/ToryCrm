@@ -77,7 +77,7 @@ class CommissionController extends Controller
                 SUM(CASE WHEN status = 'approved' THEN amount ELSE 0 END) as approved,
                 SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) as paid,
                 SUM(amount) as total
-             FROM commissions WHERE tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ?",
+             FROM commissions WHERE tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ?" . (!$this->isAdminOrManager() ? " AND user_id = " . (int)$this->userId() : ''),
             [$tid, $currentMonth]
         );
 
