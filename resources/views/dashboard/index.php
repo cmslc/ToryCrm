@@ -348,40 +348,77 @@
 <!-- ROW 5: Activity Timeline + Today's Calendar -->
 <div class="row">
     <div class="col-xl-6">
-        <div class="card">
-            <div class="card-header align-items-center d-flex">
+        <div class="card card-height-100">
+            <div class="card-header align-items-center d-flex border-bottom-dashed">
                 <h4 class="card-title mb-0 flex-grow-1">Hoạt động gần đây</h4>
                 <a href="<?= url('activities') ?>" class="btn btn-soft-primary">Xem tất cả</a>
             </div>
-            <div class="card-body" style="max-height:380px;overflow-y:auto">
-                <?php if (!empty($recentActivities)): ?>
-                    <div class="acitivity-timeline acitivity-main">
+            <div class="card-body p-0">
+                <div data-simplebar style="max-height:420px" class="p-3">
+                    <?php if (!empty($recentActivities)): ?>
                         <?php
-                        $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','system'=>'ri-settings-3-line'];
-                        $colors = ['note'=>'primary','call'=>'success','email'=>'info','meeting'=>'warning','task'=>'danger','deal'=>'success','system'=>'secondary'];
+                        $icons = ['note'=>'ri-file-text-line','call'=>'ri-phone-line','email'=>'ri-mail-line','meeting'=>'ri-calendar-line','task'=>'ri-task-line','deal'=>'ri-hand-coin-line','contact'=>'ri-user-add-line','system'=>'ri-settings-3-line','order'=>'ri-shopping-cart-line'];
+                        $colors = ['note'=>'primary','call'=>'success','email'=>'info','meeting'=>'warning','task'=>'danger','deal'=>'success','contact'=>'info','system'=>'secondary','order'=>'warning'];
+
+                        $groupedByDate = [];
+                        foreach ($recentActivities as $a) {
+                            $dateKey = date('Y-m-d', strtotime($a['created_at']));
+                            $groupedByDate[$dateKey][] = $a;
+                        }
                         ?>
-                        <?php foreach ($recentActivities as $a): ?>
-                            <div class="acitivity-item d-flex">
-                                <div class="flex-shrink-0">
-                                    <div class="avatar-xs acitivity-avatar">
-                                        <div class="avatar-title rounded-circle bg-<?= $colors[$a['type']] ?? 'primary' ?>-subtle text-<?= $colors[$a['type']] ?? 'primary' ?>">
-                                            <i class="<?= $icons[$a['type']] ?? 'ri-file-text-line' ?>"></i>
-                                        </div>
+                        <?php foreach ($groupedByDate as $date => $items): ?>
+                            <p class="text-muted fs-12 fw-semibold mb-2 mt-2">
+                                <?php
+                                $today = date('Y-m-d');
+                                $yesterday = date('Y-m-d', strtotime('-1 day'));
+                                if ($date === $today) echo 'Hôm nay';
+                                elseif ($date === $yesterday) echo 'Hôm qua';
+                                else echo date('d/m/Y', strtotime($date));
+                                ?>
+                                <small class="text-muted fw-normal ms-1"><?= date('H:i', strtotime($items[0]['created_at'])) ?></small>
+                            </p>
+                            <?php foreach ($items as $a):
+                                $avatarHtml = '';
+                                $userName = $a['user_name'] ?? '';
+                                if ($userName) {
+                                    // Try to get user avatar
+                                    static $dashAvatarCache = [];
+                                    if (!isset($dashAvatarCache[$userName])) {
+                                        try { $dashAvatarCache[$userName] = \Core\Database::fetch("SELECT avatar FROM users WHERE name = ? LIMIT 1", [$userName])['avatar'] ?? ''; } catch (\Exception $e) { $dashAvatarCache[$userName] = ''; }
+                                    }
+                                    $av = $dashAvatarCache[$userName];
+                                    if ($av && file_exists(BASE_PATH . '/public/uploads/avatars/' . $av)) {
+                                        $avatarHtml = '<img src="' . url('uploads/avatars/' . $av) . '" class="rounded-circle" style="width:32px;height:32px;object-fit:cover">';
+                                    } else {
+                                        $initial = mb_strtoupper(mb_substr($userName, 0, 1));
+                                        $avatarHtml = '<div class="avatar-title rounded-circle bg-' . ($colors[$a['type']] ?? 'primary') . '-subtle text-' . ($colors[$a['type']] ?? 'primary') . '" style="width:32px;height:32px;font-size:13px">' . $initial . '</div>';
+                                    }
+                                } else {
+                                    $avatarHtml = '<div class="avatar-title rounded-circle bg-secondary-subtle text-secondary" style="width:32px;height:32px"><i class="' . ($icons[$a['type']] ?? 'ri-file-text-line') . '"></i></div>';
+                                }
+                            ?>
+                                <div class="d-flex align-items-start mb-3">
+                                    <div class="flex-shrink-0 me-3"><?= $avatarHtml ?></div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fs-13">
+                                            <?php if ($userName): ?><span class="fw-semibold"><?= e($userName) ?></span> <?php endif; ?>
+                                            <?= e($a['title']) ?>
+                                        </h6>
+                                        <?php if (!empty($a['description'])): ?>
+                                            <p class="text-muted mb-1 fs-12"><?= e(mb_substr($a['description'], 0, 80)) ?></p>
+                                        <?php endif; ?>
+                                        <small class="text-muted"><?= date('d M, Y', strtotime($a['created_at'])) ?></small>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 lh-base"><?= e($a['title']) ?></h6>
-                                    <?php if (!empty($a['description'])): ?>
-                                        <p class="text-muted mb-1 fs-12"><?= e($a['description']) ?></p>
-                                    <?php endif; ?>
-                                    <small class="text-muted fs-12"><?= time_ago($a['created_at']) ?> <?= !empty($a['user_name']) ? '· ' . e($a['user_name']) : '' ?></small>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
                         <?php endforeach; ?>
-                    </div>
-                <?php else: ?>
-                    <p class="text-muted text-center mb-0">Chưa có hoạt động</p>
-                <?php endif; ?>
+                    <?php else: ?>
+                        <div class="text-center py-5 text-muted">
+                            <i class="ri-history-line fs-1 d-block mb-2"></i>
+                            Chưa có hoạt động
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
