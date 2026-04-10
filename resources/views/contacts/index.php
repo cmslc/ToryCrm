@@ -181,9 +181,11 @@ $currentStatus = $filters['status'] ?? '';
                             <td class="col-customer">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
-                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-13">
-                                            <?= strtoupper(substr($c['first_name'], 0, 1)) ?>
-                                        </span>
+                                        <?php if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])): ?>
+                                            <img src="<?= url('uploads/avatars/' . $c['avatar']) ?>" class="rounded-circle object-fit-cover" style="width:100%;height:100%">
+                                        <?php else: ?>
+                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-13"><?= strtoupper(substr($c['first_name'], 0, 1)) ?></span>
+                                        <?php endif; ?>
                                     </div>
                                     <div>
                                         <a href="<?= url('contacts/' . $c['id']) ?>" class="fw-medium text-dark"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></a>

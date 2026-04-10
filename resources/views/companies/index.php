@@ -86,7 +86,11 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
-                                        <span class="avatar-title bg-info-subtle text-info rounded-circle fs-13"><?= strtoupper(substr($c['name'], 0, 1)) ?></span>
+                                        <?php if (!empty($c['logo']) && file_exists(BASE_PATH . '/public/uploads/logos/' . $c['logo'])): ?>
+                                            <img src="<?= url('uploads/logos/' . $c['logo']) ?>" class="rounded-circle object-fit-cover" style="width:100%;height:100%">
+                                        <?php else: ?>
+                                            <span class="avatar-title bg-info-subtle text-info rounded-circle fs-13"><?= strtoupper(substr($c['name'], 0, 1)) ?></span>
+                                        <?php endif; ?>
                                     </div>
                                     <div>
                                         <a href="<?= url('companies/' . $c['id']) ?>" class="fw-medium text-dark"><?= e($c['name']) ?></a>
