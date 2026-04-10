@@ -21,6 +21,7 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <link href="<?= asset('css/icons.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/app.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/app.css') ?>" rel="stylesheet">
 
     <!-- White-label Branding -->
     <?php $brandingCss = \App\Services\BrandingService::getCssVariables(); ?>
