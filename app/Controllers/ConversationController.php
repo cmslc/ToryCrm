@@ -270,7 +270,7 @@ class ConversationController extends Controller
 
     public function reply($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations/' . $id);
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -311,12 +311,12 @@ class ConversationController extends Controller
         }
 
         $this->setFlash('success', 'Đã gửi tin nhắn.');
-        return $this->redirect('conversations/' . $id);
+        return $this->redirect('conversations?active=' . $id);
     }
 
     public function assign($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations/' . $id);
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -333,12 +333,12 @@ class ConversationController extends Controller
         Database::update('conversations', ['assigned_to' => $assignedTo], 'id = ?', [$id]);
 
         $this->setFlash('success', 'Đã cập nhật phụ trách.');
-        return $this->redirect('conversations/' . $id);
+        return $this->redirect('conversations?active=' . $id);
     }
 
     public function updateStatus($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations/' . $id);
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -359,12 +359,12 @@ class ConversationController extends Controller
 
         $labels = ['open' => 'Mở', 'pending' => 'Chờ', 'resolved' => 'Đã xử lý', 'closed' => 'Đóng'];
         $this->setFlash('success', 'Trạng thái đã chuyển sang: ' . ($labels[$status] ?? $status));
-        return $this->redirect('conversations/' . $id);
+        return $this->redirect('conversations?active=' . $id);
     }
 
     public function star($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations/' . $id);
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -381,7 +381,7 @@ class ConversationController extends Controller
         Database::update('conversations', ['is_starred' => $newVal], 'id = ?', [$id]);
 
         $this->setFlash('success', $newVal ? 'Đã đánh dấu.' : 'Đã bỏ đánh dấu.');
-        return $this->redirect('conversations/' . $id);
+        return $this->redirect('conversations?active=' . $id);
     }
 
     public function cannedResponses()
