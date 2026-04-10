@@ -128,7 +128,7 @@ class DebtController extends Controller
              FROM debt_payments dp
              LEFT JOIN users u ON dp.created_by = u.id
              WHERE dp.debt_id = ?
-             ORDER BY dp.payment_date DESC",
+             ORDER BY dp.paid_at DESC",
             [$id]
         );
 
@@ -213,7 +213,7 @@ class DebtController extends Controller
                 'debt_id' => $id,
                 'amount' => $paymentAmount,
                 'payment_method' => $data['payment_method'] ?? 'cash',
-                'payment_date' => !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d'),
+                'paid_at' => !empty($data['paid_at']) ? $data['paid_at'] : date('Y-m-d'),
                 'note' => trim($data['note'] ?? ''),
                 'created_by' => $this->userId(),
             ]);
@@ -238,7 +238,7 @@ class DebtController extends Controller
                     'description' => 'Thanh toán công nợ #' . $id,
                     'contact_id' => $debt['contact_id'],
                     'company_id' => $debt['company_id'],
-                    'transaction_date' => !empty($data['payment_date']) ? $data['payment_date'] : date('Y-m-d'),
+                    'transaction_date' => !empty($data['paid_at']) ? $data['paid_at'] : date('Y-m-d'),
                     'status' => 'confirmed',
                     'created_by' => $this->userId(),
                 ]);

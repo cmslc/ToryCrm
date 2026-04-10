@@ -126,11 +126,11 @@ $typeLabel = $debt['type'] === 'receivable' ? 'Phải thu' : 'Phải trả';
                                         foreach ($payments as $p):
                                         ?>
                                             <tr>
-                                                <td><?= format_date($p['payment_date']) ?></td>
+                                                <td><?= !empty($p['paid_at']) ? format_date($p['paid_at']) : '-' ?></td>
                                                 <td class="fw-medium text-success"><?= format_money($p['amount']) ?></td>
-                                                <td><?= $methodLabels[$p['payment_method']] ?? $p['payment_method'] ?></td>
+                                                <td><?= $methodLabels[$p['payment_method'] ?? ''] ?? ($p['payment_method'] ?? '-') ?></td>
                                                 <td><?= e($p['note'] ?? '-') ?></td>
-                                                <td><?= e($p['recorded_by_name'] ?? '-') ?></td>
+                                                <td><?= e($p['created_by_name'] ?? '-') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
