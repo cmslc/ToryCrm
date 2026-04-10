@@ -228,9 +228,15 @@ $currentStatus = $filters['status'] ?? '';
                             <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>
                             <td class="col-birthday fs-12"><?= !empty($c['date_of_birth']) ? date('d/m/Y', strtotime($c['date_of_birth'])) : '-' ?></td>
                             <td class="col-tags">
-                                <?php if (!empty($c['tags'])): ?>
-                                    <?php foreach (explode(',', $c['tags']) as $tag): ?>
-                                        <span class="badge bg-info-subtle text-info me-1"><?= e(trim($tag)) ?></span>
+                                <?php
+                                $cTags = \Core\Database::fetchAll(
+                                    "SELECT t.name, t.color FROM taggables tg JOIN tags t ON tg.tag_id = t.id WHERE tg.entity_type = 'contact' AND tg.entity_id = ?",
+                                    [$c['id']]
+                                );
+                                ?>
+                                <?php if (!empty($cTags)): ?>
+                                    <?php foreach ($cTags as $cTag): ?>
+                                        <span class="badge me-1" style="background-color:<?= e($cTag['color']) ?>"><?= e($cTag['name']) ?></span>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
