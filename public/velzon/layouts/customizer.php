@@ -14,10 +14,11 @@
 </div>
 
 <div class="customizer-setting d-none d-md-block">
-    <div class="btn-info rounded-pill shadow-lg btn btn-icon btn-lg p-2" id="customizer-open-btn" role="button">
-        <i class='mdi mdi-spin mdi-cog-outline fs-22'></i>
+    <div class="btn-info rounded-pill shadow-lg btn btn-icon btn-lg p-2" data-bs-toggle="offcanvas" data-bs-target="#theme-settings-offcanvas" role="button">
+        <i class='ri-settings-5-line fs-22' style="animation:spin 3s linear infinite"></i>
     </div>
 </div>
+<style>@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>
 
 <!-- Theme Settings -->
 <div class="offcanvas offcanvas-end border-0" tabindex="-1" id="theme-settings-offcanvas">

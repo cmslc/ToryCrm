@@ -61,6 +61,9 @@
 .kanban-column { transition: background-color 0.2s; }
 @media (max-width: 768px) { .kanban-stage { min-width: 260px !important; } }
 
+/* ---------- Customizer button above AI chat widget ---------- */
+.customizer-setting { bottom: 90px !important; }
+
 /* ---------- Print ---------- */
 @media print {
     .app-menu, #page-topbar, .footer { display: none !important; }
