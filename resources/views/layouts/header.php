@@ -22,6 +22,14 @@
             </div>
 
             <div class="d-flex align-items-center">
+                <!-- Conversations (Hộp thư) -->
+                <div class="ms-1 header-item">
+                    <a href="<?= url('conversations') ?>" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative" title="Hộp thư">
+                        <i class="ri-chat-1-line fs-22"></i>
+                        <?php if ($convUnread ?? 0): ?><span class="position-absolute topbar-badge badge rounded-pill bg-danger"><?= $convUnread ?></span><?php endif; ?>
+                    </a>
+                </div>
+
                 <!-- Activity Feed -->
                 <div class="ms-1 header-item">
                     <button type="button" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative" id="af-btn" title="Hoạt động">

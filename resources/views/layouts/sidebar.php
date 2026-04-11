@@ -55,12 +55,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-dashboard-2-line"></i> <span>Dashboard</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('conversations', $currentUrl) ?>" href="<?= url('conversations') ?>">
-                        <i class="ri-chat-1-line"></i> <span>Hộp thư</span>
-                        <?php if ($convUnread > 0): ?><span class="badge badge-pill bg-danger" data-key="t-new"><?= $convUnread ?></span><?php endif; ?>
-                    </a>
-                </li>
+                <!-- Hộp thư moved to topbar -->
 
                 <?php if (canSee('contacts')): ?>
                 <?php $crmOpen = isOpen(['contacts','companies','checkins','bookings'], $currentUrl); ?>
