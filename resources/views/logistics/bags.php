@@ -194,18 +194,18 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
 function sealBag(id, code) {
     document.getElementById('sealBagCode').textContent = code;
     document.getElementById('sealBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/seal';
-    new bootstrap.Modal(document.getElementById('sealBagModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('sealBagModal')).show();
 }
 function editBag(id, code, note) {
     document.getElementById('editBagCode').value = code;
     document.getElementById('editBagNote').value = note;
     document.getElementById('editBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/update';
-    new bootstrap.Modal(document.getElementById('editBagModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editBagModal')).show();
 }
 function deleteBag(id, code) {
     document.getElementById('deleteBagCode').textContent = code;
     document.getElementById('deleteBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/delete';
-    new bootstrap.Modal(document.getElementById('deleteBagModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteBagModal')).show();
 }
 </script>
 
