@@ -106,16 +106,11 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('purchase-orders') ?>" class="nav-link <?= isActive('purchase-orders', $currentUrl) ?>">Đơn hàng mua</a></li>
                             <li class="nav-item"><a href="<?= url('quotations') ?>" class="nav-link <?= isActive('quotations', $currentUrl) ?>">Báo giá</a></li>
                             <?php endif; ?>
+                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho</a></li>
                         </ul>
                     </div>
                 </li>
                 <?php endif; ?>
-
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isOpen(['warehouses'], $currentUrl) ? 'active' : '' ?>" href="<?= url('warehouses') ?>">
-                        <i class="ri-store-2-line"></i> <span>Kho</span>
-                    </a>
-                </li>
 
                 <?php
                 // Logistics plugin (only show if installed + active)
