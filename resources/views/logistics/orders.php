@@ -32,7 +32,7 @@ $currentType = $filters['type'] ?? '';
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
-                    <td class="fw-medium"><?= e($o['order_code']) ?></td>
+                    <td><a href="<?= url('logistics/orders/' . $o['id']) ?>" class="fw-medium"><?= e($o['order_code']) ?></a></td>
                     <td><span class="badge bg-<?= $o['type'] === 'wholesale' ? 'success' : 'info' ?>-subtle text-<?= $o['type'] === 'wholesale' ? 'success' : 'info' ?>"><?= $o['type'] === 'wholesale' ? 'Sỉ' : 'Lẻ' ?></span></td>
                     <td><?= e($o['customer_name'] ?? '-') ?><?= $o['customer_phone'] ? '<div class="text-muted fs-11">' . e($o['customer_phone']) . '</div>' : '' ?></td>
                     <td class="fs-12"><?= e(mb_substr($o['product_name'] ?? '-', 0, 30)) ?></td>

@@ -380,6 +380,40 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/orders');
     }
 
+    public function showOrder($id)
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+
+        $order = Database::fetch(
+            "SELECT lo.*, u.name as created_by_name FROM logistics_orders lo LEFT JOIN users u ON lo.created_by = u.id WHERE lo.id = ? AND lo.tenant_id = ?",
+            [(int)$id, $tid]
+        );
+        if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('logistics/orders'); }
+
+        // Packages linked to this order
+        $packages = Database::fetchAll(
+            "SELECT lp.*, u.name as received_by_name FROM logistics_packages lp LEFT JOIN users u ON lp.received_by = u.id WHERE lp.order_id = ? AND lp.tenant_id = ? ORDER BY lp.created_at",
+            [(int)$id, $tid]
+        );
+
+        // Also find by customer match if no direct link
+        if (empty($packages) && $order['customer_name']) {
+            $packages = Database::fetchAll(
+                "SELECT lp.*, u.name as received_by_name FROM logistics_packages lp LEFT JOIN users u ON lp.received_by = u.id WHERE lp.customer_name = ? AND lp.tenant_id = ? ORDER BY lp.created_at",
+                [$order['customer_name'], $tid]
+            );
+        }
+
+        // Scan history for this order
+        $scanLogs = Database::fetchAll(
+            "SELECT sl.* FROM logistics_scan_logs sl WHERE sl.tenant_id = ? AND sl.scan_code = ? ORDER BY sl.created_at DESC LIMIT 20",
+            [$tid, $order['order_code']]
+        );
+
+        return $this->view('logistics.order-show', ['order' => $order, 'packages' => $packages, 'scanLogs' => $scanLogs]);
+    }
+
     // ---- Confirm wholesale (AJAX) ----
     public function confirmWholesale()
     {
