@@ -664,12 +664,43 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/shipments/' . $id);
     }
 
+    public function removeFromShipment($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $tid = Database::tenantId();
+        $type = $this->input('type');
+        $itemId = (int)$this->input('item_id');
+
+        if ($type === 'bag') {
+            Database::update('logistics_bags', ['shipment_id' => null], 'id = ? AND tenant_id = ?', [$itemId, $tid]);
+            Database::query("UPDATE logistics_packages SET shipment_id = NULL WHERE bag_id = ? AND tenant_id = ?", [$itemId, $tid]);
+        } else {
+            Database::update('logistics_packages', ['shipment_id' => null], 'id = ? AND tenant_id = ?', [$itemId, $tid]);
+        }
+
+        $this->recalcShipment((int)$id);
+        return $this->json(['success' => true]);
+    }
+
     public function addToShipment($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
         $tid = Database::tenantId();
         $type = $this->input('type'); // package or bag
-        $itemId = (int)$this->input('item_id');
+        $itemId = (int)($this->input('item_id') ?: 0);
+        $code = trim($this->input('code') ?? '');
+
+        // Find by code if no item_id
+        if (!$itemId && $code) {
+            if ($type === 'bag') {
+                $found = Database::fetch("SELECT id FROM logistics_bags WHERE tenant_id = ? AND bag_code = ?", [$tid, $code]);
+            } else {
+                $found = Database::fetch("SELECT id FROM logistics_packages WHERE tenant_id = ? AND (package_code = ? OR tracking_code = ? OR tracking_intl = ?)", [$tid, $code, $code, $code]);
+            }
+            if (!$found) return $this->json(['error' => 'Không tìm thấy: ' . $code], 404);
+            $itemId = (int)$found['id'];
+        }
+        if (!$itemId) return $this->json(['error' => 'Thiếu mã'], 422);
 
         if ($type === 'bag') {
             Database::update('logistics_bags', ['shipment_id' => (int)$id], 'id = ? AND tenant_id = ?', [$itemId, $tid]);
