@@ -58,7 +58,42 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
     </div>
 </div>
 
-<!-- Table -->
+<!-- Column Toggle + Table -->
+<div class="card mb-2">
+    <div class="card-header p-2">
+        <div class="d-flex justify-content-end">
+            <div class="dropdown">
+                <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
+                    <i class="ri-layout-column-line me-1"></i> Cột
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
+                    <h6 class="dropdown-header px-0">Hiển thị cột</h6>
+                    <?php
+                    $columns = [
+                        'col-company' => 'Doanh nghiệp',
+                        'col-contact' => 'Liên hệ',
+                        'col-industry' => 'Ngành nghề',
+                        'col-size' => 'Quy mô',
+                        'col-customers' => 'KH',
+                        'col-deals' => 'Cơ hội',
+                        'col-revenue' => 'Doanh thu',
+                        'col-owner' => 'Phụ trách',
+                        'col-lastact' => 'Liên hệ cuối',
+                    ];
+                    foreach ($columns as $colId => $colLabel): ?>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                    </div>
+                    <?php endforeach; ?>
+                    <hr class="my-2">
+                    <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -66,15 +101,15 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
                 <thead class="text-muted table-light">
                     <tr>
                         <th class="ps-3" style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
-                        <th>Doanh nghiệp</th>
-                        <th>Liên hệ</th>
-                        <th>Ngành nghề</th>
-                        <th>Quy mô</th>
-                        <th>KH</th>
-                        <th>Cơ hội</th>
-                        <th>Doanh thu</th>
-                        <th>Phụ trách</th>
-                        <th>Liên hệ cuối</th>
+                        <th class="col-company">Doanh nghiệp</th>
+                        <th class="col-contact">Liên hệ</th>
+                        <th class="col-industry">Ngành nghề</th>
+                        <th class="col-size">Quy mô</th>
+                        <th class="col-customers">KH</th>
+                        <th class="col-deals">Cơ hội</th>
+                        <th class="col-revenue">Doanh thu</th>
+                        <th class="col-owner">Phụ trách</th>
+                        <th class="col-lastact">Liên hệ cuối</th>
                         <th style="width:50px"></th>
                     </tr>
                 </thead>
@@ -83,7 +118,7 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
                         <?php foreach ($companies['items'] as $c): ?>
                         <tr>
                             <td class="ps-3"><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
-                            <td>
+                            <td class="col-company">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
                                         <?php if (!empty($c['logo']) && file_exists(BASE_PATH . '/public/uploads/logos/' . $c['logo'])): ?>
@@ -100,23 +135,23 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td class="col-contact">
                                 <?php if ($c['email']): ?><div class="fs-12"><i class="ri-mail-line me-1 text-muted"></i><?= e($c['email']) ?></div><?php endif; ?>
                                 <?php if ($c['phone']): ?><div class="fs-12"><i class="ri-phone-line me-1 text-muted"></i><?= e($c['phone']) ?></div><?php endif; ?>
                             </td>
-                            <td>
+                            <td class="col-industry">
                                 <?php if ($c['industry']): ?>
                                     <span class="badge bg-secondary-subtle text-secondary"><?= e($c['industry']) ?></span>
                                 <?php else: ?>
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="text-muted fs-13"><?= e($c['company_size'] ?? '-') ?></td>
-                            <td><span class="badge bg-primary-subtle text-primary"><?= $c['contact_count'] ?? 0 ?></span></td>
-                            <td><span class="badge bg-warning-subtle text-warning"><?= $c['deal_count'] ?? 0 ?></span></td>
-                            <td class="fw-medium"><?= ($c['total_revenue'] ?? 0) > 0 ? format_money($c['total_revenue']) : '-' ?></td>
-                            <td><?= user_avatar($c['owner_name'] ?? null) ?></td>
-                            <td class="text-muted fs-12"><?= !empty($c['last_activity_at']) ? time_ago($c['last_activity_at']) : '-' ?></td>
+                            <td class="col-size text-muted fs-13"><?= e($c['company_size'] ?? '-') ?></td>
+                            <td class="col-customers"><span class="badge bg-primary-subtle text-primary"><?= $c['contact_count'] ?? 0 ?></span></td>
+                            <td class="col-deals"><span class="badge bg-warning-subtle text-warning"><?= $c['deal_count'] ?? 0 ?></span></td>
+                            <td class="col-revenue fw-medium"><?= ($c['total_revenue'] ?? 0) > 0 ? format_money($c['total_revenue']) : '-' ?></td>
+                            <td class="col-owner"><?= user_avatar($c['owner_name'] ?? null) ?></td>
+                            <td class="col-lastact text-muted fs-12"><?= !empty($c['last_activity_at']) ? time_ago($c['last_activity_at']) : '-' ?></td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -174,3 +209,37 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+(function() {
+    var storageKey = 'company_columns';
+    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+    function applyColumns() {
+        document.querySelectorAll('.column-toggle').forEach(function(cb) {
+            var col = cb.dataset.column;
+            var visible = saved[col] !== false;
+            cb.checked = visible;
+            document.querySelectorAll('.' + col).forEach(function(el) {
+                el.style.display = visible ? '' : 'none';
+            });
+        });
+    }
+
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            saved[this.dataset.column] = this.checked;
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+            applyColumns();
+        });
+    });
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        saved = {};
+        localStorage.removeItem(storageKey);
+        applyColumns();
+    });
+
+    applyColumns();
+})();
+</script>
