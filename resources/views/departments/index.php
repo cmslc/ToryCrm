@@ -12,32 +12,25 @@ unset($d);
 
 if (!function_exists('renderDeptItem')) {
     function renderDeptItem($node) { ?>
-        <li class="dept-tree-item">
-            <div class="d-flex align-items-center py-2 px-2 rounded dept-tree-row">
+        <li>
+            <div class="d-flex align-items-center py-2 px-2 rounded dept-row">
                 <?php if (!empty($node['children'])): ?>
-                    <a href="javascript:void(0)" class="me-2 dept-toggle" data-bs-toggle="collapse" data-bs-target="#dept-children-<?= $node['id'] ?>">
-                        <i class="ri-arrow-right-s-fill fs-18 text-muted dept-arrow"></i>
+                    <a href="javascript:void(0)" class="me-1 text-muted" onclick="var el=this.closest('li').querySelector('.dept-sub');if(el){el.classList.toggle('d-none');this.querySelector('i').classList.toggle('ri-folder-open-line');this.querySelector('i').classList.toggle('ri-folder-line')}">
+                        <i class="ri-folder-open-line fs-18"></i>
                     </a>
                 <?php else: ?>
-                    <span class="me-2" style="width:18px;display:inline-block"></span>
+                    <i class="ri-file-list-3-line fs-16 text-muted me-1"></i>
                 <?php endif; ?>
-                <span class="d-inline-block rounded-circle me-2 flex-shrink-0" style="width:10px;height:10px;background:<?= e($node['color']) ?>"></span>
-                <div class="flex-grow-1 me-3">
-                    <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark"><?= e($node['name']) ?></a>
-                </div>
-                <div class="d-none d-md-flex align-items-center me-3" style="min-width:160px">
+                <span class="d-inline-block rounded-circle me-2 flex-shrink-0" style="width:8px;height:8px;background:<?= e($node['color']) ?>"></span>
+                <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark flex-grow-1 me-2"><?= e($node['name']) ?></a>
+                <div class="d-none d-md-flex align-items-center me-3" style="min-width:150px">
                     <?php if ($node['manager_name']): ?>
-                        <?php if (!empty($node['manager_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $node['manager_avatar'])): ?>
-                            <img src="<?= url('uploads/avatars/' . $node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:24px;height:24px;object-fit:cover">
-                        <?php else: ?>
-                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-2" style="width:24px;height:24px;font-size:10px"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
-                        <?php endif; ?>
-                        <span class="fs-12"><?= e($node['manager_name']) ?></span>
+                        <?= user_avatar($node['manager_name'], 'primary', $node['manager_avatar'] ?? null) ?>
                     <?php else: ?>
                         <span class="text-muted fs-12">—</span>
                     <?php endif; ?>
                 </div>
-                <span class="badge bg-secondary-subtle text-secondary me-3"><?= $node['member_count'] ?></span>
+                <span class="badge bg-secondary-subtle text-secondary me-2"><i class="ri-team-line me-1"></i><?= $node['member_count'] ?></span>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -50,11 +43,9 @@ if (!function_exists('renderDeptItem')) {
                 </div>
             </div>
             <?php if (!empty($node['children'])): ?>
-                <div class="collapse show" id="dept-children-<?= $node['id'] ?>">
-                    <ul class="list-unstyled mb-0 ms-4 border-start ps-2">
-                        <?php foreach ($node['children'] as $child) renderDeptItem($child); ?>
-                    </ul>
-                </div>
+                <ul class="dept-sub">
+                    <?php foreach ($node['children'] as $child) renderDeptItem($child); ?>
+                </ul>
             <?php endif; ?>
         </li>
     <?php }
@@ -83,10 +74,19 @@ if (!function_exists('renderDeptItem')) {
 </div>
 
 <style>
-.dept-tree-row:hover { background: var(--vz-light); }
-.dept-toggle .dept-arrow { transition: transform .2s; }
-.dept-toggle[aria-expanded="false"] .dept-arrow { transform: rotate(0deg); }
-.dept-toggle[aria-expanded="true"] .dept-arrow, .dept-toggle:not(.collapsed) .dept-arrow { transform: rotate(90deg); }
+.dept-tree { padding-left: 0; }
+.dept-tree ul, .dept-sub { list-style: none; padding-left: 24px; margin: 0; position: relative; }
+.dept-tree ul::before, .dept-sub::before {
+    content: ''; position: absolute; left: 12px; top: 0; bottom: 12px;
+    border-left: 1px dashed var(--vz-border-color);
+}
+.dept-tree li, .dept-sub li { position: relative; }
+.dept-tree ul > li::before, .dept-sub > li::before {
+    content: ''; position: absolute; left: -12px; top: 18px; width: 12px;
+    border-bottom: 1px dashed var(--vz-border-color);
+}
+.dept-tree > li::before { display: none; }
+.dept-row:hover { background: var(--vz-light); }
 </style>
 
 <!-- Add/Edit Modal -->
