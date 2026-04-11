@@ -1,14 +1,24 @@
-<?php $pageTitle = e($department['name']); ?>
+<?php
+$pageTitle = e($department['name']);
+$posMap = [];
+foreach ($positions ?? [] as $p) { $posMap[$p['user_id']] = $p; }
+
+// Build position tree (parent_id in department_positions)
+$posList = [];
+try {
+    $posList = \Core\Database::fetchAll(
+        "SELECT dp.*, u.name as user_name, u.avatar FROM department_positions dp LEFT JOIN users u ON dp.user_id = u.id WHERE dp.department_id = ? ORDER BY dp.sort_order, dp.position",
+        [$department['id']]
+    );
+} catch (\Exception $e) { $posList = $positions ?? []; }
+?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <div>
         <h4 class="mb-0"><?= e($department['name']) ?></h4>
         <?php if ($department['parent_name']): ?><p class="text-muted mb-0"><i class="ri-arrow-up-line me-1"></i><?= e($department['parent_name']) ?></p><?php endif; ?>
     </div>
-    <div class="d-flex gap-2">
-        <a href="<?= url('departments/' . $department['id'] . '/members') ?>" class="btn btn-soft-primary"><i class="ri-team-line me-1"></i> Thành viên</a>
-        <a href="<?= url('departments') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
-    </div>
+    <a href="<?= url('departments') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
 </div>
 
 <!-- Stat Cards -->
@@ -38,113 +48,189 @@
     <?php endforeach; ?>
 </div>
 
-<div class="row">
-    <div class="col-xl-8">
-        <!-- Members -->
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <h5 class="card-title mb-0 flex-grow-1">Thành viên <span class="badge bg-primary ms-1"><?= count($members) ?></span></h5>
-                <a href="<?= url('departments/' . $department['id'] . '/members') ?>" class="btn btn-soft-primary"><i class="ri-user-add-line me-1"></i> Quản lý</a>
+<!-- Tabs -->
+<div class="card">
+    <div class="card-header p-0">
+        <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabInfo" role="tab">Thông tin</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabPositions" role="tab">Vị trí <span class="badge bg-primary-subtle text-primary ms-1"><?= count($posList) ?></span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabMembers" role="tab">Nhân viên <span class="badge bg-primary-subtle text-primary ms-1"><?= count($members) ?></span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabKpi" role="tab">KPI</a></li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Tab: Thông tin -->
+            <div class="tab-pane active" id="tabInfo" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr><th class="text-muted" width="140">Tên</th><td class="fw-medium"><?= e($department['name']) ?></td></tr>
+                            <tr><th class="text-muted">Trưởng phòng</th><td><?= user_avatar($department['manager_name'] ?? null, 'primary', $department['manager_avatar'] ?? null) ?></td></tr>
+                            <tr><th class="text-muted">Phó phòng</th><td><?= user_avatar($department['vice_manager_name'] ?? null, 'info', $department['vice_manager_avatar'] ?? null) ?></td></tr>
+                            <?php if ($department['parent_name']): ?><tr><th class="text-muted">Thuộc</th><td><?= e($department['parent_name']) ?></td></tr><?php endif; ?>
+                            <tr><th class="text-muted">Màu</th><td><span class="d-inline-block rounded-circle me-2" style="width:14px;height:14px;background:<?= e($department['color']) ?>"></span><?= e($department['color']) ?></td></tr>
+                            <?php if ($department['description']): ?><tr><th class="text-muted">Mô tả</th><td><?= e($department['description']) ?></td></tr><?php endif; ?>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-3">Tiến độ công việc</h6>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="progress flex-grow-1" style="height:10px"><div class="progress-bar bg-success" style="width:<?= $taskPct ?>%"></div></div>
+                            <span class="fw-semibold"><?= $taskPct ?>%</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted fs-12 mb-4">
+                            <span>Hoàn thành: <?= $stats['tasks_done'] ?></span><span>Tổng: <?= $stats['tasks_total'] ?></span>
+                        </div>
+
+                        <?php if (!empty($childDepts)): ?>
+                        <h6 class="mb-3">Phòng ban con</h6>
+                        <?php foreach ($childDepts as $cd): ?>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="d-inline-block rounded-circle me-2" style="width:8px;height:8px;background:<?= e($cd['color']) ?>"></span>
+                            <a href="<?= url('departments/' . $cd['id']) ?>" class="flex-grow-1"><?= e($cd['name']) ?></a>
+                            <span class="badge bg-secondary-subtle text-secondary"><?= $cd['member_count'] ?></span>
+                        </div>
+                        <?php endforeach; endif; ?>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-0">
+
+            <!-- Tab: Vị trí -->
+            <div class="tab-pane" id="tabPositions" role="tabpanel">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <?php
-                        // Build position map
-                        $posMap = [];
-                        foreach ($positions ?? [] as $p) { $posMap[$p['user_id']] = $p; }
-                        $posOptions = ['Giám đốc','Phó Giám đốc','Trưởng phòng','Phó phòng','Trưởng nhóm','Phó nhóm','Chuyên viên cao cấp','Chuyên viên','Kỹ sư','Thiết kế','Lập trình viên','Kế toán','Kế toán trưởng','Giám đốc kinh doanh','Nhân viên kinh doanh','Tư vấn viên','Account Manager','Chăm sóc khách hàng','Nhân viên','Trợ lý','Thư ký','Thực tập sinh','Cộng tác viên','Cố vấn','Giám sát','Điều phối viên'];
-                        ?>
-                        <thead class="table-light"><tr><th>Nhân viên</th><th>Vai trò</th><th>Đăng nhập cuối</th></tr></thead>
+                        <thead class="table-light">
+                            <tr><th>Vị trí</th><th>Nhân viên</th><th style="width:80px" class="text-end">Thao tác</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Fixed hierarchy
+                            $hierarchy = [
+                                ['pos'=>'Trưởng phòng','level'=>0,'userId'=>$department['manager_id'],'userName'=>$department['manager_name'],'avatar'=>$department['manager_avatar'] ?? null,'fixed'=>true],
+                                ['pos'=>'Phó phòng','level'=>1,'userId'=>$department['vice_manager_id'],'userName'=>$department['vice_manager_name'],'avatar'=>$department['vice_manager_avatar'] ?? null,'fixed'=>true],
+                            ];
+                            // Add custom positions
+                            foreach ($posList as $p) {
+                                $hierarchy[] = ['pos'=>$p['position'],'level'=>2,'userId'=>$p['user_id'],'userName'=>$p['user_name'],'avatar'=>$p['avatar'] ?? null,'fixed'=>false,'posId'=>$p['id']];
+                            }
+                            // Add unassigned members
+                            $assignedIds = array_filter(array_column($hierarchy, 'userId'));
+                            foreach ($members as $m) {
+                                if (!in_array($m['id'], $assignedIds)) {
+                                    $hierarchy[] = ['pos'=>'Nhân viên','level'=>3,'userId'=>$m['id'],'userName'=>$m['name'],'avatar'=>$m['avatar'] ?? null,'fixed'=>false,'posId'=>null];
+                                }
+                            }
+
+                            $levelPrefixes = ['','├─','│──','│───'];
+                            foreach ($hierarchy as $h):
+                                if (!$h['userId']) continue;
+                                $prefix = $levelPrefixes[$h['level']] ?? '│───';
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <?php if ($h['level'] > 0): ?>
+                                            <span class="text-muted me-2 fs-12" style="font-family:monospace"><?= $prefix ?></span>
+                                        <?php endif; ?>
+                                        <span class="fw-medium"><?= e($h['pos']) ?></span>
+                                    </div>
+                                </td>
+                                <td><?= user_avatar($h['userName'], 'primary', $h['avatar']) ?></td>
+                                <td class="text-end">
+                                    <?php if (!$h['fixed'] && isset($h['posId']) && $h['posId']): ?>
+                                        <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions/' . $h['posId'] . '/delete') ?>" class="d-inline" data-confirm="Xóa chức vụ?">
+                                            <?= csrf_field() ?><button class="btn btn-soft-danger btn-icon" title="Xóa chức vụ"><i class="ri-delete-bin-line"></i></button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add position form -->
+                <div class="border-top p-3">
+                    <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions') ?>" class="d-flex align-items-end gap-2">
+                        <?= csrf_field() ?>
+                        <div class="flex-grow-1">
+                            <label class="form-label fs-12">Nhân viên</label>
+                            <select name="user_id" class="form-select" required>
+                                <option value="">Chọn...</option>
+                                <?php foreach ($members as $m): ?><option value="<?= $m['id'] ?>"><?= e($m['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="flex-grow-1">
+                            <label class="form-label fs-12">Chức vụ</label>
+                            <select name="position" class="form-select" required>
+                                <option value="">Chọn...</option>
+                                <option value="Trưởng nhóm">Trưởng nhóm</option>
+                                <option value="Phó nhóm">Phó nhóm</option>
+                                <option value="Chuyên viên cao cấp">Chuyên viên cao cấp</option>
+                                <option value="Chuyên viên">Chuyên viên</option>
+                                <option value="Kỹ sư">Kỹ sư</option>
+                                <option value="Kế toán">Kế toán</option>
+                                <option value="Nhân viên kinh doanh">NV kinh doanh</option>
+                                <option value="Tư vấn viên">Tư vấn viên</option>
+                                <option value="Chăm sóc khách hàng">CSKH</option>
+                                <option value="Thực tập sinh">Thực tập sinh</option>
+                                <option value="Cố vấn">Cố vấn</option>
+                                <option value="Giám sát">Giám sát</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab: Nhân viên -->
+            <div class="tab-pane" id="tabMembers" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Nhân viên</th><th>Chức vụ</th><th>Đăng nhập cuối</th><th style="width:80px"></th></tr></thead>
                         <tbody>
                         <?php foreach ($members as $m):
-                            // Determine role label: Trưởng phòng > Phó phòng > position > system role
-                            $deptRole = '';
-                            $deptColor = 'secondary';
-                            if ($m['id'] == $department['manager_id']) {
-                                $deptRole = 'Trưởng phòng'; $deptColor = 'danger';
-                            } elseif ($m['id'] == $department['vice_manager_id']) {
-                                $deptRole = 'Phó phòng'; $deptColor = 'warning';
-                            } elseif (isset($posMap[$m['id']])) {
-                                $deptRole = $posMap[$m['id']]['position']; $deptColor = 'primary';
-                            } else {
-                                $deptRole = 'Nhân viên'; $deptColor = 'info';
-                            }
+                            $deptRole = 'Nhân viên'; $deptColor = 'info';
+                            if ($m['id'] == $department['manager_id']) { $deptRole = 'Trưởng phòng'; $deptColor = 'danger'; }
+                            elseif ($m['id'] == $department['vice_manager_id']) { $deptRole = 'Phó phòng'; $deptColor = 'warning'; }
+                            elseif (isset($posMap[$m['id']])) { $deptRole = $posMap[$m['id']]['position']; $deptColor = 'primary'; }
                         ?>
                         <tr>
                             <td><?= user_avatar($m['name'] ?? null, 'primary', $m['avatar'] ?? null) ?></td>
                             <td><span class="badge bg-<?= $deptColor ?>-subtle text-<?= $deptColor ?>"><?= e($deptRole) ?></span></td>
                             <td class="text-muted fs-12"><?= $m['last_login'] ? time_ago($m['last_login']) : '-' ?></td>
+                            <td>
+                                <form method="POST" action="<?= url('departments/' . $department['id'] . '/members/' . $m['id'] . '/remove') ?>" data-confirm="Xóa <?= e($m['name']) ?> khỏi phòng ban?" class="d-inline">
+                                    <?= csrf_field() ?><button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-user-unfollow-line"></i></button>
+                                </form>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
-                        <?php if (empty($members)): ?><tr><td colspan="3" class="text-center text-muted py-3">Chưa có thành viên</td></tr><?php endif; ?>
+                        <?php if (empty($members)): ?><tr><td colspan="4" class="text-center text-muted py-3">Chưa có thành viên</td></tr><?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <!-- Task Progress -->
-        <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0">Tiến độ công việc</h5></div>
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    <div class="progress flex-grow-1" style="height:10px"><div class="progress-bar bg-success" style="width:<?= $taskPct ?>%"></div></div>
-                    <span class="fw-semibold"><?= $taskPct ?>%</span>
-                </div>
-                <div class="d-flex justify-content-between text-muted fs-12">
-                    <span>Hoàn thành: <?= $stats['tasks_done'] ?></span>
-                    <span>Tổng: <?= $stats['tasks_total'] ?></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Child Departments -->
-        <?php if (!empty($childDepts)): ?>
-        <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0">Phòng ban con</h5></div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>Tên</th><th>Thành viên</th><th></th></tr></thead>
-                        <tbody>
-                        <?php foreach ($childDepts as $cd): ?>
-                        <tr>
-                            <td><span class="d-inline-block rounded-circle me-2" style="width:10px;height:10px;background:<?= e($cd['color']) ?>"></span><a href="<?= url('departments/' . $cd['id']) ?>" class="fw-medium text-dark"><?= e($cd['name']) ?></a></td>
-                            <td><?= $cd['member_count'] ?></td>
-                            <td><a href="<?= url('departments/' . $cd['id']) ?>" class="btn btn-soft-primary"><i class="ri-eye-line"></i></a></td>
-                        </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="border-top p-3">
+                    <form method="POST" action="<?= url('departments/' . $department['id'] . '/members/add') ?>" class="d-flex align-items-end gap-2">
+                        <?= csrf_field() ?>
+                        <div class="flex-grow-1">
+                            <label class="form-label fs-12">Thêm nhân viên</label>
+                            <?php
+                            $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 AND (department_id IS NULL OR department_id != ?) ORDER BY name", [$_SESSION['tenant_id'] ?? 1, $department['id']]);
+                            ?>
+                            <select name="user_id" class="form-select" required>
+                                <option value="">Chọn nhân viên...</option>
+                                <?php foreach ($allUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="ri-user-add-line me-1"></i> Thêm</button>
+                    </form>
                 </div>
             </div>
-        </div>
-        <?php endif; ?>
-    </div>
 
-    <div class="col-xl-4">
-        <!-- Info -->
-        <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0">Thông tin</h5></div>
-            <div class="card-body">
-                <table class="table table-borderless mb-0">
-                    <tr><th class="text-muted">Tên</th><td><?= e($department['name']) ?></td></tr>
-                    <tr><th class="text-muted">Trưởng phòng</th><td><?= user_avatar($department['manager_name'] ?? null, 'primary', $department['manager_avatar'] ?? null) ?></td></tr>
-                    <tr><th class="text-muted">Phó phòng</th><td><?= user_avatar($department['vice_manager_name'] ?? null, 'info', $department['vice_manager_avatar'] ?? null) ?></td></tr>
-                    <?php if ($department['parent_name']): ?><tr><th class="text-muted">Thuộc</th><td><?= e($department['parent_name']) ?></td></tr><?php endif; ?>
-                    <tr><th class="text-muted">Màu</th><td><span class="d-inline-block rounded-circle me-1" style="width:14px;height:14px;background:<?= e($department['color']) ?>"></span><?= e($department['color']) ?></td></tr>
-                    <?php if ($department['description']): ?><tr><th class="text-muted">Mô tả</th><td><?= e($department['description']) ?></td></tr><?php endif; ?>
-                </table>
-            </div>
-        </div>
-
-        <!-- KPI -->
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <h5 class="card-title mb-0 flex-grow-1">KPI tháng <?= date('m/Y') ?></h5>
-            </div>
-            <div class="card-body">
+            <!-- Tab: KPI -->
+            <div class="tab-pane" id="tabKpi" role="tabpanel">
                 <?php
                 $kpiItems = [
                     ['label'=>'Doanh thu','target'=>(float)($kpi['target_revenue'] ?? 0),'actual'=>$stats['revenue'],'format'=>'money','color'=>'success'],
@@ -152,32 +238,34 @@
                     ['label'=>'Task hoàn thành','target'=>(int)($kpi['target_tasks'] ?? 0),'actual'=>$stats['tasks_done'],'color'=>'info'],
                     ['label'=>'Khách hàng','target'=>(int)($kpi['target_contacts'] ?? 0),'actual'=>$stats['contacts'],'color'=>'warning'],
                 ];
-                foreach ($kpiItems as $ki):
-                    $kpPct = $ki['target'] > 0 ? min(100, round($ki['actual'] / $ki['target'] * 100)) : 0;
                 ?>
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="fs-12"><?= $ki['label'] ?></span>
-                        <span class="fs-12 fw-medium"><?= ($ki['format'] ?? '') === 'money' ? format_money($ki['actual']) : $ki['actual'] ?> / <?= ($ki['format'] ?? '') === 'money' ? format_money($ki['target']) : $ki['target'] ?></span>
+                <div class="row mb-4">
+                    <?php foreach ($kpiItems as $ki):
+                        $kpPct = $ki['target'] > 0 ? min(100, round($ki['actual'] / $ki['target'] * 100)) : 0;
+                    ?>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-medium"><?= $ki['label'] ?></span>
+                            <span class="fs-12"><?= ($ki['format'] ?? '') === 'money' ? format_money($ki['actual']) : $ki['actual'] ?> / <?= ($ki['format'] ?? '') === 'money' ? format_money($ki['target']) : $ki['target'] ?></span>
+                        </div>
+                        <div class="progress" style="height:8px"><div class="progress-bar bg-<?= $ki['color'] ?>" style="width:<?= $kpPct ?>%"></div></div>
                     </div>
-                    <div class="progress" style="height:6px"><div class="progress-bar bg-<?= $ki['color'] ?>" style="width:<?= $kpPct ?>%"></div></div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
 
-                <button class="btn btn-soft-primary w-100 mt-2" data-bs-toggle="collapse" data-bs-target="#kpiForm"><i class="ri-settings-3-line me-1"></i> Cài đặt KPI</button>
-                <div class="collapse mt-3" id="kpiForm">
-                    <form method="POST" action="<?= url('departments/' . $department['id'] . '/kpi') ?>">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="period" value="<?= date('Y-m') ?>">
-                        <div class="mb-2"><label class="form-label fs-12">Doanh thu mục tiêu</label><input type="number" class="form-control" name="target_revenue" value="<?= $kpi['target_revenue'] ?? 0 ?>"></div>
-                        <div class="mb-2"><label class="form-label fs-12">Deal mục tiêu</label><input type="number" class="form-control" name="target_deals" value="<?= $kpi['target_deals'] ?? 0 ?>"></div>
-                        <div class="mb-2"><label class="form-label fs-12">Task mục tiêu</label><input type="number" class="form-control" name="target_tasks" value="<?= $kpi['target_tasks'] ?? 0 ?>"></div>
-                        <div class="mb-2"><label class="form-label fs-12">KH mục tiêu</label><input type="number" class="form-control" name="target_contacts" value="<?= $kpi['target_contacts'] ?? 0 ?>"></div>
-                        <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Lưu KPI</button>
-                    </form>
-                </div>
+                <h6 class="mb-3">Cài đặt mục tiêu tháng <?= date('m/Y') ?></h6>
+                <form method="POST" action="<?= url('departments/' . $department['id'] . '/kpi') ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="period" value="<?= date('Y-m') ?>">
+                    <div class="row">
+                        <div class="col-md-3 mb-3"><label class="form-label">Doanh thu</label><input type="number" class="form-control" name="target_revenue" value="<?= $kpi['target_revenue'] ?? 0 ?>"></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">Deal</label><input type="number" class="form-control" name="target_deals" value="<?= $kpi['target_deals'] ?? 0 ?>"></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">Task</label><input type="number" class="form-control" name="target_tasks" value="<?= $kpi['target_tasks'] ?? 0 ?>"></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">Khách hàng</label><input type="number" class="form-control" name="target_contacts" value="<?= $kpi['target_contacts'] ?? 0 ?>"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu KPI</button>
+                </form>
             </div>
         </div>
-
     </div>
 </div>
