@@ -3,6 +3,9 @@ $pageTitle = 'Xuất nhập kho';
 $typeLabels = ['import'=>'Nhập kho','export'=>'Xuất kho','transfer'=>'Chuyển kho','adjustment'=>'Điều chỉnh'];
 $typeColors = ['import'=>'success','export'=>'danger','transfer'=>'info','adjustment'=>'warning'];
 $currentType = $filters['type'] ?? '';
+$__tenant = \Core\Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$_SESSION['tenant_id'] ?? 1]);
+$__whConfig = json_decode($__tenant['settings'] ?? '{}', true)['warehouse'] ?? [];
+$defaultWhId = (int)($__whConfig['default_warehouse_id'] ?? 0);
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -67,7 +70,7 @@ $currentType = $filters['type'] ?? '';
                             <label class="form-label">Kho <span class="text-danger">*</span></label>
                             <select name="warehouse_id" class="form-select" required>
                                 <option value="">Chọn kho...</option>
-                                <?php foreach ($warehouses as $wh): ?><option value="<?= $wh['id'] ?>"><?= e($wh['name']) ?></option><?php endforeach; ?>
+                                <?php foreach ($warehouses as $wh): ?><option value="<?= $wh['id'] ?>" <?= $wh['id'] == $defaultWhId ? 'selected' : '' ?>><?= e($wh['name']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-4" id="toWhGroup" style="display:none">
