@@ -11,7 +11,11 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
         <span class="badge bg-<?= $order['type'] === 'wholesale' ? 'success' : 'info' ?>"><?= $order['type'] === 'wholesale' ? 'Hàng lô' : 'Hàng lẻ' ?></span>
         <span class="badge bg-<?= $stColors[$order['status']] ?? 'secondary' ?>"><?= $stLabels[$order['status']] ?? $order['status'] ?></span>
     </h4>
-    <a href="<?= url('logistics/orders') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
+    <div class="d-flex gap-2">
+        <button class="btn btn-soft-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal"><i class="ri-pencil-line me-1"></i> Sửa</button>
+        <form method="POST" action="<?= url('logistics/orders/' . $order['id'] . '/delete') ?>" data-confirm="Xóa đơn hàng này?" class="d-inline"><?= csrf_field() ?><button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button></form>
+        <a href="<?= url('logistics/orders') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
+    </div>
 </div>
 
 <div class="row">
@@ -189,6 +193,52 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
             <div class="card-body"><p class="mb-0"><?= e($order['note']) ?></p></div>
         </div>
         <?php endif; ?>
+    </div>
+</div>
+
+<!-- Edit Order Modal -->
+<?php $pmLabelsEdit = [''=>'Chưa chọn','cod'=>'COD','transfer'=>'Chuyển khoản','cash'=>'Tiền mặt','prepaid'=>'Đã thanh toán']; ?>
+<div class="modal fade" id="editOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="<?= url('logistics/orders/' . $order['id'] . '/update') ?>">
+                <?= csrf_field() ?>
+                <div class="modal-header"><h5 class="modal-title">Sửa đơn hàng <?= e($order['order_code']) ?></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6 mb-3"><label class="form-label">Loại</label>
+                            <select name="type" class="form-select"><option value="retail" <?= $order['type'] === 'retail' ? 'selected' : '' ?>>Hàng lẻ</option><option value="wholesale" <?= $order['type'] === 'wholesale' ? 'selected' : '' ?>>Hàng lô/sỉ</option></select>
+                        </div>
+                        <div class="col-6 mb-3"><label class="form-label">Trạng thái</label>
+                            <select name="status" class="form-select">
+                                <?php foreach ($stLabels as $k => $v): ?><option value="<?= $k ?>" <?= $order['status'] === $k ? 'selected' : '' ?>><?= $v ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3"><label class="form-label">Tên KH</label><input type="text" class="form-control" name="customer_name" value="<?= e($order['customer_name'] ?? '') ?>"></div>
+                        <div class="col-6 mb-3"><label class="form-label">SĐT</label><input type="text" class="form-control" name="customer_phone" value="<?= e($order['customer_phone'] ?? '') ?>"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Sản phẩm</label><input type="text" class="form-control" name="product_name" value="<?= e($order['product_name'] ?? '') ?>"></div>
+                    <div class="row">
+                        <div class="col-3 mb-3"><label class="form-label">Tổng kiện</label><input type="number" class="form-control" name="total_packages" value="<?= $order['total_packages'] ?>"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Cân nặng</label><input type="number" class="form-control" name="total_weight" value="<?= $order['total_weight'] ?>" step="0.01"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Số khối</label><input type="number" class="form-control" name="total_cbm" value="<?= $order['total_cbm'] ?>" step="0.0001"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Tổng tiền</label><input type="number" class="form-control" name="total_amount" value="<?= $order['total_amount'] ?>" step="1000"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3"><label class="form-label">COD thu</label><input type="number" class="form-control" name="cod_amount" value="<?= $order['cod_amount'] ?>" step="1000"></div>
+                        <div class="col-6 mb-3"><label class="form-label">Thanh toán</label>
+                            <select name="payment_method" class="form-select">
+                                <?php foreach ($pmLabelsEdit as $k => $v): ?><option value="<?= $k ?>" <?= ($order['payment_method'] ?? '') === $k ? 'selected' : '' ?>><?= $v ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Ghi chú</label><textarea class="form-control" name="note" rows="2"><?= e($order['note'] ?? '') ?></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu</button></div>
+            </form>
+        </div>
     </div>
 </div>
 

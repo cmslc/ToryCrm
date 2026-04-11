@@ -433,6 +433,40 @@ class LogisticsController extends Controller
         return $this->view('logistics.order-show', ['order' => $order, 'packages' => $packages, 'scanLogs' => $scanLogs]);
     }
 
+    public function updateOrder($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/orders/' . $id);
+
+        $order = Database::fetch("SELECT id FROM logistics_orders WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('logistics/orders'); }
+
+        Database::update('logistics_orders', [
+            'customer_name' => trim($this->input('customer_name') ?? '') ?: null,
+            'customer_phone' => trim($this->input('customer_phone') ?? '') ?: null,
+            'type' => $this->input('type') ?: 'retail',
+            'product_name' => trim($this->input('product_name') ?? '') ?: null,
+            'total_packages' => (int)($this->input('total_packages') ?: 0),
+            'total_weight' => (float)($this->input('total_weight') ?: 0),
+            'total_cbm' => (float)($this->input('total_cbm') ?: 0),
+            'total_amount' => (float)($this->input('total_amount') ?: 0),
+            'cod_amount' => (float)($this->input('cod_amount') ?: 0),
+            'payment_method' => trim($this->input('payment_method') ?? '') ?: null,
+            'status' => $this->input('status') ?: 'pending',
+            'note' => trim($this->input('note') ?? '') ?: null,
+        ], 'id = ?', [(int)$id]);
+
+        $this->setFlash('success', 'Đã cập nhật đơn hàng.');
+        return $this->redirect('logistics/orders/' . $id);
+    }
+
+    public function deleteOrder($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/orders');
+        Database::delete('logistics_orders', 'id = ? AND tenant_id = ?', [(int)$id, Database::tenantId()]);
+        $this->setFlash('success', 'Đã xóa đơn hàng.');
+        return $this->redirect('logistics/orders');
+    }
+
     public function uploadOrderImage($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
