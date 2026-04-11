@@ -361,10 +361,10 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
                 idsHtml += '<input type="hidden" name="order_ids[]" value="' + cb.value + '">';
             });
             document.getElementById('bulkPkgs').textContent = totalPkgs;
-            document.getElementById('bulkWeight').textContent = totalWeight.toFixed(1);
-            document.getElementById('bulkCbm').textContent = totalCbm.toFixed(4);
+            document.getElementById('bulkWeight').textContent = parseFloat(totalWeight.toFixed(2));
+            document.getElementById('bulkCbm').textContent = parseFloat(totalCbm.toFixed(4));
             document.getElementById('shipOrderIds').innerHTML = idsHtml;
-            document.getElementById('shipSummary').textContent = checked.length + ' đơn · ' + totalPkgs + ' kiện · ' + totalWeight.toFixed(1) + ' kg · ' + totalCbm.toFixed(4) + ' m³';
+            document.getElementById('shipSummary').textContent = checked.length + ' đơn · ' + totalPkgs + ' kiện · ' + parseFloat(totalWeight.toFixed(2)) + ' kg · ' + parseFloat(totalCbm.toFixed(4)) + ' m³';
         } else {
             bulkBar.classList.add('d-none');
         }

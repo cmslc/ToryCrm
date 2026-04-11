@@ -94,7 +94,7 @@ function autoCalcCbm() {
     var l = parseFloat(document.getElementById('calcL').value) || 0;
     var w = parseFloat(document.getElementById('calcW').value) || 0;
     var h = parseFloat(document.getElementById('calcH').value) || 0;
-    if (l > 0 && w > 0 && h > 0) document.getElementById('calcCbm').value = (l * w * h / 1000000).toFixed(4);
+    if (l > 0 && w > 0 && h > 0) document.getElementById('calcCbm').value = parseFloat((l * w * h / 1000000).toFixed(4));
 }
 function calculate() {
     var type = document.getElementById('calcType').value;
