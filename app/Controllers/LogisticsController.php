@@ -336,14 +336,21 @@ class LogisticsController extends Controller
     public function bags()
     {
         if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $page = max(1, (int)($this->input('page') ?? 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $total = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_bags WHERE tenant_id = ?", [$tid])['cnt'];
         $bags = Database::fetchAll(
             "SELECT lb.*, u.name as created_by_name,
                     (SELECT COUNT(*) FROM logistics_packages WHERE bag_id = lb.id) as pkg_count
              FROM logistics_bags lb LEFT JOIN users u ON lb.created_by = u.id
-             WHERE lb.tenant_id = ? ORDER BY lb.created_at DESC",
-            [Database::tenantId()]
+             WHERE lb.tenant_id = ? ORDER BY lb.created_at DESC LIMIT $limit OFFSET $offset",
+            [$tid]
         );
-        return $this->view('logistics.bags', ['bags' => $bags]);
+        $totalPages = ceil($total / $limit);
+        return $this->view('logistics.bags', compact('bags', 'page', 'totalPages', 'total'));
     }
 
     public function createBag()
