@@ -53,7 +53,6 @@ try {
     <div class="card-header p-0">
         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabInfo" role="tab">Thông tin</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabPositions" role="tab">Vị trí <span class="badge bg-primary-subtle text-primary ms-1"><?= count($posList) ?></span></a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabMembers" role="tab">Nhân viên <span class="badge bg-primary-subtle text-primary ms-1"><?= count($members) ?></span></a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabKpi" role="tab">KPI</a></li>
         </ul>
@@ -96,113 +95,45 @@ try {
                 </div>
             </div>
 
-            <!-- Tab: Vị trí -->
-            <div class="tab-pane" id="tabPositions" role="tabpanel">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr><th>Vị trí</th><th>Nhân viên</th><th style="width:80px" class="text-end">Thao tác</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            // Fixed hierarchy
-                            $hierarchy = [
-                                ['pos'=>'Trưởng phòng','level'=>0,'userId'=>$department['manager_id'],'userName'=>$department['manager_name'],'avatar'=>$department['manager_avatar'] ?? null,'fixed'=>true],
-                                ['pos'=>'Phó phòng','level'=>1,'userId'=>$department['vice_manager_id'],'userName'=>$department['vice_manager_name'],'avatar'=>$department['vice_manager_avatar'] ?? null,'fixed'=>true],
-                            ];
-                            // Add custom positions
-                            foreach ($posList as $p) {
-                                $hierarchy[] = ['pos'=>$p['position'],'level'=>2,'userId'=>$p['user_id'],'userName'=>$p['user_name'],'avatar'=>$p['avatar'] ?? null,'fixed'=>false,'posId'=>$p['id']];
-                            }
-                            // Add unassigned members
-                            $assignedIds = array_filter(array_column($hierarchy, 'userId'));
-                            foreach ($members as $m) {
-                                if (!in_array($m['id'], $assignedIds)) {
-                                    $hierarchy[] = ['pos'=>'Nhân viên','level'=>3,'userId'=>$m['id'],'userName'=>$m['name'],'avatar'=>$m['avatar'] ?? null,'fixed'=>false,'posId'=>null];
-                                }
-                            }
-
-                            $levelPrefixes = ['','├─','│──','│───'];
-                            foreach ($hierarchy as $h):
-                                if (!$h['userId']) continue;
-                                $prefix = $levelPrefixes[$h['level']] ?? '│───';
-                            ?>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <?php if ($h['level'] > 0): ?>
-                                            <span class="text-muted me-2 fs-12" style="font-family:monospace"><?= $prefix ?></span>
-                                        <?php endif; ?>
-                                        <span class="fw-medium"><?= e($h['pos']) ?></span>
-                                    </div>
-                                </td>
-                                <td><?= user_avatar($h['userName'], 'primary', $h['avatar']) ?></td>
-                                <td class="text-end">
-                                    <?php if (!$h['fixed'] && isset($h['posId']) && $h['posId']): ?>
-                                        <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions/' . $h['posId'] . '/delete') ?>" class="d-inline" data-confirm="Xóa chức vụ?">
-                                            <?= csrf_field() ?><button class="btn btn-soft-danger btn-icon" title="Xóa chức vụ"><i class="ri-delete-bin-line"></i></button>
-                                        </form>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Add position form -->
-                <div class="border-top p-3">
-                    <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions') ?>" class="d-flex align-items-end gap-2">
-                        <?= csrf_field() ?>
-                        <div class="flex-grow-1">
-                            <label class="form-label fs-12">Nhân viên</label>
-                            <select name="user_id" class="form-select" required>
-                                <option value="">Chọn...</option>
-                                <?php foreach ($members as $m): ?><option value="<?= $m['id'] ?>"><?= e($m['name']) ?></option><?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="flex-grow-1">
-                            <label class="form-label fs-12">Chức vụ</label>
-                            <select name="position" class="form-select" required>
-                                <option value="">Chọn...</option>
-                                <option value="Trưởng nhóm">Trưởng nhóm</option>
-                                <option value="Phó nhóm">Phó nhóm</option>
-                                <option value="Chuyên viên cao cấp">Chuyên viên cao cấp</option>
-                                <option value="Chuyên viên">Chuyên viên</option>
-                                <option value="Kỹ sư">Kỹ sư</option>
-                                <option value="Kế toán">Kế toán</option>
-                                <option value="Nhân viên kinh doanh">NV kinh doanh</option>
-                                <option value="Tư vấn viên">Tư vấn viên</option>
-                                <option value="Chăm sóc khách hàng">CSKH</option>
-                                <option value="Thực tập sinh">Thực tập sinh</option>
-                                <option value="Cố vấn">Cố vấn</option>
-                                <option value="Giám sát">Giám sát</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Tab: Nhân viên -->
+            <!-- Tab: Nhân viên + Vị trí (gộp) -->
             <div class="tab-pane" id="tabMembers" role="tabpanel">
+                <?php
+                $posOptions = ['Trưởng nhóm','Phó nhóm','Chuyên viên cao cấp','Chuyên viên','Kỹ sư','Kế toán','NV kinh doanh','Tư vấn viên','CSKH','Thực tập sinh','Cố vấn','Giám sát'];
+                $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 AND (department_id IS NULL OR department_id != ?) ORDER BY name", [$_SESSION['tenant_id'] ?? 1, $department['id']]);
+                ?>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>Nhân viên</th><th>Chức vụ</th><th>Đăng nhập cuối</th><th style="width:80px"></th></tr></thead>
+                        <thead class="table-light"><tr><th>Nhân viên</th><th style="width:200px">Chức vụ</th><th>Đăng nhập cuối</th><th style="width:60px"></th></tr></thead>
                         <tbody>
                         <?php foreach ($members as $m):
-                            $deptRole = 'Nhân viên'; $deptColor = 'info';
-                            if ($m['id'] == $department['manager_id']) { $deptRole = 'Trưởng phòng'; $deptColor = 'danger'; }
-                            elseif ($m['id'] == $department['vice_manager_id']) { $deptRole = 'Phó phòng'; $deptColor = 'warning'; }
-                            elseif (isset($posMap[$m['id']])) { $deptRole = $posMap[$m['id']]['position']; $deptColor = 'primary'; }
+                            $curPos = '';
+                            if ($m['id'] == $department['manager_id']) { $curPos = 'Trưởng phòng'; }
+                            elseif ($m['id'] == $department['vice_manager_id']) { $curPos = 'Phó phòng'; }
+                            elseif (isset($posMap[$m['id']])) { $curPos = $posMap[$m['id']]['position']; }
+                            $isFixed = ($m['id'] == $department['manager_id'] || $m['id'] == $department['vice_manager_id']);
                         ?>
                         <tr>
                             <td><?= user_avatar($m['name'] ?? null, 'primary', $m['avatar'] ?? null) ?></td>
-                            <td><span class="badge bg-<?= $deptColor ?>-subtle text-<?= $deptColor ?>"><?= e($deptRole) ?></span></td>
+                            <td>
+                                <?php if ($isFixed): ?>
+                                    <span class="badge bg-<?= $m['id'] == $department['manager_id'] ? 'danger' : 'warning' ?>-subtle text-<?= $m['id'] == $department['manager_id'] ? 'danger' : 'warning' ?>"><?= e($curPos) ?></span>
+                                <?php else: ?>
+                                    <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions') ?>" class="d-inline">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="user_id" value="<?= $m['id'] ?>">
+                                        <select name="position" class="form-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
+                                            <option value="">Nhân viên</option>
+                                            <?php foreach ($posOptions as $po): ?>
+                                                <option value="<?= e($po) ?>" <?= $curPos === $po ? 'selected' : '' ?>><?= e($po) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </form>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-muted fs-12"><?= $m['last_login'] ? time_ago($m['last_login']) : '-' ?></td>
                             <td>
-                                <form method="POST" action="<?= url('departments/' . $department['id'] . '/members/' . $m['id'] . '/remove') ?>" data-confirm="Xóa <?= e($m['name']) ?> khỏi phòng ban?" class="d-inline">
-                                    <?= csrf_field() ?><button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-user-unfollow-line"></i></button>
+                                <form method="POST" action="<?= url('departments/' . $department['id'] . '/members/' . $m['id'] . '/remove') ?>" data-confirm="Xóa <?= e($m['name']) ?>?" class="d-inline">
+                                    <?= csrf_field() ?><button class="btn btn-soft-danger btn-icon"><i class="ri-user-unfollow-line"></i></button>
                                 </form>
                             </td>
                         </tr>
@@ -216,11 +147,8 @@ try {
                         <?= csrf_field() ?>
                         <div class="flex-grow-1">
                             <label class="form-label fs-12">Thêm nhân viên</label>
-                            <?php
-                            $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 AND (department_id IS NULL OR department_id != ?) ORDER BY name", [$_SESSION['tenant_id'] ?? 1, $department['id']]);
-                            ?>
                             <select name="user_id" class="form-select" required>
-                                <option value="">Chọn nhân viên...</option>
+                                <option value="">Chọn...</option>
                                 <?php foreach ($allUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
