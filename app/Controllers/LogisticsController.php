@@ -613,6 +613,55 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/shipments');
     }
 
+    public function createShipmentFromOrders()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/orders');
+        $tid = Database::tenantId();
+        $orderIds = $this->input('order_ids') ?? [];
+        if (empty($orderIds)) { $this->setFlash('error', 'Chưa chọn đơn hàng.'); return $this->back(); }
+
+        $code = $this->input('shipment_code') ?: 'LH' . date('ymd') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+
+        $shipmentId = Database::insert('logistics_shipments', [
+            'tenant_id' => $tid,
+            'shipment_code' => $code,
+            'origin' => $this->input('origin') ?: 'CN',
+            'destination' => $this->input('destination') ?: 'VN',
+            'vehicle_info' => trim($this->input('vehicle_info') ?? '') ?: null,
+            'status' => 'preparing',
+            'note' => trim($this->input('note') ?? '') ?: null,
+            'created_by' => $this->userId(),
+        ]);
+
+        // Link packages from selected orders to shipment
+        $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+        $pkgs = Database::fetchAll(
+            "SELECT id FROM logistics_packages WHERE tenant_id = ? AND order_id IN ({$placeholders})",
+            array_merge([$tid], $orderIds)
+        );
+        foreach ($pkgs as $p) {
+            Database::update('logistics_packages', ['shipment_id' => $shipmentId, 'status' => 'shipping'], 'id = ?', [$p['id']]);
+        }
+
+        // Also link packages by customer_name match
+        $orders = Database::fetchAll("SELECT id, customer_name FROM logistics_orders WHERE id IN ({$placeholders})", $orderIds);
+        foreach ($orders as $o) {
+            if (!$o['customer_name']) continue;
+            $morePkgs = Database::fetchAll(
+                "SELECT id FROM logistics_packages WHERE tenant_id = ? AND customer_name = ? AND shipment_id IS NULL AND status IN ('warehouse_cn','packed')",
+                [$tid, $o['customer_name']]
+            );
+            foreach ($morePkgs as $mp) {
+                Database::update('logistics_packages', ['shipment_id' => $shipmentId, 'status' => 'shipping'], 'id = ?', [$mp['id']]);
+            }
+        }
+
+        $this->recalcShipment($shipmentId);
+
+        $this->setFlash('success', 'Đã tạo lô ' . $code . ' với ' . count($orderIds) . ' đơn hàng');
+        return $this->redirect('logistics/shipments/' . $shipmentId);
+    }
+
     public function showShipment($id)
     {
         if (!$this->checkPlugin()) return;

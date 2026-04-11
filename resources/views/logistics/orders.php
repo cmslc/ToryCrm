@@ -64,14 +64,56 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
     </div>
 </div>
 
+<!-- Bulk Action Bar -->
+<div class="card mb-2 d-none" id="bulkBar">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <span class="fw-medium"><span id="bulkCount">0</span> đơn đã chọn</span>
+            <span class="text-muted">|</span>
+            <span class="text-muted fs-12"><i class="ri-box-3-line me-1"></i><span id="bulkPkgs">0</span> kiện</span>
+            <span class="text-muted fs-12"><i class="ri-scales-line me-1"></i><span id="bulkWeight">0</span> kg</span>
+            <span class="text-muted fs-12"><i class="ri-ruler-line me-1"></i><span id="bulkCbm">0</span> m³</span>
+            <span class="text-muted">|</span>
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#shipModal"><i class="ri-truck-line me-1"></i> Xếp xe / Tạo lô</button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Shipment from selected orders -->
+<div class="modal fade" id="shipModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="<?= url('logistics/shipments/create-from-orders') ?>" id="shipForm">
+                <?= csrf_field() ?>
+                <div id="shipOrderIds"></div>
+                <div class="modal-header bg-warning-subtle"><h5 class="modal-title"><i class="ri-truck-line me-2"></i>Xếp xe - Tạo lô hàng</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 mb-3">
+                        <strong id="shipSummary"></strong>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3"><label class="form-label">Mã lô</label><input type="text" class="form-control" name="shipment_code" placeholder="Tự tạo"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Xuất</label><input type="text" class="form-control" name="origin" value="CN"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Đến</label><input type="text" class="form-control" name="destination" value="VN"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Phương tiện</label><input type="text" class="form-control" name="vehicle_info" placeholder="VD: Xe tải 5T - BKS 30A-12345"></div>
+                    <div class="mb-3"><label class="form-label">Ghi chú</label><textarea class="form-control" name="note" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-warning"><i class="ri-truck-line me-1"></i> Tạo lô + Xếp xe</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Số khối</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th><th style="width:60px"></th></tr></thead>
+                <thead class="table-light"><tr><th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Số khối</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th><th style="width:60px"></th></tr></thead>
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
+                    <td><input type="checkbox" class="form-check-input row-check" value="<?= $o['id'] ?>" data-pkgs="<?= $o['total_packages'] ?>" data-weight="<?= $o['total_weight'] ?>" data-cbm="<?= $o['total_cbm'] ?>"></td>
                     <td><a href="<?= url('logistics/orders/' . $o['id']) ?>" class="fw-medium"><?= e($o['order_code']) ?></a></td>
                     <td>
                         <?php
@@ -123,7 +165,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
                     </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($orders)): ?><tr><td colspan="13" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
+                <?php if (empty($orders)): ?><tr><td colspan="14" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -299,6 +341,44 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
 </div>
 
 <script>
+// Bulk selection
+(function() {
+    var checkAll = document.getElementById('checkAll');
+    var bulkBar = document.getElementById('bulkBar');
+
+    function updateBulk() {
+        var checked = document.querySelectorAll('.row-check:checked');
+        if (checked.length > 0) {
+            bulkBar.classList.remove('d-none');
+            document.getElementById('bulkCount').textContent = checked.length;
+
+            var totalPkgs = 0, totalWeight = 0, totalCbm = 0;
+            var idsHtml = '';
+            checked.forEach(function(cb) {
+                totalPkgs += parseInt(cb.dataset.pkgs || 0);
+                totalWeight += parseFloat(cb.dataset.weight || 0);
+                totalCbm += parseFloat(cb.dataset.cbm || 0);
+                idsHtml += '<input type="hidden" name="order_ids[]" value="' + cb.value + '">';
+            });
+            document.getElementById('bulkPkgs').textContent = totalPkgs;
+            document.getElementById('bulkWeight').textContent = totalWeight.toFixed(1);
+            document.getElementById('bulkCbm').textContent = totalCbm.toFixed(4);
+            document.getElementById('shipOrderIds').innerHTML = idsHtml;
+            document.getElementById('shipSummary').textContent = checked.length + ' đơn · ' + totalPkgs + ' kiện · ' + totalWeight.toFixed(1) + ' kg · ' + totalCbm.toFixed(4) + ' m³';
+        } else {
+            bulkBar.classList.add('d-none');
+        }
+    }
+
+    if (checkAll) {
+        checkAll.addEventListener('change', function() {
+            document.querySelectorAll('.row-check').forEach(function(cb) { cb.checked = checkAll.checked; });
+            updateBulk();
+        });
+    }
+    document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
+})();
+
 var popupImages = [], popupIndex = 0;
 function showImagePopup(images, startIndex) {
     popupImages = images;

@@ -391,6 +391,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('logistics/confirm-wholesale', 'LogisticsController@confirmWholesale');
     Router::get('logistics/shipments', 'LogisticsController@shipments');
     Router::post('logistics/shipments/create', 'LogisticsController@createShipment');
+    Router::post('logistics/shipments/create-from-orders', 'LogisticsController@createShipmentFromOrders');
     Router::get('logistics/shipments/{id}', 'LogisticsController@showShipment');
     Router::post('logistics/shipments/{id}/status', 'LogisticsController@updateShipmentStatus');
     Router::post('logistics/shipments/{id}/add', 'LogisticsController@addToShipment');
