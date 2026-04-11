@@ -651,6 +651,56 @@ class OrderController extends Controller
         }
 
         Database::update('orders', ['status' => $newStatus], 'id = ?', [$id]);
+
+        // Auto export stock when order completed
+        if ($newStatus === 'completed' && $order['status'] !== 'completed') {
+            $this->autoExportStock((int)$id, 'order');
+        }
+
         return $this->json(['success' => true, 'status' => $newStatus]);
+    }
+
+    private function autoExportStock(int $orderId, string $type): void
+    {
+        try {
+            $defaultWh = Database::fetch("SELECT id FROM warehouses WHERE tenant_id = ? AND is_default = 1 LIMIT 1", [Database::tenantId()]);
+            if (!$defaultWh) return;
+
+            $items = Database::fetchAll("SELECT product_id, quantity FROM order_items WHERE order_id = ?", [$orderId]);
+            if (empty($items)) return;
+
+            $code = ($type === 'order' ? 'XK' : 'NK') . '-DH' . $orderId;
+            $movementId = Database::insert('stock_movements', [
+                'code' => $code,
+                'type' => $type === 'order' ? 'export' : 'import',
+                'warehouse_id' => $defaultWh['id'],
+                'reference_type' => $type,
+                'reference_id' => $orderId,
+                'status' => 'confirmed',
+                'note' => 'Tự động từ đơn hàng #' . $orderId,
+                'created_by' => $this->userId(),
+                'confirmed_by' => $this->userId(),
+                'confirmed_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            foreach ($items as $item) {
+                Database::insert('stock_movement_items', [
+                    'movement_id' => $movementId,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                ]);
+
+                // Update stock
+                $qty = $type === 'order' ? -$item['quantity'] : $item['quantity'];
+                $existing = Database::fetch("SELECT id, quantity FROM stock WHERE warehouse_id = ? AND product_id = ?", [$defaultWh['id'], $item['product_id']]);
+                if ($existing) {
+                    Database::update('stock', ['quantity' => (float)$existing['quantity'] + $qty], 'id = ?', [$existing['id']]);
+                } else {
+                    Database::query("INSERT INTO stock (warehouse_id, product_id, quantity) VALUES (?, ?, ?)", [$defaultWh['id'], $item['product_id'], max(0, $qty)]);
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently fail if warehouse tables don't exist yet
+        }
     }
 }
