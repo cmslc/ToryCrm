@@ -405,9 +405,10 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
 
 <script>
 // Bulk selection + ship modal
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var checkAll = document.getElementById('checkAll');
     var bulkBar = document.getElementById('bulkBar');
+    if (!bulkBar) return;
     var selectedIds = [];
 
     function updateBulk() {
@@ -442,7 +443,10 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
             updateBulk();
         });
     }
-    document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
+    document.querySelectorAll('.row-check').forEach(function(cb) {
+        cb.addEventListener('change', updateBulk);
+        cb.addEventListener('click', updateBulk);
+    });
 
     // Add to existing shipment
     // Update existing ship form when radio changes or submits
@@ -467,7 +471,7 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
         });
     });
     });
-})();
+});
 
 var popupImages = [], popupIndex = 0;
 function showImagePopup(images, startIndex) {
