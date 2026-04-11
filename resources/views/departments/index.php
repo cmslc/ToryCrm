@@ -2,7 +2,10 @@
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Quản lý phòng ban</h4>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Thêm phòng ban</button>
+    <div class="d-flex gap-2">
+        <a href="<?= url('departments/org-chart') ?>" class="btn btn-soft-info"><i class="ri-organization-chart me-1"></i> Sơ đồ tổ chức</a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Thêm phòng ban</button>
+    </div>
 </div>
 
 <!-- Org chart style -->
@@ -21,6 +24,7 @@
                     <div class="dropdown">
                         <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="<?= url('departments/' . $dept['id']) ?>"><i class="ri-eye-line me-2"></i>Chi tiết</a></li>
                             <li><a class="dropdown-item" href="<?= url('departments/' . $dept['id'] . '/members') ?>"><i class="ri-team-line me-2"></i>Thành viên</a></li>
                             <li><a class="dropdown-item edit-dept" href="#"
                                 data-id="<?= $dept['id'] ?>"

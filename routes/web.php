@@ -521,10 +521,14 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Departments
     Router::get('departments', 'DepartmentController@index');
+    Router::get('departments/org-chart', 'DepartmentController@orgChart');
     Router::post('departments/store', 'DepartmentController@store');
+    Router::post('departments/bulk-move', 'DepartmentController@bulkMove');
+    Router::get('departments/{id}', 'DepartmentController@show');
     Router::get('departments/{id}/members', 'DepartmentController@members');
     Router::post('departments/{id}/update', 'DepartmentController@update');
     Router::post('departments/{id}/delete', 'DepartmentController@delete');
+    Router::post('departments/{id}/kpi', 'DepartmentController@saveKpi');
     Router::post('departments/{id}/members/add', 'DepartmentController@addMember');
     Router::post('departments/{id}/members/{userId}/remove', 'DepartmentController@removeMember');
 

@@ -36,10 +36,8 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-xs me-2">
-                                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= strtoupper(substr($m['name'], 0, 1)) ?></span>
-                                            </div>
-                                            <a href="<?= url('users/' . $m['id'] . '/edit') ?>" class="fw-medium text-dark"><?= e($m['name']) ?></a>
+                                            <input type="checkbox" class="form-check-input me-2 bulk-member-check" value="<?= $m['id'] ?>">
+                                            <?= user_avatar($m['name'] ?? null) ?>
                                         </div>
                                     </td>
                                     <td class="text-muted"><?= e($m['email']) ?></td>
@@ -96,3 +94,44 @@
         </div>
     </div>
 </div>
+
+<!-- Bulk Move Bar -->
+<div class="card d-none" id="bulkMoveBar">
+    <div class="card-body py-2">
+        <form method="POST" action="<?= url('departments/bulk-move') ?>" class="d-flex align-items-center gap-2">
+            <?= csrf_field() ?>
+            <span class="fw-medium"><span id="bulkMoveCount">0</span> đã chọn</span>
+            <div id="bulkMoveIds"></div>
+            <?php
+            $allDepts = \Core\Database::fetchAll("SELECT id, name FROM departments WHERE tenant_id = ? AND id != ? ORDER BY name", [$_SESSION['tenant_id'] ?? 1, $department['id']]);
+            ?>
+            <select name="target_department_id" class="form-select" style="width:auto" required>
+                <option value="">Chuyển đến phòng...</option>
+                <?php foreach ($allDepts as $ad): ?><option value="<?= $ad['id'] ?>"><?= e($ad['name']) ?></option><?php endforeach; ?>
+            </select>
+            <button type="submit" class="btn btn-primary"><i class="ri-arrow-right-line me-1"></i> Chuyển</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.bulk-member-check').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        var checked = document.querySelectorAll('.bulk-member-check:checked');
+        var bar = document.getElementById('bulkMoveBar');
+        if (checked.length > 0) {
+            bar.classList.remove('d-none');
+            document.getElementById('bulkMoveCount').textContent = checked.length;
+            var ids = document.getElementById('bulkMoveIds');
+            ids.innerHTML = '';
+            checked.forEach(function(c) {
+                var inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'user_ids[]'; inp.value = c.value;
+                ids.appendChild(inp);
+            });
+        } else {
+            bar.classList.add('d-none');
+        }
+    });
+});
+</script>

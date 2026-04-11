@@ -132,6 +132,11 @@ class DepartmentController extends Controller
         $userId = (int) $this->input('user_id');
         if ($userId) {
             Database::update('users', ['department_id' => (int)$id], 'id = ?', [$userId]);
+            $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$userId]);
+            Database::insert('activities', [
+                'type' => 'system', 'title' => 'Thêm vào phòng ban: ' . ($user['name'] ?? ''),
+                'user_id' => $this->userId(), 'tenant_id' => $this->tenantId(),
+            ]);
             $this->setFlash('success', 'Đã thêm thành viên vào phòng ban.');
         }
         return $this->redirect('departments/' . $id . '/members');
@@ -141,8 +146,162 @@ class DepartmentController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('departments/' . $id . '/members');
 
+        $user = Database::fetch("SELECT name FROM users WHERE id = ?", [(int)$userId]);
         Database::update('users', ['department_id' => null], 'id = ? AND department_id = ?', [(int)$userId, (int)$id]);
+
+        // Log
+        Database::insert('activities', [
+            'type' => 'system', 'title' => 'Xóa khỏi phòng ban: ' . ($user['name'] ?? ''),
+            'user_id' => $this->userId(), 'tenant_id' => $this->tenantId(),
+        ]);
+
         $this->setFlash('success', 'Đã xóa thành viên khỏi phòng ban.');
         return $this->redirect('departments/' . $id . '/members');
+    }
+
+    // ---- Show (detail page with stats) ----
+    public function show($id)
+    {
+        $tid = $this->tenantId();
+        $dept = Database::fetch(
+            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar, p.name as parent_name
+             FROM departments d LEFT JOIN users u ON d.manager_id = u.id LEFT JOIN departments p ON d.parent_id = p.id
+             WHERE d.id = ? AND d.tenant_id = ?",
+            [(int)$id, $tid]
+        );
+        if (!$dept) { $this->setFlash('error', 'Phòng ban không tồn tại.'); return $this->redirect('departments'); }
+
+        $members = Database::fetchAll(
+            "SELECT id, name, email, role, avatar, last_login FROM users WHERE department_id = ? AND is_active = 1 ORDER BY name",
+            [(int)$id]
+        );
+
+        $childDepts = Database::fetchAll(
+            "SELECT d.*, (SELECT COUNT(*) FROM users WHERE department_id = d.id AND is_active = 1) as member_count
+             FROM departments d WHERE d.parent_id = ? AND d.tenant_id = ?",
+            [(int)$id, $tid]
+        );
+
+        // Stats
+        $memberIds = array_column($members, 'id');
+        $stats = ['deals' => 0, 'revenue' => 0, 'tasks_done' => 0, 'tasks_total' => 0, 'contacts' => 0];
+        if (!empty($memberIds)) {
+            $ph = implode(',', array_fill(0, count($memberIds), '?'));
+            $stats['deals'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM deals WHERE owner_id IN ({$ph}) AND status = 'won'", $memberIds)['c'] ?? 0);
+            $stats['revenue'] = (float)(Database::fetch("SELECT COALESCE(SUM(value),0) as v FROM deals WHERE owner_id IN ({$ph}) AND status = 'won'", $memberIds)['v'] ?? 0);
+            $stats['tasks_total'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE assigned_to IN ({$ph}) AND is_deleted = 0 AND parent_id IS NULL", $memberIds)['c'] ?? 0);
+            $stats['tasks_done'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE assigned_to IN ({$ph}) AND is_deleted = 0 AND parent_id IS NULL AND status = 'done'", $memberIds)['c'] ?? 0);
+            $stats['contacts'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE owner_id IN ({$ph}) AND is_deleted = 0", $memberIds)['c'] ?? 0);
+        }
+
+        // KPI
+        $kpi = null;
+        try {
+            $kpi = Database::fetch("SELECT * FROM department_kpi WHERE department_id = ? AND period = ? ORDER BY id DESC LIMIT 1", [(int)$id, date('Y-m')]);
+        } catch (\Exception $e) {}
+
+        // Recent activity log
+        $activityLog = [];
+        if (!empty($memberIds)) {
+            $ph = implode(',', array_fill(0, count($memberIds), '?'));
+            $activityLog = Database::fetchAll(
+                "SELECT a.*, u.name as user_name FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.user_id IN ({$ph}) ORDER BY a.created_at DESC LIMIT 10",
+                $memberIds
+            );
+        }
+
+        return $this->view('departments.show', [
+            'department' => $dept,
+            'members' => $members,
+            'childDepts' => $childDepts,
+            'stats' => $stats,
+            'kpi' => $kpi,
+            'activityLog' => $activityLog,
+        ]);
+    }
+
+    // ---- Org Chart ----
+    public function orgChart()
+    {
+        $departments = Database::fetchAll(
+            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar,
+                    (SELECT COUNT(*) FROM users WHERE department_id = d.id AND is_active = 1) as member_count
+             FROM departments d LEFT JOIN users u ON d.manager_id = u.id
+             WHERE d.tenant_id = ? ORDER BY d.sort_order, d.name",
+            [$this->tenantId()]
+        );
+
+        return $this->view('departments.org-chart', ['departments' => $departments]);
+    }
+
+    // ---- Bulk Move Members ----
+    public function bulkMove()
+    {
+        if (!$this->isPost()) return $this->redirect('departments');
+
+        $userIds = $this->input('user_ids') ?? [];
+        $targetDeptId = (int)$this->input('target_department_id');
+
+        if (empty($userIds) || !$targetDeptId) {
+            $this->setFlash('error', 'Chọn nhân viên và phòng ban đích.');
+            return $this->back();
+        }
+
+        $ph = implode(',', array_fill(0, count($userIds), '?'));
+        Database::query("UPDATE users SET department_id = ? WHERE id IN ({$ph}) AND tenant_id = ?",
+            array_merge([$targetDeptId], $userIds, [$this->tenantId()])
+        );
+
+        Database::insert('activities', [
+            'type' => 'system', 'title' => 'Chuyển ' . count($userIds) . ' nhân viên sang phòng ban mới',
+            'user_id' => $this->userId(), 'tenant_id' => $this->tenantId(),
+        ]);
+
+        $this->setFlash('success', 'Đã chuyển ' . count($userIds) . ' nhân viên.');
+        return $this->back();
+    }
+
+    // ---- Save KPI ----
+    public function saveKpi($id)
+    {
+        if (!$this->isPost()) return $this->redirect('departments/' . $id);
+
+        $period = $this->input('period') ?: date('Y-m');
+
+        try {
+            // Check if table exists, create if not
+            Database::query("CREATE TABLE IF NOT EXISTS department_kpi (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                department_id INT UNSIGNED NOT NULL,
+                period VARCHAR(7) NOT NULL,
+                target_revenue DECIMAL(15,2) DEFAULT 0,
+                target_deals INT DEFAULT 0,
+                target_tasks INT DEFAULT 0,
+                target_contacts INT DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_dept_period (department_id, period)
+            )");
+
+            $existing = Database::fetch("SELECT id FROM department_kpi WHERE department_id = ? AND period = ?", [(int)$id, $period]);
+            if ($existing) {
+                Database::update('department_kpi', [
+                    'target_revenue' => (float)($this->input('target_revenue') ?? 0),
+                    'target_deals' => (int)($this->input('target_deals') ?? 0),
+                    'target_tasks' => (int)($this->input('target_tasks') ?? 0),
+                    'target_contacts' => (int)($this->input('target_contacts') ?? 0),
+                ], 'id = ?', [$existing['id']]);
+            } else {
+                Database::query("INSERT INTO department_kpi (department_id, period, target_revenue, target_deals, target_tasks, target_contacts) VALUES (?,?,?,?,?,?)", [
+                    (int)$id, $period,
+                    (float)($this->input('target_revenue') ?? 0),
+                    (int)($this->input('target_deals') ?? 0),
+                    (int)($this->input('target_tasks') ?? 0),
+                    (int)($this->input('target_contacts') ?? 0),
+                ]);
+            }
+        } catch (\Exception $e) {}
+
+        $this->setFlash('success', 'Đã lưu KPI phòng ban.');
+        return $this->redirect('departments/' . $id);
     }
 }
