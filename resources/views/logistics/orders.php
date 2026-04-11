@@ -65,6 +65,9 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
 </div>
 
 <!-- Bulk Action Bar -->
+<?php
+$existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin, destination, total_packages, total_weight, total_cbm FROM logistics_shipments WHERE tenant_id = ? AND status = 'preparing' ORDER BY created_at DESC", [$_SESSION['tenant_id'] ?? 1]);
+?>
 <div class="card mb-2 d-none" id="bulkBar">
     <div class="card-body py-2">
         <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -74,46 +77,91 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
             <span class="text-muted fs-12"><i class="ri-scales-line me-1"></i><span id="bulkWeight">0</span> kg</span>
             <span class="text-muted fs-12"><i class="ri-ruler-line me-1"></i><span id="bulkCbm">0</span> m³</span>
             <span class="text-muted">|</span>
-            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#shipModal"><i class="ri-truck-line me-1"></i> Tạo lô mới</button>
-            <?php
-            $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin, destination, total_packages FROM logistics_shipments WHERE tenant_id = ? AND status = 'preparing' ORDER BY created_at DESC", [$_SESSION['tenant_id'] ?? 1]);
-            if (!empty($existingShipments)):
-            ?>
-            <div class="dropdown d-inline">
-                <button class="btn btn-soft-warning dropdown-toggle" data-bs-toggle="dropdown"><i class="ri-truck-line me-1"></i> Xếp vào lô có sẵn</button>
-                <ul class="dropdown-menu">
-                    <?php foreach ($existingShipments as $es): ?>
-                    <li><a class="dropdown-item add-to-existing" href="#" data-id="<?= $es['id'] ?>" data-code="<?= e($es['shipment_code']) ?>"><?= e($es['shipment_code']) ?> (<?= $es['origin'] ?>→<?= $es['destination'] ?>, <?= $es['total_packages'] ?> kiện)</a></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-            <?php endif; ?>
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#shipModal"><i class="ri-truck-line me-1"></i> Xếp xe vận chuyển</button>
         </div>
     </div>
 </div>
 
-<!-- Create Shipment from selected orders -->
+<!-- Ship Modal (ToryCMS style with tabs) -->
 <div class="modal fade" id="shipModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="<?= url('logistics/shipments/create-from-orders') ?>" id="shipForm">
-                <?= csrf_field() ?>
-                <div id="shipOrderIds"></div>
-                <div class="modal-header bg-warning-subtle"><h5 class="modal-title"><i class="ri-truck-line me-2"></i>Xếp xe - Tạo lô hàng</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <div class="alert alert-info py-2 mb-3">
-                        <strong id="shipSummary"></strong>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3"><label class="form-label">Mã lô</label><input type="text" class="form-control" name="shipment_code" placeholder="Tự tạo"></div>
-                        <div class="col-3 mb-3"><label class="form-label">Xuất</label><input type="text" class="form-control" name="origin" value="CN"></div>
-                        <div class="col-3 mb-3"><label class="form-label">Đến</label><input type="text" class="form-control" name="destination" value="VN"></div>
-                    </div>
-                    <div class="mb-3"><label class="form-label">Phương tiện</label><input type="text" class="form-control" name="vehicle_info" placeholder="VD: Xe tải 5T - BKS 30A-12345"></div>
-                    <div class="mb-3"><label class="form-label">Ghi chú</label><textarea class="form-control" name="note" rows="2"></textarea></div>
+            <div class="modal-header bg-warning-subtle">
+                <h5 class="modal-title"><i class="ri-truck-line me-2"></i> Xếp xe vận chuyển</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Summary -->
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="ri-information-line me-1"></i> Đã chọn <strong id="shipSummary"></strong>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-warning"><i class="ri-truck-line me-1"></i> Tạo lô + Xếp xe</button></div>
-            </form>
+
+                <!-- Tabs: Chuyến có sẵn / Tạo chuyến mới -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <?php if (!empty($existingShipments)): ?>
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabExisting">Chuyến có sẵn</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabNew">Tạo chuyến mới</a></li>
+                    <?php else: ?>
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabNew">Tạo chuyến mới</a></li>
+                    <?php endif; ?>
+                </ul>
+
+                <div class="tab-content pt-3">
+                    <!-- Tab: Chuyến có sẵn -->
+                    <?php if (!empty($existingShipments)): ?>
+                    <div class="tab-pane active" id="tabExisting">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light"><tr><th></th><th>Mã chuyến</th><th>Tuyến</th><th>Kiện hiện tại</th><th>Cân</th><th>Khối</th></tr></thead>
+                                <tbody>
+                                <?php foreach ($existingShipments as $es): ?>
+                                <tr>
+                                    <td><input type="radio" class="form-check-input" name="existing_shipment" value="<?= $es['id'] ?>" data-code="<?= e($es['shipment_code']) ?>"></td>
+                                    <td class="fw-medium"><?= e($es['shipment_code']) ?></td>
+                                    <td><?= e($es['origin']) ?> → <?= e($es['destination']) ?></td>
+                                    <td><?= $es['total_packages'] ?></td>
+                                    <td><?= $es['total_weight'] > 0 ? rtrim(rtrim(number_format($es['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td>
+                                    <td><?= $es['total_cbm'] > 0 ? rtrim(rtrim(number_format($es['total_cbm'], 4), '0'), '.') . ' m³' : '-' ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3 text-end">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" class="btn btn-warning" id="addToExistingBtn"><i class="ri-truck-line me-1"></i> Xếp xe</button>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Tab: Tạo chuyến mới -->
+                    <div class="tab-pane <?= empty($existingShipments) ? 'active' : '' ?>" id="tabNew">
+                        <form method="POST" action="<?= url('logistics/shipments/create-from-orders') ?>" id="shipForm">
+                            <?= csrf_field() ?>
+                            <div id="shipOrderIds"></div>
+                            <div class="row">
+                                <div class="col-4 mb-3"><label class="form-label">Biển số xe <span class="text-danger">*</span></label><input type="text" class="form-control" name="vehicle_info" placeholder="VD: 29C-12345" required></div>
+                                <div class="col-4 mb-3"><label class="form-label">Tên tài xế</label><input type="text" class="form-control" name="driver_name" placeholder="Tên tài xế"></div>
+                                <div class="col-4 mb-3"><label class="form-label">SĐT tài xế</label><input type="text" class="form-control" name="driver_phone" placeholder="SĐT"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3"><label class="form-label">Tuyến đường</label><input type="text" class="form-control" name="route_name" value="Kho Trung Quốc - Cửa khẩu"></div>
+                                <div class="col-6 mb-3"><label class="form-label">Trọng tải tối đa (kg)</label><input type="number" class="form-control" name="max_weight" step="0.1"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3"><label class="form-label">Chi phí vận chuyển</label><input type="number" class="form-control" name="shipping_cost" step="1000" min="0"></div>
+                                <div class="col-6 mb-3"><label class="form-label">Ghi chú</label><input type="text" class="form-control" name="note"></div>
+                            </div>
+                            <input type="hidden" name="origin" value="CN">
+                            <input type="hidden" name="destination" value="VN">
+                            <div class="text-end">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                                <button type="submit" class="btn btn-warning"><i class="ri-truck-line me-1"></i> Xếp xe</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -354,13 +402,15 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
 </div>
 
 <script>
-// Bulk selection
+// Bulk selection + ship modal
 (function() {
     var checkAll = document.getElementById('checkAll');
     var bulkBar = document.getElementById('bulkBar');
+    var selectedIds = [];
 
     function updateBulk() {
         var checked = document.querySelectorAll('.row-check:checked');
+        selectedIds = [];
         if (checked.length > 0) {
             bulkBar.classList.remove('d-none');
             document.getElementById('bulkCount').textContent = checked.length;
@@ -368,6 +418,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
             var totalPkgs = 0, totalWeight = 0, totalCbm = 0;
             var idsHtml = '';
             checked.forEach(function(cb) {
+                selectedIds.push(cb.value);
                 totalPkgs += parseInt(cb.dataset.pkgs || 0);
                 totalWeight += parseFloat(cb.dataset.weight || 0);
                 totalCbm += parseFloat(cb.dataset.cbm || 0);
@@ -377,7 +428,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
             document.getElementById('bulkWeight').textContent = parseFloat(totalWeight.toFixed(2));
             document.getElementById('bulkCbm').textContent = parseFloat(totalCbm.toFixed(4));
             document.getElementById('shipOrderIds').innerHTML = idsHtml;
-            document.getElementById('shipSummary').textContent = checked.length + ' đơn · ' + totalPkgs + ' kiện · ' + parseFloat(totalWeight.toFixed(2)) + ' kg · ' + parseFloat(totalCbm.toFixed(4)) + ' m³';
+            document.getElementById('shipSummary').textContent = checked.length + ' đơn hàng — Tổng cân: ' + parseFloat(totalWeight.toFixed(2)) + ' kg — Tổng khối: ' + parseFloat(totalCbm.toFixed(4)) + ' m³';
         } else {
             bulkBar.classList.add('d-none');
         }
@@ -390,36 +441,34 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
         });
     }
     document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
-})();
 
-// Add to existing shipment
-document.querySelectorAll('.add-to-existing').forEach(function(a) {
-    a.addEventListener('click', function(e) {
-        e.preventDefault();
-        var shipId = this.dataset.id;
-        var shipCode = this.dataset.code;
-        var checked = document.querySelectorAll('.row-check:checked');
-        if (checked.length === 0) { alert('Chưa chọn đơn hàng'); return; }
-        if (!confirm('Xếp ' + checked.length + ' đơn vào lô ' + shipCode + '?')) return;
+    // Add to existing shipment
+    document.getElementById('addToExistingBtn')?.addEventListener('click', function() {
+        var selected = document.querySelector('input[name="existing_shipment"]:checked');
+        if (!selected) { alert('Chọn một chuyến xe'); return; }
+        if (selectedIds.length === 0) { alert('Chưa chọn đơn hàng'); return; }
 
-        var ids = [];
-        checked.forEach(function(cb) { ids.push(cb.value); });
+        var btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xếp...';
 
         var fd = new FormData();
         fd.append('_token', '<?= csrf_token() ?>');
-        ids.forEach(function(id) { fd.append('order_ids[]', id); });
+        selectedIds.forEach(function(id) { fd.append('order_ids[]', id); });
 
-        fetch('<?= url("logistics/shipments") ?>/' + shipId + '/add-orders', {
+        fetch('<?= url("logistics/shipments") ?>/' + selected.value + '/add-orders', {
             method: 'POST', body: fd
         }).then(function(r) { return r.json(); }).then(function(d) {
             if (d.success) {
-                window.location = '<?= url("logistics/shipments") ?>/' + shipId;
+                window.location = '<?= url("logistics/shipments") ?>/' + selected.value;
             } else {
                 alert(d.error || 'Lỗi');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ri-truck-line me-1"></i> Xếp xe';
             }
         });
     });
-});
+})();
 
 var popupImages = [], popupIndex = 0;
 function showImagePopup(images, startIndex) {

@@ -94,7 +94,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $prodOpen ? '' : 'collapsed' ?>" href="#sidebarProducts" data-bs-toggle="collapse" role="button" aria-expanded="<?= $prodOpen ? 'true' : 'false' ?>">
-                        <i class="ri-shopping-bag-line"></i> <span>Sản phẩm</span>
+                        <i class="ri-shopping-bag-line"></i> <span>Bán hàng</span>
                     </a>
                     <div class="collapse menu-dropdown <?= $prodOpen ? 'show' : '' ?>" id="sidebarProducts">
                         <ul class="nav nav-sm flex-column">
