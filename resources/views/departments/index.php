@@ -116,20 +116,6 @@ flattenDeptTree($tree, 0, $flatList);
                             <?php foreach ($departments as $d): ?><option value="<?= $d['id'] ?>"><?= e($d['name']) ?></option><?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Trưởng phòng</label>
-                            <select name="manager_id" class="form-select" id="deptManager"><option value="">Chưa chọn</option>
-                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Phó phòng</label>
-                            <select name="vice_manager_id" class="form-select" id="deptViceManager"><option value="">Chưa chọn</option>
-                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
                     <div class="mb-3">
                         <label class="form-label">Màu sắc</label>
                         <div class="d-flex gap-2">
