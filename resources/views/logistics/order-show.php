@@ -94,6 +94,17 @@ $orderImages = json_decode($order['images'] ?? '[]', true) ?: [];
         <div class="tab-content">
             <!-- Kiện hàng -->
             <div class="tab-pane active" id="tabPkgs">
+                <!-- Thêm kiện nhanh -->
+                <div class="mb-3 p-3 bg-light rounded">
+                    <form method="POST" action="<?= url('logistics/orders/' . $order['id'] . '/add-package') ?>" class="d-flex align-items-end gap-2 flex-wrap">
+                        <?= csrf_field() ?>
+                        <div><label class="form-label fs-12">Tracking</label><input type="text" class="form-control" name="tracking_code" placeholder="Mã tracking..." style="width:180px"></div>
+                        <div><label class="form-label fs-12">Sản phẩm</label><input type="text" class="form-control" name="product_name" value="<?= e($order['product_name'] ?? '') ?>" style="width:180px"></div>
+                        <div><label class="form-label fs-12">Cân (kg)</label><input type="number" class="form-control" name="weight_actual" step="0.01" min="0" style="width:100px"></div>
+                        <div><label class="form-label fs-12">SL</label><input type="number" class="form-control" name="quantity" value="1" min="1" style="width:70px"></div>
+                        <button type="submit" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm kiện</button>
+                    </form>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Cân nặng</th><th>Khối</th><th>Kích thước</th><th>SL</th><th>Trạng thái</th><th>Người nhận</th><th>Ngày nhận</th></tr></thead>

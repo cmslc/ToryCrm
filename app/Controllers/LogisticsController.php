@@ -477,6 +477,35 @@ class LogisticsController extends Controller
         return $this->view('logistics.order-show', ['order' => $order, 'packages' => $packages, 'scanLogs' => $scanLogs]);
     }
 
+    public function addPackageToOrder($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/orders/' . $id);
+        $tid = Database::tenantId();
+
+        $order = Database::fetch("SELECT * FROM logistics_orders WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$order) { $this->setFlash('error', 'Đơn không tồn tại.'); return $this->redirect('logistics/orders'); }
+
+        $code = $this->generateCode('K');
+        Database::insert('logistics_packages', [
+            'tenant_id' => $tid,
+            'package_code' => $code,
+            'tracking_code' => trim($this->input('tracking_code') ?? '') ?: null,
+            'customer_name' => $order['customer_name'],
+            'customer_phone' => $order['customer_phone'],
+            'customer_id' => $order['customer_id'],
+            'order_id' => (int)$id,
+            'product_name' => trim($this->input('product_name') ?? '') ?: $order['product_name'],
+            'weight_actual' => (float)($this->input('weight_actual') ?: 0) ?: null,
+            'quantity' => (int)($this->input('quantity') ?: 1),
+            'type' => $order['type'],
+            'status' => 'pending',
+            'created_by' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã thêm kiện ' . $code . ' vào đơn ' . $order['order_code']);
+        return $this->redirect('logistics/orders/' . $id);
+    }
+
     public function updateOrder($id)
     {
         if (!$this->isPost()) return $this->redirect('logistics/orders/' . $id);
