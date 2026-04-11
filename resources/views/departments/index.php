@@ -16,7 +16,7 @@
         }
         unset($d);
 
-        function renderNode($node, $departments, $users) { ?>
+        if (!function_exists('renderDeptNode')) { function renderDeptNode($node, $departments, $users) { ?>
             <li>
                 <div class="card border shadow-none mb-0 org-node" style="border-left:4px solid <?= e($node['color']) ?> !important;min-width:220px">
                     <div class="card-body p-3">
@@ -51,17 +51,17 @@
                 </div>
                 <?php if (!empty($node['children'])): ?>
                 <ul>
-                    <?php foreach ($node['children'] as $child) renderNode($child, $departments, $users); ?>
+                    <?php foreach ($node['children'] as $child) renderDeptNode($child, $departments, $users); ?>
                 </ul>
                 <?php endif; ?>
             </li>
-        <?php }
+        <?php } } // end function + function_exists
         ?>
 
         <?php if (!empty($tree)): ?>
         <div style="overflow-x:auto">
             <ul class="org-tree">
-                <?php foreach ($tree as $root) renderNode($root, $departments, $users); ?>
+                <?php foreach ($tree as $root) renderDeptNode($root, $departments, $users); ?>
             </ul>
         </div>
         <?php else: ?>
