@@ -200,12 +200,44 @@
                         <div class="mb-2">
                             <select name="position" class="form-select" required>
                                 <option value="">Chọn vị trí...</option>
-                                <option value="Trưởng nhóm">Trưởng nhóm</option>
-                                <option value="Phó nhóm">Phó nhóm</option>
-                                <option value="Chuyên viên">Chuyên viên</option>
-                                <option value="Nhân viên">Nhân viên</option>
-                                <option value="Thực tập sinh">Thực tập sinh</option>
-                                <option value="Cố vấn">Cố vấn</option>
+                                <optgroup label="Quản lý">
+                                    <option value="Giám đốc">Giám đốc</option>
+                                    <option value="Phó Giám đốc">Phó Giám đốc</option>
+                                    <option value="Trưởng phòng">Trưởng phòng</option>
+                                    <option value="Phó phòng">Phó phòng</option>
+                                    <option value="Trưởng nhóm">Trưởng nhóm</option>
+                                    <option value="Phó nhóm">Phó nhóm</option>
+                                </optgroup>
+                                <optgroup label="Chuyên môn">
+                                    <option value="Chuyên viên cao cấp">Chuyên viên cao cấp</option>
+                                    <option value="Chuyên viên">Chuyên viên</option>
+                                    <option value="Kỹ sư">Kỹ sư</option>
+                                    <option value="Kiến trúc sư">Kiến trúc sư</option>
+                                    <option value="Thiết kế">Thiết kế</option>
+                                    <option value="Lập trình viên">Lập trình viên</option>
+                                    <option value="Kế toán">Kế toán</option>
+                                    <option value="Kế toán trưởng">Kế toán trưởng</option>
+                                </optgroup>
+                                <optgroup label="Kinh doanh">
+                                    <option value="Giám đốc kinh doanh">Giám đốc kinh doanh</option>
+                                    <option value="Trưởng phòng kinh doanh">Trưởng phòng kinh doanh</option>
+                                    <option value="Nhân viên kinh doanh">Nhân viên kinh doanh</option>
+                                    <option value="Tư vấn viên">Tư vấn viên</option>
+                                    <option value="Account Manager">Account Manager</option>
+                                    <option value="Chăm sóc khách hàng">Chăm sóc khách hàng</option>
+                                </optgroup>
+                                <optgroup label="Nhân viên">
+                                    <option value="Nhân viên">Nhân viên</option>
+                                    <option value="Trợ lý">Trợ lý</option>
+                                    <option value="Thư ký">Thư ký</option>
+                                    <option value="Thực tập sinh">Thực tập sinh</option>
+                                    <option value="Cộng tác viên">Cộng tác viên</option>
+                                </optgroup>
+                                <optgroup label="Khác">
+                                    <option value="Cố vấn">Cố vấn</option>
+                                    <option value="Giám sát">Giám sát</option>
+                                    <option value="Điều phối viên">Điều phối viên</option>
+                                </optgroup>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Lưu</button>
