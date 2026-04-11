@@ -54,6 +54,37 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
     </div>
 </div>
 
+<!-- Wholesale Modal -->
+<div class="modal fade" id="wholesaleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success-subtle"><h5 class="modal-title"><i class="ri-truck-line me-2"></i>Nhận hàng sỉ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="wsOrderId">
+                <table class="table table-borderless mb-3">
+                    <tr><th class="text-muted">Mã đơn</th><td id="wsOrderCode" class="fw-medium"></td></tr>
+                    <tr><th class="text-muted">Khách hàng</th><td id="wsCustomer"></td></tr>
+                    <tr><th class="text-muted">Sản phẩm</th><td id="wsProduct"></td></tr>
+                    <tr><th class="text-muted">Tổng kiện</th><td id="wsTotalPkg" class="fw-semibold"></td></tr>
+                    <tr><th class="text-muted">Đã nhận</th><td id="wsReceivedPkg" class="text-success fw-semibold"></td></tr>
+                </table>
+                <div class="mb-3">
+                    <label class="form-label">Số kiện nhận được <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control form-control-lg text-center" id="wsReceivedInput" min="1" step="1" autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ghi chú (nếu thiếu)</label>
+                    <input type="text" class="form-control" id="wsNote" placeholder="VD: thiếu 2 kiện, hàng hư...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" id="confirmWholesale"><i class="ri-check-double-line me-1"></i> Xác nhận nhận hàng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scan History -->
 <div class="card">
     <div class="card-header"><h5 class="card-title mb-0">Lịch sử quét hôm nay</h5></div>
@@ -115,9 +146,12 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
                 alertDiv.innerHTML = '<i class="ri-check-circle-line fs-20 me-2"></i><div><strong>' + (d.package?.code || d.package?.package_code || barcode) + '</strong> — ' + d.message + '</div>';
                 updateStat('statSuccess');
 
-                if (d.need_weight) {
+                if (d.need_weight && d.package) {
                     document.getElementById('weightPkgId').value = d.package.id;
                     new bootstrap.Modal(document.getElementById('weightModal')).show();
+                }
+                if (d.need_confirm && d.order) {
+                    showWholesaleModal(d.order);
                 }
             } else if (d.type === 'duplicate') {
                 alertDiv.className = 'alert alert-warning d-flex align-items-center';
@@ -180,6 +214,48 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
         var row = '<tr><td>' + scanCount + '</td><td class="fw-medium">' + barcode + '</td><td>' + typeBadge + '</td><td class="text-muted fs-12">' + (d.package?.product_name || '-') + '</td><td class="text-muted fs-12">' + (d.package?.customer_name || '-') + '</td><td>' + resultBadge + '</td><td class="fs-12">' + (d.message || '') + '</td><td class="text-muted fs-12">' + new Date().toLocaleTimeString('vi-VN') + '</td></tr>';
         tbody.insertAdjacentHTML('afterbegin', row);
     }
+
+    // Wholesale modal
+    function showWholesaleModal(order) {
+        document.getElementById('wsOrderId').value = order.id;
+        document.getElementById('wsOrderCode').textContent = order.order_code;
+        document.getElementById('wsCustomer').textContent = order.customer_name || '-';
+        document.getElementById('wsProduct').textContent = order.product_name || '-';
+        document.getElementById('wsTotalPkg').textContent = order.total_packages;
+        document.getElementById('wsReceivedPkg').textContent = order.received_packages + '/' + order.total_packages;
+        document.getElementById('wsReceivedInput').value = order.total_packages - order.received_packages;
+        document.getElementById('wsNote').value = '';
+        new bootstrap.Modal(document.getElementById('wholesaleModal')).show();
+    }
+
+    document.getElementById('confirmWholesale')?.addEventListener('click', function() {
+        var orderId = document.getElementById('wsOrderId').value;
+        var count = document.getElementById('wsReceivedInput').value;
+        var note = document.getElementById('wsNote').value;
+        if (!count || count <= 0) return;
+
+        fetch('<?= url("logistics/confirm-wholesale") ?>', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=' + token + '&order_id=' + orderId + '&received_count=' + count + '&note=' + encodeURIComponent(note)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            bootstrap.Modal.getInstance(document.getElementById('wholesaleModal')).hide();
+            var alertDiv = document.getElementById('scanAlert');
+            document.getElementById('scanResult').style.display = '';
+            if (d.success) {
+                alertDiv.className = 'alert alert-success d-flex align-items-center';
+                alertDiv.innerHTML = '<i class="ri-check-circle-line fs-20 me-2"></i><div>' + d.message + '</div>';
+                updateStat('statSuccess');
+            } else {
+                alertDiv.className = 'alert alert-danger d-flex align-items-center';
+                alertDiv.innerHTML = '<i class="ri-error-warning-line fs-20 me-2"></i><div>' + (d.error || 'Lỗi') + '</div>';
+            }
+            updateStat('statTotal');
+            document.getElementById('scanInput').focus();
+        });
+    });
 
     // Auto focus scan input
     document.getElementById('scanInput').focus();

@@ -382,6 +382,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('logistics/packages', 'LogisticsController@packages');
     Router::post('logistics/packages/create', 'LogisticsController@createPackage');
     Router::get('logistics/packages/{id}', 'LogisticsController@showPackage');
+    Router::get('logistics/orders', 'LogisticsController@orders');
+    Router::post('logistics/orders/create', 'LogisticsController@createOrder');
+    Router::post('logistics/confirm-wholesale', 'LogisticsController@confirmWholesale');
     Router::get('logistics/bags', 'LogisticsController@bags');
     Router::post('logistics/bags/create', 'LogisticsController@createBag');
 

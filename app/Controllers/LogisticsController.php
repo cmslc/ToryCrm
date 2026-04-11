@@ -84,6 +84,21 @@ class LogisticsController extends Controller
             return $this->scanBag($barcode, $tid, $uid);
         }
 
+        // Check if it's a wholesale order code (DH prefix)
+        if (str_starts_with(strtoupper($barcode), 'DH')) {
+            $order = Database::fetch("SELECT * FROM logistics_orders WHERE tenant_id = ? AND order_code = ? AND type = 'wholesale'", [$tid, $barcode]);
+            if ($order) {
+                $this->logScan($tid, $barcode, 'package', 'success', null, null, "Đơn sỉ: {$order['received_packages']}/{$order['total_packages']} kiện", $uid);
+                return $this->json([
+                    'success' => true,
+                    'type' => 'wholesale',
+                    'message' => "Đơn sỉ {$barcode}: đã nhận {$order['received_packages']}/{$order['total_packages']} kiện",
+                    'order' => $order,
+                    'need_confirm' => true,
+                ]);
+            }
+        }
+
         // Find package by code or tracking
         $pkg = Database::fetch(
             "SELECT * FROM logistics_packages WHERE tenant_id = ? AND (package_code = ? OR tracking_code = ? OR tracking_intl = ?)",
@@ -317,6 +332,84 @@ class LogisticsController extends Controller
 
         $this->setFlash('success', 'Đã tạo bao ' . $code);
         return $this->redirect('logistics/bags');
+    }
+
+    // ---- Orders ----
+    public function orders()
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $type = $this->input('type');
+        $status = $this->input('status');
+
+        $where = ["lo.tenant_id = ?"];
+        $params = [$tid];
+        if ($type) { $where[] = "lo.type = ?"; $params[] = $type; }
+        if ($status) { $where[] = "lo.status = ?"; $params[] = $status; }
+
+        $orders = Database::fetchAll(
+            "SELECT lo.*, u.name as created_by_name FROM logistics_orders lo LEFT JOIN users u ON lo.created_by = u.id WHERE " . implode(' AND ', $where) . " ORDER BY lo.created_at DESC LIMIT 50",
+            $params
+        );
+
+        return $this->view('logistics.orders', ['orders' => $orders, 'filters' => ['type' => $type, 'status' => $status]]);
+    }
+
+    public function createOrder()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/orders');
+
+        $code = $this->input('order_code') ?: 'DH' . date('ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        $type = $this->input('type') ?: 'retail';
+
+        Database::insert('logistics_orders', [
+            'order_code' => $code,
+            'type' => $type,
+            'customer_name' => trim($this->input('customer_name') ?? '') ?: null,
+            'customer_phone' => trim($this->input('customer_phone') ?? '') ?: null,
+            'product_name' => trim($this->input('product_name') ?? '') ?: null,
+            'total_packages' => (int)($this->input('total_packages') ?: 0),
+            'total_amount' => (float)($this->input('total_amount') ?: 0),
+            'cod_amount' => (float)($this->input('cod_amount') ?: 0),
+            'payment_method' => trim($this->input('payment_method') ?? '') ?: null,
+            'note' => trim($this->input('note') ?? '') ?: null,
+            'created_by' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã tạo đơn ' . $code);
+        return $this->redirect('logistics/orders');
+    }
+
+    // ---- Confirm wholesale (AJAX) ----
+    public function confirmWholesale()
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $orderId = (int)$this->input('order_id');
+        $receivedCount = (int)$this->input('received_count');
+        $note = trim($this->input('note') ?? '');
+
+        $order = Database::fetch("SELECT * FROM logistics_orders WHERE id = ? AND tenant_id = ?", [$orderId, Database::tenantId()]);
+        if (!$order) return $this->json(['error' => 'Đơn hàng không tồn tại'], 404);
+
+        $newReceived = ($order['received_packages'] ?? 0) + $receivedCount;
+        $newStatus = $newReceived >= $order['total_packages'] ? 'completed' : 'partial';
+
+        Database::update('logistics_orders', [
+            'received_packages' => $newReceived,
+            'status' => $newStatus,
+        ], 'id = ?', [$orderId]);
+
+        $this->logScan(Database::tenantId(), $order['order_code'], 'package', 'success', null, null,
+            "Nhận {$receivedCount} kiện (tổng {$newReceived}/{$order['total_packages']})" . ($note ? " - {$note}" : ''),
+            $this->userId()
+        );
+
+        return $this->json([
+            'success' => true,
+            'message' => "Đã nhận {$receivedCount} kiện cho đơn {$order['order_code']} ({$newReceived}/{$order['total_packages']})",
+            'order' => array_merge($order, ['received_packages' => $newReceived, 'status' => $newStatus]),
+        ]);
     }
 
     // ---- Helpers ----

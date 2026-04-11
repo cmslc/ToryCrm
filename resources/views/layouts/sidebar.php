@@ -151,6 +151,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('logistics') ?>" class="nav-link <?= $currentUrl === 'logistics' ? 'active' : '' ?>">Dashboard</a></li>
                             <li class="nav-item"><a href="<?= url('logistics/receive') ?>" class="nav-link <?= isActive('logistics/receive', $currentUrl) ?>">Nhập kho (Quét)</a></li>
                             <li class="nav-item"><a href="<?= url('logistics/packages') ?>" class="nav-link <?= isActive('logistics/packages', $currentUrl) ?>">Kiện hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/orders') ?>" class="nav-link <?= isActive('logistics/orders', $currentUrl) ?>">Đơn hàng</a></li>
                             <li class="nav-item"><a href="<?= url('logistics/bags') ?>" class="nav-link <?= isActive('logistics/bags', $currentUrl) ?>">Bao hàng</a></li>
                         </ul>
                     </div>
