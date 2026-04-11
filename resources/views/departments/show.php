@@ -49,14 +49,34 @@
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>Nhân viên</th><th>Vai trò</th><th>Đăng nhập cuối</th></tr></thead>
+                        <?php
+                        // Build position map
+                        $posMap = [];
+                        foreach ($positions ?? [] as $p) { $posMap[$p['user_id']] = $p; }
+                        $posOptions = ['Giám đốc','Phó Giám đốc','Trưởng phòng','Phó phòng','Trưởng nhóm','Phó nhóm','Chuyên viên cao cấp','Chuyên viên','Kỹ sư','Thiết kế','Lập trình viên','Kế toán','Kế toán trưởng','Giám đốc kinh doanh','Nhân viên kinh doanh','Tư vấn viên','Account Manager','Chăm sóc khách hàng','Nhân viên','Trợ lý','Thư ký','Thực tập sinh','Cộng tác viên','Cố vấn','Giám sát','Điều phối viên'];
+                        ?>
+                        <thead class="table-light"><tr><th>Nhân viên</th><th>Chức danh</th><th>Vai trò</th><th>Đăng nhập cuối</th></tr></thead>
                         <tbody>
                         <?php
                         $roleLabels = ['admin'=>'Admin','manager'=>'Quản lý','staff'=>'Nhân viên'];
                         $roleColors = ['admin'=>'danger','manager'=>'warning','staff'=>'info'];
-                        foreach ($members as $m): ?>
+                        foreach ($members as $m):
+                            $curPos = $posMap[$m['id']]['position'] ?? '';
+                        ?>
                         <tr>
                             <td><?= user_avatar($m['name'] ?? null, 'primary', $m['avatar'] ?? null) ?></td>
+                            <td>
+                                <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions') ?>" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="user_id" value="<?= $m['id'] ?>">
+                                    <select name="position" class="form-select form-select-sm" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                                        <option value="">— Chưa gán —</option>
+                                        <?php foreach ($posOptions as $po): ?>
+                                            <option value="<?= e($po) ?>" <?= $curPos === $po ? 'selected' : '' ?>><?= e($po) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </form>
+                            </td>
                             <td><span class="badge bg-<?= $roleColors[$m['role']] ?? 'secondary' ?>-subtle text-<?= $roleColors[$m['role']] ?? 'secondary' ?>"><?= $roleLabels[$m['role']] ?? $m['role'] ?></span></td>
                             <td class="text-muted fs-12"><?= $m['last_login'] ? time_ago($m['last_login']) : '-' ?></td>
                         </tr>
