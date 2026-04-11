@@ -3,9 +3,10 @@
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Quản lý kho</h4>
     <div class="d-flex gap-2">
-        <a href="<?= url('warehouses/movements') ?>" class="btn btn-soft-info"><i class="ri-arrow-left-right-line me-1"></i> Xuất nhập kho</a>
+        <a href="<?= url('warehouses/movements') ?>" class="btn btn-soft-info"><i class="ri-arrow-left-right-line me-1"></i> Xuất nhập</a>
         <a href="<?= url('warehouses/checks') ?>" class="btn btn-soft-warning"><i class="ri-clipboard-line me-1"></i> Kiểm kho</a>
         <a href="<?= url('warehouses/report') ?>" class="btn btn-soft-success"><i class="ri-bar-chart-box-line me-1"></i> Báo cáo</a>
+        <a href="<?= url('warehouses/settings') ?>" class="btn btn-soft-secondary"><i class="ri-settings-3-line me-1"></i> Cài đặt</a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWhModal"><i class="ri-add-line me-1"></i> Thêm kho</button>
     </div>
 </div>

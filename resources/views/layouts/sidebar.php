@@ -106,15 +106,16 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('purchase-orders') ?>" class="nav-link <?= isActive('purchase-orders', $currentUrl) ?>">Đơn hàng mua</a></li>
                             <li class="nav-item"><a href="<?= url('quotations') ?>" class="nav-link <?= isActive('quotations', $currentUrl) ?>">Báo giá</a></li>
                             <?php endif; ?>
-                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= $currentUrl === 'warehouses' ? 'active' : '' ?>">Danh sách kho</a></li>
-                            <li class="nav-item"><a href="<?= url('warehouses/movements') ?>" class="nav-link <?= isActive('warehouses/movements', $currentUrl) ?>">Xuất nhập kho</a></li>
-                            <li class="nav-item"><a href="<?= url('warehouses/checks') ?>" class="nav-link <?= isActive('warehouses/checks', $currentUrl) ?>">Kiểm kho</a></li>
-                            <li class="nav-item"><a href="<?= url('warehouses/report') ?>" class="nav-link <?= isActive('warehouses/report', $currentUrl) ?>">Báo cáo tồn kho</a></li>
-                            <li class="nav-item"><a href="<?= url('warehouses/settings') ?>" class="nav-link <?= isActive('warehouses/settings', $currentUrl) ?>">Cài đặt kho</a></li>
                         </ul>
                     </div>
                 </li>
                 <?php endif; ?>
+
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isOpen(['warehouses'], $currentUrl) ? 'active' : '' ?>" href="<?= url('warehouses') ?>">
+                        <i class="ri-store-2-line"></i> <span>Kho</span>
+                    </a>
+                </li>
 
                 <?php
                 // Logistics plugin (only show if installed + active)
