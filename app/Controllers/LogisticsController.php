@@ -362,7 +362,7 @@ class LogisticsController extends Controller
         $code = $this->input('order_code') ?: 'DH' . date('ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         $type = $this->input('type') ?: 'retail';
 
-        Database::insert('logistics_orders', [
+        $orderId = Database::insert('logistics_orders', [
             'order_code' => $code,
             'type' => $type,
             'customer_name' => trim($this->input('customer_name') ?? '') ?: null,
@@ -375,6 +375,23 @@ class LogisticsController extends Controller
             'note' => trim($this->input('note') ?? '') ?: null,
             'created_by' => $this->userId(),
         ]);
+
+        // Handle images
+        if (!empty($_FILES['images']['name'][0])) {
+            $uploadDir = BASE_PATH . '/public/uploads/logistics/';
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            $images = [];
+            foreach ($_FILES['images']['name'] as $i => $name) {
+                if ($_FILES['images']['error'][$i] !== UPLOAD_ERR_OK) continue;
+                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                $filename = 'order_' . $orderId . '_' . uniqid() . '.' . $ext;
+                move_uploaded_file($_FILES['images']['tmp_name'][$i], $uploadDir . $filename);
+                $images[] = $filename;
+            }
+            if (!empty($images)) {
+                Database::update('logistics_orders', ['images' => json_encode($images)], 'id = ?', [$orderId]);
+            }
+        }
 
         $this->setFlash('success', 'Đã tạo đơn ' . $code);
         return $this->redirect('logistics/orders');
@@ -412,6 +429,35 @@ class LogisticsController extends Controller
         );
 
         return $this->view('logistics.order-show', ['order' => $order, 'packages' => $packages, 'scanLogs' => $scanLogs]);
+    }
+
+    public function uploadOrderImage($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $order = Database::fetch("SELECT id, images FROM logistics_orders WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        if (!$order) return $this->json(['error' => 'Không tồn tại'], 404);
+
+        if (empty($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return $this->json(['error' => 'Không có file'], 422);
+        }
+
+        $file = $_FILES['image'];
+        if ($file['size'] > 10 * 1024 * 1024) return $this->json(['error' => 'File quá lớn'], 422);
+
+        $uploadDir = BASE_PATH . '/public/uploads/logistics/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'order_' . $id . '_' . uniqid() . '.' . $ext;
+        move_uploaded_file($file['tmp_name'], $uploadDir . $filename);
+
+        $images = json_decode($order['images'] ?? '[]', true) ?: [];
+        $images[] = $filename;
+
+        Database::update('logistics_orders', ['images' => json_encode($images)], 'id = ?', [(int)$id]);
+
+        return $this->json(['success' => true, 'url' => url('uploads/logistics/' . $filename), 'filename' => $filename]);
     }
 
     // ---- Confirm wholesale (AJAX) ----

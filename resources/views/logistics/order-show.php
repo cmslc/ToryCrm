@@ -137,6 +137,48 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
         </div>
         <?php endif; ?>
 
+        <!-- Images -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title mb-0 flex-grow-1">Ảnh đơn hàng</h5>
+            </div>
+            <div class="card-body">
+                <?php $orderImages = json_decode($order['images'] ?? '[]', true) ?: []; ?>
+                <div class="d-flex flex-wrap gap-2 mb-3" id="imageList">
+                    <?php foreach ($orderImages as $img): ?>
+                    <a href="<?= url('uploads/logistics/' . $img) ?>" target="_blank">
+                        <img src="<?= url('uploads/logistics/' . $img) ?>" class="rounded border" style="width:80px;height:80px;object-fit:cover">
+                    </a>
+                    <?php endforeach; ?>
+                    <?php if (empty($orderImages)): ?><p class="text-muted mb-0 fs-12" id="noImages">Chưa có ảnh</p><?php endif; ?>
+                </div>
+                <div>
+                    <input type="file" id="orderImageInput" class="d-none" accept="image/*" multiple>
+                    <button class="btn btn-soft-primary" onclick="document.getElementById('orderImageInput').click()"><i class="ri-camera-line me-1"></i> Tải ảnh</button>
+                </div>
+            </div>
+        </div>
+        <script>
+        document.getElementById('orderImageInput')?.addEventListener('change', function() {
+            Array.from(this.files).forEach(function(file) {
+                var fd = new FormData();
+                fd.append('image', file);
+                fd.append('_token', '<?= csrf_token() ?>');
+                fetch('<?= url("logistics/orders/" . $order["id"] . "/upload") ?>', {method:'POST', body:fd})
+                    .then(function(r){return r.json()})
+                    .then(function(d) {
+                        if (d.success) {
+                            document.getElementById('noImages')?.remove();
+                            var img = document.createElement('a');
+                            img.href = d.url; img.target = '_blank';
+                            img.innerHTML = '<img src="' + d.url + '" class="rounded border" style="width:80px;height:80px;object-fit:cover">';
+                            document.getElementById('imageList').appendChild(img);
+                        }
+                    });
+            });
+        });
+        </script>
+
         <?php if ($order['note']): ?>
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0">Ghi chú</h5></div>

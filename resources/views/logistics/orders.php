@@ -64,7 +64,7 @@ $currentType = $filters['type'] ?? '';
 <div class="modal fade" id="addOrderModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="<?= url('logistics/orders/create') ?>">
+            <form method="POST" action="<?= url('logistics/orders/create') ?>" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <div class="modal-header"><h5 class="modal-title">Tạo đơn hàng</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
@@ -90,6 +90,7 @@ $currentType = $filters['type'] ?? '';
                         </div>
                     </div>
                     <div class="mb-3"><label class="form-label">Ghi chú</label><textarea class="form-control" name="note" rows="2"></textarea></div>
+                    <div class="mb-3"><label class="form-label">Ảnh đơn hàng</label><input type="file" name="images[]" class="form-control" accept="image/*" multiple></div>
                 </div>
                 <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary"><i class="ri-check-line me-1"></i> Tạo</button></div>
             </form>
