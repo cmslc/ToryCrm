@@ -118,22 +118,43 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
     </div>
 </div>
 
-<!-- Weight Modal -->
-<div class="modal fade" id="weightModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Cân nặng & Kích thước</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <input type="hidden" id="weightPkgId">
-                <div class="mb-3"><label class="form-label">Cân nặng (kg) <span class="text-danger">*</span></label><input type="number" class="form-control" id="weightInput" min="0.01" step="0.01" autofocus></div>
-                <div class="row">
-                    <div class="col-4 mb-3"><label class="form-label">Dài (cm)</label><input type="number" class="form-control" id="lengthInput" min="0" step="0.1"></div>
-                    <div class="col-4 mb-3"><label class="form-label">Rộng (cm)</label><input type="number" class="form-control" id="widthInput" min="0" step="0.1"></div>
-                    <div class="col-4 mb-3"><label class="form-label">Cao (cm)</label><input type="number" class="form-control" id="heightInput" min="0" step="0.1"></div>
+<?php endif; ?>
+
+<?php if (in_array($bag['status'], ['open', 'sealed'])): ?>
+<!-- Cập nhật cân nặng & kích thước bao -->
+<div class="card">
+    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-scales-line me-2"></i> Cân nặng & Kích thước bao</h5></div>
+    <div class="card-body">
+        <form method="POST" action="<?= url('logistics/bags/' . $bag['id'] . '/update') ?>">
+            <?= csrf_field() ?>
+            <input type="hidden" name="_redirect" value="logistics/bags/<?= $bag['id'] ?>">
+            <input type="hidden" name="bag_code" value="<?= e($bag['bag_code']) ?>">
+            <div class="row align-items-end">
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Cân nặng (kg)</label>
+                    <input type="number" class="form-control" name="total_weight" value="<?= $bag['total_weight'] ?>" step="0.01" min="0">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Dài (cm)</label>
+                    <input type="number" class="form-control" name="length_cm" value="<?= $bag['length_cm'] ?? '' ?>" step="0.1" min="0">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Rộng (cm)</label>
+                    <input type="number" class="form-control" name="width_cm" value="<?= $bag['width_cm'] ?? '' ?>" step="0.1" min="0">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Cao (cm)</label>
+                    <input type="number" class="form-control" name="height_cm" value="<?= $bag['height_cm'] ?? '' ?>" step="0.1" min="0">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">CBM (m³)</label>
+                    <input type="text" class="form-control" value="<?= $bag['total_cbm'] ? rtrim(rtrim(number_format($bag['total_cbm'], 4), '0'), '.') : '-' ?>" disabled>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Lưu</button>
                 </div>
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Bỏ qua</button><button type="button" class="btn btn-primary" id="btnSaveWeight"><i class="ri-save-line me-1"></i> Lưu</button></div>
-        </div>
+        </form>
     </div>
 </div>
 <?php endif; ?>
@@ -262,15 +283,6 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
                     + '<td><button class="btn btn-soft-danger btn-icon" onclick="removePkg(' + data.package.id + ', \'' + (data.package.code || data.package.package_code || '') + '\')" title="Gỡ khỏi bao"><i class="ri-close-line"></i></button></td>';
                 pkgTable.insertBefore(tr, pkgTable.firstChild);
 
-                // Weight modal
-                if (data.need_weight) {
-                    document.getElementById('weightPkgId').value = data.package.id;
-                    document.getElementById('weightInput').value = '';
-                    document.getElementById('lengthInput').value = '';
-                    document.getElementById('widthInput').value = '';
-                    document.getElementById('heightInput').value = '';
-                    new bootstrap.Modal(document.getElementById('weightModal')).show();
-                }
             } else {
                 if (data.type === 'duplicate') {
                     playSound('dup');
@@ -296,35 +308,6 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
         });
     });
 
-    // Save weight
-    document.getElementById('btnSaveWeight')?.addEventListener('click', function() {
-        var pkgId = document.getElementById('weightPkgId').value;
-        var weight = document.getElementById('weightInput').value;
-        if (!weight || parseFloat(weight) <= 0) { alert('Nhập cân nặng'); return; }
-
-        fetch('<?= url("logistics/update-weight") ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
-            body: '_token=<?= csrf_token() ?>&package_id=' + pkgId
-                + '&weight=' + weight
-                + '&length=' + (document.getElementById('lengthInput').value || 0)
-                + '&width=' + (document.getElementById('widthInput').value || 0)
-                + '&height=' + (document.getElementById('heightInput').value || 0)
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
-                // Update weight cell
-                var row = document.getElementById('pkg-row-' + pkgId);
-                if (row) {
-                    var cells = row.querySelectorAll('td');
-                    cells[3].textContent = parseFloat(Number(weight).toFixed(2)) + ' kg';
-                }
-            }
-            scanInput.focus();
-        });
-    });
 })();
 
 function removePkg(pkgId, code) {

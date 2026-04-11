@@ -413,12 +413,24 @@ class LogisticsController extends Controller
                 return $this->redirect('logistics/bags');
             }
         }
-        Database::query(
-            "UPDATE logistics_bags SET bag_code = ?, note = ? WHERE id = ? AND tenant_id = ?",
-            [$code ?: $bag['bag_code'], $note, $id, $tid]
-        );
+        $weight = $this->input('total_weight');
+        $length = $this->input('length_cm');
+        $width = $this->input('width_cm');
+        $height = $this->input('height_cm');
+
+        $update = ['bag_code' => $code ?: $bag['bag_code'], 'note' => $note];
+        if ($weight !== null) $update['total_weight'] = (float)$weight;
+        if ($length !== null) $update['length_cm'] = (float)$length ?: null;
+        if ($width !== null) $update['width_cm'] = (float)$width ?: null;
+        if ($height !== null) $update['height_cm'] = (float)$height ?: null;
+        if ($length && $width && $height) {
+            $update['total_cbm'] = round((float)$length * (float)$width * (float)$height / 1000000, 4);
+        }
+
+        Database::update('logistics_bags', $update, 'id = ? AND tenant_id = ?', [$id, $tid]);
         $this->setFlash('success', 'Đã cập nhật bao.');
-        return $this->redirect('logistics/bags');
+        $redirect = $this->input('_redirect') ?: 'logistics/bags';
+        return $this->redirect($redirect);
     }
 
     public function deleteBag($id)
