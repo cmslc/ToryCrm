@@ -24,6 +24,48 @@ $orderImages = json_decode($order['images'] ?? '[]', true) ?: [];
     </div>
 </div>
 
+<!-- Order Info + Images -->
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr><th class="text-muted" width="110">Khách hàng</th><td class="fw-medium"><?= e($order['customer_name'] ?? '-') ?></td></tr>
+                            <?php if ($order['customer_phone']): ?><tr><th class="text-muted">SĐT</th><td><?= e($order['customer_phone']) ?></td></tr><?php endif; ?>
+                            <tr><th class="text-muted">Sản phẩm</th><td><?= e($order['product_name'] ?? '-') ?></td></tr>
+                            <tr><th class="text-muted">Người tạo</th><td><?= user_avatar($order['created_by_name'] ?? null) ?></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-sm-6">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr><th class="text-muted" width="110">Ngày tạo</th><td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td></tr>
+                            <?php if ($order['total_amount'] > 0): ?><tr><th class="text-muted">Tổng tiền</th><td class="fw-semibold"><?= format_money($order['total_amount']) ?></td></tr><?php endif; ?>
+                            <?php if ($order['cod_amount'] > 0): ?><tr><th class="text-muted">COD</th><td class="text-danger fw-semibold"><?= format_money($order['cod_amount']) ?></td></tr><?php endif; ?>
+                            <?php if ($order['payment_method']): ?><tr><th class="text-muted">Thanh toán</th><td><span class="badge bg-primary-subtle text-primary"><?= $pmLabels[$order['payment_method']] ?? $order['payment_method'] ?></span></td></tr><?php endif; ?>
+                        </table>
+                    </div>
+                </div>
+                <?php if ($order['note']): ?><div class="border-top mt-2 pt-2"><span class="text-muted fs-12">Ghi chú:</span> <?= e($order['note']) ?></div><?php endif; ?>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex flex-wrap gap-2" id="imageList">
+                    <?php foreach ($orderImages as $i => $img): ?>
+                    <a href="javascript:void(0)" onclick="showImagePopup(<?= htmlspecialchars(json_encode(array_map(fn($im) => url('uploads/logistics/' . $im), $orderImages))) ?>, <?= $i ?>)">
+                        <img src="<?= url('uploads/logistics/' . $img) ?>" class="rounded border" style="width:70px;height:70px;object-fit:cover;cursor:pointer">
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+                <div class="mt-2">
+                    <input type="file" id="orderImageInput" class="d-none" accept="image/*" multiple>
+                    <button class="btn btn-soft-primary btn-sm" onclick="document.getElementById('orderImageInput').click()"><i class="ri-camera-line me-1"></i> Tải ảnh</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Summary Cards -->
 <div class="row mb-1">
     <div class="col-md-2"><div class="card card-animate mb-2"><div class="card-body py-3 text-center"><h5 class="mb-0"><?= $order['total_packages'] ?></h5><span class="text-muted fs-11">Tổng kiện</span></div></div></div>
@@ -45,8 +87,6 @@ $orderImages = json_decode($order['images'] ?? '[]', true) ?: [];
     <div class="card-header p-0">
         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabPkgs">Kiện hàng <span class="badge bg-primary-subtle text-primary ms-1"><?= count($packages) ?></span></a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabInfo">Thông tin</a></li>
-            <?php if (!empty($orderImages)): ?><li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabImages">Ảnh <span class="badge bg-info-subtle text-info ms-1"><?= count($orderImages) ?></span></a></li><?php endif; ?>
             <?php if (!empty($scanLogs)): ?><li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabLogs">Lịch sử quét</a></li><?php endif; ?>
         </ul>
     </div>
@@ -78,50 +118,6 @@ $orderImages = json_decode($order['images'] ?? '[]', true) ?: [];
                 </div>
             </div>
 
-            <!-- Thông tin -->
-            <div class="tab-pane" id="tabInfo">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr><th class="text-muted" width="130">Mã đơn</th><td class="fw-medium"><?= e($order['order_code']) ?></td></tr>
-                            <tr><th class="text-muted">Loại</th><td><span class="badge bg-<?= $order['type'] === 'wholesale' ? 'success' : 'info' ?>"><?= $order['type'] === 'wholesale' ? 'Hàng lô/sỉ' : 'Hàng lẻ' ?></span></td></tr>
-                            <tr><th class="text-muted">Khách hàng</th><td><?= e($order['customer_name'] ?? '-') ?></td></tr>
-                            <?php if ($order['customer_phone']): ?><tr><th class="text-muted">SĐT</th><td><?= e($order['customer_phone']) ?></td></tr><?php endif; ?>
-                            <tr><th class="text-muted">Sản phẩm</th><td><?= e($order['product_name'] ?? '-') ?></td></tr>
-                            <tr><th class="text-muted">Người tạo</th><td><?= user_avatar($order['created_by_name'] ?? null) ?></td></tr>
-                            <tr><th class="text-muted">Ngày tạo</th><td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td></tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr><th class="text-muted" width="130">Tổng kiện</th><td><?= $order['total_packages'] ?></td></tr>
-                            <tr><th class="text-muted">Đã gửi</th><td><?= $order['shipped_packages'] ?></td></tr>
-                            <tr><th class="text-muted">Đã nhận</th><td class="text-success fw-medium"><?= $order['received_packages'] ?></td></tr>
-                            <tr><th class="text-muted">Tổng cân</th><td><?= ($order['total_weight'] ?? 0) > 0 ? rtrim(rtrim(number_format($order['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td></tr>
-                            <tr><th class="text-muted">Số khối</th><td><?= ($order['total_cbm'] ?? 0) > 0 ? rtrim(rtrim(number_format($order['total_cbm'], 4), '0'), '.') . ' m³' : '-' ?></td></tr>
-                            <?php if ($order['total_amount'] > 0): ?><tr><th class="text-muted">Tổng tiền</th><td class="fw-semibold"><?= format_money($order['total_amount']) ?></td></tr><?php endif; ?>
-                            <?php if ($order['cod_amount'] > 0): ?><tr><th class="text-muted">COD</th><td class="text-danger fw-semibold"><?= format_money($order['cod_amount']) ?></td></tr><?php endif; ?>
-                            <?php if ($order['payment_method']): ?><tr><th class="text-muted">Thanh toán</th><td><span class="badge bg-primary-subtle text-primary"><?= $pmLabels[$order['payment_method']] ?? $order['payment_method'] ?></span></td></tr><?php endif; ?>
-                        </table>
-                        <?php if ($order['note']): ?><div class="border-top pt-3"><strong class="text-muted fs-12">Ghi chú:</strong><p class="mb-0 mt-1"><?= e($order['note']) ?></p></div><?php endif; ?>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ảnh -->
-            <?php if (!empty($orderImages)): ?>
-            <div class="tab-pane" id="tabImages">
-                <div class="d-flex flex-wrap gap-2 mb-3" id="imageList">
-                    <?php foreach ($orderImages as $i => $img): ?>
-                    <a href="javascript:void(0)" onclick="showImagePopup(<?= htmlspecialchars(json_encode(array_map(fn($im) => url('uploads/logistics/' . $im), $orderImages))) ?>, <?= $i ?>)">
-                        <img src="<?= url('uploads/logistics/' . $img) ?>" class="rounded border" style="width:120px;height:120px;object-fit:cover;cursor:pointer">
-                    </a>
-                    <?php endforeach; ?>
-                </div>
-                <input type="file" id="orderImageInput" class="d-none" accept="image/*" multiple>
-                <button class="btn btn-soft-primary" onclick="document.getElementById('orderImageInput').click()"><i class="ri-camera-line me-1"></i> Thêm ảnh</button>
-            </div>
-            <?php endif; ?>
 
             <!-- Lịch sử quét -->
             <?php if (!empty($scanLogs)): ?>
