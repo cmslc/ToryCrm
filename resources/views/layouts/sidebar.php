@@ -148,6 +148,10 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('logistics/packages') ?>" class="nav-link <?= isActive('logistics/packages', $currentUrl) ?>">Kiện hàng</a></li>
                             <li class="nav-item"><a href="<?= url('logistics/orders') ?>" class="nav-link <?= isActive('logistics/orders', $currentUrl) ?>">Đơn hàng</a></li>
                             <li class="nav-item"><a href="<?= url('logistics/bags') ?>" class="nav-link <?= isActive('logistics/bags', $currentUrl) ?>">Bao hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/shipments') ?>" class="nav-link <?= isActive('logistics/shipments', $currentUrl) ?>">Lô hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/deliveries') ?>" class="nav-link <?= isActive('logistics/deliveries', $currentUrl) ?>">Giao hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/calculator') ?>" class="nav-link <?= isActive('logistics/calculator', $currentUrl) ?>">Tính phí</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/reports') ?>" class="nav-link <?= isActive('logistics/reports', $currentUrl) ?>">Báo cáo</a></li>
                         </ul>
                     </div>
                 </li>

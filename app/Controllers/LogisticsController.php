@@ -155,6 +155,10 @@ class LogisticsController extends Controller
         $this->logStatus($pkg['id'], $oldStatus, 'warehouse_vn', 'Quét mã nhập kho', $uid);
         $this->logScan($tid, $barcode, 'package', 'success', $pkg['id'], null, 'Nhập kho thành công', $uid);
 
+        // Auto-complete bag/shipment
+        if ($pkg['bag_id']) self::checkAutoComplete((int)$pkg['bag_id']);
+        if ($pkg['shipment_id']) self::checkShipmentAutoArrival((int)$pkg['shipment_id']);
+
         $pkg['status'] = 'warehouse_vn';
         return $this->json([
             'success' => true,
@@ -552,6 +556,323 @@ class LogisticsController extends Controller
             'message' => "Đã nhận {$receivedCount} kiện cho đơn {$order['order_code']} ({$newReceived}/{$order['total_packages']})",
             'order' => array_merge($order, ['received_packages' => $newReceived, 'status' => $newStatus]),
         ]);
+    }
+
+    // ---- Shipments ----
+    public function shipments()
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $status = $this->input('status');
+
+        $where = ["ls.tenant_id = ?"];
+        $params = [$tid];
+        if ($status) { $where[] = "ls.status = ?"; $params[] = $status; }
+
+        $shipments = Database::fetchAll(
+            "SELECT ls.*, u.name as created_by_name FROM logistics_shipments ls LEFT JOIN users u ON ls.created_by = u.id WHERE " . implode(' AND ', $where) . " ORDER BY ls.created_at DESC",
+            $params
+        );
+
+        return $this->view('logistics.shipments', ['shipments' => $shipments, 'filters' => ['status' => $status]]);
+    }
+
+    public function createShipment()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/shipments');
+        $code = $this->input('shipment_code') ?: 'LH' . date('ymd') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+
+        Database::insert('logistics_shipments', [
+            'tenant_id' => Database::tenantId(),
+            'shipment_code' => $code,
+            'origin' => $this->input('origin') ?: 'CN',
+            'destination' => $this->input('destination') ?: 'VN',
+            'vehicle_info' => trim($this->input('vehicle_info') ?? '') ?: null,
+            'note' => trim($this->input('note') ?? '') ?: null,
+            'created_by' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã tạo lô hàng ' . $code);
+        return $this->redirect('logistics/shipments');
+    }
+
+    public function showShipment($id)
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $shipment = Database::fetch(
+            "SELECT ls.*, u.name as created_by_name FROM logistics_shipments ls LEFT JOIN users u ON ls.created_by = u.id WHERE ls.id = ? AND ls.tenant_id = ?",
+            [(int)$id, $tid]
+        );
+        if (!$shipment) { $this->setFlash('error', 'Lô hàng không tồn tại.'); return $this->redirect('logistics/shipments'); }
+
+        $packages = Database::fetchAll(
+            "SELECT lp.* FROM logistics_packages lp WHERE lp.shipment_id = ? AND lp.tenant_id = ? ORDER BY lp.created_at",
+            [(int)$id, $tid]
+        );
+
+        $bags = Database::fetchAll(
+            "SELECT lb.*, (SELECT COUNT(*) FROM logistics_packages WHERE bag_id = lb.id) as pkg_count FROM logistics_bags lb WHERE lb.shipment_id = ? AND lb.tenant_id = ?",
+            [(int)$id, $tid]
+        );
+
+        return $this->view('logistics.shipment-show', ['shipment' => $shipment, 'packages' => $packages, 'bags' => $bags]);
+    }
+
+    public function updateShipmentStatus($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/shipments/' . $id);
+        $tid = Database::tenantId();
+        $newStatus = $this->input('status');
+        $validStatuses = ['preparing','in_transit','arrived','completed','cancelled'];
+        if (!in_array($newStatus, $validStatuses)) { $this->setFlash('error', 'Trạng thái không hợp lệ.'); return $this->back(); }
+
+        $update = ['status' => $newStatus];
+        if ($newStatus === 'in_transit') $update['departed_at'] = date('Y-m-d H:i:s');
+        if ($newStatus === 'arrived') $update['arrived_at'] = date('Y-m-d H:i:s');
+        if ($newStatus === 'completed') $update['completed_at'] = date('Y-m-d H:i:s');
+
+        Database::update('logistics_shipments', $update, 'id = ? AND tenant_id = ?', [(int)$id, $tid]);
+
+        // Auto-receive packages when shipment arrived
+        if ($newStatus === 'arrived') {
+            $pkgs = Database::fetchAll("SELECT id, status FROM logistics_packages WHERE shipment_id = ? AND tenant_id = ? AND status IN ('packed','shipping')", [(int)$id, $tid]);
+            foreach ($pkgs as $p) {
+                Database::update('logistics_packages', ['status' => 'warehouse_vn', 'received_by' => $this->userId(), 'received_at' => date('Y-m-d H:i:s')], 'id = ? AND tenant_id = ?', [$p['id'], $tid]);
+                $this->logStatus($p['id'], $p['status'], 'warehouse_vn', 'Auto nhập kho khi lô hàng đến', $this->userId());
+            }
+        }
+
+        $this->setFlash('success', 'Đã cập nhật trạng thái lô hàng.');
+        return $this->redirect('logistics/shipments/' . $id);
+    }
+
+    public function addToShipment($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $tid = Database::tenantId();
+        $type = $this->input('type'); // package or bag
+        $itemId = (int)$this->input('item_id');
+
+        if ($type === 'bag') {
+            Database::update('logistics_bags', ['shipment_id' => (int)$id], 'id = ? AND tenant_id = ?', [$itemId, $tid]);
+            // Also assign packages in bag
+            Database::query("UPDATE logistics_packages SET shipment_id = ? WHERE bag_id = ? AND tenant_id = ?", [(int)$id, $itemId, $tid]);
+            // Update bag count
+            $bagPkgCount = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE bag_id = ?", [$itemId])['c'] ?? 0);
+            $totalWeight = (float)(Database::fetch("SELECT COALESCE(SUM(weight_actual),0) as w FROM logistics_packages WHERE bag_id = ?", [$itemId])['w'] ?? 0);
+            Database::update('logistics_bags', ['total_packages' => $bagPkgCount, 'total_weight' => $totalWeight], 'id = ?', [$itemId]);
+        } else {
+            Database::update('logistics_packages', ['shipment_id' => (int)$id], 'id = ? AND tenant_id = ?', [$itemId, $tid]);
+        }
+
+        // Recalc shipment totals
+        $this->recalcShipment((int)$id);
+        return $this->json(['success' => true]);
+    }
+
+    private function recalcShipment(int $shipmentId): void
+    {
+        $stats = Database::fetch(
+            "SELECT COUNT(*) as total_packages, COALESCE(SUM(weight_actual),0) as total_weight, COALESCE(SUM(cbm),0) as total_cbm FROM logistics_packages WHERE shipment_id = ?",
+            [$shipmentId]
+        );
+        $bagCount = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_bags WHERE shipment_id = ?", [$shipmentId])['c'] ?? 0);
+        Database::update('logistics_shipments', [
+            'total_packages' => (int)($stats['total_packages'] ?? 0),
+            'total_bags' => $bagCount,
+            'total_weight' => (float)($stats['total_weight'] ?? 0),
+            'total_cbm' => (float)($stats['total_cbm'] ?? 0),
+        ], 'id = ?', [$shipmentId]);
+    }
+
+    // ---- Delivery ----
+    public function deliveries()
+    {
+        if (!$this->checkPlugin()) return;
+        $deliveries = Database::fetchAll(
+            "SELECT ld.*, u.name as delivered_by_name FROM logistics_deliveries ld LEFT JOIN users u ON ld.delivered_by = u.id WHERE ld.tenant_id = ? ORDER BY ld.created_at DESC",
+            [Database::tenantId()]
+        );
+        return $this->view('logistics.deliveries', ['deliveries' => $deliveries]);
+    }
+
+    public function createDelivery()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/deliveries');
+        $tid = Database::tenantId();
+        $code = 'GH' . date('ymd') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+        $orderId = (int)($this->input('order_id') ?: 0) ?: null;
+        $pkgId = (int)($this->input('package_id') ?: 0) ?: null;
+
+        $deliveryId = Database::insert('logistics_deliveries', [
+            'tenant_id' => $tid,
+            'delivery_code' => $code,
+            'order_id' => $orderId,
+            'package_id' => $pkgId,
+            'customer_name' => trim($this->input('customer_name') ?? '') ?: null,
+            'customer_phone' => trim($this->input('customer_phone') ?? '') ?: null,
+            'delivery_type' => $this->input('delivery_type') ?: 'full',
+            'total_packages' => (int)($this->input('total_packages') ?: 1),
+            'cod_amount' => (float)($this->input('cod_amount') ?: 0),
+            'note' => trim($this->input('note') ?? '') ?: null,
+            'created_by' => $this->userId(),
+        ]);
+
+        $this->setFlash('success', 'Đã tạo phiếu giao ' . $code);
+        return $this->redirect('logistics/deliveries');
+    }
+
+    public function markDelivered($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $tid = Database::tenantId();
+
+        $delivery = Database::fetch("SELECT * FROM logistics_deliveries WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$delivery) return $this->json(['error' => 'Phiếu không tồn tại'], 404);
+
+        $codCollected = (float)($this->input('cod_collected') ?: 0);
+        $codMethod = $this->input('cod_method') ?: null;
+        $deliveredPkgs = (int)($this->input('delivered_packages') ?: $delivery['total_packages']);
+
+        Database::update('logistics_deliveries', [
+            'status' => 'delivered',
+            'delivered_packages' => $deliveredPkgs,
+            'cod_collected' => $codCollected,
+            'cod_method' => $codMethod,
+            'delivered_by' => $this->userId(),
+            'delivered_at' => date('Y-m-d H:i:s'),
+            'delivery_type' => $deliveredPkgs < $delivery['total_packages'] ? 'partial' : 'full',
+        ], 'id = ? AND tenant_id = ?', [(int)$id, $tid]);
+
+        // Update linked package/order status
+        if ($delivery['package_id']) {
+            Database::update('logistics_packages', [
+                'status' => 'delivered', 'delivered_by' => $this->userId(), 'delivered_at' => date('Y-m-d H:i:s'),
+            ], 'id = ? AND tenant_id = ?', [$delivery['package_id'], $tid]);
+            $this->logStatus($delivery['package_id'], 'warehouse_vn', 'delivered', 'Giao hàng thành công', $this->userId());
+        }
+
+        if ($delivery['order_id']) {
+            $order = Database::fetch("SELECT * FROM logistics_orders WHERE id = ?", [$delivery['order_id']]);
+            if ($order) {
+                $newReceived = ($order['received_packages'] ?? 0) + $deliveredPkgs;
+                $newStatus = $newReceived >= $order['total_packages'] ? 'completed' : 'partial';
+                Database::update('logistics_orders', ['received_packages' => $newReceived, 'status' => $newStatus], 'id = ?', [$delivery['order_id']]);
+            }
+        }
+
+        return $this->json(['success' => true, 'message' => 'Đã xác nhận giao hàng']);
+    }
+
+    // ---- Shipping Calculator ----
+    public function shippingCalculator()
+    {
+        if (!$this->checkPlugin()) return;
+        $rates = Database::fetchAll("SELECT * FROM logistics_shipping_rates WHERE tenant_id = ? AND is_active = 1 ORDER BY cargo_type, name", [Database::tenantId()]);
+        return $this->view('logistics.calculator', ['rates' => $rates]);
+    }
+
+    public function saveRate()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/calculator');
+        Database::insert('logistics_shipping_rates', [
+            'tenant_id' => Database::tenantId(),
+            'name' => trim($this->input('name') ?? ''),
+            'cargo_type' => $this->input('cargo_type') ?: 'easy',
+            'rate_per_kg' => (float)($this->input('rate_per_kg') ?: 0),
+            'rate_per_cbm' => (float)($this->input('rate_per_cbm') ?: 0),
+            'min_weight' => (float)($this->input('min_weight') ?: 0),
+            'max_weight' => (float)($this->input('max_weight') ?: 0),
+            'origin' => $this->input('origin') ?: 'CN',
+            'destination' => $this->input('destination') ?: 'VN',
+        ]);
+        $this->setFlash('success', 'Đã thêm bảng giá.');
+        return $this->redirect('logistics/calculator');
+    }
+
+    public function deleteRate($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/calculator');
+        Database::delete('logistics_shipping_rates', 'id = ? AND tenant_id = ?', [(int)$id, Database::tenantId()]);
+        $this->setFlash('success', 'Đã xóa.');
+        return $this->redirect('logistics/calculator');
+    }
+
+    // ---- Reports ----
+    public function reports()
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $dateFrom = $this->input('date_from') ?: date('Y-m-01');
+        $dateTo = $this->input('date_to') ?: date('Y-m-d');
+
+        $receiveStats = Database::fetch(
+            "SELECT COUNT(*) as total, SUM(CASE WHEN status IN ('warehouse_vn','delivering','delivered') THEN 1 ELSE 0 END) as received, COALESCE(SUM(weight_actual),0) as total_weight
+             FROM logistics_packages WHERE tenant_id = ? AND created_at BETWEEN ? AND ?",
+            [$tid, $dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']
+        );
+
+        $deliveryStats = Database::fetch(
+            "SELECT COUNT(*) as total, COALESCE(SUM(cod_collected),0) as total_cod,
+                    SUM(CASE WHEN cod_method='cash' THEN cod_collected ELSE 0 END) as cod_cash,
+                    SUM(CASE WHEN cod_method='transfer' THEN cod_collected ELSE 0 END) as cod_transfer
+             FROM logistics_deliveries WHERE tenant_id = ? AND status = 'delivered' AND delivered_at BETWEEN ? AND ?",
+            [$tid, $dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']
+        );
+
+        $orderStats = Database::fetch(
+            "SELECT COUNT(*) as total, SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) as completed,
+                    COALESCE(SUM(total_amount),0) as total_amount
+             FROM logistics_orders WHERE tenant_id = ? AND created_at BETWEEN ? AND ?",
+            [$tid, $dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']
+        );
+
+        $dailyReceive = Database::fetchAll(
+            "SELECT DATE(received_at) as day, COUNT(*) as count, COALESCE(SUM(weight_actual),0) as weight
+             FROM logistics_packages WHERE tenant_id = ? AND received_at BETWEEN ? AND ? AND status IN ('warehouse_vn','delivering','delivered')
+             GROUP BY DATE(received_at) ORDER BY day",
+            [$tid, $dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']
+        );
+
+        return $this->view('logistics.reports', [
+            'receiveStats' => $receiveStats,
+            'deliveryStats' => $deliveryStats,
+            'orderStats' => $orderStats,
+            'dailyReceive' => $dailyReceive,
+            'filters' => ['date_from' => $dateFrom, 'date_to' => $dateTo],
+        ]);
+    }
+
+    // ---- Auto-complete helpers ----
+    public static function checkAutoComplete(int $bagId): void
+    {
+        try {
+            $bag = Database::fetch("SELECT id, status FROM logistics_bags WHERE id = ?", [$bagId]);
+            if (!$bag || $bag['status'] === 'completed') return;
+
+            $total = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE bag_id = ?", [$bagId])['c'] ?? 0);
+            $received = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE bag_id = ? AND status IN ('warehouse_vn','delivering','delivered')", [$bagId])['c'] ?? 0);
+
+            if ($total > 0 && $received >= $total) {
+                Database::update('logistics_bags', ['status' => 'completed'], 'id = ?', [$bagId]);
+            }
+        } catch (\Exception $e) {}
+    }
+
+    public static function checkShipmentAutoArrival(int $shipmentId): void
+    {
+        try {
+            $shipment = Database::fetch("SELECT id, status FROM logistics_shipments WHERE id = ?", [$shipmentId]);
+            if (!$shipment || in_array($shipment['status'], ['arrived','completed'])) return;
+
+            $total = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ?", [$shipmentId])['c'] ?? 0);
+            $received = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ? AND status IN ('warehouse_vn','delivering','delivered')", [$shipmentId])['c'] ?? 0);
+
+            if ($total > 0 && $received >= $total) {
+                Database::update('logistics_shipments', ['status' => 'arrived', 'arrived_at' => date('Y-m-d H:i:s')], 'id = ?', [$shipmentId]);
+            }
+        } catch (\Exception $e) {}
     }
 
     // ---- Helpers ----

@@ -389,6 +389,18 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('logistics/orders/{id}/upload', 'LogisticsController@uploadOrderImage');
     Router::post('logistics/orders/{id}/delete', 'LogisticsController@deleteOrder');
     Router::post('logistics/confirm-wholesale', 'LogisticsController@confirmWholesale');
+    Router::get('logistics/shipments', 'LogisticsController@shipments');
+    Router::post('logistics/shipments/create', 'LogisticsController@createShipment');
+    Router::get('logistics/shipments/{id}', 'LogisticsController@showShipment');
+    Router::post('logistics/shipments/{id}/status', 'LogisticsController@updateShipmentStatus');
+    Router::post('logistics/shipments/{id}/add', 'LogisticsController@addToShipment');
+    Router::get('logistics/deliveries', 'LogisticsController@deliveries');
+    Router::post('logistics/deliveries/create', 'LogisticsController@createDelivery');
+    Router::post('logistics/deliveries/{id}/mark', 'LogisticsController@markDelivered');
+    Router::get('logistics/calculator', 'LogisticsController@shippingCalculator');
+    Router::post('logistics/calculator/store', 'LogisticsController@saveRate');
+    Router::post('logistics/calculator/{id}/delete', 'LogisticsController@deleteRate');
+    Router::get('logistics/reports', 'LogisticsController@reports');
     Router::get('logistics/bags', 'LogisticsController@bags');
     Router::post('logistics/bags/create', 'LogisticsController@createBag');
 
