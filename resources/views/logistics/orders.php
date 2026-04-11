@@ -470,7 +470,6 @@ document.addEventListener('DOMContentLoaded', function() {
             idsDiv.appendChild(inp);
         });
     });
-    });
 });
 
 var popupImages = [], popupIndex = 0;
