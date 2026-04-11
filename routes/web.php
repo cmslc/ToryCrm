@@ -368,6 +368,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('warehouses/checks/{id}/update', 'WarehouseController@updateCheck');
     Router::post('warehouses/checks/{id}/complete', 'WarehouseController@completeCheck');
     Router::get('warehouses/report', 'WarehouseController@report');
+    Router::get('warehouses/settings', 'WarehouseController@settings');
+    Router::post('warehouses/settings', 'WarehouseController@saveSettings');
     Router::get('warehouses/{id}', 'WarehouseController@show');
     Router::post('warehouses/{id}/update', 'WarehouseController@update');
     Router::post('warehouses/{id}/delete', 'WarehouseController@delete');

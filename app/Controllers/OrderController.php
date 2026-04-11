@@ -5,6 +5,7 @@ namespace App\Controllers;
 use Core\Controller;
 use Core\Database;
 use App\Models\Order;
+use App\Controllers\WarehouseController;
 
 class OrderController extends Controller
 {
@@ -652,8 +653,8 @@ class OrderController extends Controller
 
         Database::update('orders', ['status' => $newStatus], 'id = ?', [$id]);
 
-        // Auto export stock when order completed
-        if ($newStatus === 'completed' && $order['status'] !== 'completed') {
+        // Auto export stock when order completed (if enabled in settings)
+        if ($newStatus === 'completed' && $order['status'] !== 'completed' && WarehouseController::isEnabled('auto_export_on_order')) {
             $this->autoExportStock((int)$id, 'order');
         }
 
@@ -663,7 +664,12 @@ class OrderController extends Controller
     private function autoExportStock(int $orderId, string $type): void
     {
         try {
-            $defaultWh = Database::fetch("SELECT id FROM warehouses WHERE tenant_id = ? AND is_default = 1 LIMIT 1", [Database::tenantId()]);
+            // Use settings default warehouse or fallback to is_default
+            $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [Database::tenantId()]);
+            $whSettings = json_decode($tenant['settings'] ?? '{}', true)['warehouse'] ?? [];
+            $defaultWhId = $whSettings['default_warehouse_id'] ?? 0;
+            $defaultWh = $defaultWhId ? Database::fetch("SELECT id FROM warehouses WHERE id = ?", [$defaultWhId]) : null;
+            if (!$defaultWh) $defaultWh = Database::fetch("SELECT id FROM warehouses WHERE tenant_id = ? AND is_default = 1 LIMIT 1", [Database::tenantId()]);
             if (!$defaultWh) return;
 
             $items = Database::fetchAll("SELECT product_id, quantity FROM order_items WHERE order_id = ?", [$orderId]);

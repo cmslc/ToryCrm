@@ -96,7 +96,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('products') || canSee('orders')): ?>
-                <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations','warehouses'], $currentUrl); ?>
+                <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $prodOpen ? '' : 'collapsed' ?>" href="#sidebarProducts" data-bs-toggle="collapse" role="button" aria-expanded="<?= $prodOpen ? 'true' : 'false' ?>">
                         <i class="ri-shopping-bag-line"></i> <span>Sản phẩm</span>
@@ -110,12 +110,27 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('orders') ?>" class="nav-link <?= isActive('orders', $currentUrl) ?>">Đơn hàng bán</a></li>
                             <li class="nav-item"><a href="<?= url('purchase-orders') ?>" class="nav-link <?= isActive('purchase-orders', $currentUrl) ?>">Đơn hàng mua</a></li>
                             <li class="nav-item"><a href="<?= url('quotations') ?>" class="nav-link <?= isActive('quotations', $currentUrl) ?>">Báo giá</a></li>
-                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho</a></li>
                             <?php endif; ?>
                         </ul>
                     </div>
                 </li>
                 <?php endif; ?>
+
+                <?php $whOpen = isOpen(['warehouses'], $currentUrl); ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= $whOpen ? '' : 'collapsed' ?>" href="#sidebarWarehouses" data-bs-toggle="collapse" role="button" aria-expanded="<?= $whOpen ? 'true' : 'false' ?>">
+                        <i class="ri-store-2-line"></i> <span>Kho</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?= $whOpen ? 'show' : '' ?>" id="sidebarWarehouses">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= $currentUrl === 'warehouses' ? 'active' : '' ?>">Danh sách kho</a></li>
+                            <li class="nav-item"><a href="<?= url('warehouses/movements') ?>" class="nav-link <?= isActive('warehouses/movements', $currentUrl) ?>">Xuất nhập kho</a></li>
+                            <li class="nav-item"><a href="<?= url('warehouses/checks') ?>" class="nav-link <?= isActive('warehouses/checks', $currentUrl) ?>">Kiểm kho</a></li>
+                            <li class="nav-item"><a href="<?= url('warehouses/report') ?>" class="nav-link <?= isActive('warehouses/report', $currentUrl) ?>">Báo cáo tồn kho</a></li>
+                            <li class="nav-item"><a href="<?= url('warehouses/settings') ?>" class="nav-link <?= isActive('warehouses/settings', $currentUrl) ?>">Cài đặt</a></li>
+                        </ul>
+                    </div>
+                </li>
 
                 <?php if (canSee('campaigns')): ?>
                 <?php $campOpen = isOpen(['campaigns','email-templates'], $currentUrl); ?>

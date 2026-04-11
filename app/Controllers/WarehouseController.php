@@ -412,6 +412,50 @@ class WarehouseController extends Controller
         ]);
     }
 
+    // ---- Settings ----
+    public function settings()
+    {
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+        $whConfig = $settings['warehouse'] ?? [];
+
+        return $this->view('warehouses.settings', ['config' => $whConfig]);
+    }
+
+    public function saveSettings()
+    {
+        if (!$this->isPost()) return $this->redirect('warehouses/settings');
+
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true);
+
+        $settings['warehouse'] = [
+            'auto_export_on_order' => $this->input('auto_export_on_order') ? true : false,
+            'auto_import_on_purchase' => $this->input('auto_import_on_purchase') ? true : false,
+            'show_stock_on_product' => $this->input('show_stock_on_product') ? true : false,
+            'low_stock_notification' => $this->input('low_stock_notification') ? true : false,
+            'default_warehouse_id' => (int)($this->input('default_warehouse_id') ?: 0),
+        ];
+
+        Database::update('tenants', ['settings' => json_encode($settings)], 'id = ?', [$this->tenantId()]);
+        $this->setFlash('success', 'Đã lưu cài đặt kho.');
+        return $this->redirect('warehouses/settings');
+    }
+
+    /**
+     * Check if a warehouse integration feature is enabled
+     */
+    public static function isEnabled(string $feature): bool
+    {
+        try {
+            $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [Database::tenantId()]);
+            $settings = json_decode($tenant['settings'] ?? '{}', true);
+            return (bool)($settings['warehouse'][$feature] ?? false);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
     // ---- Helpers ----
     private function updateStock(int $warehouseId, int $productId, float $qty): void
     {
