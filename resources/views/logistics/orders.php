@@ -28,7 +28,7 @@ $currentType = $filters['type'] ?? '';
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Số khối</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
+                <thead class="table-light"><tr><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Số khối</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th><th style="width:60px"></th></tr></thead>
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
@@ -70,9 +70,20 @@ $currentType = $filters['type'] ?? '';
                     <td><?= $o['cod_amount'] > 0 ? format_money($o['cod_amount']) : '-' ?></td>
                     <td><span class="badge bg-<?= $stColors[$o['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$o['status']] ?? 'secondary' ?>"><?= $stLabels[$o['status']] ?? $o['status'] ?></span></td>
                     <td class="text-muted fs-12"><?= created_ago($o['created_at']) ?></td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="<?= url('logistics/orders/' . $o['id']) ?>"><i class="ri-eye-line me-2"></i>Chi tiết</a></li>
+                                <li><a class="dropdown-item" href="<?= url('logistics/orders/' . $o['id']) ?>#editOrderModal" onclick="setTimeout(function(){var m=document.getElementById('editOrderModal');if(m)new bootstrap.Modal(m).show()},500)"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><form method="POST" action="<?= url('logistics/orders/' . $o['id'] . '/delete') ?>" data-confirm="Xóa đơn <?= e($o['order_code']) ?>?"><?= csrf_field() ?><button class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button></form></li>
+                            </ul>
+                        </div>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($orders)): ?><tr><td colspan="12" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
+                <?php if (empty($orders)): ?><tr><td colspan="13" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>
