@@ -143,8 +143,6 @@ document.querySelectorAll('.edit-dept').forEach(function(btn) {
         document.getElementById('deptModalTitle').textContent = 'Sửa phòng ban';
         document.getElementById('deptName').value = this.dataset.name;
         document.getElementById('deptParent').value = this.dataset.parent;
-        document.getElementById('deptManager').value = this.dataset.manager;
-        document.getElementById('deptViceManager').value = this.dataset.vicemanager || '';
         document.getElementById('deptDesc').value = this.dataset.description;
         var c = this.dataset.color;
         document.querySelectorAll('[name=color]').forEach(function(r) { r.checked = r.value === c; });
@@ -156,8 +154,6 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
     document.getElementById('deptModalTitle').textContent = 'Thêm phòng ban';
     document.getElementById('deptName').value = '';
     document.getElementById('deptParent').value = '';
-    document.getElementById('deptManager').value = '';
-    document.getElementById('deptViceManager').value = '';
     document.getElementById('deptDesc').value = '';
 });
 </script>
