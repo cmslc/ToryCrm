@@ -30,7 +30,7 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
 
 <div class="card">
     <div class="card-body p-0">
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow:visible">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th><th>Mã bao</th><th>Số kiện</th><th>Tổng cân</th><th>Trạng thái</th><th>Người tạo</th><th>Ngày tạo</th><th style="width:60px"></th></tr></thead>
                 <tbody>
@@ -45,15 +45,15 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                     <td class="text-muted fs-12"><?= created_ago($b['created_at']) ?></td>
                     <td>
                         <div class="dropdown">
-                            <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                            <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown" data-bs-boundary="viewport"><i class="ri-more-2-fill"></i></button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <?php if ($b['status'] === 'open'): ?>
-                                <li><a class="dropdown-item" href="#" onclick="sealBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')"><i class="ri-lock-line me-2 text-primary"></i> Đóng bao</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="sealBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')"><i class="ri-lock-line me-2 text-primary"></i> Đóng bao</a></li>
                                 <?php endif; ?>
                                 <?php if (in_array($b['status'], ['open','sealed'])): ?>
-                                <li><a class="dropdown-item" href="#" onclick="editBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>', '<?= e($b['note'] ?? '') ?>')"><i class="ri-edit-line me-2 text-info"></i> Sửa bao</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="editBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>', '<?= e($b['note'] ?? '') ?>')"><i class="ri-edit-line me-2 text-info"></i> Sửa bao</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')"><i class="ri-delete-bin-line me-2"></i> Xóa bao</a></li>
+                                <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')"><i class="ri-delete-bin-line me-2"></i> Xóa bao</a></li>
                                 <?php endif; ?>
                             </ul>
                         </div>
