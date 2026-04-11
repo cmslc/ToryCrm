@@ -28,11 +28,25 @@ $currentType = $filters['type'] ?? '';
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Mã đơn</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
+                <thead class="table-light"><tr><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
                     <td><a href="<?= url('logistics/orders/' . $o['id']) ?>" class="fw-medium"><?= e($o['order_code']) ?></a></td>
+                    <td>
+                        <?php
+                        $oImgs = json_decode($o['images'] ?? '[]', true) ?: [];
+                        if (!empty($oImgs)):
+                            $firstImg = $oImgs[0];
+                        ?>
+                            <a href="<?= url('logistics/orders/' . $o['id']) ?>">
+                                <img src="<?= url('uploads/logistics/' . $firstImg) ?>" class="rounded" style="width:40px;height:40px;object-fit:cover">
+                                <?php if (count($oImgs) > 1): ?><span class="text-muted fs-11 ms-1">+<?= count($oImgs) - 1 ?></span><?php endif; ?>
+                            </a>
+                        <?php else: ?>
+                            <span class="text-muted">-</span>
+                        <?php endif; ?>
+                    </td>
                     <td><span class="badge bg-<?= $o['type'] === 'wholesale' ? 'success' : 'info' ?>-subtle text-<?= $o['type'] === 'wholesale' ? 'success' : 'info' ?>"><?= $o['type'] === 'wholesale' ? 'Sỉ' : 'Lẻ' ?></span></td>
                     <td><?= e($o['customer_name'] ?? '-') ?><?= $o['customer_phone'] ? '<div class="text-muted fs-11">' . e($o['customer_phone']) . '</div>' : '' ?></td>
                     <td class="fs-12"><?= e(mb_substr($o['product_name'] ?? '-', 0, 30)) ?></td>
@@ -53,7 +67,7 @@ $currentType = $filters['type'] ?? '';
                     <td class="text-muted fs-12"><?= created_ago($o['created_at']) ?></td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($orders)): ?><tr><td colspan="10" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
+                <?php if (empty($orders)): ?><tr><td colspan="11" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>
