@@ -28,7 +28,7 @@ $currentType = $filters['type'] ?? '';
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
+                <thead class="table-light"><tr><th>Mã đơn</th><th>Ảnh</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Số khối</th><th>Đã nhận</th><th>Tổng tiền</th><th>COD</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead>
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
@@ -51,6 +51,11 @@ $currentType = $filters['type'] ?? '';
                     <td><?= e($o['customer_name'] ?? '-') ?><?= $o['customer_phone'] ? '<div class="text-muted fs-11">' . e($o['customer_phone']) . '</div>' : '' ?></td>
                     <td class="fs-12"><?= e(mb_substr($o['product_name'] ?? '-', 0, 30)) ?></td>
                     <td class="fw-medium"><?= $o['total_packages'] ?></td>
+                    <td class="text-muted fs-12">
+                        <?php if ($o['total_weight'] > 0): ?><?= number_format($o['total_weight'], 2) ?> kg<?php endif; ?>
+                        <?php if ($o['total_cbm'] > 0): ?><div><?= number_format($o['total_cbm'], 4) ?> m³</div><?php endif; ?>
+                        <?php if (!$o['total_weight'] && !$o['total_cbm']): ?>-<?php endif; ?>
+                    </td>
                     <td>
                         <?php if ($o['type'] === 'wholesale' && $o['total_packages'] > 0): ?>
                             <div class="d-flex align-items-center gap-2">
@@ -67,7 +72,7 @@ $currentType = $filters['type'] ?? '';
                     <td class="text-muted fs-12"><?= created_ago($o['created_at']) ?></td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($orders)): ?><tr><td colspan="11" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
+                <?php if (empty($orders)): ?><tr><td colspan="12" class="text-center text-muted py-4">Chưa có đơn hàng</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -94,7 +99,9 @@ $currentType = $filters['type'] ?? '';
                     </div>
                     <div class="mb-3"><label class="form-label">Sản phẩm</label><input type="text" class="form-control" name="product_name"></div>
                     <div class="row">
-                        <div class="col-4 mb-3"><label class="form-label">Tổng kiện</label><input type="number" class="form-control" name="total_packages" min="0" value="1"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Tổng kiện</label><input type="number" class="form-control" name="total_packages" min="0" value="1"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Cân nặng (kg)</label><input type="number" class="form-control" name="total_weight" min="0" step="0.01"></div>
+                        <div class="col-3 mb-3"><label class="form-label">Số khối (m³)</label><input type="number" class="form-control" name="total_cbm" min="0" step="0.0001"></div>
                         <div class="col-4 mb-3"><label class="form-label">Tổng tiền</label><input type="number" class="form-control" name="total_amount" min="0" step="1000"></div>
                         <div class="col-4 mb-3"><label class="form-label">COD thu</label><input type="number" class="form-control" name="cod_amount" min="0" step="1000"></div>
                     </div>

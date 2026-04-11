@@ -83,6 +83,8 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
                     <tr><th class="text-muted">Khách hàng</th><td><?= e($order['customer_name'] ?? '-') ?></td></tr>
                     <?php if ($order['customer_phone']): ?><tr><th class="text-muted">SĐT</th><td><?= e($order['customer_phone']) ?></td></tr><?php endif; ?>
                     <tr><th class="text-muted">Sản phẩm</th><td><?= e($order['product_name'] ?? '-') ?></td></tr>
+                    <?php if ($order['total_weight'] > 0): ?><tr><th class="text-muted">Tổng cân</th><td><?= number_format($order['total_weight'], 2) ?> kg</td></tr><?php endif; ?>
+                    <?php if ($order['total_cbm'] > 0): ?><tr><th class="text-muted">Số khối</th><td><?= number_format($order['total_cbm'], 4) ?> m³</td></tr><?php endif; ?>
                     <tr><th class="text-muted">Người tạo</th><td><?= user_avatar($order['created_by_name'] ?? null) ?></td></tr>
                     <tr><th class="text-muted">Ngày tạo</th><td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td></tr>
                 </table>

@@ -50,7 +50,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Khách hàng</th><th>Cân nặng</th><th>SL</th><th>Trạng thái</th><th>Người nhận</th><th>Cập nhật</th></tr></thead>
+                <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Khách hàng</th><th>Cân nặng</th><th>Số khối</th><th>SL</th><th>Trạng thái</th><th>Người nhận</th><th>Cập nhật</th></tr></thead>
                 <tbody>
                 <?php foreach ($packages as $p): ?>
                 <tr>
@@ -59,13 +59,14 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
                     <td class="fs-12"><?= e(mb_substr($p['product_name'] ?? '-', 0, 40)) ?></td>
                     <td class="fs-12"><?= e($p['customer_name'] ?? '-') ?></td>
                     <td><?= $p['weight_actual'] ? number_format($p['weight_actual'], 2) . ' kg' : '-' ?></td>
+                    <td class="text-muted fs-12"><?= ($p['cbm'] ?? 0) > 0 ? number_format($p['cbm'], 4) . ' m³' : ($p['length_cm'] && $p['width_cm'] && $p['height_cm'] ? number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4) . ' m³' : '-') ?></td>
                     <td><?= $p['quantity'] ?></td>
                     <td><span class="badge bg-<?= $statusColors[$p['status']] ?? 'secondary' ?>-subtle text-<?= $statusColors[$p['status']] ?? 'secondary' ?>"><?= $statusLabels[$p['status']] ?? $p['status'] ?></span></td>
                     <td><?= user_avatar($p['received_by_name'] ?? null) ?></td>
                     <td class="text-muted fs-12"><?= created_ago($p['updated_at']) ?></td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($packages)): ?><tr><td colspan="9" class="text-center text-muted py-4">Chưa có kiện hàng</td></tr><?php endif; ?>
+                <?php if (empty($packages)): ?><tr><td colspan="10" class="text-center text-muted py-4">Chưa có kiện hàng</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>

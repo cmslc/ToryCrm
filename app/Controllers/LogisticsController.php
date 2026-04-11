@@ -369,6 +369,8 @@ class LogisticsController extends Controller
             'customer_phone' => trim($this->input('customer_phone') ?? '') ?: null,
             'product_name' => trim($this->input('product_name') ?? '') ?: null,
             'total_packages' => (int)($this->input('total_packages') ?: 0),
+            'total_weight' => (float)($this->input('total_weight') ?: 0),
+            'total_cbm' => (float)($this->input('total_cbm') ?: 0),
             'total_amount' => (float)($this->input('total_amount') ?: 0),
             'cod_amount' => (float)($this->input('cod_amount') ?: 0),
             'payment_method' => trim($this->input('payment_method') ?? '') ?: null,
