@@ -9,6 +9,56 @@ foreach ($byId as &$d) {
     else { $tree[] = &$d; }
 }
 unset($d);
+
+if (!function_exists('renderDeptItem')) {
+    function renderDeptItem($node) { ?>
+        <li class="dept-tree-item">
+            <div class="d-flex align-items-center py-2 px-2 rounded dept-tree-row">
+                <?php if (!empty($node['children'])): ?>
+                    <a href="javascript:void(0)" class="me-2 dept-toggle" data-bs-toggle="collapse" data-bs-target="#dept-children-<?= $node['id'] ?>">
+                        <i class="ri-arrow-right-s-fill fs-18 text-muted dept-arrow"></i>
+                    </a>
+                <?php else: ?>
+                    <span class="me-2" style="width:18px;display:inline-block"></span>
+                <?php endif; ?>
+                <span class="d-inline-block rounded-circle me-2 flex-shrink-0" style="width:10px;height:10px;background:<?= e($node['color']) ?>"></span>
+                <div class="flex-grow-1 me-3">
+                    <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark"><?= e($node['name']) ?></a>
+                </div>
+                <div class="d-none d-md-flex align-items-center me-3" style="min-width:160px">
+                    <?php if ($node['manager_name']): ?>
+                        <?php if (!empty($node['manager_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $node['manager_avatar'])): ?>
+                            <img src="<?= url('uploads/avatars/' . $node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:24px;height:24px;object-fit:cover">
+                        <?php else: ?>
+                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-2" style="width:24px;height:24px;font-size:10px"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
+                        <?php endif; ?>
+                        <span class="fs-12"><?= e($node['manager_name']) ?></span>
+                    <?php else: ?>
+                        <span class="text-muted fs-12">—</span>
+                    <?php endif; ?>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary me-3"><?= $node['member_count'] ?></span>
+                <div class="dropdown">
+                    <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="<?= url('departments/' . $node['id']) ?>"><i class="ri-eye-line me-2"></i>Chi tiết</a></li>
+                        <li><a class="dropdown-item" href="<?= url('departments/' . $node['id'] . '/members') ?>"><i class="ri-team-line me-2"></i>Thành viên</a></li>
+                        <li><a class="dropdown-item edit-dept" href="#" data-id="<?= $node['id'] ?>" data-name="<?= e($node['name']) ?>" data-parent="<?= $node['parent_id'] ?? '' ?>" data-manager="<?= $node['manager_id'] ?? '' ?>" data-description="<?= e($node['description'] ?? '') ?>" data-color="<?= e($node['color']) ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><form method="POST" action="<?= url('departments/' . $node['id'] . '/delete') ?>" data-confirm="Xóa?"><?= csrf_field() ?><button class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button></form></li>
+                    </ul>
+                </div>
+            </div>
+            <?php if (!empty($node['children'])): ?>
+                <div class="collapse show" id="dept-children-<?= $node['id'] ?>">
+                    <ul class="list-unstyled mb-0 ms-4 border-start ps-2">
+                        <?php foreach ($node['children'] as $child) renderDeptItem($child); ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+        </li>
+    <?php }
+}
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -31,77 +81,6 @@ unset($d);
         <?php endif; ?>
     </div>
 </div>
-
-<?php
-if (!function_exists('renderDeptItem')) {
-    function renderDeptItem($node) { ?>
-        <li class="dept-tree-item">
-            <div class="d-flex align-items-center py-2 px-2 rounded dept-tree-row">
-                <!-- Toggle -->
-                <?php if (!empty($node['children'])): ?>
-                    <a href="javascript:void(0)" class="me-2 dept-toggle" data-bs-toggle="collapse" data-bs-target="#dept-children-<?= $node['id'] ?>">
-                        <i class="ri-arrow-right-s-fill fs-18 text-muted dept-arrow"></i>
-                    </a>
-                <?php else: ?>
-                    <span class="me-2" style="width:18px;display:inline-block"></span>
-                <?php endif; ?>
-
-                <!-- Color dot -->
-                <span class="d-inline-block rounded-circle me-2 flex-shrink-0" style="width:10px;height:10px;background:<?= e($node['color']) ?>"></span>
-
-                <!-- Name + parent -->
-                <div class="flex-grow-1 me-3">
-                    <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark"><?= e($node['name']) ?></a>
-                    <?php if ($node['parent_name']): ?>
-                        <span class="text-muted fs-11 ms-1">← <?= e($node['parent_name']) ?></span>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Manager -->
-                <div class="d-none d-md-flex align-items-center me-3" style="min-width:160px">
-                    <?php if ($node['manager_name']): ?>
-                        <?php if (!empty($node['manager_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $node['manager_avatar'])): ?>
-                            <img src="<?= url('uploads/avatars/' . $node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:24px;height:24px;object-fit:cover">
-                        <?php else: ?>
-                            <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-2" style="width:24px;height:24px;font-size:10px"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
-                        <?php endif; ?>
-                        <span class="fs-12"><?= e($node['manager_name']) ?></span>
-                    <?php else: ?>
-                        <span class="text-muted fs-12">—</span>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Member count -->
-                <span class="badge bg-secondary-subtle text-secondary me-3"><?= $node['member_count'] ?></span>
-
-                <!-- Actions -->
-                <div class="dropdown">
-                    <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="<?= url('departments/' . $node['id']) ?>"><i class="ri-eye-line me-2"></i>Chi tiết</a></li>
-                        <li><a class="dropdown-item" href="<?= url('departments/' . $node['id'] . '/members') ?>"><i class="ri-team-line me-2"></i>Thành viên</a></li>
-                        <li><a class="dropdown-item edit-dept" href="#"
-                            data-id="<?= $node['id'] ?>" data-name="<?= e($node['name']) ?>"
-                            data-parent="<?= $node['parent_id'] ?? '' ?>" data-manager="<?= $node['manager_id'] ?? '' ?>"
-                            data-description="<?= e($node['description'] ?? '') ?>" data-color="<?= e($node['color']) ?>">
-                            <i class="ri-pencil-line me-2"></i>Sửa</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><form method="POST" action="<?= url('departments/' . $node['id'] . '/delete') ?>" data-confirm="Xóa phòng ban <?= e($node['name']) ?>?"><?= csrf_field() ?><button class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button></form></li>
-                    </ul>
-                </div>
-            </div>
-
-            <?php if (!empty($node['children'])): ?>
-                <div class="collapse show" id="dept-children-<?= $node['id'] ?>">
-                    <ul class="list-unstyled mb-0 ms-4 border-start ps-2">
-                        <?php foreach ($node['children'] as $child) renderDeptItem($child); ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
-        </li>
-    <?php }
-}
-?>
 
 <style>
 .dept-tree-row:hover { background: var(--vz-light); }
