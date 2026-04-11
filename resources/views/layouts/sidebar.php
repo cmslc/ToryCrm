@@ -30,7 +30,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <span class="logo-lg"><img src="<?= e($_brandLogo) ?>" alt="" height="28"></span>
             <?php else: ?>
                 <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color)"></i></span>
-                <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:var(--vz-vertical-menu-item-active-color)"><?= e($_brandName) ?></span></span>
+                <span class="logo-lg"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color);margin-right:6px"></i><span style="font-size:17px;font-weight:700;color:var(--vz-vertical-menu-item-active-color)"><?= e($_brandName) ?></span></span>
             <?php endif; ?>
         </a>
         <a href="<?= url('dashboard') ?>" class="logo logo-light">
@@ -39,7 +39,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <span class="logo-lg"><img src="<?= e($_brandLogo) ?>" alt="" height="28"></span>
             <?php else: ?>
                 <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff"></i></span>
-                <span class="logo-lg"><span style="font-size:17px;font-weight:700;color:#fff"><?= e($_brandName) ?></span></span>
+                <span class="logo-lg"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff;margin-right:6px"></i><span style="font-size:17px;font-weight:700;color:#fff"><?= e($_brandName) ?></span></span>
             <?php endif; ?>
         </a>
         <button type="button" class="btn btn-link p-0 fs-20 header-item float-end btn-vertical-sm-hover" id="vertical-hover"><i class="ri-record-circle-line"></i></button>
