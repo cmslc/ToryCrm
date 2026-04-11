@@ -372,7 +372,7 @@ class LogisticsController extends Controller
             $this->setFlash('error', 'Không thể đóng bao này.');
             return $this->redirect('logistics/bags');
         }
-        Database::execute(
+        Database::query(
             "UPDATE logistics_bags SET status = 'sealed', sealed_at = NOW(), sealed_by = ? WHERE id = ? AND tenant_id = ?",
             [$this->userId(), $id, $tid]
         );
@@ -398,7 +398,7 @@ class LogisticsController extends Controller
                 return $this->redirect('logistics/bags');
             }
         }
-        Database::execute(
+        Database::query(
             "UPDATE logistics_bags SET bag_code = ?, note = ? WHERE id = ? AND tenant_id = ?",
             [$code ?: $bag['bag_code'], $note, $id, $tid]
         );
@@ -421,9 +421,9 @@ class LogisticsController extends Controller
         }
         $pkgCount = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_packages WHERE bag_id = ?", [$id]);
         if ($pkgCount && $pkgCount['cnt'] > 0) {
-            Database::execute("UPDATE logistics_packages SET bag_id = NULL WHERE bag_id = ? AND tenant_id = ?", [$id, $tid]);
+            Database::query("UPDATE logistics_packages SET bag_id = NULL WHERE bag_id = ? AND tenant_id = ?", [$id, $tid]);
         }
-        Database::execute("DELETE FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        Database::query("DELETE FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
         $this->setFlash('success', 'Đã xóa bao ' . $bag['bag_code']);
         return $this->redirect('logistics/bags');
     }
@@ -526,7 +526,7 @@ class LogisticsController extends Controller
         // Add to bag
         $oldStatus = $pkg['status'];
         $newStatus = $oldStatus === 'pending' ? 'warehouse_cn' : $oldStatus;
-        Database::execute(
+        Database::query(
             "UPDATE logistics_packages SET bag_id = ?, status = ?, warehouse_location = 'cn' WHERE id = ? AND tenant_id = ?",
             [$id, $newStatus, $pkg['id'], $tid]
         );
@@ -554,7 +554,7 @@ class LogisticsController extends Controller
         if (!$bag || $bag['status'] !== 'open') {
             return $this->json(['error' => 'Bao đã đóng'], 422);
         }
-        Database::execute("UPDATE logistics_packages SET bag_id = NULL WHERE id = ? AND bag_id = ? AND tenant_id = ?", [$pkgId, $id, $tid]);
+        Database::query("UPDATE logistics_packages SET bag_id = NULL WHERE id = ? AND bag_id = ? AND tenant_id = ?", [$pkgId, $id, $tid]);
         $this->recalcBag($id);
         return $this->json(['success' => true, 'message' => 'Đã gỡ kiện khỏi bao']);
     }
@@ -565,7 +565,7 @@ class LogisticsController extends Controller
             "SELECT COUNT(*) as cnt, COALESCE(SUM(weight_actual),0) as total_weight FROM logistics_packages WHERE bag_id = ?",
             [$bagId]
         );
-        Database::execute(
+        Database::query(
             "UPDATE logistics_bags SET total_packages = ?, total_weight = ? WHERE id = ?",
             [$stats['cnt'], $stats['total_weight'], $bagId]
         );
