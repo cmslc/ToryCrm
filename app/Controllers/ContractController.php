@@ -76,7 +76,7 @@ class ContractController extends Controller
                 COALESCE(SUM(CASE WHEN status = 'active' AND end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND end_date >= CURDATE() THEN 1 ELSE 0 END), 0) as expiring_soon,
                 COALESCE(SUM(CASE WHEN status = 'expired' OR (status = 'active' AND end_date < CURDATE()) THEN 1 ELSE 0 END), 0) as expired_count,
                 COALESCE(SUM(CASE WHEN status IN ('active', 'signed') THEN value ELSE 0 END), 0) as total_value
-             FROM contracts WHERE is_deleted = 0" . (!$this->isAdminOrManager() ? " AND owner_id = " . (int)$this->userId() : '')
+             FROM contracts WHERE is_deleted = 0" . (!$this->isAdminOrManager() && !$this->getDeptMemberIds() ? " AND owner_id = " . (int)$this->userId() : '')
         );
 
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");

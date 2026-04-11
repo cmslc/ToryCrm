@@ -100,7 +100,7 @@ class CampaignController extends Controller
         }
 
         // Ownership check: staff can only view own campaigns
-        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($campaign['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('campaigns');
         }
@@ -126,7 +126,7 @@ class CampaignController extends Controller
         }
 
         // Ownership check: staff can only edit own campaigns
-        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($campaign['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('campaigns');
         }
@@ -151,7 +151,7 @@ class CampaignController extends Controller
         }
 
         // Ownership check: staff can only update own campaigns
-        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($campaign['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('campaigns');
         }
@@ -223,7 +223,7 @@ class CampaignController extends Controller
         }
 
         // Ownership check: staff can only delete own campaigns
-        if (!$this->isAdminOrManager() && ($campaign['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($campaign['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('campaigns');
         }

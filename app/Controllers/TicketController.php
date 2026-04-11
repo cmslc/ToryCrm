@@ -135,7 +135,7 @@ class TicketController extends Controller
         }
 
         // Ownership check: staff can only view own tickets
-        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($ticket['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }
@@ -161,7 +161,7 @@ class TicketController extends Controller
         }
 
         // Ownership check: staff can only edit own tickets
-        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($ticket['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }
@@ -193,7 +193,7 @@ class TicketController extends Controller
         }
 
         // Ownership check: staff can only update own tickets
-        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($ticket['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }
@@ -318,7 +318,7 @@ class TicketController extends Controller
         }
 
         // Ownership check: staff can only delete own tickets
-        if (!$this->isAdminOrManager() && ($ticket['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($ticket['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tickets');
         }

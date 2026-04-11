@@ -265,7 +265,7 @@ class TaskController extends Controller
         }
 
         // Ownership check: staff can only view own tasks
-        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($task['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }
@@ -346,7 +346,7 @@ class TaskController extends Controller
         }
 
         // Ownership check: staff can only edit own tasks
-        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($task['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }
@@ -382,7 +382,7 @@ class TaskController extends Controller
         }
 
         // Ownership check: staff can only update own tasks
-        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($task['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }
@@ -560,7 +560,7 @@ class TaskController extends Controller
         }
 
         // Ownership check: staff can only delete own tasks
-        if (!$this->isAdminOrManager() && ($task['assigned_to'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($task['assigned_to'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('tasks');
         }

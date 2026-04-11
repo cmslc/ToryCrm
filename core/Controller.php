@@ -92,8 +92,53 @@ class Controller
     }
 
     /**
+     * Check if current user is department head (trưởng/phó phòng).
+     * Returns array of user IDs in their department, or null if not a dept head.
+     */
+    protected function getDeptMemberIds(): ?array
+    {
+        static $cache = null;
+        if ($cache !== null) return $cache ?: null;
+
+        $uid = $this->userId();
+        $deptId = $_SESSION['user']['department_id'] ?? null;
+        if (!$deptId) {
+            try {
+                $u = Database::fetch("SELECT department_id FROM users WHERE id = ?", [$uid]);
+                $deptId = $u['department_id'] ?? null;
+                $_SESSION['user']['department_id'] = $deptId;
+            } catch (\Exception $e) {}
+        }
+
+        if (!$deptId) { $cache = false; return null; }
+
+        // Check if user is manager or vice_manager of their department
+        try {
+            $dept = Database::fetch(
+                "SELECT manager_id, vice_manager_id FROM departments WHERE id = ?",
+                [$deptId]
+            );
+            if (!$dept) { $cache = false; return null; }
+
+            if ($dept['manager_id'] == $uid || $dept['vice_manager_id'] == $uid) {
+                $members = Database::fetchAll(
+                    "SELECT id FROM users WHERE department_id = ? AND is_active = 1",
+                    [$deptId]
+                );
+                $cache = array_column($members, 'id');
+                return $cache;
+            }
+        } catch (\Exception $e) {}
+
+        $cache = false;
+        return null;
+    }
+
+    /**
      * Get owner scope SQL for list queries.
-     * Admin/Manager: no filter (see all). Staff: only own records.
+     * Admin/Manager role: no filter (see all).
+     * Dept head (trưởng/phó phòng): see department members' data.
+     * Staff: only own records.
      * Returns ['where' => string, 'params' => array]
      */
     protected function ownerScope(string $alias = '', string $ownerField = 'owner_id'): array
@@ -103,10 +148,35 @@ class Controller
         }
 
         $col = $alias ? "{$alias}.{$ownerField}" : $ownerField;
+
+        // Department head: see all members' data
+        $deptMembers = $this->getDeptMemberIds();
+        if ($deptMembers && count($deptMembers) > 0) {
+            $placeholders = implode(',', array_fill(0, count($deptMembers), '?'));
+            return [
+                'where' => "{$col} IN ({$placeholders})",
+                'params' => $deptMembers,
+            ];
+        }
+
+        // Regular staff: own data only
         return [
             'where' => "{$col} = ?",
             'params' => [$this->userId()],
         ];
+    }
+
+    /**
+     * Check if current user can access a record owned by $ownerId.
+     * Admin/Manager: always. Dept head: if owner is in same dept. Staff: only own.
+     */
+    protected function canAccessOwner(?int $ownerId): bool
+    {
+        if ($this->isAdminOrManager()) return true;
+        if ($ownerId == $this->userId()) return true;
+        $deptMembers = $this->getDeptMemberIds();
+        if ($deptMembers && in_array($ownerId, $deptMembers)) return true;
+        return false;
     }
 
     /**

@@ -153,7 +153,7 @@ class CompanyController extends Controller
         }
 
         // Ownership check: staff can only view own records
-        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($company['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('companies');
         }
@@ -215,7 +215,7 @@ class CompanyController extends Controller
         }
 
         // Ownership check: staff can only edit own records
-        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($company['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('companies');
         }
@@ -243,7 +243,7 @@ class CompanyController extends Controller
         }
 
         // Ownership check: staff can only update own records
-        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($company['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('companies');
         }
@@ -294,7 +294,7 @@ class CompanyController extends Controller
         }
 
         // Ownership check: staff can only delete own records
-        if (!$this->isAdminOrManager() && ($company['owner_id'] ?? null) != $this->userId()) {
+        if (!$this->canAccessOwner($company['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('companies');
         }

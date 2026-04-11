@@ -31,7 +31,7 @@ class QuotationController extends Controller
                 SUM(status = 'accepted') as accepted,
                 SUM(status = 'rejected') as rejected,
                 SUM(status = 'expired') as expired
-             FROM quotations WHERE tenant_id = ?" . (!$this->isAdminOrManager() ? " AND owner_id = " . (int)$this->userId() : ''),
+             FROM quotations WHERE tenant_id = ?" . (!$this->isAdminOrManager() && !$this->getDeptMemberIds() ? " AND owner_id = " . (int)$this->userId() : ($this->getDeptMemberIds() ? " AND owner_id IN (" . implode(',', $this->getDeptMemberIds()) . ")" : '')),
             [$tid]
         );
 
