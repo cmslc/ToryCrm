@@ -34,13 +34,44 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
 <div class="card">
     <div class="card-header p-0">
         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
-            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabPkgs">Kiện hàng <span class="badge bg-primary-subtle text-primary ms-1"><?= count($packages) ?></span></a></li>
+            <?php
+            $shipOrders = \Core\Database::fetchAll("SELECT * FROM logistics_orders WHERE shipment_id = ? AND tenant_id = ?", [$shipment['id'], $_SESSION['tenant_id'] ?? 1]);
+            ?>
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabOrders">Đơn hàng <span class="badge bg-warning-subtle text-warning ms-1"><?= count($shipOrders) ?></span></a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabPkgs">Kiện hàng <span class="badge bg-primary-subtle text-primary ms-1"><?= count($packages) ?></span></a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabBags">Bao hàng <span class="badge bg-info-subtle text-info ms-1"><?= count($bags) ?></span></a></li>
         </ul>
     </div>
     <div class="card-body">
         <div class="tab-content">
-            <div class="tab-pane active" id="tabPkgs">
+            <!-- Orders -->
+            <div class="tab-pane active" id="tabOrders">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Mã đơn</th><th>Loại</th><th>Khách hàng</th><th>Sản phẩm</th><th>Kiện</th><th>Cân</th><th>Khối</th><th>Trạng thái</th></tr></thead>
+                        <tbody>
+                        <?php
+                        $oStLabels = ['pending'=>'Chờ','processing'=>'Đang xử lý','partial'=>'Nhận 1 phần','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
+                        $oStColors = ['pending'=>'secondary','processing'=>'primary','partial'=>'warning','completed'=>'success','cancelled'=>'danger'];
+                        foreach ($shipOrders as $so): ?>
+                        <tr>
+                            <td><a href="<?= url('logistics/orders/' . $so['id']) ?>" class="fw-medium"><?= e($so['order_code']) ?></a></td>
+                            <td><span class="badge bg-<?= $so['type'] === 'wholesale' ? 'success' : 'info' ?>-subtle text-<?= $so['type'] === 'wholesale' ? 'success' : 'info' ?>"><?= $so['type'] === 'wholesale' ? 'Sỉ' : 'Lẻ' ?></span></td>
+                            <td><?= e($so['customer_name'] ?? '-') ?></td>
+                            <td class="fs-12"><?= e(mb_substr($so['product_name'] ?? '-', 0, 30)) ?></td>
+                            <td><?= $so['total_packages'] ?></td>
+                            <td><?= $so['total_weight'] > 0 ? rtrim(rtrim(number_format($so['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td>
+                            <td class="fs-12"><?= $so['total_cbm'] > 0 ? rtrim(rtrim(number_format($so['total_cbm'], 4), '0'), '.') . ' m³' : '-' ?></td>
+                            <td><span class="badge bg-<?= $oStColors[$so['status']] ?? 'secondary' ?>-subtle text-<?= $oStColors[$so['status']] ?? 'secondary' ?>"><?= $oStLabels[$so['status']] ?? $so['status'] ?></span></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <?php if (empty($shipOrders)): ?><tr><td colspan="8" class="text-center text-muted py-3">Chưa có đơn</td></tr><?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Packages -->
+            <div class="tab-pane" id="tabPkgs">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>KH</th><th>Cân</th><th>Trạng thái</th></tr></thead>

@@ -656,9 +656,13 @@ class LogisticsController extends Controller
             }
         }
 
+        // Mark orders as linked to shipment
+        Database::query("UPDATE logistics_orders SET shipment_id = ? WHERE id IN ({$placeholders}) AND tenant_id = ?", array_merge([$shipmentId], $orderIds, [$tid]));
+
         $this->recalcShipment($shipmentId);
 
-        $this->setFlash('success', 'Đã tạo lô ' . $code . ' với ' . count($orderIds) . ' đơn hàng');
+        $totalPkgs = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ?", [$shipmentId])['c'] ?? 0);
+        $this->setFlash('success', 'Đã tạo lô ' . $code . ' với ' . count($orderIds) . ' đơn (' . $totalPkgs . ' kiện)');
         return $this->redirect('logistics/shipments/' . $shipmentId);
     }
 
@@ -794,10 +798,13 @@ class LogisticsController extends Controller
             }
         }
 
+        // Mark orders as linked
+        Database::query("UPDATE logistics_orders SET shipment_id = ? WHERE id IN ({$placeholders}) AND tenant_id = ?", array_merge([(int)$id], $orderIds, [$tid]));
+
         $this->recalcShipment((int)$id);
 
         $totalAdded = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ?", [(int)$id])['c'] ?? 0);
-        $this->setFlash('success', 'Đã xếp ' . $totalAdded . ' kiện vào lô ' . $shipment['shipment_code']);
+        $this->setFlash('success', 'Đã xếp ' . count($orderIds) . ' đơn (' . $totalAdded . ' kiện) vào lô ' . $shipment['shipment_code']);
         return $this->redirect('logistics/shipments/' . $id);
     }
 
