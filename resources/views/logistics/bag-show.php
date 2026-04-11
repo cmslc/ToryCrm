@@ -184,8 +184,8 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
 
         fetch('<?= url("logistics/bags/" . $bag['id'] . "/scan") ?>', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-            body: JSON.stringify({barcode: barcode, _token: '<?= $_SESSION['_token'] ?? '' ?>'})
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= $_SESSION['_token'] ?? '' ?>&barcode=' + encodeURIComponent(barcode)
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -253,15 +253,12 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
 
         fetch('<?= url("logistics/update-weight") ?>', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-            body: JSON.stringify({
-                package_id: pkgId,
-                weight: weight,
-                length: document.getElementById('lengthInput').value || 0,
-                width: document.getElementById('widthInput').value || 0,
-                height: document.getElementById('heightInput').value || 0,
-                _token: '<?= $_SESSION['_token'] ?? '' ?>'
-            })
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= $_SESSION['_token'] ?? '' ?>&package_id=' + pkgId
+                + '&weight=' + weight
+                + '&length=' + (document.getElementById('lengthInput').value || 0)
+                + '&width=' + (document.getElementById('widthInput').value || 0)
+                + '&height=' + (document.getElementById('heightInput').value || 0)
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -283,8 +280,8 @@ function removePkg(pkgId, code) {
     if (!confirm('Gỡ kiện ' + code + ' khỏi bao?')) return;
     fetch('<?= url("logistics/bags/" . $bag['id'] . "/remove-package") ?>', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-        body: JSON.stringify({package_id: pkgId, _token: '<?= $_SESSION['_token'] ?? '' ?>'})
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: '_token=<?= $_SESSION['_token'] ?? '' ?>&package_id=' + pkgId
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
