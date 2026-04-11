@@ -10,10 +10,12 @@ class LogisticsController extends Controller
 {
     private function checkPlugin(): bool
     {
-        $installed = PluginManager::getInstalled($this->tenantId());
-        foreach ($installed as $p) {
-            if ($p['slug'] === 'kho-logistics' && $p['tenant_active']) return true;
-        }
+        try {
+            $installed = PluginManager::getInstalled($this->tenantId());
+            foreach ($installed as $p) {
+                if ($p['slug'] === 'kho-logistics' && $p['tenant_active']) return true;
+            }
+        } catch (\Exception $e) {}
         $this->setFlash('error', 'Plugin Kho Logistics chưa được cài đặt.');
         $this->redirect('plugins/marketplace');
         return false;
@@ -72,6 +74,7 @@ class LogisticsController extends Controller
     public function scan()
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        if (!$this->checkPlugin()) return $this->json(['error' => 'Plugin chưa cài'], 403);
 
         $tid = Database::tenantId();
         $uid = $this->userId();
@@ -109,6 +112,7 @@ class LogisticsController extends Controller
             // Auto-create package if not found
             $pkgCode = $this->generateCode('K');
             $pkgId = Database::insert('logistics_packages', [
+                'tenant_id' => $tid,
                 'package_code' => $pkgCode,
                 'tracking_code' => $barcode,
                 'status' => 'warehouse_vn',
@@ -146,7 +150,7 @@ class LogisticsController extends Controller
             'status' => 'warehouse_vn',
             'received_by' => $uid,
             'received_at' => date('Y-m-d H:i:s'),
-        ], 'id = ?', [$pkg['id']]);
+        ], 'id = ? AND tenant_id = ?', [$pkg['id'], $tid]);
 
         $this->logStatus($pkg['id'], $oldStatus, 'warehouse_vn', 'Quét mã nhập kho', $uid);
         $this->logScan($tid, $barcode, 'package', 'success', $pkg['id'], null, 'Nhập kho thành công', $uid);
@@ -168,6 +172,8 @@ class LogisticsController extends Controller
 
         $pkgId = (int)$this->input('package_id');
         $weight = (float)$this->input('weight');
+        if ($weight <= 0) return $this->json(['error' => 'Cân nặng phải > 0'], 422);
+
         $length = (float)($this->input('length') ?: 0);
         $width = (float)($this->input('width') ?: 0);
         $height = (float)($this->input('height') ?: 0);
@@ -178,6 +184,7 @@ class LogisticsController extends Controller
         if ($height > 0) $update['height_cm'] = $height;
         if ($length > 0 && $width > 0 && $height > 0) {
             $update['weight_volume'] = round($length * $width * $height / 5000, 2);
+            $update['cbm'] = round($length * $width * $height / 1000000, 4);
         }
 
         Database::update('logistics_packages', $update, 'id = ? AND tenant_id = ?', [$pkgId, Database::tenantId()]);
@@ -206,12 +213,12 @@ class LogisticsController extends Controller
 
             Database::update('logistics_packages', [
                 'status' => 'warehouse_vn', 'received_by' => $uid, 'received_at' => date('Y-m-d H:i:s'),
-            ], 'id = ?', [$p['id']]);
+            ], 'id = ? AND tenant_id = ?', [$p['id'], $tid]);
             $this->logStatus($p['id'], $p['status'], 'warehouse_vn', 'Nhập kho qua bao ' . $barcode, $uid);
             $received++;
         }
 
-        Database::update('logistics_bags', ['status' => 'arrived'], 'id = ?', [$bag['id']]);
+        Database::update('logistics_bags', ['status' => 'arrived'], 'id = ? AND tenant_id = ?', [$bag['id'], $tid]);
         $this->logScan($tid, $barcode, 'bag', 'success', null, $bag['id'], "Nhập {$received}/" . count($packages) . " kiện", $uid);
 
         return $this->json([
@@ -245,7 +252,7 @@ class LogisticsController extends Controller
         $packages = Database::fetchAll(
             "SELECT lp.*, u.name as received_by_name, cb.name as created_by_name
              FROM logistics_packages lp LEFT JOIN users u ON lp.received_by = u.id LEFT JOIN users cb ON lp.created_by = cb.id
-             WHERE {$wc} ORDER BY lp.updated_at DESC LIMIT {$perPage} OFFSET {$offset}",
+             WHERE {$wc} ORDER BY lp.updated_at DESC LIMIT " . (int)$perPage . " OFFSET " . (int)$offset,
             $params
         );
 
@@ -268,6 +275,7 @@ class LogisticsController extends Controller
         $code = $this->input('package_code') ?: $this->generateCode('K');
 
         Database::insert('logistics_packages', [
+            'tenant_id' => $tid,
             'package_code' => $code,
             'tracking_code' => trim($this->input('tracking_code') ?? '') ?: null,
             'tracking_intl' => trim($this->input('tracking_intl') ?? '') ?: null,
@@ -325,6 +333,7 @@ class LogisticsController extends Controller
         $code = $this->input('bag_code') ?: 'BAO-' . date('ymd') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
 
         Database::insert('logistics_bags', [
+            'tenant_id' => Database::tenantId(),
             'bag_code' => $code,
             'note' => trim($this->input('note') ?? '') ?: null,
             'created_by' => $this->userId(),
@@ -376,6 +385,7 @@ class LogisticsController extends Controller
         $customerId = (int)($this->input('customer_id') ?: 0) ?: null;
 
         $orderId = Database::insert('logistics_orders', [
+            'tenant_id' => Database::tenantId(),
             'order_code' => $code,
             'type' => $type,
             'customer_name' => $customerName,
@@ -484,6 +494,8 @@ class LogisticsController extends Controller
     public function uploadOrderImage($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $allowed = ['image/jpeg','image/png','image/gif','image/webp'];
+        if (!empty($_FILES['image']) && !in_array($_FILES['image']['type'], $allowed)) return $this->json(['error' => 'Chỉ chấp nhận JPG, PNG, GIF, WebP'], 422);
 
         $order = Database::fetch("SELECT id, images FROM logistics_orders WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
         if (!$order) return $this->json(['error' => 'Không tồn tại'], 404);
