@@ -137,9 +137,11 @@ class LogisticsController extends Controller
             ]);
         }
 
-        // Check if already received at this warehouse
-        $alreadyReceived = ($whLocation === 'cn' && in_array($pkg['status'], ['warehouse_cn','packed','shipping','warehouse_vn','delivering','delivered']))
-            || ($whLocation === 'vn' && in_array($pkg['status'], ['warehouse_vn','delivering','delivered']));
+        // Validate status transition
+        $allowedForCn = ['pending']; // Only pending can enter CN warehouse
+        $allowedForVn = ['packed','shipping','warehouse_cn']; // Only packed/shipping/CN-warehouse can enter VN
+        $alreadyReceived = ($whLocation === 'cn' && !in_array($pkg['status'], $allowedForCn))
+            || ($whLocation === 'vn' && !in_array($pkg['status'], $allowedForVn));
         if ($alreadyReceived) {
             $this->logScan($tid, $barcode, 'package', 'duplicate', $pkg['id'], null, 'Đã nhập kho trước đó', $uid);
             return $this->json([
@@ -220,17 +222,22 @@ class LogisticsController extends Controller
         );
 
         $received = 0;
+        $skipped = 0;
         foreach ($packages as $p) {
-            if (in_array($p['status'], ['warehouse_vn', 'delivering', 'delivered'])) { $received++; continue; }
+            if (in_array($p['status'], ['warehouse_vn', 'delivered'])) { $received++; $skipped++; continue; }
+
+            // Only accept packages in valid states for VN receive
+            if (!in_array($p['status'], ['packed', 'shipping', 'warehouse_cn'])) { $skipped++; continue; }
 
             Database::update('logistics_packages', [
-                'status' => 'warehouse_vn', 'received_by' => $uid, 'received_at' => date('Y-m-d H:i:s'),
+                'status' => 'warehouse_vn', 'warehouse_location' => 'vn', 'received_by' => $uid, 'received_at' => date('Y-m-d H:i:s'),
             ], 'id = ? AND tenant_id = ?', [$p['id'], $tid]);
             $this->logStatus($p['id'], $p['status'], 'warehouse_vn', 'Nhập kho qua bao ' . $barcode, $uid);
             $received++;
         }
 
         Database::update('logistics_bags', ['status' => 'arrived'], 'id = ? AND tenant_id = ?', [$bag['id'], $tid]);
+        self::checkAutoComplete((int)$bag['id']);
         $this->logScan($tid, $barcode, 'bag', 'success', null, $bag['id'], "Nhập {$received}/" . count($packages) . " kiện", $uid);
 
         return $this->json([
@@ -347,6 +354,7 @@ class LogisticsController extends Controller
         Database::insert('logistics_bags', [
             'tenant_id' => Database::tenantId(),
             'bag_code' => $code,
+            'status' => 'open',
             'note' => trim($this->input('note') ?? '') ?: null,
             'created_by' => $this->userId(),
         ]);
@@ -596,6 +604,7 @@ class LogisticsController extends Controller
             'origin' => $this->input('origin') ?: 'CN',
             'destination' => $this->input('destination') ?: 'VN',
             'vehicle_info' => trim($this->input('vehicle_info') ?? '') ?: null,
+            'status' => 'preparing',
             'note' => trim($this->input('note') ?? '') ?: null,
             'created_by' => $this->userId(),
         ]);
@@ -755,10 +764,11 @@ class LogisticsController extends Controller
 
         // Update linked package/order status
         if ($delivery['package_id']) {
+            $pkgStatus = $deliveredPkgs >= $delivery['total_packages'] ? 'delivered' : 'delivering';
             Database::update('logistics_packages', [
-                'status' => 'delivered', 'delivered_by' => $this->userId(), 'delivered_at' => date('Y-m-d H:i:s'),
+                'status' => $pkgStatus, 'delivered_by' => $this->userId(), 'delivered_at' => date('Y-m-d H:i:s'),
             ], 'id = ? AND tenant_id = ?', [$delivery['package_id'], $tid]);
-            $this->logStatus($delivery['package_id'], 'warehouse_vn', 'delivered', 'Giao hàng thành công', $this->userId());
+            $this->logStatus($delivery['package_id'], 'warehouse_vn', $pkgStatus, $pkgStatus === 'delivered' ? 'Giao hàng thành công' : 'Giao 1 phần', $this->userId());
         }
 
         if ($delivery['order_id']) {
@@ -860,7 +870,7 @@ class LogisticsController extends Controller
             if (!$bag || $bag['status'] === 'completed') return;
 
             $total = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE bag_id = ?", [$bagId])['c'] ?? 0);
-            $received = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE bag_id = ? AND status IN ('warehouse_vn','delivering','delivered')", [$bagId])['c'] ?? 0);
+            $received = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE bag_id = ? AND status IN ('warehouse_vn','delivered')", [$bagId])['c'] ?? 0);
 
             if ($total > 0 && $received >= $total) {
                 Database::update('logistics_bags', ['status' => 'completed'], 'id = ?', [$bagId]);
@@ -875,7 +885,7 @@ class LogisticsController extends Controller
             if (!$shipment || in_array($shipment['status'], ['arrived','completed'])) return;
 
             $total = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ?", [$shipmentId])['c'] ?? 0);
-            $received = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ? AND status IN ('warehouse_vn','delivering','delivered')", [$shipmentId])['c'] ?? 0);
+            $received = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ? AND status IN ('warehouse_vn','delivered')", [$shipmentId])['c'] ?? 0);
 
             if ($total > 0 && $received >= $total) {
                 Database::update('logistics_shipments', ['status' => 'arrived', 'arrived_at' => date('Y-m-d H:i:s')], 'id = ?', [$shipmentId]);
