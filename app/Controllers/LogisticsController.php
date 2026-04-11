@@ -715,14 +715,14 @@ class LogisticsController extends Controller
 
     public function addOrdersToShipment($id)
     {
-        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        if (!$this->isPost()) return $this->redirect('logistics/orders');
         $tid = Database::tenantId();
         $orderIds = $this->input('order_ids') ?? [];
-        if (empty($orderIds)) return $this->json(['error' => 'Chưa chọn đơn'], 422);
+        if (empty($orderIds)) { $this->setFlash('error', 'Chưa chọn đơn hàng.'); return $this->redirect('logistics/orders'); }
 
-        $shipment = Database::fetch("SELECT id, status FROM logistics_shipments WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
-        if (!$shipment) return $this->json(['error' => 'Lô không tồn tại'], 404);
-        if ($shipment['status'] !== 'preparing') return $this->json(['error' => 'Lô đã xuất phát, không thể thêm'], 422);
+        $shipment = Database::fetch("SELECT id, status, shipment_code FROM logistics_shipments WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$shipment) { $this->setFlash('error', 'Lô không tồn tại.'); return $this->redirect('logistics/orders'); }
+        if ($shipment['status'] !== 'preparing') { $this->setFlash('error', 'Lô đã xuất phát, không thể thêm.'); return $this->redirect('logistics/orders'); }
 
         $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
 
@@ -751,7 +751,8 @@ class LogisticsController extends Controller
         $this->recalcShipment((int)$id);
 
         $totalAdded = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ?", [(int)$id])['c'] ?? 0);
-        return $this->json(['success' => true, 'message' => 'Đã xếp ' . $totalAdded . ' kiện vào lô', 'total' => $totalAdded]);
+        $this->setFlash('success', 'Đã xếp ' . $totalAdded . ' kiện vào lô ' . $shipment['shipment_code']);
+        return $this->redirect('logistics/shipments/' . $id);
     }
 
     public function removeFromShipment($id)

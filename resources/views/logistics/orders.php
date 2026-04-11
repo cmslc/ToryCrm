@@ -127,10 +127,12 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-3 text-end">
+                        <form method="POST" action="" id="existingShipForm" class="mt-3 text-end">
+                            <?= csrf_field() ?>
+                            <div id="existingShipOrderIds"></div>
                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                            <button type="button" class="btn btn-warning" id="addToExistingBtn"><i class="ri-truck-line me-1"></i> Xếp xe</button>
-                        </div>
+                            <button type="submit" class="btn btn-warning"><i class="ri-truck-line me-1"></i> Xếp xe</button>
+                        </form>
                     </div>
                     <?php endif; ?>
 
@@ -443,34 +445,27 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
     document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
 
     // Add to existing shipment
-    document.getElementById('addToExistingBtn')?.addEventListener('click', function() {
-        var selected = document.querySelector('input[name="existing_shipment"]:checked');
-        if (!selected) { alert('Chọn một chuyến xe'); return; }
-        if (selectedIds.length === 0) { alert('Chưa chọn đơn hàng'); return; }
-
-        var btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xếp...';
-
-        var fd = new FormData();
-        fd.append('_token', '<?= csrf_token() ?>');
-        selectedIds.forEach(function(id) { fd.append('order_ids[]', id); });
-
-        fetch('<?= url("logistics/shipments") ?>/' + selected.value + '/add-orders', {
-            method: 'POST', body: fd
-        }).then(function(r) { return r.json(); }).then(function(d) {
-            if (d.success) {
-                window.location = '<?= url("logistics/shipments") ?>/' + selected.value;
-            } else {
-                alert(d.error || 'Lỗi');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ri-truck-line me-1"></i> Xếp xe';
-            }
-        }).catch(function(err) {
-            alert('Lỗi kết nối: ' + err.message);
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ri-truck-line me-1"></i> Xếp xe';
+    // Update existing ship form when radio changes or submits
+    document.querySelectorAll('input[name="existing_shipment"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            document.getElementById('existingShipForm').action = '<?= url("logistics/shipments") ?>/' + this.value + '/add-orders';
         });
+    });
+
+    document.getElementById('existingShipForm')?.addEventListener('submit', function(e) {
+        var selected = document.querySelector('input[name="existing_shipment"]:checked');
+        if (!selected) { e.preventDefault(); alert('Chọn một chuyến xe'); return; }
+        if (selectedIds.length === 0) { e.preventDefault(); alert('Chưa chọn đơn hàng'); return; }
+        this.action = '<?= url("logistics/shipments") ?>/' + selected.value + '/add-orders';
+        // Add order IDs
+        var idsDiv = document.getElementById('existingShipOrderIds');
+        idsDiv.innerHTML = '';
+        selectedIds.forEach(function(id) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = 'order_ids[]'; inp.value = id;
+            idsDiv.appendChild(inp);
+        });
+    });
     });
 })();
 
