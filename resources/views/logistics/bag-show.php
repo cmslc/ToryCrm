@@ -7,7 +7,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0"><i class="ri-inbox-line me-2"></i><?= e($bag['bag_code']) ?></h4>
+    <h4 class="mb-0"><?= e($bag['bag_code']) ?></h4>
     <div class="d-flex gap-2">
         <?php if ($bag['status'] === 'open'): ?>
         <form method="POST" action="<?= url('logistics/bags/' . $bag['id'] . '/seal') ?>" onsubmit="return confirm('Đóng bao? Sẽ không thể thêm kiện nữa.')">
@@ -19,33 +19,79 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
     </div>
 </div>
 
-<!-- Info -->
+<!-- Info Cards -->
 <div class="row mb-3">
-    <div class="col-lg-8">
-        <div class="card mb-0">
+    <div class="col-6 col-md-3">
+        <div class="card card-animate mb-0">
             <div class="card-body">
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <span class="badge bg-<?= $stColors[$bag['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$bag['status']] ?? 'secondary' ?> fs-13 px-3 py-2"><?= $stLabels[$bag['status']] ?? $bag['status'] ?></span>
-                    <span class="text-muted">|</span>
-                    <span><i class="ri-box-3-line me-1"></i> <strong><?= count($packages) ?></strong> kiện</span>
-                    <span><i class="ri-scales-line me-1"></i> <strong><?= $bag['total_weight'] ? rtrim(rtrim(number_format($bag['total_weight'], 2), '0'), '.') : '0' ?></strong> kg</span>
-                    <?php if ($bag['note']): ?><span class="text-muted">|</span><span class="text-muted"><i class="ri-chat-3-line me-1"></i> <?= e($bag['note']) ?></span><?php endif; ?>
-                    <span class="text-muted">|</span>
-                    <span class="text-muted fs-12">Tạo: <?= user_avatar($bag['created_by_name'] ?? null) ?> <?= created_ago($bag['created_at']) ?></span>
-                    <?php if ($bag['sealed_at']): ?>
-                    <span class="text-muted fs-12">Niêm: <?= user_avatar($bag['sealed_by_name'] ?? null) ?> <?= created_ago($bag['sealed_at']) ?></span>
-                    <?php endif; ?>
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-<?= $stColors[$bag['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$bag['status']] ?? 'secondary' ?> rounded-2 fs-20"><i class="ri-inbox-line"></i></span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <span class="badge bg-<?= $stColors[$bag['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$bag['status']] ?? 'secondary' ?>"><?= $stLabels[$bag['status']] ?? $bag['status'] ?></span>
+                        <p class="text-muted mb-0 fs-12 mt-1">Trạng thái</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
-        <div class="row g-2">
-            <div class="col-6"><div class="card card-animate mb-0"><div class="card-body py-3 text-center"><h4 class="mb-0"><?= count($packages) ?></h4><span class="text-muted fs-12">Kiện hàng</span></div></div></div>
-            <div class="col-6"><div class="card card-animate mb-0"><div class="card-body py-3 text-center"><h4 class="mb-0"><?= $bag['total_weight'] ? rtrim(rtrim(number_format($bag['total_weight'], 2), '0'), '.') : '0' ?></h4><span class="text-muted fs-12">Kg</span></div></div></div>
+    <div class="col-6 col-md-3">
+        <div class="card card-animate mb-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-primary-subtle text-primary rounded-2 fs-20"><i class="ri-box-3-line"></i></span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h4 class="mb-0"><?= count($packages) ?></h4>
+                        <p class="text-muted mb-0 fs-12">Kiện hàng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-animate mb-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm flex-shrink-0">
+                        <span class="avatar-title bg-info-subtle text-info rounded-2 fs-20"><i class="ri-scales-line"></i></span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h4 class="mb-0"><?= $bag['total_weight'] ? rtrim(rtrim(number_format($bag['total_weight'], 2), '0'), '.') : '0' ?> <small class="fs-12 fw-normal text-muted">kg</small></h4>
+                        <p class="text-muted mb-0 fs-12">Tổng cân</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-animate mb-0">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-sm flex-shrink-0">
+                        <?= user_avatar($bag['created_by_name'] ?? null) ?>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <span class="fw-medium"><?= e($bag['created_by_name'] ?? 'N/A') ?></span>
+                        <p class="text-muted mb-0 fs-12"><?= created_ago($bag['created_at']) ?></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<?php if ($bag['note'] || $bag['sealed_at']): ?>
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap text-muted fs-13">
+            <?php if ($bag['note']): ?><span><i class="ri-chat-3-line me-1"></i> <?= e($bag['note']) ?></span><?php endif; ?>
+            <?php if ($bag['sealed_at']): ?><span><i class="ri-lock-line me-1"></i> Niêm phong: <?= user_avatar($bag['sealed_by_name'] ?? null) ?> <?= created_ago($bag['sealed_at']) ?></span><?php endif; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php if ($bag['status'] === 'open'): ?>
 <!-- Scan Input -->
@@ -184,7 +230,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
 
         fetch('<?= url("logistics/bags/" . $bag['id'] . "/scan") ?>', {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
             body: '_token=<?= csrf_token() ?>&barcode=' + encodeURIComponent(barcode)
         })
         .then(function(r) { return r.json(); })
@@ -253,7 +299,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
 
         fetch('<?= url("logistics/update-weight") ?>', {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
             body: '_token=<?= csrf_token() ?>&package_id=' + pkgId
                 + '&weight=' + weight
                 + '&length=' + (document.getElementById('lengthInput').value || 0)
@@ -280,7 +326,7 @@ function removePkg(pkgId, code) {
     if (!confirm('Gỡ kiện ' + code + ' khỏi bao?')) return;
     fetch('<?= url("logistics/bags/" . $bag['id'] . "/remove-package") ?>', {
         method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
         body: '_token=<?= csrf_token() ?>&package_id=' + pkgId
     })
     .then(function(r) {

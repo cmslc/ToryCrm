@@ -30,6 +30,16 @@ class CsrfMiddleware
         $sessionToken = $_SESSION['csrf_token'] ?? '';
 
         if (empty($token) || empty($sessionToken) || !hash_equals($sessionToken, $token)) {
+            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            $wantsJson = strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
+
+            if ($isAjax || $wantsJson) {
+                http_response_code(419);
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Phiên làm việc hết hạn, vui lòng tải lại trang.']);
+                return false;
+            }
+
             $_SESSION['flash'] = ['type' => 'error', 'message' => 'Phiên làm việc hết hạn, vui lòng thử lại.'];
 
             $referer = $_SERVER['HTTP_REFERER'] ?? '/';
