@@ -608,12 +608,19 @@ class LogisticsController extends Controller
         if ($dateFrom) { $where[] = "lo.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
         if ($dateTo) { $where[] = "lo.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
 
+        $whereSql = implode(' AND ', $where);
+        $total = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_orders lo WHERE $whereSql", $params)['cnt'];
+        $page = max(1, (int)($this->input('page') ?? 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+        $totalPages = ceil($total / $limit);
+
         $orders = Database::fetchAll(
-            "SELECT lo.*, u.name as created_by_name FROM logistics_orders lo LEFT JOIN users u ON lo.created_by = u.id WHERE " . implode(' AND ', $where) . " ORDER BY lo.created_at DESC LIMIT 50",
+            "SELECT lo.*, u.name as created_by_name FROM logistics_orders lo LEFT JOIN users u ON lo.created_by = u.id WHERE $whereSql ORDER BY lo.created_at DESC LIMIT $limit OFFSET $offset",
             $params
         );
 
-        return $this->view('logistics.orders', ['orders' => $orders, 'filters' => ['type' => $type, 'status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
+        return $this->view('logistics.orders', ['orders' => $orders, 'page' => $page, 'totalPages' => $totalPages, 'total' => $total, 'filters' => ['type' => $type, 'status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
     }
 
     public function createOrderForm()

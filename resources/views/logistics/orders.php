@@ -233,6 +233,23 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
             </table>
         </div>
     </div>
+    <?php if ($totalPages > 1): ?>
+    <?php
+        $qs = http_build_query(array_filter($filters));
+    ?>
+    <div class="card-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <span class="text-muted fs-12">Tổng <?= $total ?> đơn</span>
+            <ul class="pagination pagination-separated mb-0">
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= url('logistics/orders?' . $qs . '&page=' . ($page - 1)) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <li class="page-item <?= $i === $page ? 'active' : '' ?>"><a class="page-link" href="<?= url('logistics/orders?' . $qs . '&page=' . $i) ?>"><?= $i ?></a></li>
+                <?php endfor; ?>
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>"><a class="page-link" href="<?= url('logistics/orders?' . $qs . '&page=' . ($page + 1)) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
+            </ul>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Image Popup Modal -->
