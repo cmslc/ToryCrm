@@ -79,6 +79,22 @@ function time_ago(string $datetime): string
     return format_date($datetime);
 }
 
+function plugin_active(string $slug): bool
+{
+    static $cache = [];
+    if (isset($cache[$slug])) return $cache[$slug];
+    try {
+        $row = \Core\Database::fetch(
+            "SELECT tp.is_active FROM tenant_plugins tp JOIN plugins p ON tp.plugin_id = p.id WHERE tp.tenant_id = ? AND p.slug = ?",
+            [$_SESSION['tenant_id'] ?? 1, $slug]
+        );
+        $cache[$slug] = (bool)($row['is_active'] ?? false);
+    } catch (\Exception $e) {
+        $cache[$slug] = true; // Default to true if table doesn't exist
+    }
+    return $cache[$slug];
+}
+
 function upload_avatar(string $inputName, string $dir, ?string $oldFile = null): ?string
 {
     if (empty($_FILES[$inputName]) || $_FILES[$inputName]['error'] !== UPLOAD_ERR_OK) return null;

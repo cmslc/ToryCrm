@@ -67,8 +67,8 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('contacts') ?>" class="nav-link <?= isActive('contacts', $currentUrl) ?>">Danh sách KH</a></li>
                             <?php if (canSee('companies')): ?><li class="nav-item"><a href="<?= url('companies') ?>" class="nav-link <?= isActive('companies', $currentUrl) ?>">Doanh nghiệp</a></li><?php endif; ?>
-                            <li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li>
-                            <li class="nav-item"><a href="<?= url('bookings') ?>" class="nav-link <?= isActive('bookings', $currentUrl) ?>">Đặt lịch hẹn</a></li>
+                            <?php if (plugin_active('checkin')): ?><li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li><?php endif; ?>
+                            <?php if (plugin_active('booking')): ?><li class="nav-item"><a href="<?= url('bookings') ?>" class="nav-link <?= isActive('bookings', $currentUrl) ?>">Đặt lịch hẹn</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -106,20 +106,13 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('purchase-orders') ?>" class="nav-link <?= isActive('purchase-orders', $currentUrl) ?>">Đơn hàng mua</a></li>
                             <li class="nav-item"><a href="<?= url('quotations') ?>" class="nav-link <?= isActive('quotations', $currentUrl) ?>">Báo giá</a></li>
                             <?php endif; ?>
-                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho</a></li>
+                            <?php if (plugin_active('warehouse')): ?><li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
                 <?php endif; ?>
 
-                <?php
-                // Logistics plugin (only show if installed + active)
-                $__logisticsActive = false;
-                try {
-                    $__lp = \Core\Database::fetch("SELECT tp.is_active FROM tenant_plugins tp JOIN plugins p ON tp.plugin_id = p.id WHERE tp.tenant_id = ? AND p.slug = 'kho-logistics'", [$_SESSION['tenant_id'] ?? 1]);
-                    $__logisticsActive = (bool)($__lp['is_active'] ?? false);
-                } catch (\Exception $e) {}
-                if ($__logisticsActive):
+                <?php if (plugin_active('kho-logistics')):
                     $logOpen = isOpen(['logistics'], $currentUrl);
                 ?>
                 <li class="nav-item">
@@ -184,7 +177,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $supportOpen ? 'show' : '' ?>" id="sidebarSupport">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('tickets') ?>" class="nav-link <?= isActive('tickets', $currentUrl) ?>">Ticket</a></li>
-                            <li class="nav-item"><a href="<?= url('sla') ?>" class="nav-link <?= isActive('sla', $currentUrl) ?>">Chính sách SLA</a></li>
+                            <?php if (plugin_active('sla')): ?><li class="nav-item"><a href="<?= url('sla') ?>" class="nav-link <?= isActive('sla', $currentUrl) ?>">Chính sách SLA</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -202,11 +195,13 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-checkbox-circle-line"></i> <span>Phê duyệt</span>
                     </a>
                 </li>
+                <?php if (plugin_active('gamification')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('leaderboard', $currentUrl) || isActive('achievements', $currentUrl) ? 'active' : '' ?>" href="<?= url('leaderboard') ?>">
                         <i class="ri-trophy-line"></i> <span>Bảng xếp hạng</span>
                     </a>
                 </li>
+                <?php endif; ?>
 
                 <?php if (canSee('fund')): ?>
                 <?php $financeOpen = isOpen(['fund','debts','contracts','budgets','commissions','finance-reports'], $currentUrl); ?>
