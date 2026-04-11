@@ -371,11 +371,16 @@ class LogisticsController extends Controller
         $code = $this->input('order_code') ?: 'DH' . date('ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         $type = $this->input('type') ?: 'retail';
 
+        $customerName = trim($this->input('customer_name') ?? '') ?: null;
+        $customerPhone = trim($this->input('customer_phone') ?? '') ?: trim($this->input('customer_phone_display') ?? '') ?: null;
+        $customerId = (int)($this->input('customer_id') ?: 0) ?: null;
+
         $orderId = Database::insert('logistics_orders', [
             'order_code' => $code,
             'type' => $type,
-            'customer_name' => trim($this->input('customer_name') ?? '') ?: null,
-            'customer_phone' => trim($this->input('customer_phone') ?? '') ?: null,
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone,
+            'customer_id' => $customerId,
             'product_name' => trim($this->input('product_name') ?? '') ?: null,
             'total_packages' => (int)($this->input('total_packages') ?: 0),
             'total_weight' => (float)($this->input('total_weight') ?: 0),

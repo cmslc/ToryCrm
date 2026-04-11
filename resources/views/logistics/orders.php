@@ -145,8 +145,20 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-6 mb-3"><label class="form-label">Tên KH</label><input type="text" class="form-control" name="customer_name"></div>
-                        <div class="col-6 mb-3"><label class="form-label">SĐT</label><input type="text" class="form-control" name="customer_phone"></div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Khách hàng</label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="logCustSearch" placeholder="Gõ tên/SĐT để tìm..." autocomplete="off">
+                                <input type="hidden" name="customer_id" id="logCustId">
+                                <input type="hidden" name="customer_name" id="logCustName">
+                                <input type="hidden" name="customer_phone" id="logCustPhone">
+                                <div id="logCustDropdown" class="dropdown-menu w-100" style="display:none;max-height:200px;overflow-y:auto;position:absolute;z-index:1060"></div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">SĐT</label>
+                            <input type="text" class="form-control" id="logCustPhoneInput" name="customer_phone_display" placeholder="Tự điền hoặc nhập tay">
+                        </div>
                     </div>
                     <div class="mb-3"><label class="form-label">Sản phẩm</label><input type="text" class="form-control" name="product_name"></div>
                     <div class="row">
@@ -169,6 +181,107 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    var input = document.getElementById('logCustSearch');
+    var dd = document.getElementById('logCustDropdown');
+    var custId = document.getElementById('logCustId');
+    var custName = document.getElementById('logCustName');
+    var custPhone = document.getElementById('logCustPhone');
+    var phoneInput = document.getElementById('logCustPhoneInput');
+    var timer = null;
+
+    if (!input) return;
+
+    input.addEventListener('input', function() {
+        clearTimeout(timer);
+        var q = this.value.trim();
+        if (q.length < 2) { dd.style.display = 'none'; return; }
+
+        timer = setTimeout(function() {
+            fetch('<?= url("contacts") ?>?search=' + encodeURIComponent(q) + '&_ajax=1')
+                .then(function(r) { return r.text(); })
+                .catch(function() { return ''; })
+                .then(function() {
+                    // Use direct DB search via simple API
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', '<?= url("api-internal/users") ?>?search=' + encodeURIComponent(q));
+                    xhr.onload = function() {
+                        // Fallback: search contacts via PHP inline
+                    };
+                });
+
+            // Simple approach: search contacts inline
+            <?php
+            $allContacts = \Core\Database::fetchAll(
+                "SELECT id, first_name, last_name, phone, email FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name LIMIT 200",
+                [$_SESSION['tenant_id'] ?? 1]
+            );
+            ?>
+            var contacts = <?= json_encode(array_map(fn($c) => [
+                'id' => $c['id'],
+                'name' => trim($c['first_name'] . ' ' . ($c['last_name'] ?? '')),
+                'phone' => $c['phone'] ?? '',
+                'email' => $c['email'] ?? '',
+            ], $allContacts)) ?>;
+
+            var results = contacts.filter(function(c) {
+                return c.name.toLowerCase().indexOf(q.toLowerCase()) >= 0
+                    || c.phone.indexOf(q) >= 0
+                    || c.email.toLowerCase().indexOf(q.toLowerCase()) >= 0;
+            }).slice(0, 8);
+
+            var html = '';
+            results.forEach(function(c) {
+                html += '<a href="#" class="dropdown-item py-2" data-id="' + c.id + '" data-name="' + c.name + '" data-phone="' + c.phone + '">'
+                    + '<div class="fw-medium">' + c.name + '</div>'
+                    + (c.phone ? '<small class="text-muted">' + c.phone + '</small>' : '')
+                    + (c.email ? ' <small class="text-muted">' + c.email + '</small>' : '')
+                    + '</a>';
+            });
+
+            if (q.length >= 2) {
+                html += '<a href="#" class="dropdown-item py-2 text-primary border-top" data-id="" data-name="' + q + '" data-phone="">'
+                    + '<i class="ri-add-line me-1"></i> Tạo mới: <strong>' + q + '</strong>'
+                    + '</a>';
+            }
+
+            dd.innerHTML = html;
+            dd.style.display = html ? 'block' : 'none';
+
+            dd.querySelectorAll('[data-name]').forEach(function(a) {
+                a.onclick = function(e) {
+                    e.preventDefault();
+                    var name = this.dataset.name;
+                    var phone = this.dataset.phone;
+                    var id = this.dataset.id;
+
+                    input.value = name;
+                    custId.value = id;
+                    custName.value = name;
+                    custPhone.value = phone;
+                    phoneInput.value = phone;
+                    dd.style.display = 'none';
+                };
+            });
+        }, 200);
+    });
+
+    input.addEventListener('blur', function() {
+        setTimeout(function() { dd.style.display = 'none'; }, 200);
+        // If typed but not selected, use as new name
+        if (input.value && !custName.value) {
+            custName.value = input.value;
+        }
+    });
+
+    // Sync phone input back
+    phoneInput?.addEventListener('input', function() {
+        custPhone.value = this.value;
+    });
+})();
+</script>
 
 <!-- Image Popup Modal -->
 <div class="modal fade" id="imagePopup" tabindex="-1">
