@@ -341,18 +341,27 @@ class LogisticsController extends Controller
         $tid = Database::tenantId();
         $type = $this->input('type');
         $status = $this->input('status');
+        $search = $this->input('search');
+        $dateFrom = $this->input('date_from');
+        $dateTo = $this->input('date_to');
 
         $where = ["lo.tenant_id = ?"];
         $params = [$tid];
         if ($type) { $where[] = "lo.type = ?"; $params[] = $type; }
         if ($status) { $where[] = "lo.status = ?"; $params[] = $status; }
+        if ($search) {
+            $where[] = "(lo.order_code LIKE ? OR lo.customer_name LIKE ? OR lo.customer_phone LIKE ? OR lo.product_name LIKE ?)";
+            $s = "%{$search}%"; $params = array_merge($params, [$s,$s,$s,$s]);
+        }
+        if ($dateFrom) { $where[] = "lo.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $where[] = "lo.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
 
         $orders = Database::fetchAll(
             "SELECT lo.*, u.name as created_by_name FROM logistics_orders lo LEFT JOIN users u ON lo.created_by = u.id WHERE " . implode(' AND ', $where) . " ORDER BY lo.created_at DESC LIMIT 50",
             $params
         );
 
-        return $this->view('logistics.orders', ['orders' => $orders, 'filters' => ['type' => $type, 'status' => $status]]);
+        return $this->view('logistics.orders', ['orders' => $orders, 'filters' => ['type' => $type, 'status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
     }
 
     public function createOrder()

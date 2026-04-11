@@ -3,6 +3,18 @@ $pageTitle = 'Đơn hàng Logistics';
 $stLabels = ['pending'=>'Chờ','processing'=>'Đang xử lý','partial'=>'Nhận 1 phần','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
 $stColors = ['pending'=>'secondary','processing'=>'primary','partial'=>'warning','completed'=>'success','cancelled'=>'danger'];
 $currentType = $filters['type'] ?? '';
+$currentStatus = $filters['status'] ?? '';
+$currentSearch = $filters['search'] ?? '';
+$currentDateFrom = $filters['date_from'] ?? '';
+$currentDateTo = $filters['date_to'] ?? '';
+
+// Status counts
+$statusCounts = [];
+try {
+    $statusCounts = \Core\Database::fetchAll("SELECT status, COUNT(*) as count FROM logistics_orders WHERE tenant_id = ? GROUP BY status", [$_SESSION['tenant_id'] ?? 1]);
+} catch (\Exception $e) {}
+$countMap = []; $totalAll = 0;
+foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $totalAll += $sc['count']; }
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -13,14 +25,42 @@ $currentType = $filters['type'] ?? '';
     </div>
 </div>
 
-<!-- Filter -->
+<!-- Filter Row -->
 <div class="card mb-2">
     <div class="card-header p-2">
-        <div class="d-flex gap-2">
-            <a href="<?= url('logistics/orders') ?>" class="btn <?= !$currentType ? 'btn-primary' : 'btn-soft-primary' ?>">Tất cả</a>
-            <a href="<?= url('logistics/orders?type=retail') ?>" class="btn <?= $currentType === 'retail' ? 'btn-info' : 'btn-soft-info' ?>">Hàng lẻ</a>
-            <a href="<?= url('logistics/orders?type=wholesale') ?>" class="btn <?= $currentType === 'wholesale' ? 'btn-success' : 'btn-soft-success' ?>">Hàng lô/sỉ</a>
-        </div>
+        <form method="GET" action="<?= url('logistics/orders') ?>" class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="search-box" style="min-width:180px;max-width:280px">
+                <input type="text" class="form-control" name="search" placeholder="Mã đơn, KH, SĐT, SP..." value="<?= e($currentSearch) ?>">
+                <i class="ri-search-line search-icon"></i>
+            </div>
+            <select name="type" class="form-select" style="width:auto;min-width:120px" onchange="this.form.submit()">
+                <option value="">Tất cả loại</option>
+                <option value="retail" <?= $currentType === 'retail' ? 'selected' : '' ?>>Hàng lẻ</option>
+                <option value="wholesale" <?= $currentType === 'wholesale' ? 'selected' : '' ?>>Hàng lô/sỉ</option>
+            </select>
+            <input type="date" name="date_from" class="form-control" style="width:auto" value="<?= e($currentDateFrom) ?>" title="Từ ngày">
+            <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($currentDateTo) ?>" title="Đến ngày">
+            <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
+            <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+            <?php if ($currentSearch || $currentType || $currentStatus || $currentDateFrom || $currentDateTo): ?>
+                <a href="<?= url('logistics/orders') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+            <?php endif; ?>
+        </form>
+    </div>
+</div>
+
+<!-- Status Tabs -->
+<div class="card mb-2">
+    <div class="card-header p-2">
+        <ul class="nav nav-custom nav-custom-light mb-0">
+            <li class="nav-item"><a class="nav-link <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('logistics/orders?' . http_build_query(array_filter(['type'=>$currentType,'search'=>$currentSearch]))) ?>">Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span></a></li>
+            <?php foreach ($stLabels as $k => $v):
+                $c = $countMap[$k] ?? 0;
+                if ($c == 0 && $currentStatus !== $k) continue;
+            ?>
+            <li class="nav-item"><a class="nav-link <?= $currentStatus === $k ? 'active' : '' ?>" href="<?= url('logistics/orders?' . http_build_query(array_filter(['status'=>$k,'type'=>$currentType,'search'=>$currentSearch]))) ?>"><?= $v ?> <span class="badge bg-<?= $stColors[$k] ?>-subtle text-<?= $stColors[$k] ?> rounded-pill ms-1"><?= $c ?></span></a></li>
+            <?php endforeach; ?>
+        </ul>
     </div>
 </div>
 
