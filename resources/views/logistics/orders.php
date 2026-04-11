@@ -466,6 +466,10 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                 btn.disabled = false;
                 btn.innerHTML = '<i class="ri-truck-line me-1"></i> Xếp xe';
             }
+        }).catch(function(err) {
+            alert('Lỗi kết nối: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-truck-line me-1"></i> Xếp xe';
         });
     });
 })();

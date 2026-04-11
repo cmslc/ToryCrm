@@ -749,7 +749,9 @@ class LogisticsController extends Controller
         }
 
         $this->recalcShipment((int)$id);
-        return $this->json(['success' => true]);
+
+        $totalAdded = (int)(Database::fetch("SELECT COUNT(*) as c FROM logistics_packages WHERE shipment_id = ?", [(int)$id])['c'] ?? 0);
+        return $this->json(['success' => true, 'message' => 'Đã xếp ' . $totalAdded . ' kiện vào lô', 'total' => $totalAdded]);
     }
 
     public function removeFromShipment($id)
