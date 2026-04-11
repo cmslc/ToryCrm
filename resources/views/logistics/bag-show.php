@@ -185,7 +185,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
         fetch('<?= url("logistics/bags/" . $bag['id'] . "/scan") ?>', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=<?= $_SESSION['_token'] ?? '' ?>&barcode=' + encodeURIComponent(barcode)
+            body: '_token=<?= csrf_token() ?>&barcode=' + encodeURIComponent(barcode)
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -254,7 +254,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
         fetch('<?= url("logistics/update-weight") ?>', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=<?= $_SESSION['_token'] ?? '' ?>&package_id=' + pkgId
+            body: '_token=<?= csrf_token() ?>&package_id=' + pkgId
                 + '&weight=' + weight
                 + '&length=' + (document.getElementById('lengthInput').value || 0)
                 + '&width=' + (document.getElementById('widthInput').value || 0)
@@ -281,7 +281,7 @@ function removePkg(pkgId, code) {
     fetch('<?= url("logistics/bags/" . $bag['id'] . "/remove-package") ?>', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: '_token=<?= $_SESSION['_token'] ?? '' ?>&package_id=' + pkgId
+        body: '_token=<?= csrf_token() ?>&package_id=' + pkgId
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
