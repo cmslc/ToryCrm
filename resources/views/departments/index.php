@@ -39,8 +39,9 @@ flattenDeptTree($tree, 0, $flatList);
                 <thead class="table-light">
                     <tr>
                         <th style="min-width:300px">Phòng ban</th>
-                        <th style="width:200px">Trưởng phòng</th>
-                        <th style="width:100px" class="text-center">Thành viên</th>
+                        <th style="width:180px">Trưởng phòng</th>
+                        <th style="width:180px">Phó phòng</th>
+                        <th style="width:90px" class="text-center">Thành viên</th>
                         <th style="width:120px" class="text-end">Thao tác</th>
                     </tr>
                 </thead>
@@ -62,13 +63,8 @@ flattenDeptTree($tree, 0, $flatList);
                                 <a href="<?= url('departments/' . $dept['id']) ?>" class="fw-semibold text-dark"><?= e($dept['name']) ?></a>
                             </div>
                         </td>
-                        <td>
-                            <?php if ($dept['manager_name']): ?>
-                                <?= user_avatar($dept['manager_name'], 'primary', $dept['manager_avatar'] ?? null) ?>
-                            <?php else: ?>
-                                <span class="text-muted">—</span>
-                            <?php endif; ?>
-                        </td>
+                        <td><?= $dept['manager_name'] ? user_avatar($dept['manager_name'], 'primary', $dept['manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?></td>
+                        <td><?= $dept['vice_manager_name'] ? user_avatar($dept['vice_manager_name'], 'info', $dept['vice_manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?></td>
                         <td class="text-center">
                             <a href="<?= url('departments/' . $dept['id'] . '/members') ?>" class="badge bg-secondary-subtle text-secondary"><?= $dept['member_count'] ?></a>
                         </td>
@@ -78,6 +74,7 @@ flattenDeptTree($tree, 0, $flatList);
                                 <a href="#" class="btn btn-soft-secondary btn-icon edit-dept"
                                     data-id="<?= $dept['id'] ?>" data-name="<?= e($dept['name']) ?>"
                                     data-parent="<?= $dept['parent_id'] ?? '' ?>" data-manager="<?= $dept['manager_id'] ?? '' ?>"
+                                    data-vicemanager="<?= $dept['vice_manager_id'] ?? '' ?>"
                                     data-description="<?= e($dept['description'] ?? '') ?>" data-color="<?= e($dept['color']) ?>"
                                     title="Sửa"><i class="ri-pencil-line"></i></a>
                                 <form method="POST" action="<?= url('departments/' . $dept['id'] . '/delete') ?>" data-confirm="Xóa phòng ban <?= e($dept['name']) ?>?" class="d-inline">
@@ -119,11 +116,19 @@ flattenDeptTree($tree, 0, $flatList);
                             <?php foreach ($departments as $d): ?><option value="<?= $d['id'] ?>"><?= e($d['name']) ?></option><?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Trưởng phòng</label>
-                        <select name="manager_id" class="form-select searchable-select" id="deptManager"><option value="">Chưa chọn</option>
-                            <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
-                        </select>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Trưởng phòng</label>
+                            <select name="manager_id" class="form-select searchable-select" id="deptManager"><option value="">Chưa chọn</option>
+                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Phó phòng</label>
+                            <select name="vice_manager_id" class="form-select searchable-select" id="deptViceManager"><option value="">Chưa chọn</option>
+                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Màu sắc</label>
@@ -153,6 +158,7 @@ document.querySelectorAll('.edit-dept').forEach(function(btn) {
         document.getElementById('deptName').value = this.dataset.name;
         document.getElementById('deptParent').value = this.dataset.parent;
         document.getElementById('deptManager').value = this.dataset.manager;
+        document.getElementById('deptViceManager').value = this.dataset.vicemanager || '';
         document.getElementById('deptDesc').value = this.dataset.description;
         var c = this.dataset.color;
         document.querySelectorAll('[name=color]').forEach(function(r) { r.checked = r.value === c; });
@@ -165,6 +171,7 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
     document.getElementById('deptName').value = '';
     document.getElementById('deptParent').value = '';
     document.getElementById('deptManager').value = '';
+    document.getElementById('deptViceManager').value = '';
     document.getElementById('deptDesc').value = '';
 });
 </script>

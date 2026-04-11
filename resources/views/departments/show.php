@@ -115,6 +115,7 @@
                 <table class="table table-borderless mb-0">
                     <tr><th class="text-muted">Tên</th><td><?= e($department['name']) ?></td></tr>
                     <tr><th class="text-muted">Trưởng phòng</th><td><?= user_avatar($department['manager_name'] ?? null, 'primary', $department['manager_avatar'] ?? null) ?></td></tr>
+                    <tr><th class="text-muted">Phó phòng</th><td><?= user_avatar($department['vice_manager_name'] ?? null, 'info', $department['vice_manager_avatar'] ?? null) ?></td></tr>
                     <?php if ($department['parent_name']): ?><tr><th class="text-muted">Thuộc</th><td><?= e($department['parent_name']) ?></td></tr><?php endif; ?>
                     <tr><th class="text-muted">Màu</th><td><span class="d-inline-block rounded-circle me-1" style="width:14px;height:14px;background:<?= e($department['color']) ?>"></span><?= e($department['color']) ?></td></tr>
                     <?php if ($department['description']): ?><tr><th class="text-muted">Mô tả</th><td><?= e($department['description']) ?></td></tr><?php endif; ?>
@@ -157,6 +158,57 @@
                         <div class="mb-2"><label class="form-label fs-12">Task mục tiêu</label><input type="number" class="form-control" name="target_tasks" value="<?= $kpi['target_tasks'] ?? 0 ?>"></div>
                         <div class="mb-2"><label class="form-label fs-12">KH mục tiêu</label><input type="number" class="form-control" name="target_contacts" value="<?= $kpi['target_contacts'] ?? 0 ?>"></div>
                         <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Lưu KPI</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Positions -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title mb-0 flex-grow-1">Vị trí / Chức danh</h5>
+                <button class="btn btn-soft-primary" data-bs-toggle="collapse" data-bs-target="#posForm"><i class="ri-add-line"></i></button>
+            </div>
+            <div class="card-body">
+                <?php if (!empty($positions)): ?>
+                    <?php foreach ($positions as $pos): ?>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <?= user_avatar($pos['user_name'] ?? null, 'primary', $pos['avatar'] ?? null) ?>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary"><?= e($pos['position']) ?></span>
+                            <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions/' . $pos['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa?">
+                                <?= csrf_field() ?><button class="btn btn-link text-danger p-0"><i class="ri-close-line"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="text-muted text-center mb-0 fs-12">Chưa có vị trí nào</p>
+                <?php endif; ?>
+
+                <div class="collapse mt-3" id="posForm">
+                    <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions') ?>">
+                        <?= csrf_field() ?>
+                        <div class="mb-2">
+                            <select name="user_id" class="form-select" required>
+                                <option value="">Chọn nhân viên...</option>
+                                <?php foreach ($members as $m): ?><option value="<?= $m['id'] ?>"><?= e($m['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <select name="position" class="form-select" required>
+                                <option value="">Chọn vị trí...</option>
+                                <option value="Trưởng nhóm">Trưởng nhóm</option>
+                                <option value="Phó nhóm">Phó nhóm</option>
+                                <option value="Chuyên viên">Chuyên viên</option>
+                                <option value="Nhân viên">Nhân viên</option>
+                                <option value="Thực tập sinh">Thực tập sinh</option>
+                                <option value="Cố vấn">Cố vấn</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Lưu</button>
                     </form>
                 </div>
             </div>

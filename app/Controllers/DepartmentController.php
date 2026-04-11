@@ -10,10 +10,13 @@ class DepartmentController extends Controller
     public function index()
     {
         $departments = Database::fetchAll(
-            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar, p.name as parent_name,
+            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar,
+                    vm.name as vice_manager_name, vm.avatar as vice_manager_avatar,
+                    p.name as parent_name,
                     (SELECT COUNT(*) FROM users WHERE department_id = d.id AND is_active = 1) as member_count
              FROM departments d
              LEFT JOIN users u ON d.manager_id = u.id
+             LEFT JOIN users vm ON d.vice_manager_id = vm.id
              LEFT JOIN departments p ON d.parent_id = p.id
              WHERE d.tenant_id = ?
              ORDER BY d.sort_order, d.name",
@@ -43,6 +46,7 @@ class DepartmentController extends Controller
             'name' => $name,
             'parent_id' => $this->input('parent_id') ?: null,
             'manager_id' => $this->input('manager_id') ?: null,
+            'vice_manager_id' => $this->input('vice_manager_id') ?: null,
             'description' => trim($this->input('description') ?? ''),
             'color' => $this->input('color') ?? '#405189',
         ]);
@@ -65,6 +69,7 @@ class DepartmentController extends Controller
             'name' => $name,
             'parent_id' => $this->input('parent_id') ?: null,
             'manager_id' => $this->input('manager_id') ?: null,
+            'vice_manager_id' => $this->input('vice_manager_id') ?: null,
             'description' => trim($this->input('description') ?? ''),
             'color' => $this->input('color') ?? '#405189',
         ], 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
@@ -164,8 +169,11 @@ class DepartmentController extends Controller
     {
         $tid = $this->tenantId();
         $dept = Database::fetch(
-            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar, p.name as parent_name
-             FROM departments d LEFT JOIN users u ON d.manager_id = u.id LEFT JOIN departments p ON d.parent_id = p.id
+            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar,
+                    vm.name as vice_manager_name, vm.avatar as vice_manager_avatar, p.name as parent_name
+             FROM departments d LEFT JOIN users u ON d.manager_id = u.id
+             LEFT JOIN users vm ON d.vice_manager_id = vm.id
+             LEFT JOIN departments p ON d.parent_id = p.id
              WHERE d.id = ? AND d.tenant_id = ?",
             [(int)$id, $tid]
         );
@@ -210,6 +218,15 @@ class DepartmentController extends Controller
             );
         }
 
+        // Positions
+        $positions = [];
+        try {
+            $positions = Database::fetchAll(
+                "SELECT dp.*, u.name as user_name, u.avatar FROM department_positions dp JOIN users u ON dp.user_id = u.id WHERE dp.department_id = ? ORDER BY dp.sort_order, dp.position",
+                [(int)$id]
+            );
+        } catch (\Exception $e) {}
+
         return $this->view('departments.show', [
             'department' => $dept,
             'members' => $members,
@@ -217,6 +234,7 @@ class DepartmentController extends Controller
             'stats' => $stats,
             'kpi' => $kpi,
             'activityLog' => $activityLog,
+            'positions' => $positions,
         ]);
     }
 
@@ -259,6 +277,39 @@ class DepartmentController extends Controller
 
         $this->setFlash('success', 'Đã chuyển ' . count($userIds) . ' nhân viên.');
         return $this->back();
+    }
+
+    // ---- Positions ----
+    public function savePosition($id)
+    {
+        if (!$this->isPost()) return $this->redirect('departments/' . $id);
+
+        $userId = (int)$this->input('user_id');
+        $position = trim($this->input('position') ?? '');
+        if (!$userId || !$position) {
+            $this->setFlash('error', 'Chọn nhân viên và vị trí.');
+            return $this->back();
+        }
+
+        try {
+            $existing = Database::fetch("SELECT id FROM department_positions WHERE department_id = ? AND user_id = ?", [(int)$id, $userId]);
+            if ($existing) {
+                Database::update('department_positions', ['position' => $position], 'id = ?', [$existing['id']]);
+            } else {
+                Database::query("INSERT INTO department_positions (department_id, user_id, position) VALUES (?, ?, ?)", [(int)$id, $userId, $position]);
+            }
+        } catch (\Exception $e) {}
+
+        $this->setFlash('success', 'Đã cập nhật vị trí.');
+        return $this->redirect('departments/' . $id);
+    }
+
+    public function deletePosition($id, $posId)
+    {
+        if (!$this->isPost()) return $this->redirect('departments/' . $id);
+        Database::query("DELETE FROM department_positions WHERE id = ? AND department_id = ?", [(int)$posId, (int)$id]);
+        $this->setFlash('success', 'Đã xóa vị trí.');
+        return $this->redirect('departments/' . $id);
     }
 
     // ---- Save KPI ----

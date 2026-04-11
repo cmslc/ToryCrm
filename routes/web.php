@@ -531,6 +531,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('departments/{id}/kpi', 'DepartmentController@saveKpi');
     Router::post('departments/{id}/members/add', 'DepartmentController@addMember');
     Router::post('departments/{id}/members/{userId}/remove', 'DepartmentController@removeMember');
+    Router::post('departments/{id}/positions', 'DepartmentController@savePosition');
+    Router::post('departments/{id}/positions/{posId}/delete', 'DepartmentController@deletePosition');
 
     // Settings
     Router::get('settings', 'SettingController@index');
