@@ -61,8 +61,9 @@
 .kanban-column { transition: background-color 0.2s; }
 @media (max-width: 768px) { .kanban-stage { min-width: 260px !important; } }
 
-/* ---------- Hide floating customizer button (moved to topbar) ---------- */
+/* ---------- Hide floating buttons (moved to topbar) ---------- */
 .customizer-setting { display: none !important; }
+#back-to-top { display: none !important; }
 
 /* ---------- Print ---------- */
 @media print {
