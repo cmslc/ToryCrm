@@ -144,7 +144,7 @@ class DepartmentController extends Controller
             ]);
             $this->setFlash('success', 'Đã thêm thành viên vào phòng ban.');
         }
-        return $this->redirect('departments/' . $id . '/members');
+        return $this->redirect('departments/' . $id);
     }
 
     public function removeMember($id, $userId)
@@ -161,7 +161,7 @@ class DepartmentController extends Controller
         ]);
 
         $this->setFlash('success', 'Đã xóa thành viên khỏi phòng ban.');
-        return $this->redirect('departments/' . $id . '/members');
+        return $this->redirect('departments/' . $id);
     }
 
     // ---- Show (detail page with stats) ----
