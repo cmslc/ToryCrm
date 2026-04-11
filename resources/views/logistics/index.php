@@ -58,7 +58,7 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
                     <td class="text-muted fs-12"><?= e($p['tracking_code'] ?? '-') ?></td>
                     <td class="fs-12"><?= e($p['product_name'] ?? '-') ?></td>
                     <td class="fs-12"><?= e($p['customer_name'] ?? '-') ?></td>
-                    <td><?= $p['weight_actual'] ? number_format($p['weight_actual'], 2) . ' kg' : '-' ?></td>
+                    <td><?= $p['weight_actual'] ? rtrim(rtrim(number_format($p['weight_actual'], 2), '0'), '.') . ' kg' : '-' ?></td>
                     <td><span class="badge bg-<?= $statusColors[$p['status']] ?? 'secondary' ?>-subtle text-<?= $statusColors[$p['status']] ?? 'secondary' ?>"><?= $statusLabels[$p['status']] ?? $p['status'] ?></span></td>
                     <td class="text-muted fs-12"><?= created_ago($p['updated_at']) ?></td>
                 </tr>

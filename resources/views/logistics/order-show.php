@@ -31,7 +31,7 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
                             <td><a href="<?= url('logistics/packages/' . $p['id']) ?>" class="fw-medium"><?= e($p['package_code']) ?></a></td>
                             <td class="text-muted fs-12"><?= e($p['tracking_code'] ?? '-') ?></td>
                             <td class="fs-12"><?= e(mb_substr($p['product_name'] ?? '-', 0, 30)) ?></td>
-                            <td><?= $p['weight_actual'] ? number_format($p['weight_actual'], 2) . ' kg' : '-' ?></td>
+                            <td><?= $p['weight_actual'] ? rtrim(rtrim(number_format($p['weight_actual'], 2), '0'), '.') . ' kg' : '-' ?></td>
                             <td class="fs-12"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4) . ' m³' : '-' ?></td>
                             <td class="fs-12 text-muted"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? $p['length_cm'] . '×' . $p['width_cm'] . '×' . $p['height_cm'] . 'cm' : '-' ?></td>
                             <td><?= $p['quantity'] ?></td>
@@ -85,8 +85,8 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
                     <tr><th class="text-muted">Khách hàng</th><td><?= e($order['customer_name'] ?? '-') ?></td></tr>
                     <?php if ($order['customer_phone']): ?><tr><th class="text-muted">SĐT</th><td><?= e($order['customer_phone']) ?></td></tr><?php endif; ?>
                     <tr><th class="text-muted">Sản phẩm</th><td><?= e($order['product_name'] ?? '-') ?></td></tr>
-                    <tr><th class="text-muted">Tổng cân</th><td><?= ($order['total_weight'] ?? 0) > 0 ? number_format($order['total_weight'], 2) . ' kg' : '-' ?></td></tr>
-                    <tr><th class="text-muted">Số khối</th><td><?= ($order['total_cbm'] ?? 0) > 0 ? number_format($order['total_cbm'], 4) . ' m³' : '-' ?></td></tr>
+                    <tr><th class="text-muted">Tổng cân</th><td><?= ($order['total_weight'] ?? 0) > 0 ? rtrim(rtrim(number_format($order['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td></tr>
+                    <tr><th class="text-muted">Số khối</th><td><?= ($order['total_cbm'] ?? 0) > 0 ? rtrim(rtrim(number_format($order['total_cbm'], 4), '0'), '.') . ' m³' : '-' ?></td></tr>
                     <tr><th class="text-muted">Người tạo</th><td><?= user_avatar($order['created_by_name'] ?? null) ?></td></tr>
                     <tr><th class="text-muted">Ngày tạo</th><td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td></tr>
                 </table>

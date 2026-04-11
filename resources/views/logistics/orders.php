@@ -52,8 +52,8 @@ $currentType = $filters['type'] ?? '';
                     <td class="fs-12"><?= e(mb_substr($o['product_name'] ?? '-', 0, 30)) ?></td>
                     <td class="fw-medium"><?= $o['total_packages'] ?></td>
                     <td class="text-muted fs-12">
-                        <?php if ($o['total_weight'] > 0): ?><?= number_format($o['total_weight'], 2) ?> kg<?php endif; ?>
-                        <?php if ($o['total_cbm'] > 0): ?><div><?= number_format($o['total_cbm'], 4) ?> m³</div><?php endif; ?>
+                        <?php if ($o['total_weight'] > 0): ?><?= rtrim(rtrim(number_format($o['total_weight'], 2), '0'), '.') ?> kg<?php endif; ?>
+                        <?php if ($o['total_cbm'] > 0): ?><div><?= rtrim(rtrim(number_format($o['total_cbm'], 4), '0'), '.') ?> m³</div><?php endif; ?>
                         <?php if (!$o['total_weight'] && !$o['total_cbm']): ?>-<?php endif; ?>
                     </td>
                     <td>
