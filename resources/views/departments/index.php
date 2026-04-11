@@ -119,13 +119,13 @@ flattenDeptTree($tree, 0, $flatList);
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label">Trưởng phòng</label>
-                            <select name="manager_id" class="form-select searchable-select" id="deptManager"><option value="">Chưa chọn</option>
+                            <select name="manager_id" class="form-select" id="deptManager"><option value="">Chưa chọn</option>
                                 <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-6 mb-3">
                             <label class="form-label">Phó phòng</label>
-                            <select name="vice_manager_id" class="form-select searchable-select" id="deptViceManager"><option value="">Chưa chọn</option>
+                            <select name="vice_manager_id" class="form-select" id="deptViceManager"><option value="">Chưa chọn</option>
                                 <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
                             </select>
                         </div>
