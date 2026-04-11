@@ -12,6 +12,18 @@ if (!function_exists('renderOrgBox')) {
     function renderOrgBox($node) { ?>
         <li>
             <div class="org-box" style="border-top:3px solid <?= e($node['color']) ?>">
+                <div class="org-actions">
+                    <div class="dropdown">
+                        <button class="btn btn-link p-0 text-muted" data-bs-toggle="dropdown"><i class="ri-more-2-fill fs-14"></i></button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="<?= url('departments/' . $node['id']) ?>"><i class="ri-eye-line me-2"></i>Chi tiết</a></li>
+                            <li><a class="dropdown-item" href="<?= url('departments/' . $node['id'] . '/members') ?>"><i class="ri-team-line me-2"></i>Thành viên</a></li>
+                            <li><a class="dropdown-item edit-dept" href="#" data-id="<?= $node['id'] ?>" data-name="<?= e($node['name']) ?>" data-parent="<?= $node['parent_id'] ?? '' ?>" data-manager="<?= $node['manager_id'] ?? '' ?>" data-description="<?= e($node['description'] ?? '') ?>" data-color="<?= e($node['color']) ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><form method="POST" action="<?= url('departments/' . $node['id'] . '/delete') ?>" data-confirm="Xóa phòng ban <?= e($node['name']) ?>?"><?= csrf_field() ?><button class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button></form></li>
+                        </ul>
+                    </div>
+                </div>
                 <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark d-block mb-1"><?= e($node['name']) ?></a>
                 <?php if ($node['manager_name']): ?>
                 <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
@@ -90,6 +102,8 @@ if (!function_exists('renderOrgBox')) {
     text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.08); transition:box-shadow .2s;
 }
 .org-box:hover { box-shadow:0 4px 12px rgba(0,0,0,.12); }
+.org-actions { position:absolute; top:6px; right:6px; opacity:0; transition:opacity .15s; }
+.org-box:hover .org-actions { opacity:1; }
 
 /* Connector from box down to children */
 .orgchart li > ul::before { content:''; position:absolute; top:0; left:50%; border-left:2px solid var(--vz-primary); height:30px; }
