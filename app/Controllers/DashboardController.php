@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 "SELECT * FROM smart_insights
                  WHERE tenant_id = ? AND user_id = ? AND is_dismissed = 0
                  ORDER BY priority DESC, created_at DESC
-                 LIMIT 4",
+                 LIMIT 3",
                 [$tid, $uid]
             );
         } catch (\Exception $e) {}
