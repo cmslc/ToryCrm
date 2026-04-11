@@ -68,7 +68,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
 <?php
 $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin, destination, total_packages, total_weight, total_cbm FROM logistics_shipments WHERE tenant_id = ? AND status = 'preparing' ORDER BY created_at DESC", [$_SESSION['tenant_id'] ?? 1]);
 ?>
-<div class="card mb-2 d-none" id="bulkBar">
+<div class="card mb-2 d-none" id="bulkBar" style="position:sticky;top:70px;z-index:100">
     <div class="card-body py-2">
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <span class="fw-medium"><span id="bulkCount">0</span> đơn đã chọn</span>
