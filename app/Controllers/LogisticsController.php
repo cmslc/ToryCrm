@@ -713,6 +713,45 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/shipments/' . $id);
     }
 
+    public function addOrdersToShipment($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $tid = Database::tenantId();
+        $orderIds = $this->input('order_ids') ?? [];
+        if (empty($orderIds)) return $this->json(['error' => 'Chưa chọn đơn'], 422);
+
+        $shipment = Database::fetch("SELECT id, status FROM logistics_shipments WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$shipment) return $this->json(['error' => 'Lô không tồn tại'], 404);
+        if ($shipment['status'] !== 'preparing') return $this->json(['error' => 'Lô đã xuất phát, không thể thêm'], 422);
+
+        $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+
+        // Link packages from orders
+        $pkgs = Database::fetchAll(
+            "SELECT id FROM logistics_packages WHERE tenant_id = ? AND order_id IN ({$placeholders}) AND (shipment_id IS NULL OR shipment_id = ?)",
+            array_merge([$tid], $orderIds, [(int)$id])
+        );
+        foreach ($pkgs as $p) {
+            Database::update('logistics_packages', ['shipment_id' => (int)$id, 'status' => 'shipping'], 'id = ?', [$p['id']]);
+        }
+
+        // Also by customer_name
+        $orders = Database::fetchAll("SELECT customer_name FROM logistics_orders WHERE id IN ({$placeholders})", $orderIds);
+        foreach ($orders as $o) {
+            if (!$o['customer_name']) continue;
+            $morePkgs = Database::fetchAll(
+                "SELECT id FROM logistics_packages WHERE tenant_id = ? AND customer_name = ? AND shipment_id IS NULL AND status IN ('warehouse_cn','packed')",
+                [$tid, $o['customer_name']]
+            );
+            foreach ($morePkgs as $mp) {
+                Database::update('logistics_packages', ['shipment_id' => (int)$id, 'status' => 'shipping'], 'id = ?', [$mp['id']]);
+            }
+        }
+
+        $this->recalcShipment((int)$id);
+        return $this->json(['success' => true]);
+    }
+
     public function removeFromShipment($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);

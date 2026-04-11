@@ -74,7 +74,20 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
             <span class="text-muted fs-12"><i class="ri-scales-line me-1"></i><span id="bulkWeight">0</span> kg</span>
             <span class="text-muted fs-12"><i class="ri-ruler-line me-1"></i><span id="bulkCbm">0</span> m³</span>
             <span class="text-muted">|</span>
-            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#shipModal"><i class="ri-truck-line me-1"></i> Xếp xe / Tạo lô</button>
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#shipModal"><i class="ri-truck-line me-1"></i> Tạo lô mới</button>
+            <?php
+            $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin, destination, total_packages FROM logistics_shipments WHERE tenant_id = ? AND status = 'preparing' ORDER BY created_at DESC", [$_SESSION['tenant_id'] ?? 1]);
+            if (!empty($existingShipments)):
+            ?>
+            <div class="dropdown d-inline">
+                <button class="btn btn-soft-warning dropdown-toggle" data-bs-toggle="dropdown"><i class="ri-truck-line me-1"></i> Xếp vào lô có sẵn</button>
+                <ul class="dropdown-menu">
+                    <?php foreach ($existingShipments as $es): ?>
+                    <li><a class="dropdown-item add-to-existing" href="#" data-id="<?= $es['id'] ?>" data-code="<?= e($es['shipment_code']) ?>"><?= e($es['shipment_code']) ?> (<?= $es['origin'] ?>→<?= $es['destination'] ?>, <?= $es['total_packages'] ?> kiện)</a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -378,6 +391,35 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
     }
     document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
 })();
+
+// Add to existing shipment
+document.querySelectorAll('.add-to-existing').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var shipId = this.dataset.id;
+        var shipCode = this.dataset.code;
+        var checked = document.querySelectorAll('.row-check:checked');
+        if (checked.length === 0) { alert('Chưa chọn đơn hàng'); return; }
+        if (!confirm('Xếp ' + checked.length + ' đơn vào lô ' + shipCode + '?')) return;
+
+        var ids = [];
+        checked.forEach(function(cb) { ids.push(cb.value); });
+
+        var fd = new FormData();
+        fd.append('_token', '<?= csrf_token() ?>');
+        ids.forEach(function(id) { fd.append('order_ids[]', id); });
+
+        fetch('<?= url("logistics/shipments") ?>/' + shipId + '/add-orders', {
+            method: 'POST', body: fd
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            if (d.success) {
+                window.location = '<?= url("logistics/shipments") ?>/' + shipId;
+            } else {
+                alert(d.error || 'Lỗi');
+            }
+        });
+    });
+});
 
 var popupImages = [], popupIndex = 0;
 function showImagePopup(images, startIndex) {
