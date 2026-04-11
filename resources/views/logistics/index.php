@@ -37,6 +37,7 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
             <a href="<?= url('logistics/receive') ?>" class="btn btn-soft-success"><i class="ri-qr-scan-2-line me-1"></i> Nhập kho</a>
             <a href="<?= url('logistics/packages') ?>" class="btn btn-soft-primary"><i class="ri-box-3-line me-1"></i> Kiện hàng</a>
             <a href="<?= url('logistics/bags') ?>" class="btn btn-soft-info"><i class="ri-shopping-bag-3-line me-1"></i> Bao hàng</a>
+            <a href="<?= url('logistics/settings') ?>" class="btn btn-soft-secondary"><i class="ri-settings-3-line me-1"></i> Cài đặt</a>
         </div>
     </div>
 </div>

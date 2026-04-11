@@ -1392,6 +1392,58 @@ class LogisticsController extends Controller
         return $prefix . date('ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
     }
 
+    // ---- Settings ----
+    public function settings()
+    {
+        if (!$this->checkPlugin()) return;
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $all = json_decode($tenant['settings'] ?? '{}', true);
+        $cfg = $all['logistics'] ?? [];
+        return $this->view('logistics.settings', ['cfg' => $cfg]);
+    }
+
+    public function saveSettings()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/settings');
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $all = json_decode($tenant['settings'] ?? '{}', true);
+
+        $all['logistics'] = [
+            'prefix_package' => trim($this->input('prefix_package') ?? '') ?: 'K',
+            'prefix_bag' => trim($this->input('prefix_bag') ?? '') ?: 'BAO',
+            'prefix_shipment' => trim($this->input('prefix_shipment') ?? '') ?: 'LH',
+            'prefix_order' => trim($this->input('prefix_order') ?? '') ?: 'DH',
+            'warehouse_cn_name' => trim($this->input('warehouse_cn_name') ?? '') ?: 'Kho Trung Quốc',
+            'warehouse_cn_address' => trim($this->input('warehouse_cn_address') ?? ''),
+            'warehouse_vn_name' => trim($this->input('warehouse_vn_name') ?? '') ?: 'Kho Việt Nam',
+            'warehouse_vn_address' => trim($this->input('warehouse_vn_address') ?? ''),
+            'default_route' => trim($this->input('default_route') ?? '') ?: 'Kho TQ - Cửa khẩu',
+            'default_origin' => trim($this->input('default_origin') ?? '') ?: 'CN',
+            'default_destination' => trim($this->input('default_destination') ?? '') ?: 'VN',
+            'rate_per_kg' => (float)($this->input('rate_per_kg') ?? 0),
+            'rate_per_cbm' => (float)($this->input('rate_per_cbm') ?? 0),
+            'currency' => trim($this->input('currency') ?? '') ?: 'VND',
+            'scan_sound' => $this->input('scan_sound') ? true : false,
+            'auto_seal_packages' => (int)($this->input('auto_seal_packages') ?? 0),
+            'auto_seal_weight' => (float)($this->input('auto_seal_weight') ?? 0),
+        ];
+
+        Database::update('tenants', ['settings' => json_encode($all)], 'id = ?', [$this->tenantId()]);
+        $this->setFlash('success', 'Đã lưu cài đặt Kho Logistics.');
+        return $this->redirect('logistics/settings');
+    }
+
+    public static function getConfig(string $key, $default = null)
+    {
+        static $cache = null;
+        if ($cache === null) {
+            $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [Database::tenantId()]);
+            $all = json_decode($tenant['settings'] ?? '{}', true);
+            $cache = $all['logistics'] ?? [];
+        }
+        return $cache[$key] ?? $default;
+    }
+
     private function logStatus(int $pkgId, ?string $old, string $new, ?string $note, int $uid): void
     {
         Database::query("INSERT INTO logistics_status_history (package_id, old_status, new_status, note, changed_by) VALUES (?,?,?,?,?)", [$pkgId, $old, $new, $note, $uid]);

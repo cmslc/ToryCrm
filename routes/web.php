@@ -409,6 +409,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('logistics/calculator/store', 'LogisticsController@saveRate');
     Router::post('logistics/calculator/{id}/delete', 'LogisticsController@deleteRate');
     Router::get('logistics/reports', 'LogisticsController@reports');
+    Router::get('logistics/settings', 'LogisticsController@settings');
+    Router::post('logistics/settings', 'LogisticsController@saveSettings');
     Router::get('logistics/bags', 'LogisticsController@bags');
     Router::post('logistics/bags/create', 'LogisticsController@createBag');
     Router::get('logistics/bags/{id}', 'LogisticsController@showBag');
