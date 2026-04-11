@@ -145,9 +145,9 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
             <div class="card-body">
                 <?php $orderImages = json_decode($order['images'] ?? '[]', true) ?: []; ?>
                 <div class="d-flex flex-wrap gap-2 mb-3" id="imageList">
-                    <?php foreach ($orderImages as $img): ?>
-                    <a href="<?= url('uploads/logistics/' . $img) ?>" target="_blank">
-                        <img src="<?= url('uploads/logistics/' . $img) ?>" class="rounded border" style="width:80px;height:80px;object-fit:cover">
+                    <?php foreach ($orderImages as $i => $img): ?>
+                    <a href="javascript:void(0)" onclick="showImagePopup(<?= htmlspecialchars(json_encode(array_map(fn($im) => url('uploads/logistics/' . $im), $orderImages))) ?>, <?= $i ?>)">
+                        <img src="<?= url('uploads/logistics/' . $img) ?>" class="rounded border" style="width:80px;height:80px;object-fit:cover;cursor:pointer">
                     </a>
                     <?php endforeach; ?>
                     <?php if (empty($orderImages)): ?><p class="text-muted mb-0 fs-12" id="noImages">Chưa có ảnh</p><?php endif; ?>
@@ -187,3 +187,36 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Image Popup Modal -->
+<div class="modal fade" id="imagePopup" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-body p-0 text-center position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" style="z-index:10"></button>
+                <button type="button" class="btn btn-light rounded-circle position-absolute start-0 top-50 translate-middle-y ms-2" id="imgPrev" style="z-index:10"><i class="ri-arrow-left-s-line"></i></button>
+                <button type="button" class="btn btn-light rounded-circle position-absolute end-0 top-50 translate-middle-y me-2" id="imgNext" style="z-index:10"><i class="ri-arrow-right-s-line"></i></button>
+                <img id="popupImage" src="" class="rounded" style="max-height:80vh;max-width:100%">
+                <div class="text-white mt-2" id="popupCounter"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var popupImages = [], popupIndex = 0;
+function showImagePopup(images, startIndex) {
+    popupImages = images;
+    popupIndex = startIndex || 0;
+    updatePopupImage();
+    new bootstrap.Modal(document.getElementById('imagePopup')).show();
+}
+function updatePopupImage() {
+    document.getElementById('popupImage').src = popupImages[popupIndex];
+    document.getElementById('popupCounter').textContent = (popupIndex + 1) + ' / ' + popupImages.length;
+    document.getElementById('imgPrev').style.display = popupImages.length > 1 ? '' : 'none';
+    document.getElementById('imgNext').style.display = popupImages.length > 1 ? '' : 'none';
+}
+document.getElementById('imgPrev')?.addEventListener('click', function() { popupIndex = (popupIndex - 1 + popupImages.length) % popupImages.length; updatePopupImage(); });
+document.getElementById('imgNext')?.addEventListener('click', function() { popupIndex = (popupIndex + 1) % popupImages.length; updatePopupImage(); });
+</script>

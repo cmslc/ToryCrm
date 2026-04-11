@@ -39,8 +39,8 @@ $currentType = $filters['type'] ?? '';
                         if (!empty($oImgs)):
                             $firstImg = $oImgs[0];
                         ?>
-                            <a href="<?= url('logistics/orders/' . $o['id']) ?>">
-                                <img src="<?= url('uploads/logistics/' . $firstImg) ?>" class="rounded" style="width:40px;height:40px;object-fit:cover">
+                            <a href="javascript:void(0)" onclick="showImagePopup(<?= htmlspecialchars(json_encode(array_map(fn($img) => url('uploads/logistics/' . $img), $oImgs))) ?>)">
+                                <img src="<?= url('uploads/logistics/' . $firstImg) ?>" class="rounded" style="width:40px;height:40px;object-fit:cover;cursor:pointer">
                                 <?php if (count($oImgs) > 1): ?><span class="text-muted fs-11 ms-1">+<?= count($oImgs) - 1 ?></span><?php endif; ?>
                             </a>
                         <?php else: ?>
@@ -111,3 +111,37 @@ $currentType = $filters['type'] ?? '';
         </div>
     </div>
 </div>
+
+<!-- Image Popup Modal -->
+<div class="modal fade" id="imagePopup" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0 shadow-none">
+            <div class="modal-body p-0 text-center position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" style="z-index:10"></button>
+                <button type="button" class="btn btn-light rounded-circle position-absolute start-0 top-50 translate-middle-y ms-2" id="imgPrev" style="z-index:10"><i class="ri-arrow-left-s-line"></i></button>
+                <button type="button" class="btn btn-light rounded-circle position-absolute end-0 top-50 translate-middle-y me-2" id="imgNext" style="z-index:10"><i class="ri-arrow-right-s-line"></i></button>
+                <img id="popupImage" src="" class="rounded" style="max-height:80vh;max-width:100%">
+                <div class="text-white mt-2" id="popupCounter"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var popupImages = [], popupIndex = 0;
+function showImagePopup(images, startIndex) {
+    popupImages = images;
+    popupIndex = startIndex || 0;
+    updatePopupImage();
+    new bootstrap.Modal(document.getElementById('imagePopup')).show();
+}
+function updatePopupImage() {
+    document.getElementById('popupImage').src = popupImages[popupIndex];
+    document.getElementById('popupCounter').textContent = (popupIndex + 1) + ' / ' + popupImages.length;
+    document.getElementById('imgPrev').style.display = popupImages.length > 1 ? '' : 'none';
+    document.getElementById('imgNext').style.display = popupImages.length > 1 ? '' : 'none';
+}
+document.getElementById('imgPrev')?.addEventListener('click', function() { popupIndex = (popupIndex - 1 + popupImages.length) % popupImages.length; updatePopupImage(); });
+document.getElementById('imgNext')?.addEventListener('click', function() { popupIndex = (popupIndex + 1) % popupImages.length; updatePopupImage(); });
+document.getElementById('imagePopup')?.addEventListener('keydown', function(e) { if (e.key === 'ArrowLeft') document.getElementById('imgPrev').click(); if (e.key === 'ArrowRight') document.getElementById('imgNext').click(); });
+</script>
