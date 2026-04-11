@@ -57,13 +57,23 @@
                         ?>
                         <thead class="table-light"><tr><th>Nhân viên</th><th>Vai trò</th><th>Đăng nhập cuối</th></tr></thead>
                         <tbody>
-                        <?php
-                        $roleLabels = ['admin'=>'Admin','manager'=>'Quản lý','staff'=>'Nhân viên'];
-                        $roleColors = ['admin'=>'danger','manager'=>'warning','staff'=>'info'];
-                        foreach ($members as $m): ?>
+                        <?php foreach ($members as $m):
+                            // Determine role label: Trưởng phòng > Phó phòng > position > system role
+                            $deptRole = '';
+                            $deptColor = 'secondary';
+                            if ($m['id'] == $department['manager_id']) {
+                                $deptRole = 'Trưởng phòng'; $deptColor = 'danger';
+                            } elseif ($m['id'] == $department['vice_manager_id']) {
+                                $deptRole = 'Phó phòng'; $deptColor = 'warning';
+                            } elseif (isset($posMap[$m['id']])) {
+                                $deptRole = $posMap[$m['id']]['position']; $deptColor = 'primary';
+                            } else {
+                                $deptRole = 'Nhân viên'; $deptColor = 'info';
+                            }
+                        ?>
                         <tr>
                             <td><?= user_avatar($m['name'] ?? null, 'primary', $m['avatar'] ?? null) ?></td>
-                            <td><span class="badge bg-<?= $roleColors[$m['role']] ?? 'secondary' ?>-subtle text-<?= $roleColors[$m['role']] ?? 'secondary' ?>"><?= $roleLabels[$m['role']] ?? $m['role'] ?></span></td>
+                            <td><span class="badge bg-<?= $deptColor ?>-subtle text-<?= $deptColor ?>"><?= e($deptRole) ?></span></td>
                             <td class="text-muted fs-12"><?= $m['last_login'] ? time_ago($m['last_login']) : '-' ?></td>
                         </tr>
                         <?php endforeach; ?>
