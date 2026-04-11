@@ -6,7 +6,18 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0"><i class="ri-qr-scan-2-line me-2"></i>Nhập kho - Quét mã</h4>
-    <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
+    <div class="d-flex align-items-center gap-2">
+        <!-- Warehouse selector -->
+        <select id="warehouseLocation" class="form-select" style="width:auto">
+            <option value="vn">🇻🇳 Kho Việt Nam</option>
+            <option value="cn">🇨🇳 Kho Trung Quốc</option>
+        </select>
+        <!-- Sound toggle -->
+        <button type="button" class="btn btn-soft-secondary" id="soundToggle" title="Bật/tắt âm thanh">
+            <i class="ri-volume-up-line" id="soundIcon"></i>
+        </button>
+        <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
+    </div>
 </div>
 
 <!-- Stats Bar -->
@@ -127,10 +138,12 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang quét...';
 
+        var whLocation = document.getElementById('warehouseLocation').value;
+
         fetch('<?= url("logistics/scan") ?>', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=' + token + '&barcode=' + encodeURIComponent(barcode)
+            body: '_token=' + token + '&barcode=' + encodeURIComponent(barcode) + '&warehouse_location=' + whLocation
         })
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -144,6 +157,7 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
             if (d.success) {
                 alertDiv.className = 'alert alert-success d-flex align-items-center';
                 alertDiv.innerHTML = '<i class="ri-check-circle-line fs-20 me-2"></i><div><strong>' + (d.package?.code || d.package?.package_code || barcode) + '</strong> — ' + d.message + '</div>';
+                playSound('success');
                 updateStat('statSuccess');
 
                 if (d.need_weight && d.package) {
@@ -156,10 +170,12 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
             } else if (d.type === 'duplicate') {
                 alertDiv.className = 'alert alert-warning d-flex align-items-center';
                 alertDiv.innerHTML = '<i class="ri-repeat-line fs-20 me-2"></i><div>' + d.message + '</div>';
+                playSound('warning');
                 updateStat('statDup');
             } else {
                 alertDiv.className = 'alert alert-danger d-flex align-items-center';
                 alertDiv.innerHTML = '<i class="ri-error-warning-line fs-20 me-2"></i><div>' + (d.message || d.error || 'Lỗi') + '</div>';
+                playSound('error');
                 updateStat('statError');
             }
             updateStat('statTotal');
@@ -255,6 +271,56 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
             updateStat('statTotal');
             document.getElementById('scanInput').focus();
         });
+    });
+
+    // Sound system
+    var soundEnabled = localStorage.getItem('logistics_sound') !== 'off';
+    var audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playSound(type) {
+        if (!soundEnabled) return;
+        initAudio();
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.value = 0.3;
+
+        if (type === 'success') {
+            osc.frequency.value = 800;
+            osc.type = 'sine';
+            osc.start();
+            setTimeout(function() { osc.frequency.value = 1200; }, 100);
+            setTimeout(function() { osc.stop(); }, 200);
+        } else if (type === 'error') {
+            osc.frequency.value = 300;
+            osc.type = 'square';
+            osc.start();
+            setTimeout(function() { osc.stop(); }, 300);
+        } else if (type === 'warning') {
+            osc.frequency.value = 600;
+            osc.type = 'triangle';
+            osc.start();
+            setTimeout(function() { osc.frequency.value = 400; }, 100);
+            setTimeout(function() { osc.stop(); }, 250);
+        }
+    }
+
+    // Sound toggle
+    function updateSoundIcon() {
+        document.getElementById('soundIcon').className = soundEnabled ? 'ri-volume-up-line' : 'ri-volume-mute-line';
+    }
+    updateSoundIcon();
+
+    document.getElementById('soundToggle')?.addEventListener('click', function() {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('logistics_sound', soundEnabled ? 'on' : 'off');
+        updateSoundIcon();
+        if (soundEnabled) playSound('success');
     });
 
     // Auto focus scan input

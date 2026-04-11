@@ -79,6 +79,8 @@ class LogisticsController extends Controller
         $tid = Database::tenantId();
         $uid = $this->userId();
         $barcode = trim($this->input('barcode') ?? '');
+        $whLocation = $this->input('warehouse_location') ?: 'vn';
+        $targetStatus = ($whLocation === 'cn') ? 'warehouse_cn' : 'warehouse_vn';
 
         if (empty($barcode)) return $this->json(['error' => 'Mã quét trống'], 422);
 
@@ -115,26 +117,30 @@ class LogisticsController extends Controller
                 'tenant_id' => $tid,
                 'package_code' => $pkgCode,
                 'tracking_code' => $barcode,
-                'status' => 'warehouse_vn',
+                'status' => $targetStatus,
+                'warehouse_location' => $whLocation,
                 'received_by' => $uid,
                 'received_at' => date('Y-m-d H:i:s'),
                 'created_by' => $uid,
             ]);
 
-            $this->logStatus($pkgId, null, 'warehouse_vn', 'Tự tạo khi quét mã', $uid);
-            $this->logScan($tid, $barcode, 'package', 'success', $pkgId, null, 'Tạo mới + nhập kho', $uid);
+            $whLabel = $whLocation === 'cn' ? 'Kho TQ' : 'Kho VN';
+            $this->logStatus($pkgId, null, $targetStatus, 'Tự tạo khi quét mã - ' . $whLabel, $uid);
+            $this->logScan($tid, $barcode, 'package', 'success', $pkgId, null, 'Tạo mới + nhập ' . $whLabel, $uid);
 
             return $this->json([
                 'success' => true,
                 'type' => 'new',
-                'message' => 'Tạo kiện mới + nhập kho thành công',
-                'package' => ['id' => $pkgId, 'code' => $pkgCode, 'tracking' => $barcode, 'status' => 'warehouse_vn'],
+                'message' => 'Tạo kiện mới + nhập ' . $whLabel . ' thành công',
+                'package' => ['id' => $pkgId, 'code' => $pkgCode, 'tracking' => $barcode, 'status' => $targetStatus],
                 'need_weight' => true,
             ]);
         }
 
-        // Check if already received
-        if (in_array($pkg['status'], ['warehouse_vn', 'delivering', 'delivered'])) {
+        // Check if already received at this warehouse
+        $alreadyReceived = ($whLocation === 'cn' && in_array($pkg['status'], ['warehouse_cn','packed','shipping','warehouse_vn','delivering','delivered']))
+            || ($whLocation === 'vn' && in_array($pkg['status'], ['warehouse_vn','delivering','delivered']));
+        if ($alreadyReceived) {
             $this->logScan($tid, $barcode, 'package', 'duplicate', $pkg['id'], null, 'Đã nhập kho trước đó', $uid);
             return $this->json([
                 'success' => false,
@@ -144,26 +150,28 @@ class LogisticsController extends Controller
             ]);
         }
 
-        // Update status to warehouse_vn
+        // Update status
         $oldStatus = $pkg['status'];
+        $whLabel = $whLocation === 'cn' ? 'Kho TQ' : 'Kho VN';
         Database::update('logistics_packages', [
-            'status' => 'warehouse_vn',
+            'status' => $targetStatus,
+            'warehouse_location' => $whLocation,
             'received_by' => $uid,
             'received_at' => date('Y-m-d H:i:s'),
         ], 'id = ? AND tenant_id = ?', [$pkg['id'], $tid]);
 
-        $this->logStatus($pkg['id'], $oldStatus, 'warehouse_vn', 'Quét mã nhập kho', $uid);
-        $this->logScan($tid, $barcode, 'package', 'success', $pkg['id'], null, 'Nhập kho thành công', $uid);
+        $this->logStatus($pkg['id'], $oldStatus, $targetStatus, 'Quét mã nhập ' . $whLabel, $uid);
+        $this->logScan($tid, $barcode, 'package', 'success', $pkg['id'], null, 'Nhập ' . $whLabel . ' thành công', $uid);
 
         // Auto-complete bag/shipment
         if ($pkg['bag_id']) self::checkAutoComplete((int)$pkg['bag_id']);
         if ($pkg['shipment_id']) self::checkShipmentAutoArrival((int)$pkg['shipment_id']);
 
-        $pkg['status'] = 'warehouse_vn';
+        $pkg['status'] = $targetStatus;
         return $this->json([
             'success' => true,
             'type' => 'receive',
-            'message' => 'Nhập kho thành công',
+            'message' => 'Nhập ' . $whLabel . ' thành công',
             'package' => $pkg,
             'need_weight' => empty($pkg['weight_actual']),
         ]);
