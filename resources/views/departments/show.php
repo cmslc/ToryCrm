@@ -69,7 +69,7 @@
                                 <form method="POST" action="<?= url('departments/' . $department['id'] . '/positions') ?>" class="d-inline">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="user_id" value="<?= $m['id'] ?>">
-                                    <select name="position" class="form-select form-select-sm" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                                    <select name="position" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
                                         <option value="">— Chưa gán —</option>
                                         <?php foreach ($posOptions as $po): ?>
                                             <option value="<?= e($po) ?>" <?= $curPos === $po ? 'selected' : '' ?>><?= e($po) ?></option>
