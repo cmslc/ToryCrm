@@ -283,7 +283,12 @@ function removePkg(pkgId, code) {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: '_token=<?= csrf_token() ?>&package_id=' + pkgId
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        if (!r.ok && r.status !== 422) throw new Error('HTTP ' + r.status);
+        var ct = r.headers.get('content-type') || '';
+        if (ct.indexOf('json') < 0) throw new Error('Không phải JSON');
+        return r.json();
+    })
     .then(function(data) {
         if (data.success) {
             var row = document.getElementById('pkg-row-' + pkgId);
@@ -291,7 +296,8 @@ function removePkg(pkgId, code) {
         } else {
             alert(data.error || 'Lỗi');
         }
-    });
+    })
+    .catch(function(err) { alert('Lỗi: ' + err.message); });
 }
 </script>
 <?php endif; ?>
