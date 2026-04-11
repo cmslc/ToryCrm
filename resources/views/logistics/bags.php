@@ -32,7 +32,7 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th><th>Mã bao</th><th>Số kiện</th><th>Tổng cân</th><th>Trạng thái</th><th>Người tạo</th><th>Ngày tạo</th></tr></thead>
+                <thead class="table-light"><tr><th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th><th>Mã bao</th><th>Số kiện</th><th>Tổng cân</th><th>Trạng thái</th><th>Người tạo</th><th>Ngày tạo</th><th style="width:60px"></th></tr></thead>
                 <tbody>
                 <?php foreach ($bags as $b): ?>
                 <tr>
@@ -40,12 +40,27 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                     <td class="fw-medium"><?= e($b['bag_code']) ?></td>
                     <td><span class="badge bg-primary-subtle text-primary"><?= $b['pkg_count'] ?></span></td>
                     <td><?= $b['total_weight'] ? rtrim(rtrim(number_format($b['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td>
-                    <td><span class="badge bg-<?= $stColors[$b['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$b['status']] ?? 'secondary' ?>"><?= $stLabels[$b['status']] ?? $b['status'] ?></span></td>
+                    <td><span class="badge bg-<?= $stColors[$b['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$b['status']] ?? 'secondary' ?>"><?= $stLabels[$b['status']] ?? $b['status'] ?></span><?php if ($b['sealed_at']): ?> <small class="text-muted d-block fs-11"><?= created_ago($b['sealed_at']) ?></small><?php endif; ?></td>
                     <td><?= user_avatar($b['created_by_name'] ?? null) ?></td>
                     <td class="text-muted fs-12"><?= created_ago($b['created_at']) ?></td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-2-fill"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <?php if ($b['status'] === 'open'): ?>
+                                <li><a class="dropdown-item" href="#" onclick="sealBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')"><i class="ri-lock-line me-2 text-primary"></i> Đóng bao</a></li>
+                                <?php endif; ?>
+                                <?php if (in_array($b['status'], ['open','sealed'])): ?>
+                                <li><a class="dropdown-item" href="#" onclick="editBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>', '<?= e($b['note'] ?? '') ?>')"><i class="ri-edit-line me-2 text-info"></i> Sửa bao</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')"><i class="ri-delete-bin-line me-2"></i> Xóa bao</a></li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($bags)): ?><tr><td colspan="7" class="text-center text-muted py-4">Chưa có bao hàng</td></tr><?php endif; ?>
+                <?php if (empty($bags)): ?><tr><td colspan="8" class="text-center text-muted py-4">Chưa có bao hàng</td></tr><?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -123,6 +138,76 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
         </div>
     </div>
 </div>
+
+<!-- Seal Bag Modal -->
+<div class="modal fade" id="sealBagModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="sealBagForm">
+                <?= csrf_field() ?>
+                <div class="modal-header bg-primary-subtle"><h5 class="modal-title"><i class="ri-lock-line me-2"></i> Đóng bao</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <p>Bạn muốn đóng (niêm phong) bao <strong id="sealBagCode"></strong>?</p>
+                    <div class="alert alert-warning py-2 mb-0"><i class="ri-information-line me-1"></i> Sau khi đóng bao, không thể thêm kiện vào bao này nữa.</div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary"><i class="ri-lock-line me-1"></i> Đóng bao</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Bag Modal -->
+<div class="modal fade" id="editBagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="editBagForm">
+                <?= csrf_field() ?>
+                <div class="modal-header"><h5 class="modal-title"><i class="ri-edit-line me-2"></i> Sửa bao</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Mã bao</label><input type="text" class="form-control" name="bag_code" id="editBagCode"></div>
+                    <div class="mb-3"><label class="form-label">Ghi chú</label><textarea class="form-control" name="note" id="editBagNote" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Bag Modal -->
+<div class="modal fade" id="deleteBagModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="deleteBagForm">
+                <?= csrf_field() ?>
+                <div class="modal-header bg-danger-subtle"><h5 class="modal-title text-danger"><i class="ri-delete-bin-line me-2"></i> Xóa bao</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <p>Bạn chắc chắn muốn xóa bao <strong id="deleteBagCode"></strong>?</p>
+                    <div class="alert alert-danger py-2 mb-0"><i class="ri-error-warning-line me-1"></i> Các kiện trong bao sẽ được gỡ ra khỏi bao.</div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function sealBag(id, code) {
+    document.getElementById('sealBagCode').textContent = code;
+    document.getElementById('sealBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/seal';
+    new bootstrap.Modal(document.getElementById('sealBagModal')).show();
+}
+function editBag(id, code, note) {
+    document.getElementById('editBagCode').value = code;
+    document.getElementById('editBagNote').value = note;
+    document.getElementById('editBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/update';
+    new bootstrap.Modal(document.getElementById('editBagModal')).show();
+}
+function deleteBag(id, code) {
+    document.getElementById('deleteBagCode').textContent = code;
+    document.getElementById('deleteBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/delete';
+    new bootstrap.Modal(document.getElementById('deleteBagModal')).show();
+}
+</script>
 
 <script>
 (function() {

@@ -363,6 +363,71 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/bags');
     }
 
+    public function sealBag($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/bags');
+        $tid = Database::tenantId();
+        $bag = Database::fetch("SELECT * FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$bag || $bag['status'] !== 'open') {
+            $this->setFlash('error', 'Không thể đóng bao này.');
+            return $this->redirect('logistics/bags');
+        }
+        Database::execute(
+            "UPDATE logistics_bags SET status = 'sealed', sealed_at = NOW(), sealed_by = ? WHERE id = ? AND tenant_id = ?",
+            [$this->userId(), $id, $tid]
+        );
+        $this->setFlash('success', 'Đã đóng bao ' . $bag['bag_code']);
+        return $this->redirect('logistics/bags');
+    }
+
+    public function updateBag($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/bags');
+        $tid = Database::tenantId();
+        $bag = Database::fetch("SELECT * FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$bag || !in_array($bag['status'], ['open', 'sealed'])) {
+            $this->setFlash('error', 'Không thể sửa bao này.');
+            return $this->redirect('logistics/bags');
+        }
+        $code = trim($this->input('bag_code') ?? '');
+        $note = trim($this->input('note') ?? '') ?: null;
+        if ($code && $code !== $bag['bag_code']) {
+            $dup = Database::fetch("SELECT id FROM logistics_bags WHERE tenant_id = ? AND bag_code = ? AND id != ?", [$tid, $code, $id]);
+            if ($dup) {
+                $this->setFlash('error', 'Mã bao đã tồn tại.');
+                return $this->redirect('logistics/bags');
+            }
+        }
+        Database::execute(
+            "UPDATE logistics_bags SET bag_code = ?, note = ? WHERE id = ? AND tenant_id = ?",
+            [$code ?: $bag['bag_code'], $note, $id, $tid]
+        );
+        $this->setFlash('success', 'Đã cập nhật bao.');
+        return $this->redirect('logistics/bags');
+    }
+
+    public function deleteBag($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/bags');
+        $tid = Database::tenantId();
+        $bag = Database::fetch("SELECT * FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$bag) {
+            $this->setFlash('error', 'Bao không tồn tại.');
+            return $this->redirect('logistics/bags');
+        }
+        if (!in_array($bag['status'], ['open', 'sealed'])) {
+            $this->setFlash('error', 'Chỉ xóa được bao chưa vận chuyển.');
+            return $this->redirect('logistics/bags');
+        }
+        $pkgCount = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_packages WHERE bag_id = ?", [$id]);
+        if ($pkgCount && $pkgCount['cnt'] > 0) {
+            Database::execute("UPDATE logistics_packages SET bag_id = NULL WHERE bag_id = ? AND tenant_id = ?", [$id, $tid]);
+        }
+        Database::execute("DELETE FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        $this->setFlash('success', 'Đã xóa bao ' . $bag['bag_code']);
+        return $this->redirect('logistics/bags');
+    }
+
     // ---- Orders ----
     public function orders()
     {
@@ -391,6 +456,20 @@ class LogisticsController extends Controller
         );
 
         return $this->view('logistics.orders', ['orders' => $orders, 'filters' => ['type' => $type, 'status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
+    }
+
+    public function createOrderForm()
+    {
+        if (!$this->checkPlugin()) return;
+        return $this->view('logistics.order-create');
+    }
+
+    public function editOrder($id)
+    {
+        if (!$this->checkPlugin()) return;
+        $order = Database::fetch("SELECT * FROM logistics_orders WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        if (!$order) { $this->setFlash('error', 'Đơn không tồn tại.'); return $this->redirect('logistics/orders'); }
+        return $this->view('logistics.order-edit', ['order' => $order]);
     }
 
     public function createOrder()

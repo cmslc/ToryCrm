@@ -383,8 +383,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('logistics/packages/create', 'LogisticsController@createPackage');
     Router::get('logistics/packages/{id}', 'LogisticsController@showPackage');
     Router::get('logistics/orders', 'LogisticsController@orders');
+    Router::get('logistics/orders/create', 'LogisticsController@createOrderForm');
     Router::post('logistics/orders/create', 'LogisticsController@createOrder');
     Router::get('logistics/orders/{id}', 'LogisticsController@showOrder');
+    Router::get('logistics/orders/{id}/edit', 'LogisticsController@editOrder');
     Router::post('logistics/orders/{id}/update', 'LogisticsController@updateOrder');
     Router::post('logistics/orders/{id}/add-package', 'LogisticsController@addPackageToOrder');
     Router::post('logistics/orders/{id}/upload', 'LogisticsController@uploadOrderImage');
@@ -409,6 +411,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('logistics/reports', 'LogisticsController@reports');
     Router::get('logistics/bags', 'LogisticsController@bags');
     Router::post('logistics/bags/create', 'LogisticsController@createBag');
+    Router::post('logistics/bags/{id}/seal', 'LogisticsController@sealBag');
+    Router::post('logistics/bags/{id}/update', 'LogisticsController@updateBag');
+    Router::post('logistics/bags/{id}/delete', 'LogisticsController@deleteBag');
 
     // Booking Links
     Router::get('bookings', 'BookingController@index');

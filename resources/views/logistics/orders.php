@@ -21,7 +21,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
     <h4 class="mb-0">Đơn hàng</h4>
     <div class="d-flex gap-2">
         <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal"><i class="ri-add-line me-1"></i> Tạo đơn</button>
+        <a href="<?= url('logistics/orders/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn</a>
     </div>
 </div>
 
@@ -220,7 +220,7 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                             <button class="btn btn-soft-secondary btn-icon" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="<?= url('logistics/orders/' . $o['id']) ?>"><i class="ri-eye-line me-2"></i>Chi tiết</a></li>
-                                <li><a class="dropdown-item" href="<?= url('logistics/orders/' . $o['id']) ?>#editOrderModal" onclick="setTimeout(function(){var m=document.getElementById('editOrderModal');if(m)new bootstrap.Modal(m).show()},500)"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
+                                <li><a class="dropdown-item" href="<?= url('logistics/orders/' . $o['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><form method="POST" action="<?= url('logistics/orders/' . $o['id'] . '/delete') ?>" data-confirm="Xóa đơn <?= e($o['order_code']) ?>?"><?= csrf_field() ?><button class="dropdown-item text-danger"><i class="ri-delete-bin-line me-2"></i>Xóa</button></form></li>
                             </ul>
@@ -234,159 +234,6 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
         </div>
     </div>
 </div>
-
-<!-- Add Order Modal -->
-<div class="modal fade" id="addOrderModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="<?= url('logistics/orders/create') ?>" enctype="multipart/form-data">
-                <?= csrf_field() ?>
-                <div class="modal-header"><h5 class="modal-title">Tạo đơn hàng</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-6 mb-3"><label class="form-label">Mã đơn</label><input type="text" class="form-control" name="order_code" placeholder="Tự tạo"></div>
-                        <div class="col-6 mb-3"><label class="form-label">Loại <span class="text-danger">*</span></label>
-                            <select name="type" class="form-select"><option value="retail">Hàng lẻ</option><option value="wholesale">Hàng lô/sỉ</option></select>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Khách hàng</label>
-                            <div class="position-relative">
-                                <input type="text" class="form-control" id="logCustSearch" placeholder="Gõ tên/SĐT để tìm..." autocomplete="off">
-                                <input type="hidden" name="customer_id" id="logCustId">
-                                <input type="hidden" name="customer_name" id="logCustName">
-                                <input type="hidden" name="customer_phone" id="logCustPhone">
-                                <div id="logCustDropdown" class="dropdown-menu w-100" style="display:none;max-height:200px;overflow-y:auto;position:absolute;z-index:1060"></div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">SĐT</label>
-                            <input type="text" class="form-control" id="logCustPhoneInput" name="customer_phone_display" placeholder="Tự điền hoặc nhập tay">
-                        </div>
-                    </div>
-                    <div class="mb-3"><label class="form-label">Sản phẩm</label><input type="text" class="form-control" name="product_name"></div>
-                    <div class="row">
-                        <div class="col-3 mb-3"><label class="form-label">Tổng kiện</label><input type="number" class="form-control" name="total_packages" min="0" value="1"></div>
-                        <div class="col-3 mb-3"><label class="form-label">Cân nặng (kg)</label><input type="number" class="form-control" name="total_weight" min="0" step="0.01"></div>
-                        <div class="col-3 mb-3"><label class="form-label">Số khối (m³)</label><input type="number" class="form-control" name="total_cbm" min="0" step="0.0001"></div>
-                        <div class="col-4 mb-3"><label class="form-label">Tổng tiền</label><input type="number" class="form-control" name="total_amount" min="0" step="1000"></div>
-                        <div class="col-4 mb-3"><label class="form-label">COD thu</label><input type="number" class="form-control" name="cod_amount" min="0" step="1000"></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3"><label class="form-label">Thanh toán</label>
-                            <select name="payment_method" class="form-select"><option value="">Chưa chọn</option><option value="cod">COD</option><option value="transfer">Chuyển khoản</option><option value="cash">Tiền mặt</option><option value="prepaid">Đã thanh toán</option></select>
-                        </div>
-                    </div>
-                    <div class="mb-3"><label class="form-label">Ghi chú</label><textarea class="form-control" name="note" rows="2"></textarea></div>
-                    <div class="mb-3"><label class="form-label">Ảnh đơn hàng</label><input type="file" name="images[]" class="form-control" accept="image/*" multiple></div>
-                </div>
-                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary"><i class="ri-check-line me-1"></i> Tạo</button></div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-(function() {
-    var input = document.getElementById('logCustSearch');
-    var dd = document.getElementById('logCustDropdown');
-    var custId = document.getElementById('logCustId');
-    var custName = document.getElementById('logCustName');
-    var custPhone = document.getElementById('logCustPhone');
-    var phoneInput = document.getElementById('logCustPhoneInput');
-    var timer = null;
-
-    if (!input) return;
-
-    input.addEventListener('input', function() {
-        clearTimeout(timer);
-        var q = this.value.trim();
-        if (q.length < 2) { dd.style.display = 'none'; return; }
-
-        timer = setTimeout(function() {
-            fetch('<?= url("contacts") ?>?search=' + encodeURIComponent(q) + '&_ajax=1')
-                .then(function(r) { return r.text(); })
-                .catch(function() { return ''; })
-                .then(function() {
-                    // Use direct DB search via simple API
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET', '<?= url("api-internal/users") ?>?search=' + encodeURIComponent(q));
-                    xhr.onload = function() {
-                        // Fallback: search contacts via PHP inline
-                    };
-                });
-
-            // Simple approach: search contacts inline
-            <?php
-            $allContacts = \Core\Database::fetchAll(
-                "SELECT id, first_name, last_name, phone, email FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name LIMIT 200",
-                [$_SESSION['tenant_id'] ?? 1]
-            );
-            ?>
-            var contacts = <?= json_encode(array_map(fn($c) => [
-                'id' => $c['id'],
-                'name' => trim($c['first_name'] . ' ' . ($c['last_name'] ?? '')),
-                'phone' => $c['phone'] ?? '',
-                'email' => $c['email'] ?? '',
-            ], $allContacts)) ?>;
-
-            var results = contacts.filter(function(c) {
-                return c.name.toLowerCase().indexOf(q.toLowerCase()) >= 0
-                    || c.phone.indexOf(q) >= 0
-                    || c.email.toLowerCase().indexOf(q.toLowerCase()) >= 0;
-            }).slice(0, 8);
-
-            var html = '';
-            results.forEach(function(c) {
-                html += '<a href="#" class="dropdown-item py-2" data-id="' + c.id + '" data-name="' + c.name + '" data-phone="' + c.phone + '">'
-                    + '<div class="fw-medium">' + c.name + '</div>'
-                    + (c.phone ? '<small class="text-muted">' + c.phone + '</small>' : '')
-                    + (c.email ? ' <small class="text-muted">' + c.email + '</small>' : '')
-                    + '</a>';
-            });
-
-            if (q.length >= 2) {
-                html += '<a href="#" class="dropdown-item py-2 text-primary border-top" data-id="" data-name="' + q + '" data-phone="">'
-                    + '<i class="ri-add-line me-1"></i> Tạo mới: <strong>' + q + '</strong>'
-                    + '</a>';
-            }
-
-            dd.innerHTML = html;
-            dd.style.display = html ? 'block' : 'none';
-
-            dd.querySelectorAll('[data-name]').forEach(function(a) {
-                a.onclick = function(e) {
-                    e.preventDefault();
-                    var name = this.dataset.name;
-                    var phone = this.dataset.phone;
-                    var id = this.dataset.id;
-
-                    input.value = name;
-                    custId.value = id;
-                    custName.value = name;
-                    custPhone.value = phone;
-                    phoneInput.value = phone;
-                    dd.style.display = 'none';
-                };
-            });
-        }, 200);
-    });
-
-    input.addEventListener('blur', function() {
-        setTimeout(function() { dd.style.display = 'none'; }, 200);
-        // If typed but not selected, use as new name
-        if (input.value && !custName.value) {
-            custName.value = input.value;
-        }
-    });
-
-    // Sync phone input back
-    phoneInput?.addEventListener('input', function() {
-        custPhone.value = this.value;
-    });
-})();
-</script>
 
 <!-- Image Popup Modal -->
 <div class="modal fade" id="imagePopup" tabindex="-1">
