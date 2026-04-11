@@ -48,6 +48,8 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                         <div class="d-flex gap-1">
                             <?php if ($b['status'] === 'open'): ?>
                             <button class="btn btn-soft-primary btn-icon" onclick="sealBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')" title="Đóng bao"><i class="ri-lock-line"></i></button>
+                            <?php elseif ($b['status'] === 'sealed'): ?>
+                            <button class="btn btn-soft-warning btn-icon" onclick="unsealBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')" title="Mở lại bao"><i class="ri-lock-unlock-line"></i></button>
                             <?php endif; ?>
                             <button class="btn btn-soft-info btn-icon" onclick="editBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>', '<?= e($b['note'] ?? '') ?>')" title="Sửa"><i class="ri-edit-line"></i></button>
                             <button class="btn btn-soft-danger btn-icon" onclick="deleteBag(<?= $b['id'] ?>, '<?= e($b['bag_code']) ?>')" title="Xóa"><i class="ri-delete-bin-line"></i></button>
@@ -149,6 +151,23 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
     </div>
 </div>
 
+<!-- Unseal Bag Modal -->
+<div class="modal fade" id="unsealBagModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="unsealBagForm">
+                <?= csrf_field() ?>
+                <div class="modal-header bg-warning-subtle"><h5 class="modal-title"><i class="ri-lock-unlock-line me-2"></i> Mở lại bao</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <p>Bạn muốn mở lại bao <strong id="unsealBagCode"></strong>?</p>
+                    <div class="alert alert-info py-2 mb-0"><i class="ri-information-line me-1"></i> Sau khi mở, có thể quét thêm kiện vào bao.</div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-warning"><i class="ri-lock-unlock-line me-1"></i> Mở lại</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Seal Bag Modal -->
 <div class="modal fade" id="sealBagModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -201,6 +220,11 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
 </div>
 
 <script>
+function unsealBag(id, code) {
+    document.getElementById('unsealBagCode').textContent = code;
+    document.getElementById('unsealBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/seal';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('unsealBagModal')).show();
+}
 function sealBag(id, code) {
     document.getElementById('sealBagCode').textContent = code;
     document.getElementById('sealBagForm').action = '<?= url("logistics/bags") ?>/' + id + '/seal';

@@ -14,6 +14,11 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-primary"><i class="ri-lock-line me-1"></i> Đóng bao</button>
         </form>
+        <?php elseif ($bag['status'] === 'sealed'): ?>
+        <form method="POST" action="<?= url('logistics/bags/' . $bag['id'] . '/seal') ?>" onsubmit="return confirm('Mở lại bao để thêm kiện?')">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-warning"><i class="ri-lock-unlock-line me-1"></i> Mở lại bao</button>
+        </form>
         <?php endif; ?>
         <a href="<?= url('logistics/bags') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> DS Bao</a>
     </div>

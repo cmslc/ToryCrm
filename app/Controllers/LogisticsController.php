@@ -375,15 +375,23 @@ class LogisticsController extends Controller
         if (!$this->isPost()) return $this->redirect('logistics/bags');
         $tid = Database::tenantId();
         $bag = Database::fetch("SELECT * FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
-        if (!$bag || $bag['status'] !== 'open') {
-            $this->setFlash('error', 'Không thể đóng bao này.');
+        if (!$bag || !in_array($bag['status'], ['open', 'sealed'])) {
+            $this->setFlash('error', 'Không thể thao tác bao này.');
             return $this->redirect('logistics/bags');
         }
-        Database::query(
-            "UPDATE logistics_bags SET status = 'sealed', sealed_at = NOW(), sealed_by = ? WHERE id = ? AND tenant_id = ?",
-            [$this->userId(), $id, $tid]
-        );
-        $this->setFlash('success', 'Đã đóng bao ' . $bag['bag_code']);
+        if ($bag['status'] === 'open') {
+            Database::query(
+                "UPDATE logistics_bags SET status = 'sealed', sealed_at = NOW(), sealed_by = ? WHERE id = ? AND tenant_id = ?",
+                [$this->userId(), $id, $tid]
+            );
+            $this->setFlash('success', 'Đã đóng bao ' . $bag['bag_code']);
+        } else {
+            Database::query(
+                "UPDATE logistics_bags SET status = 'open', sealed_at = NULL, sealed_by = NULL WHERE id = ? AND tenant_id = ?",
+                [$id, $tid]
+            );
+            $this->setFlash('success', 'Đã mở lại bao ' . $bag['bag_code']);
+        }
         return $this->redirect('logistics/bags');
     }
 
