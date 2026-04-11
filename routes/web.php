@@ -374,6 +374,17 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('warehouses/{id}/update', 'WarehouseController@update');
     Router::post('warehouses/{id}/delete', 'WarehouseController@delete');
 
+    // Logistics (Plugin)
+    Router::get('logistics', 'LogisticsController@index');
+    Router::get('logistics/receive', 'LogisticsController@receive');
+    Router::post('logistics/scan', 'LogisticsController@scan');
+    Router::post('logistics/update-weight', 'LogisticsController@updateWeight');
+    Router::get('logistics/packages', 'LogisticsController@packages');
+    Router::post('logistics/packages/create', 'LogisticsController@createPackage');
+    Router::get('logistics/packages/{id}', 'LogisticsController@showPackage');
+    Router::get('logistics/bags', 'LogisticsController@bags');
+    Router::post('logistics/bags/create', 'LogisticsController@createBag');
+
     // Booking Links
     Router::get('bookings', 'BookingController@index');
     Router::get('bookings/create', 'BookingController@create');

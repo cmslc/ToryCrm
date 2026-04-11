@@ -132,6 +132,31 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </div>
                 </li>
 
+                <?php
+                // Logistics plugin (only show if installed + active)
+                $__logisticsActive = false;
+                try {
+                    $__lp = \Core\Database::fetch("SELECT tp.is_active FROM tenant_plugins tp JOIN plugins p ON tp.plugin_id = p.id WHERE tp.tenant_id = ? AND p.slug = 'kho-logistics'", [$_SESSION['tenant_id'] ?? 1]);
+                    $__logisticsActive = (bool)($__lp['is_active'] ?? false);
+                } catch (\Exception $e) {}
+                if ($__logisticsActive):
+                    $logOpen = isOpen(['logistics'], $currentUrl);
+                ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= $logOpen ? '' : 'collapsed' ?>" href="#sidebarLogistics" data-bs-toggle="collapse" role="button" aria-expanded="<?= $logOpen ? 'true' : 'false' ?>">
+                        <i class="ri-truck-line"></i> <span>Kho Logistics</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?= $logOpen ? 'show' : '' ?>" id="sidebarLogistics">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('logistics') ?>" class="nav-link <?= $currentUrl === 'logistics' ? 'active' : '' ?>">Dashboard</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/receive') ?>" class="nav-link <?= isActive('logistics/receive', $currentUrl) ?>">Nhập kho (Quét)</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/packages') ?>" class="nav-link <?= isActive('logistics/packages', $currentUrl) ?>">Kiện hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('logistics/bags') ?>" class="nav-link <?= isActive('logistics/bags', $currentUrl) ?>">Bao hàng</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <?php endif; ?>
+
                 <?php if (canSee('campaigns')): ?>
                 <?php $campOpen = isOpen(['campaigns','email-templates'], $currentUrl); ?>
                 <li class="nav-item">
