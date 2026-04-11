@@ -16,6 +16,43 @@
             else { $tree[] = &$d; }
         }
         unset($d);
+
+        if (!function_exists('renderDeptTree')) {
+            function renderDeptTree($node, $level) {
+                $indent = $level * 32;
+                ?>
+                <div class="d-flex align-items-center py-3 <?= $level > 0 ? 'border-top' : '' ?>" style="padding-left:<?= $indent ?>px">
+                    <?php if ($level > 0): ?><span class="text-muted me-2"><i class="ri-corner-down-right-line fs-16"></i></span><?php endif; ?>
+                    <span class="d-inline-block rounded-circle me-3 flex-shrink-0" style="width:12px;height:12px;background:<?= e($node['color']) ?>"></span>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center">
+                            <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark fs-15 me-2"><?= e($node['name']) ?></a>
+                            <span class="badge bg-secondary-subtle text-secondary"><?= $node['member_count'] ?> thành viên</span>
+                        </div>
+                        <?php if ($node['manager_name']): ?>
+                        <div class="d-flex align-items-center mt-1">
+                            <?php if (!empty($node['manager_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $node['manager_avatar'])): ?>
+                                <img src="<?= url('uploads/avatars/' . $node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:22px;height:22px;object-fit:cover">
+                            <?php else: ?>
+                                <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-2" style="width:22px;height:22px;font-size:9px"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
+                            <?php endif; ?>
+                            <span class="text-muted fs-12"><?= e($node['manager_name']) ?> · Trưởng phòng</span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <a href="<?= url('departments/' . $node['id']) ?>" class="btn btn-soft-primary btn-icon" title="Chi tiết"><i class="ri-eye-line"></i></a>
+                        <a href="<?= url('departments/' . $node['id'] . '/members') ?>" class="btn btn-soft-info btn-icon" title="Thành viên"><i class="ri-team-line"></i></a>
+                        <a href="#" class="btn btn-soft-secondary btn-icon edit-dept" data-id="<?= $node['id'] ?>" data-name="<?= e($node['name']) ?>" data-parent="<?= $node['parent_id'] ?? '' ?>" data-manager="<?= $node['manager_id'] ?? '' ?>" data-description="<?= e($node['description'] ?? '') ?>" data-color="<?= e($node['color']) ?>" title="Sửa"><i class="ri-pencil-line"></i></a>
+                        <form method="POST" action="<?= url('departments/' . $node['id'] . '/delete') ?>" data-confirm="Xóa?" class="d-inline"><?= csrf_field() ?><button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button></form>
+                    </div>
+                </div>
+                <?php
+                if (!empty($node['children'])) {
+                    foreach ($node['children'] as $child) renderDeptTree($child, $level + 1);
+                }
+            }
+        }
         ?>
 
         <?php if (!empty($tree)): ?>
@@ -31,59 +68,6 @@
         <?php endif; ?>
     </div>
 </div>
-
-<?php
-if (!function_exists('renderDeptTree')) {
-    function renderDeptTree($node, $level) {
-        $indent = $level * 32;
-?>
-<div class="d-flex align-items-center py-3 <?= $level > 0 ? 'border-top' : '' ?>" style="padding-left:<?= $indent ?>px">
-    <?php if ($level > 0): ?>
-        <span class="text-muted me-2" style="font-size:10px"><i class="ri-corner-down-right-line fs-16"></i></span>
-    <?php endif; ?>
-    <span class="d-inline-block rounded-circle me-3 flex-shrink-0" style="width:12px;height:12px;background:<?= e($node['color']) ?>"></span>
-    <div class="flex-grow-1">
-        <div class="d-flex align-items-center">
-            <a href="<?= url('departments/' . $node['id']) ?>" class="fw-semibold text-dark fs-15 me-2"><?= e($node['name']) ?></a>
-            <span class="badge bg-secondary-subtle text-secondary"><?= $node['member_count'] ?> thành viên</span>
-        </div>
-        <?php if ($node['manager_name']): ?>
-            <div class="d-flex align-items-center mt-1">
-                <?php if (!empty($node['manager_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $node['manager_avatar'])): ?>
-                    <img src="<?= url('uploads/avatars/' . $node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:22px;height:22px;object-fit:cover">
-                <?php else: ?>
-                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-2" style="width:22px;height:22px;font-size:9px"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
-                <?php endif; ?>
-                <span class="text-muted fs-12"><?= e($node['manager_name']) ?> · Trưởng phòng</span>
-            </div>
-        <?php endif; ?>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-        <a href="<?= url('departments/' . $node['id']) ?>" class="btn btn-soft-primary btn-icon" title="Chi tiết"><i class="ri-eye-line"></i></a>
-        <a href="<?= url('departments/' . $node['id'] . '/members') ?>" class="btn btn-soft-info btn-icon" title="Thành viên"><i class="ri-team-line"></i></a>
-        <a href="#" class="btn btn-soft-secondary btn-icon edit-dept"
-            data-id="<?= $node['id'] ?>"
-            data-name="<?= e($node['name']) ?>"
-            data-parent="<?= $node['parent_id'] ?? '' ?>"
-            data-manager="<?= $node['manager_id'] ?? '' ?>"
-            data-description="<?= e($node['description'] ?? '') ?>"
-            data-color="<?= e($node['color']) ?>"
-            title="Sửa"><i class="ri-pencil-line"></i></a>
-        <form method="POST" action="<?= url('departments/' . $node['id'] . '/delete') ?>" data-confirm="Xóa phòng ban <?= e($node['name']) ?>?" class="d-inline">
-            <?= csrf_field() ?>
-            <button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button>
-        </form>
-    </div>
-</div>
-<?php
-        if (!empty($node['children'])) {
-            foreach ($node['children'] as $child) {
-                renderDeptTree($child, $level + 1);
-            }
-        }
-    }
-}
-?>
 
 <!-- Add/Edit Modal -->
 <div class="modal fade" id="addDeptModal" tabindex="-1">
