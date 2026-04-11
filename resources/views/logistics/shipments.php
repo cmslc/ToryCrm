@@ -2,6 +2,11 @@
 $pageTitle = 'Lô hàng';
 $stLabels = ['preparing'=>'Đang chuẩn bị','in_transit'=>'Đang vận chuyển','arrived'=>'Đã đến','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
 $stColors = ['preparing'=>'secondary','in_transit'=>'warning','arrived'=>'success','completed'=>'success','cancelled'=>'danger'];
+$fStatus = $filters['status'] ?? '';
+$fSearch = $filters['search'] ?? '';
+$fDateFrom = $filters['date_from'] ?? '';
+$fDateTo = $filters['date_to'] ?? '';
+$hasFilter = $fStatus || $fSearch || $fDateFrom || $fDateTo;
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -9,6 +14,30 @@ $stColors = ['preparing'=>'secondary','in_transit'=>'warning','arrived'=>'succes
     <div class="d-flex gap-2">
         <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addShipModal"><i class="ri-add-line me-1"></i> Tạo lô</button>
+    </div>
+</div>
+
+<!-- Bộ lọc -->
+<div class="card mb-2">
+    <div class="card-header p-2">
+        <form method="GET" action="<?= url('logistics/shipments') ?>" class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="search-box" style="min-width:160px;max-width:240px">
+                <input type="text" class="form-control" name="search" placeholder="Mã lô, biển số, tài xế..." value="<?= e($fSearch) ?>">
+                <i class="ri-search-line search-icon"></i>
+            </div>
+            <select name="status" class="form-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
+                <option value="">Tất cả trạng thái</option>
+                <?php foreach ($stLabels as $k => $v): ?>
+                <option value="<?= $k ?>" <?= $fStatus === $k ? 'selected' : '' ?>><?= $v ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="date" name="date_from" class="form-control" style="width:auto" value="<?= e($fDateFrom) ?>" title="Từ ngày">
+            <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($fDateTo) ?>" title="Đến ngày">
+            <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+            <?php if ($hasFilter): ?>
+            <a href="<?= url('logistics/shipments') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+            <?php endif; ?>
+        </form>
     </div>
 </div>
 
@@ -37,6 +66,21 @@ $stColors = ['preparing'=>'secondary','in_transit'=>'warning','arrived'=>'succes
             </table>
         </div>
     </div>
+    <?php if ($totalPages > 1): ?>
+    <?php $qs = http_build_query(array_filter(['status' => $fStatus, 'search' => $fSearch, 'date_from' => $fDateFrom, 'date_to' => $fDateTo])); ?>
+    <div class="card-footer">
+        <div class="d-flex align-items-center justify-content-between">
+            <span class="text-muted fs-12">Tổng <?= $total ?> lô</span>
+            <ul class="pagination pagination-separated mb-0">
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>"><a class="page-link" href="<?= url('logistics/shipments?' . $qs . '&page=' . ($page - 1)) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <li class="page-item <?= $i === $page ? 'active' : '' ?>"><a class="page-link" href="<?= url('logistics/shipments?' . $qs . '&page=' . $i) ?>"><?= $i ?></a></li>
+                <?php endfor; ?>
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>"><a class="page-link" href="<?= url('logistics/shipments?' . $qs . '&page=' . ($page + 1)) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
+            </ul>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <div class="modal fade" id="addShipModal" tabindex="-1">

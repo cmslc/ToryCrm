@@ -337,20 +337,37 @@ class LogisticsController extends Controller
     {
         if (!$this->checkPlugin()) return;
         $tid = Database::tenantId();
+        $status = $this->input('status');
+        $search = $this->input('search');
+        $dateFrom = $this->input('date_from');
+        $dateTo = $this->input('date_to');
+
+        $where = ["lb.tenant_id = ?"];
+        $params = [$tid];
+        if ($status) { $where[] = "lb.status = ?"; $params[] = $status; }
+        if ($search) {
+            $where[] = "(lb.bag_code LIKE ? OR lb.note LIKE ?)";
+            $s = "%{$search}%"; $params = array_merge($params, [$s, $s]);
+        }
+        if ($dateFrom) { $where[] = "lb.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $where[] = "lb.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
+
+        $whereSql = implode(' AND ', $where);
         $page = max(1, (int)($this->input('page') ?? 1));
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
-        $total = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_bags WHERE tenant_id = ?", [$tid])['cnt'];
+        $total = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_bags lb WHERE $whereSql", $params)['cnt'];
         $bags = Database::fetchAll(
             "SELECT lb.*, u.name as created_by_name,
                     (SELECT COUNT(*) FROM logistics_packages WHERE bag_id = lb.id) as pkg_count
              FROM logistics_bags lb LEFT JOIN users u ON lb.created_by = u.id
-             WHERE lb.tenant_id = ? ORDER BY lb.created_at DESC LIMIT $limit OFFSET $offset",
-            [$tid]
+             WHERE $whereSql ORDER BY lb.created_at DESC LIMIT $limit OFFSET $offset",
+            $params
         );
         $totalPages = ceil($total / $limit);
-        return $this->view('logistics.bags', compact('bags', 'page', 'totalPages', 'total'));
+        $filters = compact('status', 'search', 'dateFrom', 'dateTo');
+        return $this->view('logistics.bags', compact('bags', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function createBag()
@@ -865,17 +882,33 @@ class LogisticsController extends Controller
         if (!$this->checkPlugin()) return;
         $tid = Database::tenantId();
         $status = $this->input('status');
+        $search = $this->input('search');
+        $dateFrom = $this->input('date_from');
+        $dateTo = $this->input('date_to');
 
         $where = ["ls.tenant_id = ?"];
         $params = [$tid];
         if ($status) { $where[] = "ls.status = ?"; $params[] = $status; }
+        if ($search) {
+            $where[] = "(ls.shipment_code LIKE ? OR ls.vehicle_info LIKE ? OR ls.driver_name LIKE ?)";
+            $s = "%{$search}%"; $params = array_merge($params, [$s, $s, $s]);
+        }
+        if ($dateFrom) { $where[] = "ls.created_at >= ?"; $params[] = $dateFrom . ' 00:00:00'; }
+        if ($dateTo) { $where[] = "ls.created_at <= ?"; $params[] = $dateTo . ' 23:59:59'; }
 
+        $whereSql = implode(' AND ', $where);
+        $page = max(1, (int)($this->input('page') ?? 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $total = Database::fetch("SELECT COUNT(*) as cnt FROM logistics_shipments ls WHERE $whereSql", $params)['cnt'];
         $shipments = Database::fetchAll(
-            "SELECT ls.*, u.name as created_by_name FROM logistics_shipments ls LEFT JOIN users u ON ls.created_by = u.id WHERE " . implode(' AND ', $where) . " ORDER BY ls.created_at DESC",
+            "SELECT ls.*, u.name as created_by_name FROM logistics_shipments ls LEFT JOIN users u ON ls.created_by = u.id WHERE $whereSql ORDER BY ls.created_at DESC LIMIT $limit OFFSET $offset",
             $params
         );
+        $totalPages = ceil($total / $limit);
 
-        return $this->view('logistics.shipments', ['shipments' => $shipments, 'filters' => ['status' => $status]]);
+        return $this->view('logistics.shipments', ['shipments' => $shipments, 'page' => $page, 'totalPages' => $totalPages, 'total' => $total, 'filters' => ['status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
     }
 
     public function createShipment()
