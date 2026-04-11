@@ -428,6 +428,149 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/bags');
     }
 
+    public function showBag($id)
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $bag = Database::fetch(
+            "SELECT lb.*, u.name as created_by_name, su.name as sealed_by_name
+             FROM logistics_bags lb
+             LEFT JOIN users u ON lb.created_by = u.id
+             LEFT JOIN users su ON lb.sealed_by = su.id
+             WHERE lb.id = ? AND lb.tenant_id = ?",
+            [$id, $tid]
+        );
+        if (!$bag) {
+            $this->setFlash('error', 'Bao không tồn tại.');
+            return $this->redirect('logistics/bags');
+        }
+        $packages = Database::fetchAll(
+            "SELECT lp.*, u.name as created_by_name
+             FROM logistics_packages lp LEFT JOIN users u ON lp.created_by = u.id
+             WHERE lp.bag_id = ? AND lp.tenant_id = ? ORDER BY lp.created_at DESC",
+            [$id, $tid]
+        );
+        $scanLogs = Database::fetchAll(
+            "SELECT sl.*, u.name as scanned_by_name
+             FROM logistics_scan_logs sl LEFT JOIN users u ON sl.scanned_by = u.id
+             WHERE sl.bag_id = ? AND sl.tenant_id = ? ORDER BY sl.created_at DESC LIMIT 50",
+            [$id, $tid]
+        );
+        return $this->view('logistics.bag-show', compact('bag', 'packages', 'scanLogs'));
+    }
+
+    public function scanToBag($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $tid = Database::tenantId();
+        $uid = $this->userId();
+        $barcode = trim($this->input('barcode') ?? '');
+
+        if (empty($barcode)) return $this->json(['error' => 'Mã quét trống'], 422);
+
+        $bag = Database::fetch("SELECT * FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$bag || $bag['status'] !== 'open') {
+            return $this->json(['error' => 'Bao đã đóng hoặc không tồn tại'], 422);
+        }
+
+        // Find package
+        $pkg = Database::fetch(
+            "SELECT * FROM logistics_packages WHERE tenant_id = ? AND (package_code = ? OR tracking_code = ? OR tracking_intl = ?)",
+            [$tid, $barcode, $barcode, $barcode]
+        );
+
+        if (!$pkg) {
+            // Auto-create package
+            $pkgCode = $this->generateCode('K');
+            $pkgId = Database::insert('logistics_packages', [
+                'tenant_id' => $tid,
+                'package_code' => $pkgCode,
+                'tracking_code' => $barcode,
+                'status' => 'warehouse_cn',
+                'warehouse_location' => 'cn',
+                'bag_id' => $id,
+                'received_by' => $uid,
+                'received_at' => date('Y-m-d H:i:s'),
+                'created_by' => $uid,
+            ]);
+            $this->logStatus($pkgId, null, 'warehouse_cn', 'Quét vào bao ' . $bag['bag_code'], $uid);
+            $this->logScan($tid, $barcode, 'package', 'success', $pkgId, $id, 'Tạo mới + nhập bao ' . $bag['bag_code'], $uid);
+            $this->recalcBag($id);
+
+            return $this->json([
+                'success' => true,
+                'type' => 'new',
+                'message' => 'Tạo kiện mới + nhập bao thành công',
+                'package' => ['id' => $pkgId, 'code' => $pkgCode, 'tracking' => $barcode, 'status' => 'warehouse_cn'],
+                'need_weight' => true,
+            ]);
+        }
+
+        // Already in this bag
+        if ((int)$pkg['bag_id'] === (int)$id) {
+            $this->logScan($tid, $barcode, 'package', 'duplicate', $pkg['id'], $id, 'Đã có trong bao', $uid);
+            return $this->json(['error' => 'Kiện đã có trong bao này', 'type' => 'duplicate']);
+        }
+
+        // In another bag
+        if ($pkg['bag_id']) {
+            $otherBag = Database::fetch("SELECT bag_code FROM logistics_bags WHERE id = ?", [$pkg['bag_id']]);
+            return $this->json(['error' => 'Kiện đang trong bao ' . ($otherBag['bag_code'] ?? $pkg['bag_id']), 'type' => 'error']);
+        }
+
+        // Only allow warehouse_cn or pending packages into bag
+        if (!in_array($pkg['status'], ['pending', 'warehouse_cn'])) {
+            return $this->json(['error' => 'Kiện ở trạng thái "' . $pkg['status'] . '", không thể nhập bao', 'type' => 'error']);
+        }
+
+        // Add to bag
+        $oldStatus = $pkg['status'];
+        $newStatus = $oldStatus === 'pending' ? 'warehouse_cn' : $oldStatus;
+        Database::execute(
+            "UPDATE logistics_packages SET bag_id = ?, status = ?, warehouse_location = 'cn' WHERE id = ? AND tenant_id = ?",
+            [$id, $newStatus, $pkg['id'], $tid]
+        );
+        if ($oldStatus !== $newStatus) {
+            $this->logStatus($pkg['id'], $oldStatus, $newStatus, 'Quét vào bao ' . $bag['bag_code'], $uid);
+        }
+        $this->logScan($tid, $barcode, 'package', 'success', $pkg['id'], $id, 'Nhập bao ' . $bag['bag_code'], $uid);
+        $this->recalcBag($id);
+
+        return $this->json([
+            'success' => true,
+            'type' => 'added',
+            'message' => 'Đã nhập kiện vào bao',
+            'package' => array_merge($pkg, ['status' => $newStatus, 'bag_id' => $id]),
+            'need_weight' => empty($pkg['weight_actual']),
+        ]);
+    }
+
+    public function removeFromBag($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $tid = Database::tenantId();
+        $pkgId = (int)$this->input('package_id');
+        $bag = Database::fetch("SELECT * FROM logistics_bags WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$bag || $bag['status'] !== 'open') {
+            return $this->json(['error' => 'Bao đã đóng'], 422);
+        }
+        Database::execute("UPDATE logistics_packages SET bag_id = NULL WHERE id = ? AND bag_id = ? AND tenant_id = ?", [$pkgId, $id, $tid]);
+        $this->recalcBag($id);
+        return $this->json(['success' => true, 'message' => 'Đã gỡ kiện khỏi bao']);
+    }
+
+    private function recalcBag(int $bagId): void
+    {
+        $stats = Database::fetch(
+            "SELECT COUNT(*) as cnt, COALESCE(SUM(weight_actual),0) as total_weight FROM logistics_packages WHERE bag_id = ?",
+            [$bagId]
+        );
+        Database::execute(
+            "UPDATE logistics_bags SET total_packages = ?, total_weight = ? WHERE id = ?",
+            [$stats['cnt'], $stats['total_weight'], $bagId]
+        );
+    }
+
     // ---- Orders ----
     public function orders()
     {

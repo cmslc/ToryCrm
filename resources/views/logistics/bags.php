@@ -37,7 +37,7 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                 <?php foreach ($bags as $b): ?>
                 <tr>
                     <td><?php if (in_array($b['status'], ['open','sealed'])): ?><input type="checkbox" class="form-check-input row-check" value="<?= $b['id'] ?>" data-pkgs="<?= $b['pkg_count'] ?>" data-weight="<?= $b['total_weight'] ?>"><?php endif; ?></td>
-                    <td class="fw-medium"><?= e($b['bag_code']) ?></td>
+                    <td class="fw-medium"><a href="<?= url('logistics/bags/' . $b['id']) ?>"><?= e($b['bag_code']) ?></a></td>
                     <td><span class="badge bg-primary-subtle text-primary"><?= $b['pkg_count'] ?></span></td>
                     <td><?= $b['total_weight'] ? rtrim(rtrim(number_format($b['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td>
                     <td><span class="badge bg-<?= $stColors[$b['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$b['status']] ?? 'secondary' ?>"><?= $stLabels[$b['status']] ?? $b['status'] ?></span><?php if ($b['sealed_at']): ?> <small class="text-muted d-block fs-11"><?= created_ago($b['sealed_at']) ?></small><?php endif; ?></td>

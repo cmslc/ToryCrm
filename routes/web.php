@@ -411,9 +411,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('logistics/reports', 'LogisticsController@reports');
     Router::get('logistics/bags', 'LogisticsController@bags');
     Router::post('logistics/bags/create', 'LogisticsController@createBag');
+    Router::get('logistics/bags/{id}', 'LogisticsController@showBag');
     Router::post('logistics/bags/{id}/seal', 'LogisticsController@sealBag');
     Router::post('logistics/bags/{id}/update', 'LogisticsController@updateBag');
     Router::post('logistics/bags/{id}/delete', 'LogisticsController@deleteBag');
+    Router::post('logistics/bags/{id}/scan', 'LogisticsController@scanToBag');
+    Router::post('logistics/bags/{id}/remove-package', 'LogisticsController@removeFromBag');
 
     // Booking Links
     Router::get('bookings', 'BookingController@index');
