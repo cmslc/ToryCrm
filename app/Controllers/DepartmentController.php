@@ -10,7 +10,7 @@ class DepartmentController extends Controller
     public function index()
     {
         $departments = Database::fetchAll(
-            "SELECT d.*, u.name as manager_name, p.name as parent_name,
+            "SELECT d.*, u.name as manager_name, u.avatar as manager_avatar, p.name as parent_name,
                     (SELECT COUNT(*) FROM users WHERE department_id = d.id AND is_active = 1) as member_count
              FROM departments d
              LEFT JOIN users u ON d.manager_id = u.id
