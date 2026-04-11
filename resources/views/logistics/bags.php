@@ -21,7 +21,7 @@ $stColors = ['open'=>'warning','sealed'=>'primary','shipping'=>'info','arrived'=
                 <tr>
                     <td class="fw-medium"><?= e($b['bag_code']) ?></td>
                     <td><span class="badge bg-primary-subtle text-primary"><?= $b['pkg_count'] ?></span></td>
-                    <td><?= $b['total_weight'] ? number_format($b['total_weight'], 2) . ' kg' : '-' ?></td>
+                    <td><?= $b['total_weight'] ? rtrim(rtrim(number_format($b['total_weight'], 2), '0'), '.') . ' kg' : '-' ?></td>
                     <td><span class="badge bg-<?= $stColors[$b['status']] ?? 'secondary' ?>-subtle text-<?= $stColors[$b['status']] ?? 'secondary' ?>"><?= $stLabels[$b['status']] ?? $b['status'] ?></span></td>
                     <td><?= user_avatar($b['created_by_name'] ?? null) ?></td>
                     <td class="text-muted fs-12"><?= created_ago($b['created_at']) ?></td>

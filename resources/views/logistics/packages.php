@@ -59,7 +59,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
                     <td class="fs-12"><?= e(mb_substr($p['product_name'] ?? '-', 0, 40)) ?></td>
                     <td class="fs-12"><?= e($p['customer_name'] ?? '-') ?></td>
                     <td><?= $p['weight_actual'] ? rtrim(rtrim(number_format($p['weight_actual'], 2), '0'), '.') . ' kg' : '-' ?></td>
-                    <td class="text-muted fs-12"><?= ($p['cbm'] ?? 0) > 0 ? number_format($p['cbm'], 4) . ' m³' : ($p['length_cm'] && $p['width_cm'] && $p['height_cm'] ? number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4) . ' m³' : '-') ?></td>
+                    <td class="text-muted fs-12"><?= ($p['cbm'] ?? 0) > 0 ? rtrim(rtrim(number_format($p['cbm'], 4), '0'), '.') . ' m³' : ($p['length_cm'] && $p['width_cm'] && $p['height_cm'] ? rtrim(rtrim(number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4), '0'), '.') . ' m³' : '-') ?></td>
                     <td><?= $p['quantity'] ?></td>
                     <td><span class="badge bg-<?= $statusColors[$p['status']] ?? 'secondary' ?>-subtle text-<?= $statusColors[$p['status']] ?? 'secondary' ?>"><?= $statusLabels[$p['status']] ?? $p['status'] ?></span></td>
                     <td><?= user_avatar($p['received_by_name'] ?? null) ?></td>

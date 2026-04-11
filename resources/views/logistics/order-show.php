@@ -32,7 +32,7 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
                             <td class="text-muted fs-12"><?= e($p['tracking_code'] ?? '-') ?></td>
                             <td class="fs-12"><?= e(mb_substr($p['product_name'] ?? '-', 0, 30)) ?></td>
                             <td><?= $p['weight_actual'] ? rtrim(rtrim(number_format($p['weight_actual'], 2), '0'), '.') . ' kg' : '-' ?></td>
-                            <td class="fs-12"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4) . ' m³' : '-' ?></td>
+                            <td class="fs-12"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? rtrim(rtrim(number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4), '0'), '.') . ' m³' : '-' ?></td>
                             <td class="fs-12 text-muted"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? $p['length_cm'] . '×' . $p['width_cm'] . '×' . $p['height_cm'] . 'cm' : '-' ?></td>
                             <td><?= $p['quantity'] ?></td>
                             <td><span class="badge bg-<?= $pkgColors[$p['status']] ?? 'secondary' ?>-subtle text-<?= $pkgColors[$p['status']] ?? 'secondary' ?>"><?= $pkgLabels[$p['status']] ?? $p['status'] ?></span></td>

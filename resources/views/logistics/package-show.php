@@ -21,10 +21,10 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
                     <tr><th class="text-muted">Sản phẩm</th><td><?= e($package['product_name'] ?? '-') ?></td></tr>
                     <tr><th class="text-muted">Khách hàng</th><td><?= e($package['customer_name'] ?? '-') ?> <?= $package['customer_phone'] ? '(' . e($package['customer_phone']) . ')' : '' ?></td></tr>
                     <tr><th class="text-muted">Số lượng</th><td><?= $package['quantity'] ?></td></tr>
-                    <tr><th class="text-muted">Cân nặng</th><td><?= $package['weight_actual'] ? rtrim(rtrim(number_format($package['weight_actual'], 2), '0'), '.') . ' kg' : '-' ?><?= $package['weight_volume'] ? ' (QĐ: ' . number_format($package['weight_volume'], 2) . ' kg)' : '' ?></td></tr>
+                    <tr><th class="text-muted">Cân nặng</th><td><?= $package['weight_actual'] ? rtrim(rtrim(number_format($package['weight_actual'], 2), '0'), '.') . ' kg' : '-' ?><?= $package['weight_volume'] ? ' (QĐ: ' . rtrim(rtrim(number_format($package['weight_volume'], 2), '0'), '.') . ' kg)' : '' ?></td></tr>
                     <?php if ($package['length_cm']): ?>
                     <tr><th class="text-muted">Kích thước</th><td><?= $package['length_cm'] ?> × <?= $package['width_cm'] ?> × <?= $package['height_cm'] ?> cm</td></tr>
-                    <tr><th class="text-muted">Số khối (CBM)</th><td><?= number_format($package['length_cm'] * $package['width_cm'] * $package['height_cm'] / 1000000, 4) ?> m³</td></tr>
+                    <tr><th class="text-muted">Số khối (CBM)</th><td><?= rtrim(rtrim(number_format($package['length_cm'] * $package['width_cm'] * $package['height_cm'] / 1000000, 4), '0'), '.') ?> m³</td></tr>
                     <?php endif; ?>
                     <tr><th class="text-muted">Trạng thái</th><td><span class="badge bg-<?= $statusColors[$package['status']] ?? 'secondary' ?> fs-12"><?= $statusLabels[$package['status']] ?? $package['status'] ?></span></td></tr>
                     <tr><th class="text-muted">Người nhận</th><td><?= user_avatar($package['received_by_name'] ?? null) ?></td></tr>
