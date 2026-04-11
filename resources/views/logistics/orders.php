@@ -176,7 +176,7 @@ $existingShipments = \Core\Database::fetchAll("SELECT id, shipment_code, origin,
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
-                    <td><input type="checkbox" class="form-check-input row-check" value="<?= $o['id'] ?>" data-pkgs="<?= $o['total_packages'] ?>" data-weight="<?= $o['total_weight'] ?>" data-cbm="<?= $o['total_cbm'] ?>"></td>
+                    <td><?php if ($o['type'] === 'wholesale'): ?><input type="checkbox" class="form-check-input row-check" value="<?= $o['id'] ?>" data-pkgs="<?= $o['total_packages'] ?>" data-weight="<?= $o['total_weight'] ?>" data-cbm="<?= $o['total_cbm'] ?>"><?php endif; ?></td>
                     <td><a href="<?= url('logistics/orders/' . $o['id']) ?>" class="fw-medium"><?= e($o['order_code']) ?></a></td>
                     <td>
                         <?php

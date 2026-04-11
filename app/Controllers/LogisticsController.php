@@ -662,6 +662,52 @@ class LogisticsController extends Controller
         return $this->redirect('logistics/shipments/' . $shipmentId);
     }
 
+    public function createShipmentFromBags()
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/bags');
+        $tid = Database::tenantId();
+        $bagIds = $this->input('bag_ids') ?? [];
+        if (empty($bagIds)) { $this->setFlash('error', 'Chưa chọn bao.'); return $this->back(); }
+
+        $code = 'LH' . date('ymd') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
+        $shipmentId = Database::insert('logistics_shipments', [
+            'tenant_id' => $tid, 'shipment_code' => $code,
+            'origin' => $this->input('origin') ?: 'CN', 'destination' => $this->input('destination') ?: 'VN',
+            'vehicle_info' => trim($this->input('vehicle_info') ?? '') ?: null,
+            'status' => 'preparing',
+            'note' => trim($this->input('note') ?? '') ?: null,
+            'created_by' => $this->userId(),
+        ]);
+
+        $this->linkBagsToShipment($shipmentId, $bagIds, $tid);
+        $this->setFlash('success', 'Đã tạo lô ' . $code . ' với ' . count($bagIds) . ' bao');
+        return $this->redirect('logistics/shipments/' . $shipmentId);
+    }
+
+    public function addBagsToShipment($id)
+    {
+        if (!$this->isPost()) return $this->redirect('logistics/bags');
+        $tid = Database::tenantId();
+        $bagIds = $this->input('bag_ids') ?? [];
+        if (empty($bagIds)) { $this->setFlash('error', 'Chưa chọn bao.'); return $this->back(); }
+
+        $shipment = Database::fetch("SELECT id, shipment_code, status FROM logistics_shipments WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$shipment || $shipment['status'] !== 'preparing') { $this->setFlash('error', 'Lô không hợp lệ.'); return $this->redirect('logistics/bags'); }
+
+        $this->linkBagsToShipment((int)$id, $bagIds, $tid);
+        $this->setFlash('success', 'Đã xếp ' . count($bagIds) . ' bao vào lô ' . $shipment['shipment_code']);
+        return $this->redirect('logistics/shipments/' . $id);
+    }
+
+    private function linkBagsToShipment(int $shipmentId, array $bagIds, int $tid): void
+    {
+        foreach ($bagIds as $bagId) {
+            Database::update('logistics_bags', ['shipment_id' => $shipmentId, 'status' => 'shipping'], 'id = ? AND tenant_id = ?', [(int)$bagId, $tid]);
+            Database::query("UPDATE logistics_packages SET shipment_id = ?, status = 'shipping' WHERE bag_id = ? AND tenant_id = ?", [$shipmentId, (int)$bagId, $tid]);
+        }
+        $this->recalcShipment($shipmentId);
+    }
+
     public function showShipment($id)
     {
         if (!$this->checkPlugin()) return;
