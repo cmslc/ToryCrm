@@ -24,7 +24,7 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Cân nặng</th><th>SL</th><th>Trạng thái</th><th>Người nhận</th><th>Ngày nhận</th></tr></thead>
+                        <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Cân nặng</th><th>Số khối</th><th>Kích thước</th><th>SL</th><th>Trạng thái</th><th>Người nhận</th><th>Ngày nhận</th></tr></thead>
                         <tbody>
                         <?php foreach ($packages as $p): ?>
                         <tr>
@@ -32,13 +32,15 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
                             <td class="text-muted fs-12"><?= e($p['tracking_code'] ?? '-') ?></td>
                             <td class="fs-12"><?= e(mb_substr($p['product_name'] ?? '-', 0, 30)) ?></td>
                             <td><?= $p['weight_actual'] ? number_format($p['weight_actual'], 2) . ' kg' : '-' ?></td>
+                            <td class="fs-12"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? number_format($p['length_cm'] * $p['width_cm'] * $p['height_cm'] / 1000000, 4) . ' m³' : '-' ?></td>
+                            <td class="fs-12 text-muted"><?= ($p['length_cm'] && $p['width_cm'] && $p['height_cm']) ? $p['length_cm'] . '×' . $p['width_cm'] . '×' . $p['height_cm'] . 'cm' : '-' ?></td>
                             <td><?= $p['quantity'] ?></td>
                             <td><span class="badge bg-<?= $pkgColors[$p['status']] ?? 'secondary' ?>-subtle text-<?= $pkgColors[$p['status']] ?? 'secondary' ?>"><?= $pkgLabels[$p['status']] ?? $p['status'] ?></span></td>
                             <td><?= user_avatar($p['received_by_name'] ?? null) ?></td>
                             <td class="text-muted fs-12"><?= $p['received_at'] ? date('d/m/Y H:i', strtotime($p['received_at'])) : '-' ?></td>
                         </tr>
                         <?php endforeach; ?>
-                        <?php if (empty($packages)): ?><tr><td colspan="8" class="text-center text-muted py-4">Chưa có kiện hàng</td></tr><?php endif; ?>
+                        <?php if (empty($packages)): ?><tr><td colspan="10" class="text-center text-muted py-4">Chưa có kiện hàng</td></tr><?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -83,8 +85,8 @@ $pkgColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary',
                     <tr><th class="text-muted">Khách hàng</th><td><?= e($order['customer_name'] ?? '-') ?></td></tr>
                     <?php if ($order['customer_phone']): ?><tr><th class="text-muted">SĐT</th><td><?= e($order['customer_phone']) ?></td></tr><?php endif; ?>
                     <tr><th class="text-muted">Sản phẩm</th><td><?= e($order['product_name'] ?? '-') ?></td></tr>
-                    <?php if ($order['total_weight'] > 0): ?><tr><th class="text-muted">Tổng cân</th><td><?= number_format($order['total_weight'], 2) ?> kg</td></tr><?php endif; ?>
-                    <?php if ($order['total_cbm'] > 0): ?><tr><th class="text-muted">Số khối</th><td><?= number_format($order['total_cbm'], 4) ?> m³</td></tr><?php endif; ?>
+                    <tr><th class="text-muted">Tổng cân</th><td><?= ($order['total_weight'] ?? 0) > 0 ? number_format($order['total_weight'], 2) . ' kg' : '-' ?></td></tr>
+                    <tr><th class="text-muted">Số khối</th><td><?= ($order['total_cbm'] ?? 0) > 0 ? number_format($order['total_cbm'], 4) . ' m³' : '-' ?></td></tr>
                     <tr><th class="text-muted">Người tạo</th><td><?= user_avatar($order['created_by_name'] ?? null) ?></td></tr>
                     <tr><th class="text-muted">Ngày tạo</th><td><?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></td></tr>
                 </table>
