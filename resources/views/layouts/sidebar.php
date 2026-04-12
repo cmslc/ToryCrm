@@ -207,6 +207,20 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
+                <?php if (plugin_active('email')): ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('email', $currentUrl) ?>" href="<?= url('email') ?>">
+                        <i class="ri-mail-line"></i> <span>Email</span>
+                        <?php
+                        $__unread = 0;
+                        try { $__unread = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM email_messages WHERE tenant_id = ? AND folder = 'inbox' AND is_read = 0", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
+                        if ($__unread > 0): ?>
+                        <span class="badge bg-danger ms-auto"><?= $__unread ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
+                <?php endif; ?>
+
                 <?php if (plugin_active('attendance-payroll')): ?>
                 <li class="nav-item">
                     <?php $attOpen = isOpen(['attendance','users','departments'], $currentUrl); ?>

@@ -493,6 +493,20 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('automation/{id}/toggle-active', 'AutomationController@toggleActive');
     Router::post('automation/{id}/delete', 'AutomationController@delete');
 
+    // Email Plugin
+    Router::get('email', 'EmailController@inbox');
+    Router::get('email/compose', 'EmailController@compose');
+    Router::post('email/send', 'EmailController@send');
+    Router::post('email/sync', 'EmailController@sync');
+    Router::get('email/settings', 'EmailController@settings');
+    Router::post('email/settings/save', 'EmailController@saveAccount');
+    Router::post('email/settings/test', 'EmailController@testAccount');
+    Router::post('email/settings/{id}/delete', 'EmailController@deleteAccount');
+    Router::get('email/{id}', 'EmailController@read');
+    Router::post('email/{id}/star', 'EmailController@toggleStar');
+    Router::post('email/{id}/trash', 'EmailController@moveToTrash');
+    Router::post('email/{id}/delete', 'EmailController@delete');
+
     // Documents
     Router::get('documents', 'DocumentController@index');
     Router::post('documents/upload', 'DocumentController@upload');
