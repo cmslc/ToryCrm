@@ -209,13 +209,15 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
 
                 <?php if (plugin_active('attendance-payroll')): ?>
                 <li class="nav-item">
-                    <?php $attOpen = isOpen(['attendance'], $currentUrl); ?>
+                    <?php $attOpen = isOpen(['attendance','users','departments'], $currentUrl); ?>
                     <a class="nav-link menu-link <?= $attOpen ? '' : 'collapsed' ?>" href="#sidebarAttendance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $attOpen ? 'true' : 'false' ?>">
-                        <i class="ri-calendar-check-line"></i> <span>Nhân sự</span>
+                        <i class="ri-team-line"></i> <span>Nhân sự</span>
                     </a>
                     <div class="collapse menu-dropdown <?= $attOpen ? 'show' : '' ?>" id="sidebarAttendance">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('attendance') ?>" class="nav-link <?= isActive('attendance', $currentUrl) && !str_contains($currentUrl, 'leaves') && !str_contains($currentUrl, 'payroll') ? 'active' : '' ?>">Chấm công</a></li>
+                            <?php if (canSee('users')): ?><li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li><?php endif; ?>
+                            <li class="nav-item"><a href="<?= url('departments') ?>" class="nav-link <?= isActive('departments', $currentUrl) ?>">Phòng ban</a></li>
+                            <li class="nav-item"><a href="<?= url('attendance') ?>" class="nav-link <?= isActive('attendance', $currentUrl) && !str_contains($currentUrl, 'leaves') && !str_contains($currentUrl, 'payroll') && !str_contains($currentUrl, 'advances') ? 'active' : '' ?>">Chấm công</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/leaves') ?>" class="nav-link <?= isActive('attendance/leaves', $currentUrl) ?>">Nghỉ phép</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/payroll') ?>" class="nav-link <?= isActive('attendance/payroll', $currentUrl) ?>">Bảng lương</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/advances') ?>" class="nav-link <?= isActive('attendance/advances', $currentUrl) ?>">Tạm ứng</a></li>
@@ -253,14 +255,8 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
 
                 <?php if ($_role !== 'staff'): ?>
 
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('departments', $currentUrl) ?>" href="<?= url('departments') ?>">
-                        <i class="ri-organization-chart"></i> <span>Phòng ban</span>
-                    </a>
-                </li>
-
                 <?php if (canSee('reports') || canSee('users') || canSee('automation') || canSee('webhooks')): ?>
-                <?php $sysOpen = isOpen(['reports','automation','users','plugins','integrations','duplicates','billing'], $currentUrl); ?>
+                <?php $sysOpen = isOpen(['reports','plugins','integrations','duplicates','billing'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
                         <i class="ri-settings-3-line"></i> <span>Hệ thống</span>
@@ -268,7 +264,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $sysOpen ? 'show' : '' ?>" id="sidebarSystem">
                         <ul class="nav nav-sm flex-column">
                             <?php if (canSee('reports')): ?><li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= isActive('reports', $currentUrl) ?>">Báo cáo</a></li><?php endif; ?>
-                            <?php if (canSee('users')): ?><li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li>
                             <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins/marketplace') ?>" class="nav-link <?= isActive(['plugins','integrations'], $currentUrl) ?>">Marketplace</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>
