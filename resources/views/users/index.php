@@ -96,11 +96,11 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                             <td><input type="checkbox" class="form-check-input row-check" value="<?= $u['id'] ?>"></td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-sm flex-shrink-0 me-2">
+                                    <div class="flex-shrink-0 me-2">
                                         <?php if (!empty($u['avatar'])): ?>
-                                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" style="width:36px;height:36px;object-fit:cover">
+                                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
                                         <?php else: ?>
-                                        <div class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= $initials ?></div>
+                                        <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:36px;height:36px"><?= $initials ?></div>
                                         <?php endif; ?>
                                     </div>
                                     <div>
