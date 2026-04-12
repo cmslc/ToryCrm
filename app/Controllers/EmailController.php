@@ -79,7 +79,7 @@ class EmailController extends Controller
     public function read($id)
     {
         if (!$this->checkPlugin()) return;
-        $msg = Database::fetch(
+        $message = Database::fetch(
             "SELECT em.*, c.first_name as contact_first, c.last_name as contact_last, ea.email as account_email, ea.display_name as account_name
              FROM email_messages em
              LEFT JOIN contacts c ON em.contact_id = c.id
@@ -87,33 +87,32 @@ class EmailController extends Controller
              WHERE em.id = ? AND em.tenant_id = ?",
             [(int)$id, Database::tenantId()]
         );
-        if (!$msg) { $this->setFlash('error', 'Email không tồn tại.'); return $this->redirect('email'); }
+        if (!$message) { $this->setFlash('error', 'Email không tồn tại.'); return $this->redirect('email'); }
 
         // Fetch body from API if empty
-        if (empty($msg['body_html']) && empty($msg['body_text']) && $msg['message_uid']) {
-            $account = EmailService::getAccount((int)$msg['account_id']);
+        if (empty($message['body_html']) && empty($message['body_text']) && $message['message_uid']) {
+            $account = EmailService::getAccount((int)$message['account_id']);
             if ($account) {
                 $service = new EmailService($account);
-                $detail = $service->readEmail($account['email'], (int)$msg['message_uid']);
+                $detail = $service->readEmail($account['email'], (int)$message['message_uid']);
                 if ($detail['success'] ?? false) {
                     $emailData = $detail['email'] ?? [];
-                    $msg['body_html'] = $emailData['body_html'] ?? '';
-                    $msg['body_text'] = $emailData['body_text'] ?? '';
-                    // Cache body locally
+                    $message['body_html'] = $emailData['body_html'] ?? '';
+                    $message['body_text'] = $emailData['body_text'] ?? '';
                     Database::update('email_messages', [
-                        'body_html' => $msg['body_html'],
-                        'body_text' => $msg['body_text'],
+                        'body_html' => $message['body_html'],
+                        'body_text' => $message['body_text'],
                     ], 'id = ?', [$id]);
                 }
             }
         }
 
         // Mark as read
-        if (!$msg['is_read']) {
+        if (!$message['is_read']) {
             Database::update('email_messages', ['is_read' => 1], 'id = ?', [$id]);
         }
 
-        $accountId = (int)$msg['account_id'];
+        $accountId = (int)$message['account_id'];
         $accounts = $this->isAdminOrManager() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
         $folders = Database::fetchAll(
             "SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread
