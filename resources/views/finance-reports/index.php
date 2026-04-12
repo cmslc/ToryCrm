@@ -75,7 +75,7 @@
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-line-chart-line me-2"></i> Xu hướng thu chi 6 tháng</h5></div>
                     <div class="card-body">
                         <?php if (!empty($monthlyTrend)): ?>
-                        <canvas id="trendChart" height="280"></canvas>
+                        <canvas id="trendChart" height="180"></canvas>
                         <?php else: ?>
                         <p class="text-muted text-center py-4">Chưa có dữ liệu</p>
                         <?php endif; ?>

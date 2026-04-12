@@ -63,7 +63,7 @@
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-line me-2"></i> Thu chi theo tháng</h5></div>
-                    <div class="card-body"><canvas id="fundChart" height="250"></canvas></div>
+                    <div class="card-body"><canvas id="fundChart" height="180"></canvas></div>
                 </div>
             </div>
             <div class="col-lg-4">
