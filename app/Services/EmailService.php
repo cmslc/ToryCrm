@@ -58,8 +58,13 @@ class EmailService
             $headers[] = 'Authorization: Bearer ' . $token;
         }
 
+        // Pass token via query param (Apache strips Authorization header)
+        if ($token) {
+            $url .= (strpos($url, '?') !== false ? '&' : '?') . 'token=' . urlencode($token);
+        }
+
         if ($method === 'GET') {
-            if (!empty($data)) $url .= '?' . http_build_query($data);
+            if (!empty($data)) $url .= '&' . http_build_query($data);
         } else {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
@@ -94,18 +99,16 @@ class EmailService
         return $result;
     }
 
-    // ---- Send Email via API ----
+    // ---- Send Email via SMTP ----
     public function send(string $to, string $subject, string $body, array $cc = [], array $bcc = []): array
     {
-        $data = [
-            'to' => $to,
-            'subject' => $subject,
-            'body' => $body,
-        ];
-        if (!empty($cc)) $data['cc'] = implode(',', $cc);
-        if (!empty($bcc)) $data['bcc'] = implode(',', $bcc);
+        $a = $this->account;
+        $smtpHost = 'mail.getcodemail.com';
+        $smtpPort = 587;
+        $smtpUser = $a['email'];
+        $smtpPass = $a['api_token']; // token = password_encrypted = SMTP password
 
-        $result = $this->apiCall('POST', '/send', $data);
+        $result = $this->smtpSend($smtpHost, $smtpPort, $smtpUser, $smtpPass, $to, $subject, $body, $cc, $bcc);
 
         if ($result['success'] ?? false) {
             // Store in local sent folder
