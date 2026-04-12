@@ -3,8 +3,12 @@ $pageTitle = 'Tài liệu';
 $fCategory = $filters['category'] ?? '';
 $fSearch = $filters['search'] ?? '';
 $iconMap = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary','xls'=>'ri-file-excel-line text-success','xlsx'=>'ri-file-excel-line text-success','ppt'=>'ri-file-ppt-line text-warning','pptx'=>'ri-file-ppt-line text-warning','jpg'=>'ri-image-line text-info','jpeg'=>'ri-image-line text-info','png'=>'ri-image-line text-info','zip'=>'ri-file-zip-line text-secondary','rar'=>'ri-file-zip-line text-secondary'];
-function fileIcon($type) { global $iconMap; return $iconMap[strtolower($type)] ?? 'ri-file-line text-muted'; }
-function fileSize($bytes) { if ($bytes < 1024) return $bytes . ' B'; if ($bytes < 1048576) return round($bytes / 1024, 1) . ' KB'; return round($bytes / 1048576, 1) . ' MB'; }
+if (!function_exists('docFileIcon')) {
+    function docFileIcon($type) { global $iconMap; return $iconMap[strtolower($type)] ?? 'ri-file-line text-muted'; }
+}
+if (!function_exists('docFileSize')) {
+    function docFileSize($bytes) { if ($bytes < 1024) return $bytes . ' B'; if ($bytes < 1048576) return round($bytes / 1024, 1) . ' KB'; return round($bytes / 1048576, 1) . ' MB'; }
+}
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -44,12 +48,12 @@ function fileSize($bytes) { if ($bytes < 1024) return $bytes . ' B'; if ($bytes 
                     <div class="d-flex align-items-center mb-3">
                         <div class="avatar-sm flex-shrink-0">
                             <div class="avatar-title bg-light rounded fs-24">
-                                <i class="<?= fileIcon($d['file_type']) ?>"></i>
+                                <i class="<?= docFileIcon($d['file_type']) ?>"></i>
                             </div>
                         </div>
                         <div class="flex-grow-1 ms-3 overflow-hidden">
                             <h6 class="mb-1 text-truncate" title="<?= e($d['title']) ?>"><?= e($d['title']) ?></h6>
-                            <small class="text-muted"><?= fileSize($d['file_size']) ?> &bull; <?= strtoupper($d['file_type']) ?></small>
+                            <small class="text-muted"><?= docFileSize($d['file_size']) ?> &bull; <?= strtoupper($d['file_type']) ?></small>
                         </div>
                     </div>
                     <?php if ($d['category']): ?><span class="badge bg-info-subtle text-info mb-2"><?= e($d['category']) ?></span><?php endif; ?>
