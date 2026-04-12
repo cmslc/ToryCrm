@@ -511,6 +511,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('attendance/payroll/generate', 'AttendanceController@generatePayroll');
     Router::post('attendance/payroll/{id}/update', 'AttendanceController@updatePayroll');
     Router::post('attendance/payroll/{id}/confirm', 'AttendanceController@confirmPayroll');
+    Router::post('attendance/payroll/{id}/paid', 'AttendanceController@markPaid');
+    Router::post('attendance/payroll/bulk', 'AttendanceController@bulkConfirmPayroll');
+    Router::get('attendance/payroll/history/{userId}', 'AttendanceController@payrollHistory');
     Router::get('attendance/advances', 'AttendanceController@advances');
     Router::post('attendance/advances/create', 'AttendanceController@createAdvance');
     Router::post('attendance/advances/{id}/approve', 'AttendanceController@approveAdvance');

@@ -69,6 +69,7 @@ $fmt = function($v) { return $v > 0 ? number_format($v) : '-'; };
             <table class="table table-hover align-middle mb-0 fs-12">
                 <thead class="table-light">
                     <tr>
+                        <th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <th>Nhân viên</th>
                         <th class="text-end">Lương CB</th>
                         <th class="text-center">Công</th>
@@ -88,7 +89,8 @@ $fmt = function($v) { return $v > 0 ? number_format($v) : '-'; };
                 <tbody>
                 <?php foreach ($payrolls as $p): ?>
                 <tr>
-                    <td><a href="<?= url('attendance/payroll/' . $p['id']) ?>" class="fw-medium"><?= e($p['user_name']) ?></a></td>
+                    <td><input type="checkbox" class="form-check-input row-check" value="<?= $p['id'] ?>"></td>
+                    <td><a href="<?= url('attendance/payroll/' . $p['id']) ?>" class="fw-medium"><?= e($p['user_name']) ?></a><br><a href="<?= url('attendance/payroll/history/' . $p['user_id']) ?>" class="text-muted fs-11">Lịch sử</a></td>
                     <td class="text-end"><?= number_format($p['base_salary']) ?></td>
                     <td class="text-center"><?= rtrim(rtrim(number_format($p['work_days'], 1), '0'), '.') ?></td>
                     <td class="text-end"><?= $fmt($p['overtime_pay']) ?></td>
@@ -106,16 +108,49 @@ $fmt = function($v) { return $v > 0 ? number_format($v) : '-'; };
                             <a href="<?= url('attendance/payroll/' . $p['id']) ?>" class="btn btn-soft-info btn-icon" title="Chi tiết"><i class="ri-eye-line"></i></a>
                             <?php if ($p['status'] === 'draft'): ?>
                             <form method="POST" action="<?= url('attendance/payroll/' . $p['id'] . '/confirm') ?>"><?= csrf_field() ?><button class="btn btn-soft-primary btn-icon" title="Xác nhận"><i class="ri-check-line"></i></button></form>
+                            <?php elseif ($p['status'] === 'confirmed'): ?>
+                            <form method="POST" action="<?= url('attendance/payroll/' . $p['id'] . '/paid') ?>"><?= csrf_field() ?><button class="btn btn-soft-success btn-icon" title="Đã trả"><i class="ri-money-dollar-circle-line"></i></button></form>
                             <?php endif; ?>
                         </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
                 <?php if (empty($payrolls)): ?>
-                <tr><td colspan="14" class="text-center text-muted py-4"><i class="ri-money-dollar-circle-line fs-1 d-block mb-2"></i>Chưa có bảng lương. Bấm "Tạo bảng lương" để tính.</td></tr>
+                <tr><td colspan="15" class="text-center text-muted py-4"><i class="ri-money-dollar-circle-line fs-1 d-block mb-2"></i>Chưa có bảng lương. Bấm "Tạo bảng lương" để tính.</td></tr>
                 <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<!-- Bulk bar -->
+<div class="card mb-2 d-none" id="bulkBar" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;min-width:400px">
+    <div class="card-body py-2">
+        <form method="POST" action="<?= url('attendance/payroll/bulk') ?>" class="d-flex align-items-center gap-3" id="bulkForm">
+            <?= csrf_field() ?>
+            <div id="bulkIds"></div>
+            <span class="fw-medium"><span id="bulkCount">0</span> đã chọn</span>
+            <button type="submit" name="action" value="confirm" class="btn btn-primary"><i class="ri-check-line me-1"></i> Xác nhận</button>
+            <button type="submit" name="action" value="paid" class="btn btn-success"><i class="ri-money-dollar-circle-line me-1"></i> Đã trả</button>
+        </form>
+    </div>
+</div>
+
+<script>
+(function(){
+    var checkAll = document.getElementById('checkAll');
+    var bulkBar = document.getElementById('bulkBar');
+    function updateBulk() {
+        var checked = document.querySelectorAll('.row-check:checked');
+        if (checked.length > 0) {
+            bulkBar.classList.remove('d-none');
+            document.getElementById('bulkCount').textContent = checked.length;
+            var div = document.getElementById('bulkIds'); div.innerHTML = '';
+            checked.forEach(function(cb) { var inp = document.createElement('input'); inp.type='hidden'; inp.name='payroll_ids[]'; inp.value=cb.value; div.appendChild(inp); });
+        } else { bulkBar.classList.add('d-none'); }
+    }
+    if (checkAll) { checkAll.addEventListener('change', function() { document.querySelectorAll('.row-check').forEach(function(cb){cb.checked=checkAll.checked}); updateBulk(); }); }
+    document.querySelectorAll('.row-check').forEach(function(cb){cb.addEventListener('change', updateBulk);});
+})();
+</script>

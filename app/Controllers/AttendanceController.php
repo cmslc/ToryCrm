@@ -136,21 +136,38 @@ class AttendanceController extends Controller
         if (!$this->checkPlugin()) return;
         $tid = Database::tenantId();
         $status = $this->input('status');
+        $leaveType = $this->input('leave_type');
 
         $where = ["lr.tenant_id = ?"];
         $params = [$tid];
         if ($status) { $where[] = "lr.status = ?"; $params[] = $status; }
+        if ($leaveType) { $where[] = "lr.leave_type = ?"; $params[] = $leaveType; }
 
+        $whereSql = implode(' AND ', $where);
+        $page = max(1, (int)($this->input('page') ?? 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $total = Database::fetch("SELECT COUNT(*) as cnt FROM leave_requests lr WHERE $whereSql", $params)['cnt'];
         $leaves = Database::fetchAll(
-            "SELECT lr.*, u.name as user_name, a.name as approved_by_name
+            "SELECT lr.*, u.name as user_name, u.leave_balance, a.name as approved_by_name
              FROM leave_requests lr
              LEFT JOIN users u ON lr.user_id = u.id
              LEFT JOIN users a ON lr.approved_by = a.id
-             WHERE " . implode(' AND ', $where) . " ORDER BY lr.created_at DESC",
+             WHERE $whereSql ORDER BY lr.created_at DESC LIMIT $limit OFFSET $offset",
             $params
         );
+        $totalPages = ceil($total / $limit);
 
-        return $this->view('attendance.leaves', compact('leaves'));
+        // Leave stats
+        $leaveStats = Database::fetchAll(
+            "SELECT u.id, u.name, u.leave_balance,
+                    (SELECT COALESCE(SUM(days),0) FROM leave_requests WHERE user_id = u.id AND status = 'approved' AND YEAR(date_from) = YEAR(NOW())) as used
+             FROM users u WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY u.name", [$tid]
+        );
+
+        $filters = compact('status', 'leaveType');
+        return $this->view('attendance.leaves', compact('leaves', 'leaveStats', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function createLeave()
@@ -415,6 +432,48 @@ class AttendanceController extends Controller
         return $this->back();
     }
 
+    public function markPaid($id)
+    {
+        if (!$this->isPost()) return $this->redirect('attendance/payroll');
+        $tid = Database::tenantId();
+        Database::update('payrolls', ['status' => 'paid', 'paid_at' => date('Y-m-d H:i:s')], 'id = ? AND tenant_id = ? AND status = ?', [$id, $tid, 'confirmed']);
+        $this->setFlash('success', 'Đã đánh dấu đã trả.');
+        return $this->back();
+    }
+
+    public function bulkConfirmPayroll()
+    {
+        if (!$this->isPost()) return $this->redirect('attendance/payroll');
+        $tid = Database::tenantId();
+        $ids = $this->input('payroll_ids') ?: [];
+        $action = $this->input('action');
+        if (empty($ids)) { $this->setFlash('error', 'Chưa chọn.'); return $this->back(); }
+
+        $ph = implode(',', array_fill(0, count($ids), '?'));
+        if ($action === 'confirm') {
+            Database::query("UPDATE payrolls SET status = 'confirmed' WHERE id IN ($ph) AND tenant_id = ? AND status = 'draft'", array_merge($ids, [$tid]));
+            $this->setFlash('success', 'Đã xác nhận ' . count($ids) . ' phiếu lương.');
+        } elseif ($action === 'paid') {
+            Database::query("UPDATE payrolls SET status = 'paid', paid_at = NOW() WHERE id IN ($ph) AND tenant_id = ? AND status = 'confirmed'", array_merge($ids, [$tid]));
+            $this->setFlash('success', 'Đã đánh dấu đã trả ' . count($ids) . ' phiếu.');
+        }
+        return $this->back();
+    }
+
+    public function payrollHistory($userId)
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $user = Database::fetch("SELECT id, name, email, base_salary FROM users WHERE id = ? AND tenant_id = ?", [$userId, $tid]);
+        if (!$user) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('attendance/payroll'); }
+
+        $history = Database::fetchAll(
+            "SELECT * FROM payrolls WHERE tenant_id = ? AND user_id = ? ORDER BY year DESC, month DESC",
+            [$tid, $userId]
+        );
+        return $this->view('attendance.payroll-history', compact('user', 'history'));
+    }
+
     public function exportPayroll()
     {
         $tid = Database::tenantId();
@@ -450,13 +509,32 @@ class AttendanceController extends Controller
     {
         if (!$this->checkPlugin()) return;
         $tid = Database::tenantId();
+        $status = $this->input('status');
+        $fMonth = $this->input('month');
+        $fYear = $this->input('year');
+
+        $where = ["sa.tenant_id = ?"];
+        $params = [$tid];
+        if ($status) { $where[] = "sa.status = ?"; $params[] = $status; }
+        if ($fMonth) { $where[] = "sa.month = ?"; $params[] = (int)$fMonth; }
+        if ($fYear) { $where[] = "sa.year = ?"; $params[] = (int)$fYear; }
+
+        $whereSql = implode(' AND ', $where);
+        $page = max(1, (int)($this->input('page') ?? 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $total = Database::fetch("SELECT COUNT(*) as cnt FROM salary_advances sa WHERE $whereSql", $params)['cnt'];
         $advances = Database::fetchAll(
-            "SELECT sa.*, u.name as user_name, a.name as approved_by_name
+            "SELECT sa.*, u.name as user_name, u.base_salary, a.name as approved_by_name
              FROM salary_advances sa LEFT JOIN users u ON sa.user_id = u.id LEFT JOIN users a ON sa.approved_by = a.id
-             WHERE sa.tenant_id = ? ORDER BY sa.created_at DESC",
-            [$tid]
+             WHERE $whereSql ORDER BY sa.created_at DESC LIMIT $limit OFFSET $offset",
+            $params
         );
-        return $this->view('attendance.advances', compact('advances'));
+        $totalPages = ceil($total / $limit);
+        $filters = compact('status', 'fMonth', 'fYear');
+
+        return $this->view('attendance.advances', compact('advances', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function createAdvance()
