@@ -126,7 +126,7 @@ try {
                                             </a>
                                             <form method="POST" action="<?= url('plugins/' . $plugin['id'] . '/uninstall') ?>" onsubmit="return confirm('Gỡ cài đặt <?= e($plugin['name']) ?>?')">
                                                 <?= csrf_field() ?>
-                                                <button class="btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                                <button class="btn btn-soft-danger" title="Gỡ cài đặt"><i class="ri-uninstall-line"></i></button>
                                             </form>
                                         <?php else: ?>
                                             <form method="POST" action="<?= url('plugins/' . $plugin['id'] . '/install') ?>">
