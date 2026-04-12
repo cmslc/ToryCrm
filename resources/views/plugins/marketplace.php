@@ -69,7 +69,7 @@ try {
                 <?php foreach ($plugins as $plugin): ?>
                     <?php $isInstalled = in_array($plugin['id'], $installedIds); ?>
                     <div class="col-xl-4 col-md-6">
-                        <div class="card">
+                        <div class="card card-height-100">
                             <div class="card-body">
                                 <div class="d-flex align-items-start mb-3">
                                     <div class="flex-shrink-0">
