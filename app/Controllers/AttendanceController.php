@@ -221,6 +221,24 @@ class AttendanceController extends Controller
         return $this->redirect('attendance/leaves');
     }
 
+    // ---- Thuế TNCN lũy tiến ----
+    private function calcPIT(float $taxableIncome): float
+    {
+        if ($taxableIncome <= 0) return 0;
+        $brackets = [
+            [5000000, 0.05], [10000000, 0.10], [18000000, 0.15],
+            [32000000, 0.20], [52000000, 0.25], [80000000, 0.30], [PHP_INT_MAX, 0.35],
+        ];
+        $tax = 0; $prev = 0;
+        foreach ($brackets as [$limit, $rate]) {
+            if ($taxableIncome <= $prev) break;
+            $taxable = min($taxableIncome, $limit) - $prev;
+            $tax += $taxable * $rate;
+            $prev = $limit;
+        }
+        return round($tax);
+    }
+
     // ---- Bảng lương ----
     public function payroll()
     {
@@ -240,6 +258,22 @@ class AttendanceController extends Controller
         return $this->view('attendance.payroll', compact('payrolls', 'month', 'year'));
     }
 
+    public function payrollDetail($id)
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $payroll = Database::fetch(
+            "SELECT p.*, u.name as user_name, u.email as user_email
+             FROM payrolls p LEFT JOIN users u ON p.user_id = u.id
+             WHERE p.id = ? AND p.tenant_id = ?", [$id, $tid]
+        );
+        if (!$payroll) {
+            $this->setFlash('error', 'Không tìm thấy.');
+            return $this->redirect('attendance/payroll');
+        }
+        return $this->view('attendance.payroll-detail', compact('payroll'));
+    }
+
     public function generatePayroll()
     {
         if (!$this->isPost()) return $this->redirect('attendance/payroll');
@@ -247,7 +281,10 @@ class AttendanceController extends Controller
         $month = (int)$this->input('month');
         $year = (int)$this->input('year');
 
-        $users = Database::fetchAll("SELECT id, base_salary FROM users WHERE tenant_id = ? AND is_active = 1", [$tid]);
+        $users = Database::fetchAll(
+            "SELECT id, base_salary, allowance_lunch, allowance_transport, allowance_phone, allowance_other, dependents
+             FROM users WHERE tenant_id = ? AND is_active = 1", [$tid]
+        );
         $standardDays = 22;
         $generated = 0;
 
@@ -263,14 +300,45 @@ class AttendanceController extends Controller
                 [$tid, $u['id'], $month, $year]
             );
 
-            $baseSalary = (float)$u['base_salary'];
+            // Tạm ứng đã duyệt
+            $advance = Database::fetch(
+                "SELECT COALESCE(SUM(amount),0) as total FROM salary_advances WHERE tenant_id = ? AND user_id = ? AND month = ? AND year = ? AND status = 'approved'",
+                [$tid, $u['id'], $month, $year]
+            );
+
+            $baseSalary = (float)($u['base_salary'] ?? 0);
             $workDays = (float)($stats['work_days'] ?? 0);
             $leaveDays = (float)($stats['leave_days'] ?? 0);
             $otHours = (float)($stats['overtime_hours'] ?? 0);
+            $dependents = (int)($u['dependents'] ?? 0);
+            $advanceAmount = (float)($advance['total'] ?? 0);
+
+            // Phụ cấp
+            $alLunch = (float)($u['allowance_lunch'] ?? 0);
+            $alTransport = (float)($u['allowance_transport'] ?? 0);
+            $alPhone = (float)($u['allowance_phone'] ?? 0);
+            $alOther = (float)($u['allowance_other'] ?? 0);
+            $totalAllowance = $alLunch + $alTransport + $alPhone + $alOther;
+
+            // Tính lương
             $dailyRate = $standardDays > 0 ? $baseSalary / $standardDays : 0;
+            $salaryByDay = round($dailyRate * $workDays);
             $overtimePay = round($dailyRate / 8 * 1.5 * $otHours);
-            $insurance = round($baseSalary * 0.105);
-            $netSalary = round($dailyRate * $workDays + $overtimePay - $insurance);
+            $grossSalary = $salaryByDay + $overtimePay + $totalAllowance;
+
+            // BHXH 8%, BHYT 1.5%, BHTN 1%
+            $bhxh = round($baseSalary * 0.08);
+            $bhyt = round($baseSalary * 0.015);
+            $bhtn = round($baseSalary * 0.01);
+            $totalInsurance = $bhxh + $bhyt + $bhtn;
+
+            // Thuế TNCN
+            $deductSelf = 11000000;
+            $deductDep = $dependents * 4400000;
+            $taxIncome = $grossSalary - $totalInsurance - $deductSelf - $deductDep;
+            $tax = $this->calcPIT($taxIncome);
+
+            $netSalary = $grossSalary - $totalInsurance - $tax - $advanceAmount;
 
             Database::insert('payrolls', [
                 'tenant_id' => $tid,
@@ -282,8 +350,21 @@ class AttendanceController extends Controller
                 'overtime_hours' => $otHours,
                 'base_salary' => $baseSalary,
                 'overtime_pay' => $overtimePay,
-                'insurance' => $insurance,
-                'net_salary' => $netSalary,
+                'allowance_lunch' => $alLunch,
+                'allowance_transport' => $alTransport,
+                'allowance_phone' => $alPhone,
+                'allowance_other' => $alOther,
+                'total_allowance' => $totalAllowance,
+                'gross_salary' => $grossSalary,
+                'insurance' => $totalInsurance,
+                'bhxh' => $bhxh,
+                'bhyt' => $bhyt,
+                'bhtn' => $bhtn,
+                'tax_income' => max(0, $taxIncome),
+                'tax' => $tax,
+                'advance' => $advanceAmount,
+                'dependents' => $dependents,
+                'net_salary' => round($netSalary),
                 'created_by' => $this->userId(),
             ]);
             $generated++;
@@ -297,16 +378,16 @@ class AttendanceController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('attendance/payroll');
         $tid = Database::tenantId();
-        $payroll = Database::fetch("SELECT * FROM payrolls WHERE id = ? AND tenant_id = ?", [$id, $tid]);
-        if (!$payroll) {
-            $this->setFlash('error', 'Không tìm thấy.');
+        $p = Database::fetch("SELECT * FROM payrolls WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$p || $p['status'] !== 'draft') {
+            $this->setFlash('error', 'Không thể sửa.');
             return $this->redirect('attendance/payroll');
         }
 
         $bonus = (float)$this->input('bonus');
         $deductions = (float)$this->input('deductions');
         $note = trim($this->input('note') ?? '');
-        $net = $payroll['base_salary'] / 22 * $payroll['work_days'] + $payroll['overtime_pay'] + $bonus - $deductions - $payroll['insurance'] - $payroll['tax'];
+        $net = $p['gross_salary'] + $bonus - $deductions - $p['insurance'] - $p['tax'] - $p['advance'];
 
         Database::update('payrolls', [
             'bonus' => $bonus,
@@ -316,7 +397,7 @@ class AttendanceController extends Controller
         ], 'id = ?', [$id]);
 
         $this->setFlash('success', 'Đã cập nhật.');
-        return $this->redirect("attendance/payroll?month={$payroll['month']}&year={$payroll['year']}");
+        return $this->redirect("attendance/payroll?month={$p['month']}&year={$p['year']}");
     }
 
     public function confirmPayroll($id)
@@ -326,5 +407,84 @@ class AttendanceController extends Controller
         Database::update('payrolls', ['status' => 'confirmed'], 'id = ? AND tenant_id = ?', [$id, $tid]);
         $this->setFlash('success', 'Đã xác nhận.');
         return $this->back();
+    }
+
+    public function exportPayroll()
+    {
+        $tid = Database::tenantId();
+        $month = (int)($this->input('month') ?: date('m'));
+        $year = (int)($this->input('year') ?: date('Y'));
+
+        $payrolls = Database::fetchAll(
+            "SELECT p.*, u.name as user_name FROM payrolls p LEFT JOIN users u ON p.user_id = u.id WHERE p.tenant_id = ? AND p.month = ? AND p.year = ? ORDER BY u.name",
+            [$tid, $month, $year]
+        );
+
+        $fileName = "bang-luong-thang-{$month}-{$year}.csv";
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        echo "\xEF\xBB\xBF"; // BOM UTF-8
+
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Nhân viên','Lương CB','Ngày công','Nghỉ','OT (h)','OT Pay','PC Ăn','PC Xăng','PC ĐT','PC Khác','Tổng PC','Gross','BHXH','BHYT','BHTN','Thuế TNCN','Tạm ứng','Thưởng','Khấu trừ','Thực nhận','Trạng thái']);
+        foreach ($payrolls as $p) {
+            fputcsv($out, [
+                $p['user_name'], $p['base_salary'], $p['work_days'], $p['leave_days'], $p['overtime_hours'], $p['overtime_pay'],
+                $p['allowance_lunch'], $p['allowance_transport'], $p['allowance_phone'], $p['allowance_other'], $p['total_allowance'],
+                $p['gross_salary'], $p['bhxh'], $p['bhyt'], $p['bhtn'], $p['tax'], $p['advance'],
+                $p['bonus'], $p['deductions'], $p['net_salary'], $p['status'],
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
+
+    // ---- Tạm ứng ----
+    public function advances()
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $advances = Database::fetchAll(
+            "SELECT sa.*, u.name as user_name, a.name as approved_by_name
+             FROM salary_advances sa LEFT JOIN users u ON sa.user_id = u.id LEFT JOIN users a ON sa.approved_by = a.id
+             WHERE sa.tenant_id = ? ORDER BY sa.created_at DESC",
+            [$tid]
+        );
+        return $this->view('attendance.advances', compact('advances'));
+    }
+
+    public function createAdvance()
+    {
+        if (!$this->isPost()) return $this->redirect('attendance/advances');
+        $tid = Database::tenantId();
+        Database::insert('salary_advances', [
+            'tenant_id' => $tid,
+            'user_id' => $this->userId(),
+            'amount' => (float)$this->input('amount'),
+            'month' => (int)($this->input('month') ?: date('m')),
+            'year' => (int)($this->input('year') ?: date('Y')),
+            'reason' => trim($this->input('reason') ?? '') ?: null,
+        ]);
+        $this->setFlash('success', 'Đã gửi yêu cầu tạm ứng.');
+        return $this->redirect('attendance/advances');
+    }
+
+    public function approveAdvance($id)
+    {
+        if (!$this->isPost()) return $this->redirect('attendance/advances');
+        $tid = Database::tenantId();
+        $adv = Database::fetch("SELECT * FROM salary_advances WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$adv || $adv['status'] !== 'pending') {
+            $this->setFlash('error', 'Không thể duyệt.');
+            return $this->redirect('attendance/advances');
+        }
+        $action = $this->input('action');
+        Database::update('salary_advances', [
+            'status' => $action === 'approve' ? 'approved' : 'rejected',
+            'approved_by' => $this->userId(),
+            'approved_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$id]);
+        $this->setFlash('success', $action === 'approve' ? 'Đã duyệt tạm ứng.' : 'Đã từ chối.');
+        return $this->redirect('attendance/advances');
     }
 }

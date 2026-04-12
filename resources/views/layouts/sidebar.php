@@ -218,6 +218,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('attendance') ?>" class="nav-link <?= isActive('attendance', $currentUrl) && !str_contains($currentUrl, 'leaves') && !str_contains($currentUrl, 'payroll') ? 'active' : '' ?>">Chấm công</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/leaves') ?>" class="nav-link <?= isActive('attendance/leaves', $currentUrl) ?>">Nghỉ phép</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/payroll') ?>" class="nav-link <?= isActive('attendance/payroll', $currentUrl) ?>">Bảng lương</a></li>
+                            <li class="nav-item"><a href="<?= url('attendance/advances') ?>" class="nav-link <?= isActive('attendance/advances', $currentUrl) ?>">Tạm ứng</a></li>
                         </ul>
                     </div>
                 </li>
