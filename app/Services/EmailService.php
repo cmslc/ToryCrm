@@ -100,17 +100,20 @@ class EmailService
     }
 
     // ---- Send Email via API ----
-    public function send(string $to, string $subject, string $body, array $cc = [], array $bcc = []): array
+    public function send(string $to, string $subject, string $body, array $cc = [], array $bcc = [], array $attachments = []): array
     {
-        $data = [
-            'to' => $to,
-            'subject' => $subject,
-            'body' => $body,
-        ];
-        if (!empty($cc)) $data['cc'] = implode(',', $cc);
-        if (!empty($bcc)) $data['bcc'] = implode(',', $bcc);
-
-        $result = $this->apiCall('POST', '/send', $data);
+        if (!empty($attachments)) {
+            $result = $this->apiSendWithAttachments($to, $subject, $body, $cc, $bcc, $attachments);
+        } else {
+            $data = [
+                'to' => $to,
+                'subject' => $subject,
+                'body' => $body,
+            ];
+            if (!empty($cc)) $data['cc'] = implode(',', $cc);
+            if (!empty($bcc)) $data['bcc'] = implode(',', $bcc);
+            $result = $this->apiCall('POST', '/send', $data);
+        }
 
         if ($result['success'] ?? false) {
             // Store in local sent folder
@@ -131,6 +134,44 @@ class EmailService
         }
 
         return $result;
+    }
+
+    private function apiSendWithAttachments(string $to, string $subject, string $body, array $cc, array $bcc, array $attachments): array
+    {
+        $token = $this->account['api_token'] ?? '';
+        $url = $this->apiBase . '/send?token=' . urlencode($token);
+
+        $postData = [
+            'to' => $to,
+            'subject' => $subject,
+            'body' => $body,
+        ];
+        if (!empty($cc)) $postData['cc'] = implode(',', $cc);
+        if (!empty($bcc)) $postData['bcc'] = implode(',', $bcc);
+
+        foreach ($attachments as $i => $att) {
+            if (file_exists($att['path'])) {
+                $postData['attachments[' . $i . ']'] = new \CURLFile($att['path'], $att['mime'] ?? 'application/octet-stream', $att['name']);
+            }
+        }
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $postData,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) return ['success' => false, 'error' => 'Lỗi kết nối: ' . $error];
+        $result = json_decode($response, true);
+        return $result ?: ['success' => false, 'error' => 'Phản hồi không hợp lệ'];
     }
 
     // ---- Fetch Inbox via API ----

@@ -229,7 +229,7 @@ class EmailController extends Controller
         }
 
         $service = new EmailService($account);
-        $result = $service->send($to, $subject, $body, $cc);
+        $result = $service->send($to, $subject, $body, $cc, [], $attachments);
 
         // Store attachments in DB if sent
         if ($result['success'] && !empty($attachments)) {
