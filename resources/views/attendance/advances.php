@@ -10,7 +10,6 @@ $monthNames = ['','Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng
     <h4 class="mb-0"><i class="ri-hand-coin-line me-2"></i> Tạm ứng lương</h4>
     <div class="d-flex gap-2">
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#advanceModal"><i class="ri-add-line me-1"></i> Yêu cầu tạm ứng</button>
-        <a href="<?= url('attendance/payroll') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Bảng lương</a>
     </div>
 </div>
 

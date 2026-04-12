@@ -10,7 +10,6 @@ $_role = $user['role'] ?? 'staff';
     <h4 class="mb-0"><i class="ri-calendar-event-line me-2"></i> Nghỉ phép</h4>
     <div class="d-flex gap-2">
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#leaveModal"><i class="ri-add-line me-1"></i> Xin nghỉ</button>
-        <a href="<?= url('attendance') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Chấm công</a>
     </div>
 </div>
 

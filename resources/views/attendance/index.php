@@ -10,8 +10,6 @@ $monthNames = ['','Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0"><i class="ri-calendar-check-line me-2"></i> Chấm công</h4>
     <div class="d-flex gap-2">
-        <a href="<?= url('attendance/leaves') ?>" class="btn btn-soft-info"><i class="ri-calendar-event-line me-1"></i> Nghỉ phép</a>
-        <a href="<?= url('attendance/payroll') ?>" class="btn btn-soft-success"><i class="ri-money-dollar-circle-line me-1"></i> Bảng lương</a>
     </div>
 </div>
 
