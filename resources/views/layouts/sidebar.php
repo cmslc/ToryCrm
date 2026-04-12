@@ -103,7 +103,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $prodOpen ? 'show' : '' ?>" id="sidebarProducts">
                         <ul class="nav nav-sm flex-column">
                             <?php if (canSee('products')): ?>
-                            <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Danh sách</a></li>
+                            <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Sản phẩm</a></li>
                             <?php endif; ?>
                             <?php if (canSee('orders')): ?>
                             <li class="nav-item"><a href="<?= url('orders') ?>" class="nav-link <?= isActive('orders', $currentUrl) ?>">Đơn hàng bán</a></li>
