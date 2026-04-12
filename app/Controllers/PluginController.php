@@ -124,6 +124,15 @@ class PluginController extends Controller
             return $this->redirect('plugins/marketplace');
         }
 
+        // Redirect to plugin's own settings page if exists
+        $settingsRoutes = [
+            'email' => 'email/settings',
+            'kho-logistics' => 'logistics/settings',
+        ];
+        if (isset($settingsRoutes[$plugin['slug']])) {
+            return $this->redirect($settingsRoutes[$plugin['slug']]);
+        }
+
         $configSchema = json_decode($plugin['config'] ?? '{}', true);
         $tenantConfig = PluginManager::getConfig($tenantId, $plugin['slug']) ?: [];
 
