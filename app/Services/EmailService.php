@@ -199,19 +199,19 @@ class EmailService
         $flag = ($encryption === 'ssl') ? '/imap/ssl/novalidate-cert' : '/imap/novalidate-cert';
         $mailbox = "{{$host}:{$port}{$flag}}INBOX";
 
-        $connection = @imap_open($mailbox, $user, $pass, 0, 1);
+        $connection = @\imap_open($mailbox, $user, $pass, 0, 1);
         if (!$connection) {
-            return ['success' => false, 'error' => 'Không kết nối được IMAP: ' . imap_last_error()];
+            return ['success' => false, 'error' => 'Không kết nối được IMAP: ' . \imap_last_error()];
         }
 
-        $check = imap_check($connection);
+        $check = \imap_check($connection);
         $total = $check->Nmsgs;
         $start = max(1, $total - $limit + 1);
 
         $messages = [];
         for ($i = $total; $i >= $start; $i--) {
-            $header = imap_headerinfo($connection, $i);
-            $uid = imap_uid($connection, $i);
+            $header = \imap_headerinfo($connection, $i);
+            $uid = \imap_uid($connection, $i);
 
             // Skip if already fetched
             $existing = Database::fetch("SELECT id FROM email_messages WHERE account_id = ? AND message_uid = ?", [$a['id'], (string)$uid]);
@@ -219,8 +219,8 @@ class EmailService
 
             $from = $header->from[0] ?? null;
             $fromEmail = $from ? ($from->mailbox . '@' . $from->host) : '';
-            $fromName = isset($from->personal) ? imap_utf8($from->personal) : '';
-            $subject = isset($header->subject) ? imap_utf8($header->subject) : '(Không tiêu đề)';
+            $fromName = isset($from->personal) ? \imap_utf8($from->personal) : '';
+            $subject = isset($header->subject) ? \imap_utf8($header->subject) : '(Không tiêu đề)';
             $date = isset($header->date) ? date('Y-m-d H:i:s', strtotime($header->date)) : date('Y-m-d H:i:s');
 
             $toList = [];
@@ -262,18 +262,18 @@ class EmailService
         // Update last sync
         Database::update('email_accounts', ['last_sync' => date('Y-m-d H:i:s')], 'id = ?', [$a['id']]);
 
-        imap_close($connection);
+        \imap_close($connection);
         return ['success' => true, 'new_count' => count($messages), 'messages' => $messages];
     }
 
     private function getImapBody($connection, int $msgNo): array
     {
         $body = ['text' => '', 'html' => ''];
-        $structure = imap_fetchstructure($connection, $msgNo);
+        $structure = \imap_fetchstructure($connection, $msgNo);
 
         if (!isset($structure->parts)) {
             // Simple message
-            $content = imap_fetchbody($connection, $msgNo, '1');
+            $content = \imap_fetchbody($connection, $msgNo, '1');
             $content = $this->decodeBody($content, $structure->encoding ?? 0);
             if (isset($structure->subtype) && strtoupper($structure->subtype) === 'HTML') {
                 $body['html'] = $content;
@@ -283,7 +283,7 @@ class EmailService
         } else {
             foreach ($structure->parts as $idx => $part) {
                 $partNo = (string)($idx + 1);
-                $content = imap_fetchbody($connection, $msgNo, $partNo);
+                $content = \imap_fetchbody($connection, $msgNo, $partNo);
                 $content = $this->decodeBody($content, $part->encoding ?? 0);
 
                 if (strtoupper($part->subtype ?? '') === 'HTML') {
@@ -308,7 +308,7 @@ class EmailService
 
     private function hasAttachments($connection, int $msgNo): bool
     {
-        $structure = imap_fetchstructure($connection, $msgNo);
+        $structure = \imap_fetchstructure($connection, $msgNo);
         if (!isset($structure->parts)) return false;
         foreach ($structure->parts as $part) {
             if (($part->disposition ?? '') === 'ATTACHMENT' || ($part->ifdisposition && strtoupper($part->disposition) === 'ATTACHMENT')) {
@@ -336,12 +336,12 @@ class EmailService
         // Test IMAP
         $flag = ($a['imap_encryption'] === 'ssl') ? '/imap/ssl/novalidate-cert' : '/imap/novalidate-cert';
         $mailbox = "{{$a['imap_host']}:{$a['imap_port']}{$flag}}INBOX";
-        $conn = @imap_open($mailbox, $a['username'], $a['password'], 0, 1);
+        $conn = @\imap_open($mailbox, $a['username'], $a['password'], 0, 1);
         if ($conn) {
             $results['imap'] = true;
-            imap_close($conn);
+            \imap_close($conn);
         } else {
-            $results['imap_error'] = imap_last_error() ?: 'Không kết nối được';
+            $results['imap_error'] = \imap_last_error() ?: 'Không kết nối được';
         }
 
         // Test SMTP
