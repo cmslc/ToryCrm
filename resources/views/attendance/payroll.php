@@ -29,8 +29,6 @@ $fmt = function($v) { return $v > 0 ? number_format($v) : '-'; };
         <?php if (!empty($payrolls)): ?>
         <a href="<?= url("attendance/payroll/export?month=$month&year=$year") ?>" class="btn btn-soft-success"><i class="ri-file-excel-line me-1"></i> Xuất Excel</a>
         <?php endif; ?>
-        <a href="<?= url('attendance/advances') ?>" class="btn btn-soft-warning"><i class="ri-hand-coin-line me-1"></i> Tạm ứng</a>
-        <a href="<?= url('attendance') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Chấm công</a>
     </div>
 </div>
 
