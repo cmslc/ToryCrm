@@ -6,8 +6,12 @@ $_brandName = $_branding['name'] ?? 'ToryCRM';
 $_brandLogo = $_branding['logo_url'] ?? '';
 $_role = $user['role'] ?? 'staff';
 
-function isActive(string $path, string $cur): string {
-    return ($cur === trim($path, '/') || str_starts_with($cur, trim($path, '/') . '/')) ? 'active' : '';
+function isActive(string|array $path, string $cur): string {
+    $paths = is_array($path) ? $path : [$path];
+    foreach ($paths as $p) {
+        if ($cur === trim($p, '/') || str_starts_with($cur, trim($p, '/') . '/')) return 'active';
+    }
+    return '';
 }
 function isOpen(array $paths, string $cur): bool {
     foreach ($paths as $p) { if ($cur === $p || str_starts_with($cur, $p . '/')) return true; }
