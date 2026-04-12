@@ -55,14 +55,6 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
             <?php else: ?>
             <small class="text-muted d-block mb-2"><?= e($accounts[0]['email']) ?></small>
             <?php endif; ?>
-            <div class="d-flex gap-1">
-                <form method="POST" action="<?= url('email/sync') ?>" class="flex-grow-1">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="account_id" value="<?= $accountId ?>">
-                    <button class="btn btn-soft-secondary w-100"><i class="ri-refresh-line me-1"></i> Đồng bộ</button>
-                </form>
-                <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary" title="Cài đặt"><i class="ri-settings-3-line"></i></a>
-            </div>
         </div>
     </div>
 
@@ -71,6 +63,11 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
         <!-- Toolbar -->
         <div class="bg-white rounded-top border-bottom px-3 py-2 d-flex align-items-center gap-3">
             <input type="checkbox" class="form-check-input" id="checkAll">
+            <form method="POST" action="<?= url('email/sync') ?>" class="d-inline">
+                <?= csrf_field() ?>
+                <input type="hidden" name="account_id" value="<?= $accountId ?>">
+                <button class="btn btn-link p-0 text-muted" title="Đồng bộ"><i class="ri-refresh-line fs-18"></i></button>
+            </form>
             <form method="GET" action="<?= url('email') ?>" class="flex-grow-1 d-flex">
                 <input type="hidden" name="account" value="<?= $accountId ?>">
                 <input type="hidden" name="folder" value="<?= e($folder) ?>">
