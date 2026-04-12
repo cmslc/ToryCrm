@@ -73,8 +73,8 @@ try {
                             <div class="card-body">
                                 <div class="d-flex align-items-start mb-3">
                                     <div class="flex-shrink-0">
-                                        <div class="avatar-md">
-                                            <div class="avatar-title bg-primary-subtle text-primary rounded fs-24">
+                                        <div class="avatar-sm">
+                                            <div class="avatar-title bg-primary-subtle text-primary rounded fs-18">
                                                 <i class="<?= e($plugin['icon']) ?>"></i>
                                             </div>
                                         </div>
