@@ -210,12 +210,12 @@ class EmailController extends Controller
             'smtp_host' => trim($this->input('smtp_host') ?? ''),
             'smtp_port' => (int)($this->input('smtp_port') ?: 587),
             'smtp_encryption' => $this->input('smtp_encryption') ?: 'tls',
-            'username' => trim($this->input('username') ?? ''),
+            'username' => trim($this->input('email') ?? ''),
             'password' => trim($this->input('password') ?? ''),
             'is_default' => $this->input('is_default') ? 1 : 0,
         ];
 
-        if (empty($data['email']) || empty($data['username'])) {
+        if (empty($data['email']) || empty($data['password'])) {
             $this->setFlash('error', 'Vui lòng nhập đầy đủ thông tin.');
             return $this->redirect('email/settings');
         }

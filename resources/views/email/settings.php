@@ -96,14 +96,10 @@
                 </div>
             </div>
 
-            <h6 class="text-muted border-bottom pb-2 mb-3"><i class="ri-lock-line me-1"></i> Xác thực</h6>
+            <h6 class="text-muted border-bottom pb-2 mb-3"><i class="ri-lock-line me-1"></i> Mật khẩu</h6>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Username <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="username" required placeholder="sales@congty.com">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Password <span class="text-danger">*</span></label>
+                    <label class="form-label">Mật khẩu email <span class="text-danger">*</span></label>
                     <input type="password" class="form-control" name="password" required>
                 </div>
             </div>
