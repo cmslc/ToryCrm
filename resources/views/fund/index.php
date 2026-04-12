@@ -63,7 +63,7 @@
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-line me-2"></i> Thu chi theo tháng</h5></div>
-                    <div class="card-body"><canvas id="fundChart" height="180"></canvas></div>
+                    <div class="card-body"><div style="max-height:250px"><canvas id="fundChart"></canvas></div></div>
                 </div>
             </div>
             <div class="col-lg-4">
@@ -93,7 +93,7 @@
                         {label: 'Chi', data: <?= json_encode(array_column($monthlyChart, 'payment')) ?>, backgroundColor: 'rgba(240,101,72,0.7)'}
                     ]
                 },
-                options: {responsive:true, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
+                options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
             });
         });
         </script>

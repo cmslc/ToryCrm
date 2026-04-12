@@ -75,7 +75,7 @@
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-line-chart-line me-2"></i> Xu hướng thu chi 6 tháng</h5></div>
                     <div class="card-body">
                         <?php if (!empty($monthlyTrend)): ?>
-                        <canvas id="trendChart" height="180"></canvas>
+                        <div style="max-height:250px"><canvas id="trendChart"></canvas></div>
                         <?php else: ?>
                         <p class="text-muted text-center py-4">Chưa có dữ liệu</p>
                         <?php endif; ?>
@@ -126,7 +126,7 @@
                         {label:'Lợi nhuận', data:profits, type:'line', borderColor:'#405189', backgroundColor:'transparent', borderWidth:2, pointRadius:4, order:1}
                     ]
                 },
-                options:{responsive:true, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
+                options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
             });
         });
         </script>
