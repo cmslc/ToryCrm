@@ -177,33 +177,41 @@ try {
                 <div class="col-xl-4 col-md-6">
                     <div class="card card-height-100">
                         <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="avatar-md flex-shrink-0">
-                                    <div class="avatar-title bg-<?= $card['color'] ?>-subtle text-<?= $card['color'] ?> rounded fs-24">
-                                        <i class="<?= $card['icon'] ?>"></i>
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-sm">
+                                        <div class="avatar-title bg-<?= $isActive ? 'success' : $card['color'] ?>-subtle text-<?= $isActive ? 'success' : $card['color'] ?> rounded fs-18">
+                                            <i class="<?= $card['icon'] ?>"></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="ms-3 flex-grow-1">
-                                    <h5 class="mb-1"><?= $card['name'] ?></h5>
-                                    <?php if ($isActive): ?>
-                                        <span class="badge bg-success-subtle text-success"><i class="ri-checkbox-circle-line me-1"></i>Đã kết nối</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary-subtle text-secondary">Chưa kết nối</span>
-                                    <?php endif; ?>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1"><?= $card['name'] ?></h6>
+                                    <div class="d-flex gap-1 align-items-center">
+                                        <?php if ($isActive): ?>
+                                            <span class="badge bg-success-subtle text-success">Đã kết nối</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary-subtle text-secondary">Chưa kết nối</span>
+                                        <?php endif; ?>
+                                        <?php if ($card['url'] === '#'): ?>
+                                            <span class="badge bg-warning-subtle text-warning">Sắp ra mắt</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                            <p class="text-muted mb-3"><?= $card['description'] ?></p>
-                        </div>
-                        <div class="card-footer border-top">
-                            <?php if ($card['url'] !== '#'): ?>
-                                <a href="<?= $card['url'] ?>" class="btn btn-<?= $isActive ? 'soft-' . $card['color'] : 'primary' ?> w-100">
-                                    <i class="ri-settings-3-line me-1"></i> <?= $isActive ? 'Cấu hình' : 'Thiết lập' ?>
-                                </a>
-                            <?php else: ?>
-                                <button class="btn btn-soft-secondary w-100" disabled>
-                                    <i class="ri-time-line me-1"></i> Sắp ra mắt
-                                </button>
-                            <?php endif; ?>
+                            <p class="text-muted fs-13 mb-3"><?= $card['description'] ?></p>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="text-muted fs-12"><i class="ri-link me-1"></i>Tích hợp</span>
+                                <?php if ($card['url'] !== '#'): ?>
+                                    <a href="<?= $card['url'] ?>" class="btn btn-<?= $isActive ? 'soft-success' : 'primary' ?>">
+                                        <i class="ri-settings-3-line me-1"></i> <?= $isActive ? 'Cấu hình' : 'Thiết lập' ?>
+                                    </a>
+                                <?php else: ?>
+                                    <button class="btn btn-soft-secondary" disabled>
+                                        <i class="ri-time-line me-1"></i> Sắp ra mắt
+                                    </button>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
