@@ -5,7 +5,7 @@
         </div>
 
         <!-- Top Metrics -->
-        <div class="row mb-4">
+        <div class="row mb-1">
             <div class="col-md-3">
                 <div class="card border-success">
                     <div class="card-body">

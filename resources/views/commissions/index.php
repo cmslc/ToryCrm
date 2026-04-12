@@ -12,7 +12,7 @@
 
 
         <!-- Summary Cards -->
-        <div class="row mb-4">
+        <div class="row mb-1">
             <div class="col-md-3">
                 <div class="card border-warning">
                     <div class="card-body">
