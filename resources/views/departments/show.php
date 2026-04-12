@@ -48,56 +48,86 @@ try {
     <?php endforeach; ?>
 </div>
 
+<!-- Info Card -->
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-3" style="width:48px;height:48px;background:<?= e($department['color']) ?>">
+                        <i class="ri-building-line text-white fs-22"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0"><?= e($department['name']) ?></h5>
+                        <?php if ($department['parent_name']): ?><small class="text-muted"><?= e($department['parent_name']) ?></small><?php endif; ?>
+                    </div>
+                </div>
+                <?php if ($department['description']): ?>
+                <p class="text-muted mb-3"><?= e($department['description']) ?></p>
+                <?php endif; ?>
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center">
+                        <i class="ri-user-star-line text-muted me-2 fs-16"></i>
+                        <span class="text-muted me-2">Trưởng phòng:</span>
+                        <?= $department['manager_name'] ? user_avatar($department['manager_name'], 'primary', $department['manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="ri-user-follow-line text-muted me-2 fs-16"></i>
+                        <span class="text-muted me-2">Phó phòng:</span>
+                        <?= $department['vice_manager_name'] ? user_avatar($department['vice_manager_name'], 'info', $department['vice_manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted mb-3"><i class="ri-task-line me-1"></i> Tiến độ công việc</h6>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="progress flex-grow-1" style="height:10px"><div class="progress-bar bg-success" style="width:<?= $taskPct ?>%"></div></div>
+                    <span class="fw-semibold"><?= $taskPct ?>%</span>
+                </div>
+                <div class="d-flex justify-content-between text-muted fs-12">
+                    <span>Hoàn thành: <?= $stats['tasks_done'] ?></span><span>Tổng: <?= $stats['tasks_total'] ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <?php if (!empty($childDepts)): ?>
+                <h6 class="text-muted mb-3"><i class="ri-organization-chart me-1"></i> Phòng ban con</h6>
+                <?php foreach ($childDepts as $cd): ?>
+                <div class="d-flex align-items-center mb-2">
+                    <span class="d-inline-block rounded-circle me-2" style="width:8px;height:8px;background:<?= e($cd['color']) ?>"></span>
+                    <a href="<?= url('departments/' . $cd['id']) ?>" class="flex-grow-1"><?= e($cd['name']) ?></a>
+                    <span class="badge bg-secondary-subtle text-secondary"><?= $cd['member_count'] ?></span>
+                </div>
+                <?php endforeach; ?>
+                <?php else: ?>
+                <h6 class="text-muted mb-3"><i class="ri-organization-chart me-1"></i> Phòng ban con</h6>
+                <p class="text-muted mb-0">Không có phòng ban con</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Tabs -->
 <div class="card">
     <div class="card-header p-0">
         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
-            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabInfo" role="tab">Thông tin</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabMembers" role="tab">Nhân viên <span class="badge bg-primary-subtle text-primary ms-1"><?= count($members) ?></span></a></li>
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabMembers" role="tab">Nhân viên <span class="badge bg-primary-subtle text-primary ms-1"><?= count($members) ?></span></a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabKpi" role="tab">KPI</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabHistory" role="tab">Lịch sử</a></li>
         </ul>
     </div>
     <div class="card-body">
         <div class="tab-content">
-            <!-- Tab: Thông tin -->
-            <div class="tab-pane active" id="tabInfo" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-borderless">
-                            <tr><th class="text-muted" width="140">Tên</th><td class="fw-medium"><?= e($department['name']) ?></td></tr>
-                            <tr><th class="text-muted">Trưởng phòng</th><td><?= user_avatar($department['manager_name'] ?? null, 'primary', $department['manager_avatar'] ?? null) ?></td></tr>
-                            <tr><th class="text-muted">Phó phòng</th><td><?= user_avatar($department['vice_manager_name'] ?? null, 'info', $department['vice_manager_avatar'] ?? null) ?></td></tr>
-                            <?php if ($department['parent_name']): ?><tr><th class="text-muted">Thuộc</th><td><?= e($department['parent_name']) ?></td></tr><?php endif; ?>
-                            <tr><th class="text-muted">Màu</th><td><span class="d-inline-block rounded-circle me-2" style="width:14px;height:14px;background:<?= e($department['color']) ?>"></span><?= e($department['color']) ?></td></tr>
-                            <?php if ($department['description']): ?><tr><th class="text-muted">Mô tả</th><td><?= e($department['description']) ?></td></tr><?php endif; ?>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="mb-3">Tiến độ công việc</h6>
-                        <div class="d-flex align-items-center gap-3 mb-2">
-                            <div class="progress flex-grow-1" style="height:10px"><div class="progress-bar bg-success" style="width:<?= $taskPct ?>%"></div></div>
-                            <span class="fw-semibold"><?= $taskPct ?>%</span>
-                        </div>
-                        <div class="d-flex justify-content-between text-muted fs-12 mb-4">
-                            <span>Hoàn thành: <?= $stats['tasks_done'] ?></span><span>Tổng: <?= $stats['tasks_total'] ?></span>
-                        </div>
-
-                        <?php if (!empty($childDepts)): ?>
-                        <h6 class="mb-3">Phòng ban con</h6>
-                        <?php foreach ($childDepts as $cd): ?>
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="d-inline-block rounded-circle me-2" style="width:8px;height:8px;background:<?= e($cd['color']) ?>"></span>
-                            <a href="<?= url('departments/' . $cd['id']) ?>" class="flex-grow-1"><?= e($cd['name']) ?></a>
-                            <span class="badge bg-secondary-subtle text-secondary"><?= $cd['member_count'] ?></span>
-                        </div>
-                        <?php endforeach; endif; ?>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tab: Nhân viên + Vị trí (gộp) -->
-            <div class="tab-pane" id="tabMembers" role="tabpanel">
+            <div class="tab-pane active" id="tabMembers" role="tabpanel">
                 <?php
                 $posOptions = ['Trưởng nhóm','Phó nhóm','Chuyên viên cao cấp','Chuyên viên','Kỹ sư','Kế toán','NV kinh doanh','Tư vấn viên','CSKH','Thực tập sinh','Cố vấn','Giám sát'];
                 $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 AND (department_id IS NULL OR department_id != ?) ORDER BY name", [$_SESSION['tenant_id'] ?? 1, $department['id']]);
