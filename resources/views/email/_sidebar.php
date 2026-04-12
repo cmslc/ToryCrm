@@ -17,7 +17,7 @@ $_activeFolder = $folder ?? '';
         <?php foreach (['inbox','sent','drafts','trash','spam'] as $_f):
             $_cnt = $_folderMap[$_f]['cnt'] ?? 0;
             $_unread = $_folderMap[$_f]['unread'] ?? 0;
-            if ($_cnt == 0 && !in_array($_f, ['inbox','sent','trash'])) continue;
+            if ($_cnt == 0 && !in_array($_f, ['inbox','sent','drafts','trash'])) continue;
             $_isActive = ($_activeFolder === $_f && $_currentPage !== 'settings' && $_currentPage !== 'templates');
         ?>
         <a href="<?= url('email?account=' . $_accountId . '&folder=' . $_f) ?>"

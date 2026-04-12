@@ -32,7 +32,7 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
             foreach (['inbox','sent','drafts','trash','spam'] as $f):
                 $cnt = $folderMap[$f]['cnt'] ?? 0;
                 $unread = $folderMap[$f]['unread'] ?? 0;
-                if ($cnt == 0 && !in_array($f, ['inbox','sent','trash'])) continue;
+                if ($cnt == 0 && !in_array($f, ['inbox','sent','drafts','trash'])) continue;
                 $isActive = ($folder === $f);
             ?>
             <a href="<?= url('email?account=' . $accountId . '&folder=' . $f) ?>"
