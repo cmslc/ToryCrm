@@ -123,3 +123,64 @@
         </form>
     </div>
 </div>
+
+<!-- Hướng dẫn -->
+<div class="card">
+    <div class="card-header bg-light"><h5 class="card-title mb-0"><i class="ri-question-line me-2"></i> Hướng dẫn cấu hình</h5></div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-6">
+                <h6 class="fw-medium mb-3">1. Tạo tài khoản email trên GetcodeMail</h6>
+                <ol class="text-muted mb-4">
+                    <li>Truy cập <a href="https://getcodemail.com" target="_blank">getcodemail.com</a> và đăng nhập</li>
+                    <li>Vào <strong>Tên miền</strong> > Thêm tên miền công ty (VD: <code>congty.com</code>)</li>
+                    <li>Cấu hình DNS theo hướng dẫn (MX, SPF, DKIM)</li>
+                    <li>Vào <strong>Hộp thư</strong> > Tạo mailbox (VD: <code>sales@congty.com</code>)</li>
+                    <li>Ghi nhớ email và mật khẩu đã tạo</li>
+                </ol>
+
+                <h6 class="fw-medium mb-3">2. Cấu hình trong ToryCRM</h6>
+                <ol class="text-muted mb-0">
+                    <li>Điền email và mật khẩu vào form bên trên</li>
+                    <li>IMAP/SMTP Host giữ mặc định <code>mail.getcodemail.com</code></li>
+                    <li>Bấm <strong>Lưu tài khoản</strong></li>
+                    <li>Bấm nút <strong>Test kết nối</strong> để kiểm tra</li>
+                    <li>Vào <strong>Email > Đồng bộ</strong> để pull email về CRM</li>
+                </ol>
+            </div>
+            <div class="col-lg-6">
+                <h6 class="fw-medium mb-3">Thông số kết nối</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-4">
+                        <thead class="table-light"><tr><th>Mục</th><th>GetcodeMail</th><th>Gmail</th></tr></thead>
+                        <tbody>
+                            <tr><td>IMAP Host</td><td><code>mail.getcodemail.com</code></td><td><code>imap.gmail.com</code></td></tr>
+                            <tr><td>IMAP Port</td><td><code>993</code></td><td><code>993</code></td></tr>
+                            <tr><td>IMAP Mã hóa</td><td>SSL</td><td>SSL</td></tr>
+                            <tr><td>SMTP Host</td><td><code>mail.getcodemail.com</code></td><td><code>smtp.gmail.com</code></td></tr>
+                            <tr><td>SMTP Port</td><td><code>587</code></td><td><code>587</code></td></tr>
+                            <tr><td>SMTP Mã hóa</td><td>TLS</td><td>TLS</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6 class="fw-medium mb-3">Nhà cung cấp khác</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light"><tr><th>Nhà cung cấp</th><th>IMAP</th><th>SMTP</th></tr></thead>
+                        <tbody>
+                            <tr><td>Zoho Mail</td><td><code>imap.zoho.com:993</code></td><td><code>smtp.zoho.com:587</code></td></tr>
+                            <tr><td>Outlook/Office 365</td><td><code>outlook.office365.com:993</code></td><td><code>smtp.office365.com:587</code></td></tr>
+                            <tr><td>Yahoo Mail</td><td><code>imap.mail.yahoo.com:993</code></td><td><code>smtp.mail.yahoo.com:587</code></td></tr>
+                            <tr><td>Yandex Mail</td><td><code>imap.yandex.com:993</code></td><td><code>smtp.yandex.com:587</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-warning py-2 mt-3 mb-0">
+                    <i class="ri-error-warning-line me-1"></i> <strong>Gmail:</strong> Cần bật "Mật khẩu ứng dụng" (App Password) trong cài đặt bảo mật Google, không dùng mật khẩu thường.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
