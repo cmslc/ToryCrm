@@ -157,6 +157,17 @@ class UserController extends Controller
             $updateData['password'] = Auth::hashPassword($data['password']);
         }
 
+        // Salary fields (if attendance-payroll plugin)
+        if (isset($data['base_salary'])) {
+            $updateData['base_salary'] = (float)($data['base_salary'] ?? 0);
+            $updateData['allowance_lunch'] = (float)($data['allowance_lunch'] ?? 0);
+            $updateData['allowance_transport'] = (float)($data['allowance_transport'] ?? 0);
+            $updateData['allowance_phone'] = (float)($data['allowance_phone'] ?? 0);
+            $updateData['allowance_other'] = (float)($data['allowance_other'] ?? 0);
+            $updateData['dependents'] = (int)($data['dependents'] ?? 0);
+            $updateData['leave_balance'] = (float)($data['leave_balance'] ?? 12);
+        }
+
         Database::update('users', $updateData, 'id = ?', [$id]);
 
         $this->setFlash('success', 'Cập nhật người dùng thành công.');

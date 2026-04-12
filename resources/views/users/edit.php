@@ -73,6 +73,59 @@
                         </div>
                     </div>
 
+                    <?php if (plugin_active('attendance-payroll')): ?>
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-2"></i> Lương & Phụ cấp</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Lương cơ bản</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="base_salary" value="<?= $editUser['base_salary'] ?? 0 ?>" step="100000" min="0">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">PC Ăn trưa</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="allowance_lunch" value="<?= $editUser['allowance_lunch'] ?? 0 ?>" step="100000" min="0">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">PC Xăng xe</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="allowance_transport" value="<?= $editUser['allowance_transport'] ?? 0 ?>" step="100000" min="0">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">PC Điện thoại</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="allowance_phone" value="<?= $editUser['allowance_phone'] ?? 0 ?>" step="100000" min="0">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">PC Khác</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" name="allowance_other" value="<?= $editUser['allowance_other'] ?? 0 ?>" step="100000" min="0">
+                                    <span class="input-group-text">đ</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Người phụ thuộc</label>
+                                    <input type="number" class="form-control" name="dependents" value="<?= $editUser['dependents'] ?? 0 ?>" min="0">
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Ngày phép còn</label>
+                                    <input type="number" class="form-control" name="leave_balance" value="<?= $editUser['leave_balance'] ?? 12 ?>" min="0" step="0.5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex gap-2">
