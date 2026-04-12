@@ -92,9 +92,25 @@ $folder = $m['folder'] ?? 'inbox';
             <?php endif; ?>
         </div>
 
-        <!-- Quick reply -->
-        <div class="mt-3">
+        <!-- Actions -->
+        <div class="mt-3 d-flex gap-2">
             <a href="<?= url('email/compose?reply_to=' . $m['id']) ?>" class="btn btn-outline-primary"><i class="ri-reply-line me-1"></i> Trả lời</a>
+            <a href="<?= url('email/compose?forward=' . $m['id']) ?>" class="btn btn-outline-secondary"><i class="ri-share-forward-line me-1"></i> Chuyển tiếp</a>
+        </div>
+
+        <!-- Quick Reply -->
+        <div class="mt-3 bg-white rounded border p-3">
+            <form method="POST" action="<?= url('email/send') ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="account_id" value="<?= $accountId ?>">
+                <input type="hidden" name="to" value="<?= e($m['from_email']) ?>">
+                <input type="hidden" name="subject" value="Re: <?= e($m['subject']) ?>">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="text-muted fs-13"><i class="ri-reply-line me-1"></i> Trả lời <?= e($m['from_name'] ?: $m['from_email']) ?></span>
+                </div>
+                <textarea name="body" class="form-control mb-2" rows="3" placeholder="Nhập nội dung trả lời..."></textarea>
+                <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
+            </form>
         </div>
     </div>
 </div>

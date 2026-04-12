@@ -813,33 +813,49 @@
 
                             <!-- Tab: Email -->
                             <div class="tab-pane" id="tab-emails" role="tabpanel">
-                                <h6 class="mb-3">Email đã gửi</h6>
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h6 class="mb-0">Lịch sử email</h6>
+                                    <?php if (!empty($contact['email']) && plugin_active('email')): ?>
+                                    <a href="<?= url('email/compose?to=' . urlencode($contact['email'])) ?>" class="btn btn-soft-primary"><i class="ri-mail-send-line me-1"></i> Gửi email</a>
+                                    <?php endif; ?>
+                                </div>
                                 <?php
-                                $emails = \Core\Database::fetchAll(
-                                    "SELECT * FROM email_logs WHERE to_email = ? ORDER BY created_at DESC LIMIT 20",
-                                    [$contact['email'] ?? '']
-                                );
+                                $contactEmail = $contact['email'] ?? '';
+                                $contactEmails = [];
+                                try {
+                                    $contactEmails = \Core\Database::fetchAll(
+                                        "SELECT * FROM email_messages WHERE tenant_id = ? AND (from_email = ? OR to_emails LIKE ? OR contact_id = ?) ORDER BY sent_at DESC LIMIT 20",
+                                        [$_SESSION['tenant_id'] ?? 1, $contactEmail, '%' . $contactEmail . '%', $contact['id']]
+                                    );
+                                } catch (\Exception $e) {}
                                 ?>
-                                <?php if (!empty($emails)): ?>
-                                    <?php foreach ($emails as $em): ?>
-                                        <div class="d-flex mb-3 p-3 border rounded">
+                                <?php if (!empty($contactEmails)): ?>
+                                    <?php foreach ($contactEmails as $em): ?>
+                                        <a href="<?= url('email/' . $em['id']) ?>" class="d-flex mb-2 p-3 border rounded text-decoration-none text-body">
                                             <div class="avatar-xs flex-shrink-0 me-3">
-                                                <span class="avatar-title bg-info-subtle text-info rounded-circle"><i class="ri-mail-line"></i></span>
+                                                <span class="avatar-title bg-<?= $em['folder'] === 'sent' ? 'success' : 'info' ?>-subtle text-<?= $em['folder'] === 'sent' ? 'success' : 'info' ?> rounded-circle">
+                                                    <i class="ri-<?= $em['folder'] === 'sent' ? 'send-plane' : 'inbox' ?>-line"></i>
+                                                </span>
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-1"><?= e($em['subject']) ?></h6>
-                                                <div class="text-muted fs-12">
-                                                    <i class="ri-arrow-right-line me-1"></i><?= e($em['to_email']) ?>
-                                                    <span class="ms-2 badge bg-<?= $em['status'] === 'sent' ? 'success' : 'danger' ?>"><?= $em['status'] === 'sent' ? 'Đã gửi' : 'Lỗi' ?></span>
+                                                <div class="d-flex align-items-center">
+                                                    <h6 class="mb-0 flex-grow-1"><?= e($em['subject'] ?: '(Không tiêu đề)') ?></h6>
+                                                    <small class="text-muted"><?= $em['sent_at'] ? created_ago($em['sent_at']) : '' ?></small>
                                                 </div>
-                                                <small class="text-muted"><?= time_ago($em['created_at']) ?></small>
+                                                <div class="text-muted fs-12 mt-1">
+                                                    <?php if ($em['folder'] === 'sent'): ?>
+                                                    <i class="ri-arrow-right-line me-1"></i>Đến: <?= e($em['to_emails']) ?>
+                                                    <?php else: ?>
+                                                    <i class="ri-arrow-left-line me-1"></i>Từ: <?= e($em['from_name'] ?: $em['from_email']) ?>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <div class="text-center py-4">
                                         <i class="ri-mail-line fs-36 text-muted"></i>
-                                        <p class="text-muted mt-2">Chưa có email nào</p>
+                                        <p class="text-muted mt-2">Chưa có email nào với khách hàng này</p>
                                     </div>
                                 <?php endif; ?>
                             </div>

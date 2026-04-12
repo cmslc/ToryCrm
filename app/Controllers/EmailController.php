@@ -132,6 +132,13 @@ class EmailController extends Controller
         if ($replyTo) {
             $replyMsg = Database::fetch("SELECT * FROM email_messages WHERE id = ? AND tenant_id = ?", [$replyTo, Database::tenantId()]);
         }
+        // Forward
+        $forwardId = $this->input('forward') ? (int)$this->input('forward') : null;
+        $forwardMsg = null;
+        if ($forwardId) {
+            $forwardMsg = Database::fetch("SELECT * FROM email_messages WHERE id = ? AND tenant_id = ?", [$forwardId, Database::tenantId()]);
+        }
+
         $contactEmail = $this->input('to');
 
         // Template
@@ -142,7 +149,7 @@ class EmailController extends Controller
         }
         $templates = Database::fetchAll("SELECT id, name FROM email_templates WHERE tenant_id = ? ORDER BY name", [Database::tenantId()]);
 
-        return $this->view('email.compose', compact('accounts', 'replyMsg', 'contactEmail', 'template', 'templates'));
+        return $this->view('email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'contactEmail', 'template', 'templates'));
     }
 
     public function send()
@@ -233,7 +240,10 @@ class EmailController extends Controller
             return $this->redirect('email');
         }
         $accounts = EmailService::getAllAccounts();
-        return $this->view('email.settings', compact('accounts'));
+        $accountId = $accounts[0]['id'] ?? 0;
+        $folders = $accountId ? Database::fetchAll("SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read=0 THEN 1 ELSE 0 END) as unread FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]) : [];
+        $folder = '';
+        return $this->view('email.settings', compact('accounts', 'accountId', 'folders', 'folder'));
     }
 
     public function saveAccount()
@@ -355,7 +365,11 @@ class EmailController extends Controller
         if (!$this->checkPlugin()) return;
         $tid = Database::tenantId();
         $templates = Database::fetchAll("SELECT * FROM email_templates WHERE tenant_id = ? ORDER BY name", [$tid]);
-        return $this->view('email.templates', compact('templates'));
+        $accounts = $this->isAdminOrManager() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
+        $accountId = $accounts[0]['id'] ?? 0;
+        $folders = $accountId ? Database::fetchAll("SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read=0 THEN 1 ELSE 0 END) as unread FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]) : [];
+        $folder = '';
+        return $this->view('email.templates', compact('templates', 'accounts', 'accountId', 'folders', 'folder'));
     }
 
     public function saveTemplate()

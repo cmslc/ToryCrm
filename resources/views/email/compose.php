@@ -1,8 +1,9 @@
 <?php
 $pageTitle = 'Soạn email';
 $isReply = !empty($replyMsg);
+$isForward = !empty($forwardMsg);
 $defaultTo = $contactEmail ?? ($isReply ? $replyMsg['from_email'] : '');
-$defaultSubject = $isReply ? 'Re: ' . ($replyMsg['subject'] ?? '') : ($template['subject'] ?? '');
+$defaultSubject = $isReply ? 'Re: ' . ($replyMsg['subject'] ?? '') : ($isForward ? 'Fwd: ' . ($forwardMsg['subject'] ?? '') : ($template['subject'] ?? ''));
 $defaultBody = $template['body'] ?? '';
 ?>
 
@@ -62,16 +63,21 @@ $defaultBody = $template['body'] ?? '';
             </div>
             <div class="mb-3">
                 <label class="form-label">Nội dung</label>
-                <textarea class="form-control" name="body" rows="12" id="emailBody"><?php
+                <textarea name="body" id="emailBody"><?php
                     if ($defaultBody) {
                         echo $defaultBody;
+                    } elseif ($isForward) {
+                        echo "<br><br>---------- Forwarded message ----------<br>";
+                        echo "<p>From: " . e($forwardMsg['from_name'] ?: $forwardMsg['from_email']) . "<br>";
+                        echo "Date: " . date('d/m/Y H:i', strtotime($forwardMsg['sent_at'])) . "<br>";
+                        echo "Subject: " . e($forwardMsg['subject']) . "</p>";
+                        echo $forwardMsg['body_html'] ?: nl2br(e($forwardMsg['body_text']));
                     } elseif ($isReply) {
-                        echo "\n\n<br><hr><p><strong>" . e($replyMsg['from_name'] ?: $replyMsg['from_email']) . "</strong> - " . date('d/m/Y H:i', strtotime($replyMsg['sent_at'])) . ":</p>";
+                        echo "<br><br><hr><p><strong>" . e($replyMsg['from_name'] ?: $replyMsg['from_email']) . "</strong> - " . date('d/m/Y H:i', strtotime($replyMsg['sent_at'])) . ":</p>";
                         echo $replyMsg['body_html'] ?: nl2br(e($replyMsg['body_text']));
                     }
-                    // Append signature
                     $sig = $accounts[0]['signature'] ?? '';
-                    if ($sig) echo "\n\n<br>--<br>" . $sig;
+                    if ($sig) echo "<br><br>--<br>" . nl2br(e($sig));
                 ?></textarea>
             </div>
             <div class="d-flex gap-2">
@@ -79,6 +85,23 @@ $defaultBody = $template['body'] ?? '';
                 <a href="<?= url('email') ?>" class="btn btn-soft-secondary">Hủy</a>
             </div>
         </form>
+
+        <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+        <script>
+        CKEDITOR.replace('emailBody', {
+            height: 300,
+            removeButtons: 'About',
+            toolbar: [
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
+                { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight'] },
+                { name: 'links', items: ['Link', 'Unlink'] },
+                { name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
+                { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'tools', items: ['Source', 'Maximize'] }
+            ]
+        });
+        </script>
     </div>
 </div>
 <?php endif; ?>
