@@ -204,25 +204,18 @@ class EmailController extends Controller
             'user_id' => $this->userId(),
             'email' => trim($this->input('email') ?? ''),
             'display_name' => trim($this->input('display_name') ?? ''),
-            'imap_host' => trim($this->input('imap_host') ?? ''),
-            'imap_port' => (int)($this->input('imap_port') ?: 993),
-            'imap_encryption' => $this->input('imap_encryption') ?: 'ssl',
-            'smtp_host' => trim($this->input('smtp_host') ?? ''),
-            'smtp_port' => (int)($this->input('smtp_port') ?: 587),
-            'smtp_encryption' => $this->input('smtp_encryption') ?: 'tls',
             'username' => trim($this->input('email') ?? ''),
-            'password' => trim($this->input('password') ?? ''),
+            'password' => trim($this->input('api_token') ?? ''),
             'api_token' => trim($this->input('api_token') ?? ''),
             'is_default' => $this->input('is_default') ? 1 : 0,
         ];
 
-        if (empty($data['email']) || empty($data['password'])) {
-            $this->setFlash('error', 'Vui lòng nhập đầy đủ thông tin.');
+        if (empty($data['email']) || empty($data['api_token'])) {
+            $this->setFlash('error', 'Vui lòng nhập email và API token.');
             return $this->redirect('email/settings');
         }
 
         if ($id) {
-            if (empty($data['password'])) unset($data['password']);
             unset($data['tenant_id'], $data['user_id']);
             Database::update('email_accounts', $data, 'id = ? AND tenant_id = ?', [$id, $tid]);
         } else {
