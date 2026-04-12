@@ -9,22 +9,34 @@
 
         <div class="card">
             <div class="card-body">
-                <form method="GET" action="<?= url('users') ?>" class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" name="search" placeholder="Tìm tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
+                <form method="GET" action="<?= url('users') ?>" class="d-flex align-items-center gap-2 flex-wrap mb-4">
+                    <div class="search-box" style="min-width:180px;max-width:280px">
+                        <input type="text" class="form-control" name="search" placeholder="Tên, email, SĐT..." value="<?= e($filters['search'] ?? '') ?>">
+                        <i class="ri-search-line search-icon"></i>
                     </div>
-                    <div class="col-md-3">
-                        <select name="role" class="form-select">
-                            <option value="">Tất cả vai trò</option>
-                            <option value="admin" <?= ($filters['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-                            <option value="manager" <?= ($filters['role'] ?? '') === 'manager' ? 'selected' : '' ?>>Manager</option>
-                            <option value="staff" <?= ($filters['role'] ?? '') === 'staff' ? 'selected' : '' ?>>Staff</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
-                        <a href="<?= url('users') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
-                    </div>
+                    <select name="role" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="admin" <?= ($filters['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
+                        <option value="manager" <?= ($filters['role'] ?? '') === 'manager' ? 'selected' : '' ?>>Manager</option>
+                        <option value="staff" <?= ($filters['role'] ?? '') === 'staff' ? 'selected' : '' ?>>Staff</option>
+                    </select>
+                    <select name="status" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="1" <?= ($filters['status'] ?? '') === '1' ? 'selected' : '' ?>>Hoạt động</option>
+                        <option value="0" <?= ($filters['status'] ?? '') === '0' ? 'selected' : '' ?>>Bị khóa</option>
+                    </select>
+                    <?php if (!empty($departments)): ?>
+                    <select name="department" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                        <option value="">Tất cả phòng ban</option>
+                        <?php foreach ($departments as $d): ?>
+                        <option value="<?= $d['id'] ?>" <?= ($filters['department'] ?? '') == $d['id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php endif; ?>
+                    <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
+                    <?php if (($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters['status'] ?? '') !== '' && ($filters['status'] ?? '') !== null || ($filters['department'] ?? '')): ?>
+                    <a href="<?= url('users') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                    <?php endif; ?>
                 </form>
 
                 <div class="table-responsive">

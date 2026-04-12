@@ -11,35 +11,37 @@ class UserController extends Controller
     public function index()
     {
         $this->authorize('users', 'view');
+        $tid = $this->tenantId();
         $search = $this->input('search');
         $role = $this->input('role');
+        $status = $this->input('status');
+        $dept = $this->input('department');
         $page = max(1, (int) $this->input('page') ?: 1);
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["1=1"];
-        $params = [];
+        $where = ["tenant_id = ?"];
+        $params = [$tid];
 
         if ($search) {
-            $where[] = "(name LIKE ? OR email LIKE ?)";
+            $where[] = "(name LIKE ? OR email LIKE ? OR phone LIKE ?)";
             $s = "%{$search}%";
-            $params[] = $s;
-            $params[] = $s;
+            $params = array_merge($params, [$s, $s, $s]);
         }
-
-        if ($role) {
-            $where[] = "role = ?";
-            $params[] = $role;
-        }
+        if ($role) { $where[] = "role = ?"; $params[] = $role; }
+        if ($status !== null && $status !== '') { $where[] = "is_active = ?"; $params[] = (int)$status; }
+        if ($dept) { $where[] = "department_id = ?"; $params[] = (int)$dept; }
 
         $whereClause = implode(' AND ', $where);
 
         $total = Database::fetch("SELECT COUNT(*) as count FROM users WHERE {$whereClause}", $params)['count'];
         $users = Database::fetchAll(
-            "SELECT * FROM users WHERE {$whereClause} ORDER BY created_at DESC LIMIT {$perPage} OFFSET {$offset}",
+            "SELECT u.*, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE {$whereClause} ORDER BY u.created_at DESC LIMIT {$perPage} OFFSET {$offset}",
             $params
         );
         $totalPages = ceil($total / $perPage);
+
+        $departments = Database::fetchAll("SELECT id, name FROM departments WHERE tenant_id = ? ORDER BY name", [$tid]);
 
         return $this->view('users.index', [
             'users' => [
@@ -48,9 +50,12 @@ class UserController extends Controller
                 'page' => $page,
                 'total_pages' => $totalPages,
             ],
+            'departments' => $departments,
             'filters' => [
                 'search' => $search,
                 'role' => $role,
+                'status' => $status,
+                'department' => $dept,
             ],
         ]);
     }
