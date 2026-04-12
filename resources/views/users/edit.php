@@ -117,7 +117,7 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                                     <label class="form-label">Số điện thoại</label>
                                     <input type="text" class="form-control" name="phone" value="<?= e($u['phone'] ?? '') ?>">
                                 </div>
-                                <div class="col-12 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Địa chỉ</label>
                                     <input type="text" class="form-control" name="address" value="<?= e($u['address'] ?? '') ?>" placeholder="Địa chỉ thường trú">
                                 </div>
