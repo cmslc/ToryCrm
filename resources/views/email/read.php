@@ -92,6 +92,28 @@ $folder = $m['folder'] ?? 'inbox';
             <?php endif; ?>
         </div>
 
+        <?php
+        $attachments = [];
+        try { $attachments = \Core\Database::fetchAll("SELECT * FROM email_attachments WHERE message_id = ?", [$m['id']]); } catch (\Exception $e) {}
+        if (!empty($attachments)):
+        ?>
+        <!-- Attachments -->
+        <div class="bg-white border-top px-4 py-3">
+            <span class="text-muted fs-13 mb-2 d-block"><i class="ri-attachment-line me-1"></i> <?= count($attachments) ?> đính kèm</span>
+            <div class="d-flex gap-2 flex-wrap">
+                <?php foreach ($attachments as $att): ?>
+                <a href="<?= url($att['file_path']) ?>" class="border rounded px-3 py-2 text-decoration-none text-body d-flex align-items-center" target="_blank" download>
+                    <i class="ri-file-line me-2 text-muted fs-18"></i>
+                    <div>
+                        <div class="fw-medium fs-13"><?= e($att['filename']) ?></div>
+                        <small class="text-muted"><?= round($att['size'] / 1024) ?> KB</small>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Actions -->
         <div class="mt-3 d-flex gap-2">
             <a href="<?= url('email/compose?reply_to=' . $m['id']) ?>" class="btn btn-outline-primary"><i class="ri-reply-line me-1"></i> Trả lời</a>
@@ -100,7 +122,7 @@ $folder = $m['folder'] ?? 'inbox';
 
         <!-- Quick Reply -->
         <div class="mt-3 bg-white rounded border p-3">
-            <form method="POST" action="<?= url('email/send') ?>">
+            <form method="POST" action="<?= url('email/send') ?>" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="account_id" value="<?= $accountId ?>">
                 <input type="hidden" name="to" value="<?= e($m['from_email']) ?>">
@@ -109,7 +131,13 @@ $folder = $m['folder'] ?? 'inbox';
                     <span class="text-muted fs-13"><i class="ri-reply-line me-1"></i> Trả lời <?= e($m['from_name'] ?: $m['from_email']) ?></span>
                 </div>
                 <textarea name="body" class="form-control mb-2" rows="3" placeholder="Nhập nội dung trả lời..."></textarea>
-                <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
+                    <label class="btn btn-soft-secondary mb-0" style="cursor:pointer">
+                        <i class="ri-attachment-line me-1"></i> Đính kèm
+                        <input type="file" name="attachments[]" multiple class="d-none" onchange="this.closest('label').querySelector('span')?.remove();var s=document.createElement('span');s.className='ms-1 badge bg-primary';s.textContent=this.files.length+' file';this.closest('label').appendChild(s)">
+                    </label>
+                </div>
             </form>
         </div>
     </div>

@@ -169,11 +169,54 @@ class EmailController extends Controller
             return $this->redirect('email/compose');
         }
 
+        // Handle attachments
+        $attachments = [];
+        if (!empty($_FILES['attachments']['name'][0])) {
+            $uploadDir = BASE_PATH . '/public/uploads/email-attachments/' . Database::tenantId();
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+            foreach ($_FILES['attachments']['name'] as $i => $name) {
+                if ($_FILES['attachments']['error'][$i] !== UPLOAD_ERR_OK) continue;
+                if ($_FILES['attachments']['size'][$i] > 10 * 1024 * 1024) continue; // 10MB max
+
+                $ext = pathinfo($name, PATHINFO_EXTENSION);
+                $fileName = date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                $filePath = $uploadDir . '/' . $fileName;
+
+                if (move_uploaded_file($_FILES['attachments']['tmp_name'][$i], $filePath)) {
+                    $attachments[] = [
+                        'name' => $name,
+                        'path' => $filePath,
+                        'mime' => $_FILES['attachments']['type'][$i],
+                        'size' => $_FILES['attachments']['size'][$i],
+                        'relative' => 'uploads/email-attachments/' . Database::tenantId() . '/' . $fileName,
+                    ];
+                }
+            }
+        }
+
         $service = new EmailService($account);
         $result = $service->send($to, $subject, $body, $cc);
 
+        // Store attachments in DB if sent
+        if ($result['success'] && !empty($attachments)) {
+            $lastMsg = Database::fetch("SELECT id FROM email_messages WHERE account_id = ? ORDER BY id DESC LIMIT 1", [$account['id']]);
+            if ($lastMsg) {
+                foreach ($attachments as $att) {
+                    Database::insert('email_attachments', [
+                        'message_id' => $lastMsg['id'],
+                        'filename' => $att['name'],
+                        'mime_type' => $att['mime'],
+                        'size' => $att['size'],
+                        'file_path' => $att['relative'],
+                    ]);
+                }
+                Database::update('email_messages', ['has_attachments' => 1], 'id = ?', [$lastMsg['id']]);
+            }
+        }
+
         if ($result['success']) {
-            $this->setFlash('success', 'Đã gửi email đến ' . $to);
+            $this->setFlash('success', 'Đã gửi email đến ' . $to . (!empty($attachments) ? ' (' . count($attachments) . ' đính kèm)' : ''));
             return $this->redirect('email?folder=sent');
         } else {
             $this->setFlash('error', 'Gửi thất bại: ' . ($result['error'] ?? 'Lỗi không xác định'));

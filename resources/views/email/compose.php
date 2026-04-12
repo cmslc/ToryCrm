@@ -24,7 +24,7 @@ $defaultBody = $template['body'] ?? '';
 
 <div class="card">
     <div class="card-body">
-        <form method="POST" action="<?= url('email/send') ?>">
+        <form method="POST" action="<?= url('email/send') ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -79,6 +79,11 @@ $defaultBody = $template['body'] ?? '';
                     $sig = $accounts[0]['signature'] ?? '';
                     if ($sig) echo "<br><br>--<br>" . nl2br(e($sig));
                 ?></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="ri-attachment-line me-1"></i> Đính kèm</label>
+                <input type="file" class="form-control" name="attachments[]" multiple>
+                <small class="text-muted">Tối đa 10MB/file. Chọn nhiều file cùng lúc.</small>
             </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
