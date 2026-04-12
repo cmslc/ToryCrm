@@ -47,7 +47,7 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
         <hr class="my-3">
         <div class="px-2">
             <?php if (count($accounts) > 1): ?>
-            <select class="form-select form-select-sm mb-2" onchange="location.href='<?= url('email') ?>?account='+this.value">
+            <select class="form-select mb-2" onchange="location.href='<?= url('email') ?>?account='+this.value">
                 <?php foreach ($accounts as $acc): ?>
                 <option value="<?= $acc['id'] ?>" <?= $acc['id'] == $accountId ? 'selected' : '' ?>><?= e($acc['email']) ?></option>
                 <?php endforeach; ?>
@@ -59,9 +59,9 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
                 <form method="POST" action="<?= url('email/sync') ?>" class="flex-grow-1">
                     <?= csrf_field() ?>
                     <input type="hidden" name="account_id" value="<?= $accountId ?>">
-                    <button class="btn btn-soft-secondary btn-sm w-100"><i class="ri-refresh-line me-1"></i> Đồng bộ</button>
+                    <button class="btn btn-soft-secondary w-100"><i class="ri-refresh-line me-1"></i> Đồng bộ</button>
                 </form>
-                <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary btn-sm" title="Cài đặt"><i class="ri-settings-3-line"></i></a>
+                <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary" title="Cài đặt"><i class="ri-settings-3-line"></i></a>
             </div>
         </div>
     </div>
@@ -75,7 +75,7 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
                 <input type="hidden" name="account" value="<?= $accountId ?>">
                 <input type="hidden" name="folder" value="<?= e($folder) ?>">
                 <div class="search-box w-100">
-                    <input type="text" class="form-control form-control-sm border-0 bg-light" name="search" placeholder="Tìm kiếm email..." value="<?= e($search) ?>" style="border-radius:8px">
+                    <input type="text" class="form-control border-0 bg-light" name="search" placeholder="Tìm kiếm email..." value="<?= e($search) ?>" style="border-radius:8px">
                     <i class="ri-search-line search-icon"></i>
                 </div>
             </form>
@@ -88,9 +88,9 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
                 <?= csrf_field() ?>
                 <div id="bulkIds"></div>
                 <span class="fw-medium fs-13"><span id="bulkCount">0</span> đã chọn</span>
-                <button type="submit" name="action" value="read" class="btn btn-sm btn-light"><i class="ri-mail-open-line"></i></button>
-                <button type="submit" name="action" value="unread" class="btn btn-sm btn-light"><i class="ri-mail-unread-line"></i></button>
-                <button type="submit" name="action" value="trash" class="btn btn-sm btn-light text-danger"><i class="ri-delete-bin-line"></i></button>
+                <button type="submit" name="action" value="read" class="btn btn-light"><i class="ri-mail-open-line"></i></button>
+                <button type="submit" name="action" value="unread" class="btn btn-light"><i class="ri-mail-unread-line"></i></button>
+                <button type="submit" name="action" value="trash" class="btn btn-light text-danger"><i class="ri-delete-bin-line"></i></button>
             </form>
         </div>
 

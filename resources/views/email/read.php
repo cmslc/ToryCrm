@@ -33,7 +33,7 @@ $folder = $m['folder'] ?? 'inbox';
         <hr class="my-3">
         <div class="px-2">
             <?php if (count($accounts) > 1): ?>
-            <select class="form-select form-select-sm" onchange="location.href='<?= url('email') ?>?account='+this.value">
+            <select class="form-select" onchange="location.href='<?= url('email') ?>?account='+this.value">
                 <?php foreach ($accounts as $acc): ?>
                 <option value="<?= $acc['id'] ?>" <?= $acc['id'] == $accountId ? 'selected' : '' ?>><?= e($acc['email']) ?></option>
                 <?php endforeach; ?>
@@ -48,9 +48,9 @@ $folder = $m['folder'] ?? 'inbox';
     <div class="flex-grow-1 ms-3">
         <!-- Toolbar -->
         <div class="bg-white rounded-top border-bottom px-3 py-2 d-flex align-items-center gap-2">
-            <a href="<?= url('email?account=' . $accountId . '&folder=' . $folder) ?>" class="btn btn-soft-secondary btn-sm"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
-            <a href="<?= url('email/compose?reply_to=' . $m['id']) ?>" class="btn btn-soft-primary btn-sm"><i class="ri-reply-line me-1"></i> Trả lời</a>
-            <form method="POST" action="<?= url('email/' . $m['id'] . '/trash') ?>" class="d-inline"><?= csrf_field() ?><button class="btn btn-soft-danger btn-sm"><i class="ri-delete-bin-line me-1"></i> Xóa</button></form>
+            <a href="<?= url('email?account=' . $accountId . '&folder=' . $folder) ?>" class="btn btn-soft-secondary btn"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
+            <a href="<?= url('email/compose?reply_to=' . $m['id']) ?>" class="btn btn-soft-primary btn"><i class="ri-reply-line me-1"></i> Trả lời</a>
+            <form method="POST" action="<?= url('email/' . $m['id'] . '/trash') ?>" class="d-inline"><?= csrf_field() ?><button class="btn btn-soft-danger btn"><i class="ri-delete-bin-line me-1"></i> Xóa</button></form>
         </div>
 
         <!-- Subject -->
