@@ -140,10 +140,22 @@ $folder = $m['folder'] ?? 'inbox';
                 </div>
                 <div id="replyAttachPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
                 <script>
+                var replyFiles = [];
                 function previewReplyFiles(input) {
+                    replyFiles = Array.from(input.files);
+                    renderReplyPreview();
+                }
+                function removeReplyFile(idx) {
+                    replyFiles.splice(idx, 1);
+                    var dt = new DataTransfer();
+                    replyFiles.forEach(function(f) { dt.items.add(f); });
+                    input.files = dt.files;
+                    renderReplyPreview();
+                }
+                function renderReplyPreview() {
                     var preview = document.getElementById('replyAttachPreview');
                     preview.innerHTML = '';
-                    Array.from(input.files).forEach(function(file) {
+                    replyFiles.forEach(function(file, idx) {
                         var div = document.createElement('div');
                         div.className = 'border rounded p-2 d-flex align-items-center gap-2';
                         if (file.type.startsWith('image/')) {
@@ -155,8 +167,13 @@ $folder = $m['folder'] ?? 'inbox';
                             var i = document.createElement('i'); i.className = 'ri-file-line fs-18 text-muted'; div.appendChild(i);
                         }
                         var info = document.createElement('div');
-                        info.innerHTML = '<div class="fw-medium fs-12 text-truncate" style="max-width:120px">' + file.name + '</div><small class="text-muted">' + (file.size<1048576?Math.round(file.size/1024)+' KB':(file.size/1048576).toFixed(1)+' MB') + '</small>';
+                        info.className = 'flex-grow-1';
+                        info.innerHTML = '<div class="fw-medium fs-12 text-truncate" style="max-width:100px">' + file.name + '</div><small class="text-muted">' + (file.size<1048576?Math.round(file.size/1024)+' KB':(file.size/1048576).toFixed(1)+' MB') + '</small>';
                         div.appendChild(info);
+                        var btn = document.createElement('button');
+                        btn.type = 'button'; btn.className = 'btn-close'; btn.style.cssText = 'font-size:10px';
+                        btn.onclick = function() { removeReplyFile(idx); };
+                        div.appendChild(btn);
                         preview.appendChild(div);
                     });
                 }

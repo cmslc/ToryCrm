@@ -90,16 +90,27 @@ $defaultCc = $isDraft ? ($draftMsg['cc_emails'] ?? '') : '';
                 <div id="attachPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
             </div>
             <script>
+            var selectedFiles = [];
             function previewFiles(input) {
+                selectedFiles = Array.from(input.files);
+                renderPreview();
+            }
+            function removeFile(idx) {
+                selectedFiles.splice(idx, 1);
+                // Rebuild file input
+                var dt = new DataTransfer();
+                selectedFiles.forEach(function(f) { dt.items.add(f); });
+                document.getElementById('attachInput').files = dt.files;
+                renderPreview();
+            }
+            function renderPreview() {
                 var preview = document.getElementById('attachPreview');
                 preview.innerHTML = '';
-                if (!input.files.length) return;
-                Array.from(input.files).forEach(function(file) {
+                selectedFiles.forEach(function(file, idx) {
                     var div = document.createElement('div');
-                    div.className = 'border rounded p-2 d-flex align-items-center gap-2';
+                    div.className = 'border rounded p-2 d-flex align-items-center gap-2 position-relative';
                     div.style.maxWidth = '250px';
-                    var isImage = file.type.startsWith('image/');
-                    if (isImage) {
+                    if (file.type.startsWith('image/')) {
                         var img = document.createElement('img');
                         img.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:4px';
                         var reader = new FileReader();
@@ -112,8 +123,15 @@ $defaultCc = $isDraft ? ($draftMsg['cc_emails'] ?? '') : '';
                         div.appendChild(icon);
                     }
                     var info = document.createElement('div');
-                    info.innerHTML = '<div class="fw-medium fs-12 text-truncate" style="max-width:150px">' + file.name + '</div><small class="text-muted">' + (file.size < 1024*1024 ? Math.round(file.size/1024) + ' KB' : (file.size/1024/1024).toFixed(1) + ' MB') + '</small>';
+                    info.className = 'flex-grow-1';
+                    info.innerHTML = '<div class="fw-medium fs-12 text-truncate" style="max-width:130px">' + file.name + '</div><small class="text-muted">' + (file.size < 1048576 ? Math.round(file.size/1024) + ' KB' : (file.size/1048576).toFixed(1) + ' MB') + '</small>';
                     div.appendChild(info);
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn-close';
+                    btn.style.cssText = 'font-size:10px';
+                    btn.onclick = function() { removeFile(idx); };
+                    div.appendChild(btn);
                     preview.appendChild(div);
                 });
             }
