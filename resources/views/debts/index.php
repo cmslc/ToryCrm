@@ -29,7 +29,7 @@
                     foreach ($agingItems as $ai):
                         if ($ai[1] <= 0) continue;
                     ?>
-                    <span class="badge bg-<?= $ai[2] ?>-subtle text-<?= $ai[2] ?> px-2 py-1"><?= $ai[0] ?>: <?= format_money($ai[1]) ?></span>
+                    <span class="badge bg-<?= $ai[2] ?>-subtle text-<?= $ai[2] ?> px-3 py-2 fs-13"><?= $ai[0] ?>: <?= format_money($ai[1]) ?></span>
                     <?php endforeach; ?>
                 </div>
             </div>
