@@ -99,16 +99,18 @@ class EmailService
         return $result;
     }
 
-    // ---- Send Email via SMTP ----
+    // ---- Send Email via API ----
     public function send(string $to, string $subject, string $body, array $cc = [], array $bcc = []): array
     {
-        $a = $this->account;
-        $smtpHost = 'mail.getcodemail.com';
-        $smtpPort = 587;
-        $smtpUser = $a['email'];
-        $smtpPass = $a['api_token']; // token = password_encrypted = SMTP password
+        $data = [
+            'to' => $to,
+            'subject' => $subject,
+            'body' => $body,
+        ];
+        if (!empty($cc)) $data['cc'] = implode(',', $cc);
+        if (!empty($bcc)) $data['bcc'] = implode(',', $bcc);
 
-        $result = $this->smtpSend($smtpHost, $smtpPort, $smtpUser, $smtpPass, $to, $subject, $body, $cc, $bcc);
+        $result = $this->apiCall('POST', '/send', $data);
 
         if ($result['success'] ?? false) {
             // Store in local sent folder
