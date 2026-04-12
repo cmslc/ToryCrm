@@ -314,6 +314,27 @@ class EmailController extends Controller
         return $this->json(['success' => true]);
     }
 
+    public function downloadAttachment()
+    {
+        $url = $this->input('url');
+        $name = $this->input('name') ?: 'attachment';
+        if (empty($url)) { $this->setFlash('error', 'URL không hợp lệ.'); return $this->redirect('email'); }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 30, CURLOPT_SSL_VERIFYPEER => false]);
+        $content = curl_exec($ch);
+        $mime = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: 'application/octet-stream';
+        curl_close($ch);
+
+        if ($content === false) { $this->setFlash('error', 'Không tải được file.'); return $this->redirect('email'); }
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: attachment; filename="' . $name . '"');
+        header('Content-Length: ' . strlen($content));
+        echo $content;
+        exit;
+    }
+
     public function moveToTrash($id)
     {
         if (!$this->isPost()) return $this->redirect('email');

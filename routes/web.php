@@ -507,6 +507,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('email/templates', 'EmailController@templates');
     Router::post('email/templates/save', 'EmailController@saveTemplate');
     Router::post('email/templates/{id}/delete', 'EmailController@deleteTemplate');
+    Router::get('email/download', 'EmailController@downloadAttachment');
     Router::get('email/{id}', 'EmailController@read');
     Router::post('email/{id}/star', 'EmailController@toggleStar');
     Router::post('email/{id}/trash', 'EmailController@moveToTrash');

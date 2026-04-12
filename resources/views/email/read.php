@@ -111,7 +111,7 @@ $folder = $m['folder'] ?? 'inbox';
                         <div class="fw-medium fs-13"><?= e($att['filename']) ?></div>
                         <small class="text-muted"><?= $att['size'] < 1048576 ? round($att['size'] / 1024, 2) . ' KB' : round($att['size'] / 1048576, 2) . ' MB' ?></small>
                     </div>
-                    <a href="<?= $attUrl ?>" class="btn btn-soft-primary btn-icon" target="_blank" download title="Tải xuống"><i class="ri-download-2-line"></i></a>
+                    <a href="<?= url('email/download?url=' . urlencode($attUrl) . '&name=' . urlencode($att['filename'])) ?>" class="btn btn-soft-primary btn-icon" title="Tải xuống"><i class="ri-download-2-line"></i></a>
                 </div>
                 <?php endforeach; ?>
             </div>
