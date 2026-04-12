@@ -33,18 +33,31 @@ class FundController extends Controller
             $this->input('date_to') ?: date('Y-m-t')
         );
 
+        // Monthly chart data (6 months)
+        $monthlyChart = Database::fetchAll(
+            "SELECT DATE_FORMAT(transaction_date, '%Y-%m') as month,
+                    SUM(CASE WHEN type='receipt' AND status='confirmed' THEN amount ELSE 0 END) as receipt,
+                    SUM(CASE WHEN type='payment' AND status='confirmed' THEN amount ELSE 0 END) as payment
+             FROM fund_transactions WHERE tenant_id = ? AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+             GROUP BY DATE_FORMAT(transaction_date, '%Y-%m') ORDER BY month",
+            [Database::tenantId()]
+        );
+
+        // Category breakdown
+        $categories = Database::fetchAll(
+            "SELECT category, SUM(amount) as total, type FROM fund_transactions
+             WHERE tenant_id = ? AND status = 'confirmed' AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+             GROUP BY category, type ORDER BY total DESC LIMIT 10",
+            [Database::tenantId()]
+        );
+
         return $this->view('fund.index', [
             'transactions' => $transactions,
             'accounts' => $accounts,
             'summary' => $summary,
-            'filters' => [
-                'search' => $this->input('search'),
-                'type' => $this->input('type'),
-                'status' => $this->input('status'),
-                'fund_account_id' => $this->input('fund_account_id'),
-                'date_from' => $this->input('date_from'),
-                'date_to' => $this->input('date_to'),
-            ],
+            'monthlyChart' => $monthlyChart,
+            'categories' => $categories,
+            'filters' => $filters,
         ]);
     }
 

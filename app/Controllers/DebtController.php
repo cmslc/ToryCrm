@@ -90,6 +90,21 @@ class DebtController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
 
+        // Aging data
+        $aging = Database::fetch(
+            "SELECT
+                COALESCE(SUM(CASE WHEN due_date >= CURDATE() THEN amount - paid_amount ELSE 0 END), 0) as current_due,
+                COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 1 AND 30 THEN amount - paid_amount ELSE 0 END), 0) as overdue_30,
+                COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 31 AND 60 THEN amount - paid_amount ELSE 0 END), 0) as overdue_60,
+                COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 61 AND 90 THEN amount - paid_amount ELSE 0 END), 0) as overdue_90,
+                COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) > 90 THEN amount - paid_amount ELSE 0 END), 0) as overdue_90plus
+             FROM debts WHERE status NOT IN ('paid','written_off') AND {$summaryWhere}",
+            $summaryParams
+        );
+
+        // Overdue count
+        $overdueCount = Database::fetch("SELECT COUNT(*) as cnt FROM debts WHERE status NOT IN ('paid','written_off') AND due_date < CURDATE() AND {$summaryWhere}", $summaryParams)['cnt'];
+
         return $this->view('debts.index', [
             'debts' => [
                 'items' => $debts,
@@ -98,6 +113,8 @@ class DebtController extends Controller
                 'total_pages' => $totalPages,
             ],
             'summary' => $summary,
+            'aging' => $aging,
+            'overdueCount' => $overdueCount,
             'contacts' => $contacts,
             'companies' => $companies,
             'filters' => [

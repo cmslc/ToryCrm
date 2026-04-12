@@ -59,11 +59,39 @@ class FinanceReportController extends Controller
             )['total'] ?? 0);
         } catch (\Throwable $e) {}
 
+        // Monthly trend (6 months)
+        $monthlyTrend = [];
+        try {
+            $monthlyTrend = Database::fetchAll(
+                "SELECT DATE_FORMAT(transaction_date, '%Y-%m') as month,
+                        SUM(CASE WHEN type='receipt' THEN amount ELSE 0 END) as receipt,
+                        SUM(CASE WHEN type='payment' THEN amount ELSE 0 END) as payment
+                 FROM fund_transactions WHERE tenant_id = ? AND status = 'confirmed'
+                 AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m') ORDER BY month",
+                [$tid]
+            );
+        } catch (\Throwable $e) {}
+
+        // Debt summary
+        $debtSummary = ['receivable' => 0, 'payable' => 0, 'overdue' => 0];
+        try {
+            $ds = Database::fetch(
+                "SELECT COALESCE(SUM(CASE WHEN type='receivable' AND status NOT IN ('paid','written_off') THEN amount-paid_amount ELSE 0 END),0) as receivable,
+                        COALESCE(SUM(CASE WHEN type='payable' AND status NOT IN ('paid','written_off') THEN amount-paid_amount ELSE 0 END),0) as payable,
+                        COALESCE(SUM(CASE WHEN status NOT IN ('paid','written_off') AND due_date < CURDATE() THEN amount-paid_amount ELSE 0 END),0) as overdue
+                 FROM debts WHERE tenant_id = ?", [$tid]
+            );
+            $debtSummary = $ds ?: $debtSummary;
+        } catch (\Throwable $e) {}
+
         return $this->view('finance-reports.index', [
             'totalRevenue' => $totalRevenue,
             'totalExpense' => $totalExpense,
             'netProfit' => $netProfit,
             'receivables' => $receivables,
+            'monthlyTrend' => $monthlyTrend,
+            'debtSummary' => $debtSummary,
         ]);
     }
 

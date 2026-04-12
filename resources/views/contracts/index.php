@@ -7,6 +7,14 @@
             </div>
         </div>
 
+        <?php if (($stats['expiring_soon'] ?? 0) > 0): ?>
+        <div class="alert alert-warning alert-dismissible fade show mb-3">
+            <i class="ri-alarm-warning-line me-2"></i> <strong><?= $stats['expiring_soon'] ?> hợp đồng sắp hết hạn</strong> trong 30 ngày tới.
+            <a href="<?= url('contracts?status=active&sort=end_date') ?>" class="alert-link ms-2">Xem ngay</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
+
         <!-- Stats Cards -->
         <div class="row mb-3">
             <div class="col-md-3">

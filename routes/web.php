@@ -311,6 +311,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('commissions/rules/{id}/edit', 'CommissionController@editRule');
     Router::post('commissions/rules/{id}/update', 'CommissionController@updateRule');
     Router::post('commissions/rules/{id}/delete', 'CommissionController@deleteRule');
+    Router::get('commissions/export', 'CommissionController@exportCsv');
     Router::get('commissions/my', 'CommissionController@myCommissions');
     Router::get('commissions/report', 'CommissionController@report');
     Router::post('commissions/{id}/approve', 'CommissionController@approve');

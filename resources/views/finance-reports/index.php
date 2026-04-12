@@ -68,6 +68,70 @@
             </div>
         </div>
 
+        <!-- Charts -->
+        <div class="row mb-3">
+            <div class="col-lg-8">
+                <div class="card card-height-100">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-line-chart-line me-2"></i> Xu hướng thu chi 6 tháng</h5></div>
+                    <div class="card-body">
+                        <?php if (!empty($monthlyTrend)): ?>
+                        <canvas id="trendChart" height="280"></canvas>
+                        <?php else: ?>
+                        <p class="text-muted text-center py-4">Chưa có dữ liệu</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-height-100">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-funds-line me-2"></i> Công nợ hiện tại</h5></div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                            <span class="text-muted">Phải thu</span>
+                            <span class="fw-medium text-success"><?= format_money($debtSummary['receivable'] ?? 0) ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                            <span class="text-muted">Phải trả</span>
+                            <span class="fw-medium text-danger"><?= format_money($debtSummary['payable'] ?? 0) ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                            <span class="text-muted">Quá hạn</span>
+                            <span class="fw-medium text-warning"><?= format_money($debtSummary['overdue'] ?? 0) ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-medium">Ròng (thu - trả)</span>
+                            <?php $net = ($debtSummary['receivable'] ?? 0) - ($debtSummary['payable'] ?? 0); ?>
+                            <span class="fw-medium text-<?= $net >= 0 ? 'primary' : 'danger' ?>"><?= format_money($net) ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if (!empty($monthlyTrend)): ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Chart === 'undefined') return;
+            var labels = <?= json_encode(array_column($monthlyTrend, 'month')) ?>;
+            var receipts = <?= json_encode(array_map(function($r){return (float)$r['receipt'];}, $monthlyTrend)) ?>;
+            var payments = <?= json_encode(array_map(function($r){return (float)$r['payment'];}, $monthlyTrend)) ?>;
+            var profits = receipts.map(function(r,i){ return r - payments[i]; });
+            new Chart(document.getElementById('trendChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {label:'Thu', data:receipts, backgroundColor:'rgba(10,179,156,0.7)', order:2},
+                        {label:'Chi', data:payments, backgroundColor:'rgba(240,101,72,0.7)', order:2},
+                        {label:'Lợi nhuận', data:profits, type:'line', borderColor:'#405189', backgroundColor:'transparent', borderWidth:2, pointRadius:4, order:1}
+                    ]
+                },
+                options:{responsive:true, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
+            });
+        });
+        </script>
+        <?php endif; ?>
+
         <!-- Quick Links -->
         <div class="row">
             <div class="col-md-4">

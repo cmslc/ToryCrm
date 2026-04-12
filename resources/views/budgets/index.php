@@ -139,7 +139,12 @@
                                             <?php endif; ?>
                                         </td>
                                         <td class="text-end fw-medium"><?= format_money($b['total_budget']) ?></td>
-                                        <td class="text-end"><?= format_money($b['total_spent'] ?? 0) ?></td>
+                                        <td class="text-end">
+                                            <?= format_money($b['total_spent'] ?? 0) ?>
+                                            <?php $bPct = $b['total_budget'] > 0 ? round(($b['total_spent'] ?? 0) / $b['total_budget'] * 100) : 0; ?>
+                                            <div class="progress mt-1" style="height:4px"><div class="progress-bar bg-<?= $bPct > 100 ? 'danger' : ($bPct > 80 ? 'warning' : 'success') ?>" style="width:<?= min($bPct, 100) ?>%"></div></div>
+                                            <?php if ($bPct > 100): ?><small class="text-danger fw-medium">Vượt <?= $bPct - 100 ?>%</small><?php endif; ?>
+                                        </td>
                                         <td class="text-end <?= ($b['remaining'] ?? 0) < 0 ? 'text-danger fw-bold' : 'text-success' ?>">
                                             <?= format_money($b['remaining'] ?? 0) ?>
                                         </td>

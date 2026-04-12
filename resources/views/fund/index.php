@@ -57,6 +57,48 @@
             </div>
         </div>
 
+        <!-- Chart -->
+        <?php if (!empty($monthlyChart)): ?>
+        <div class="row mb-3">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-line me-2"></i> Thu chi theo tháng</h5></div>
+                    <div class="card-body"><canvas id="fundChart" height="250"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-height-100">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-pie-chart-line me-2"></i> Phân loại chi phí</h5></div>
+                    <div class="card-body">
+                        <?php foreach ($categories as $cat): ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted"><?= e($cat['category'] ?: 'Khác') ?></span>
+                            <span class="fw-medium <?= $cat['type'] === 'receipt' ? 'text-success' : 'text-danger' ?>"><?= format_money($cat['total']) ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                        <?php if (empty($categories)): ?><p class="text-muted text-center mb-0">Chưa có dữ liệu</p><?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Chart === 'undefined') return;
+            new Chart(document.getElementById('fundChart'), {
+                type: 'bar',
+                data: {
+                    labels: <?= json_encode(array_column($monthlyChart, 'month')) ?>,
+                    datasets: [
+                        {label: 'Thu', data: <?= json_encode(array_column($monthlyChart, 'receipt')) ?>, backgroundColor: 'rgba(10,179,156,0.7)'},
+                        {label: 'Chi', data: <?= json_encode(array_column($monthlyChart, 'payment')) ?>, backgroundColor: 'rgba(240,101,72,0.7)'}
+                    ]
+                },
+                options: {responsive:true, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
+            });
+        });
+        </script>
+        <?php endif; ?>
+
         <div class="card">
             <div class="card-body">
                 <form method="GET" action="<?= url('fund') ?>" class="row g-3 mb-4">

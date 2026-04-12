@@ -9,6 +9,40 @@
             </div>
         </div>
 
+        <?php if (($overdueCount ?? 0) > 0): ?>
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <i class="ri-error-warning-line me-2"></i> <strong><?= $overdueCount ?> khoản nợ quá hạn</strong> cần xử lý.
+            <a href="<?= url('debts?status=overdue') ?>" class="alert-link ms-2">Xem ngay</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($aging)): ?>
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-grouped-line me-2"></i> Phân tích tuổi nợ</h5></div>
+            <div class="card-body py-2">
+                <div class="d-flex gap-3 flex-wrap">
+                    <?php
+                    $agingItems = [
+                        ['Chưa đến hạn', $aging['current_due'], 'success'],
+                        ['Quá 1-30 ngày', $aging['overdue_30'], 'warning'],
+                        ['Quá 31-60 ngày', $aging['overdue_60'], 'orange'],
+                        ['Quá 61-90 ngày', $aging['overdue_90'], 'danger'],
+                        ['Quá 90+ ngày', $aging['overdue_90plus'], 'dark'],
+                    ];
+                    foreach ($agingItems as $ai):
+                        if ($ai[1] <= 0) continue;
+                    ?>
+                    <div class="border rounded px-3 py-2 text-center" style="min-width:120px">
+                        <div class="text-<?= $ai[2] ?> fw-medium"><?= format_money($ai[1]) ?></div>
+                        <small class="text-muted"><?= $ai[0] ?></small>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Tabs -->
         <ul class="nav nav-pills mb-3">
             <li class="nav-item">

@@ -2,12 +2,33 @@
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Hoa hồng</h4>
-            <div>
-                <a href="<?= url('commissions/my') ?>" class="btn btn-soft-info me-1"><i class="ri-user-line me-1"></i> Hoa hồng của tôi</a>
-                <a href="<?= url('commissions/report') ?>" class="btn btn-soft-primary me-1"><i class="ri-bar-chart-box-line me-1"></i> Báo cáo</a>
+            <div class="d-flex gap-2">
+                <a href="<?= url('commissions/export?period=' . ($filters['period'] ?? date('Y-m'))) ?>" class="btn btn-soft-success"><i class="ri-file-excel-line me-1"></i> Xuất Excel</a>
+                <a href="<?= url('commissions/my') ?>" class="btn btn-soft-info"><i class="ri-user-line me-1"></i> Của tôi</a>
+                <a href="<?= url('commissions/report') ?>" class="btn btn-soft-primary"><i class="ri-bar-chart-box-line me-1"></i> Báo cáo</a>
                 <a href="<?= url('commissions/rules') ?>" class="btn btn-primary"><i class="ri-settings-3-line me-1"></i> Quy tắc</a>
             </div>
         </div>
+
+        <?php if (!empty($byEmployee)): ?>
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-horizontal-line me-2"></i> Hoa hồng theo nhân viên</h5></div>
+            <div class="card-body"><canvas id="commChart" height="200"></canvas></div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Chart === 'undefined') return;
+            new Chart(document.getElementById('commChart'), {
+                type: 'bar',
+                data: {
+                    labels: <?= json_encode(array_column($byEmployee, 'name')) ?>,
+                    datasets: [{label:'Hoa hồng', data:<?= json_encode(array_map(function($e){return (float)$e['total'];}, $byEmployee)) ?>, backgroundColor:'rgba(64,81,137,0.7)'}]
+                },
+                options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
+            });
+        });
+        </script>
+        <?php endif; ?>
 
         <!-- Summary Cards -->
         <div class="row mb-4">

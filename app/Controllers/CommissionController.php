@@ -88,10 +88,19 @@ class CommissionController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
+        // Chart: commission by employee
+        $byEmployee = Database::fetchAll(
+            "SELECT u.name, SUM(c.amount) as total FROM commissions c JOIN users u ON c.user_id = u.id
+             WHERE c.tenant_id = ? AND DATE_FORMAT(c.created_at, '%Y-%m') = ?
+             GROUP BY c.user_id, u.name ORDER BY total DESC LIMIT 10",
+            [$tid, $currentMonth]
+        );
+
         return $this->view('commissions.index', [
             'commissions' => $commissions,
             'summary' => $summary,
             'users' => $users,
+            'byEmployee' => $byEmployee,
             'filters' => [
                 'user_id' => $userId,
                 'status' => $status,
@@ -317,5 +326,26 @@ class CommissionController extends Controller
             'year' => $year,
             'userData' => $userData,
         ]);
+    }
+
+    public function exportCsv()
+    {
+        $tid = $this->tenantId();
+        $period = $this->input('period') ?: date('Y-m');
+        $commissions = Database::fetchAll(
+            "SELECT c.*, u.name as user_name FROM commissions c LEFT JOIN users u ON c.user_id = u.id WHERE c.tenant_id = ? AND DATE_FORMAT(c.created_at, '%Y-%m') = ? ORDER BY u.name",
+            [$tid, $period]
+        );
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="hoa-hong-' . $period . '.csv"');
+        echo "\xEF\xBB\xBF";
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Nhân viên','Loại','Giá trị GD','Tỷ lệ','Số tiền HH','Trạng thái','Ngày']);
+        $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','paid'=>'Đã trả'];
+        foreach ($commissions as $c) {
+            fputcsv($out, [$c['user_name'], $c['entity_type'], $c['base_amount'], $c['rate'].'%', $c['amount'], $sl[$c['status']] ?? '', $c['created_at']]);
+        }
+        fclose($out);
+        exit;
     }
 }
