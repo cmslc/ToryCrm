@@ -1,9 +1,8 @@
-<?php $pageTitle = 'Cài đặt Email'; ?>
+<?php $pageTitle = 'Cài đặt Email'; $_currentPage = 'settings'; ?>
 
-<div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0"><i class="ri-mail-settings-line me-2"></i> Cài đặt Email</h4>
-    <a href="<?= url('email') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
-</div>
+<div class="d-flex" style="min-height:calc(100vh - 140px)">
+    <?php include __DIR__ . '/_sidebar.php'; ?>
+    <div class="flex-grow-1 ms-3">
 
 <!-- Existing accounts -->
 <?php if (!empty($accounts)): ?>
@@ -206,3 +205,6 @@ document.querySelectorAll('.edit-acc-btn').forEach(function(btn) {
     });
 });
 </script>
+
+    </div>
+</div>
