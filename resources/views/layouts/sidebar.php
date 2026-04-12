@@ -199,6 +199,30 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-checkbox-circle-line"></i> <span>Phê duyệt</span>
                     </a>
                 </li>
+                <?php if (plugin_active('documents')): ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('documents', $currentUrl) ?>" href="<?= url('documents') ?>">
+                        <i class="ri-folder-line"></i> <span>Tài liệu</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+
+                <?php if (plugin_active('attendance-payroll')): ?>
+                <li class="nav-item">
+                    <?php $attOpen = isOpen(['attendance'], $currentUrl); ?>
+                    <a class="nav-link menu-link <?= $attOpen ? '' : 'collapsed' ?>" href="#sidebarAttendance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $attOpen ? 'true' : 'false' ?>">
+                        <i class="ri-calendar-check-line"></i> <span>Nhân sự</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?= $attOpen ? 'show' : '' ?>" id="sidebarAttendance">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('attendance') ?>" class="nav-link <?= isActive('attendance', $currentUrl) && !str_contains($currentUrl, 'leaves') && !str_contains($currentUrl, 'payroll') ? 'active' : '' ?>">Chấm công</a></li>
+                            <li class="nav-item"><a href="<?= url('attendance/leaves') ?>" class="nav-link <?= isActive('attendance/leaves', $currentUrl) ?>">Nghỉ phép</a></li>
+                            <li class="nav-item"><a href="<?= url('attendance/payroll') ?>" class="nav-link <?= isActive('attendance/payroll', $currentUrl) ?>">Bảng lương</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <?php endif; ?>
+
                 <?php if (plugin_active('gamification')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('leaderboard', $currentUrl) || isActive('achievements', $currentUrl) ? 'active' : '' ?>" href="<?= url('leaderboard') ?>">

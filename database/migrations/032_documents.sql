@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `documents` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `tenant_id` INT UNSIGNED NOT NULL DEFAULT 1,
+    `title` VARCHAR(255) NOT NULL,
+    `file_name` VARCHAR(255) NOT NULL,
+    `file_path` VARCHAR(500) NOT NULL,
+    `file_size` INT UNSIGNED DEFAULT 0,
+    `file_type` VARCHAR(50) DEFAULT NULL,
+    `category` VARCHAR(100) DEFAULT NULL,
+    `entity_type` VARCHAR(50) DEFAULT NULL COMMENT 'contact, deal, order, etc',
+    `entity_id` INT UNSIGNED DEFAULT NULL,
+    `is_shared` TINYINT(1) DEFAULT 0,
+    `note` TEXT DEFAULT NULL,
+    `uploaded_by` INT UNSIGNED DEFAULT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_doc_entity` (`entity_type`, `entity_id`),
+    INDEX `idx_doc_tenant` (`tenant_id`),
+    FOREIGN KEY (`uploaded_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

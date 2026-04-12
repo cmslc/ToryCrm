@@ -488,6 +488,24 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('automation/{id}/toggle-active', 'AutomationController@toggleActive');
     Router::post('automation/{id}/delete', 'AutomationController@delete');
 
+    // Documents
+    Router::get('documents', 'DocumentController@index');
+    Router::post('documents/upload', 'DocumentController@upload');
+    Router::get('documents/{id}/download', 'DocumentController@download');
+    Router::post('documents/{id}/delete', 'DocumentController@delete');
+
+    // Attendance & Payroll
+    Router::get('attendance', 'AttendanceController@index');
+    Router::post('attendance/check-in', 'AttendanceController@checkIn');
+    Router::post('attendance/{id}/update', 'AttendanceController@update');
+    Router::get('attendance/leaves', 'AttendanceController@leaves');
+    Router::post('attendance/leaves/create', 'AttendanceController@createLeave');
+    Router::post('attendance/leaves/{id}/approve', 'AttendanceController@approveLeave');
+    Router::get('attendance/payroll', 'AttendanceController@payroll');
+    Router::post('attendance/payroll/generate', 'AttendanceController@generatePayroll');
+    Router::post('attendance/payroll/{id}/update', 'AttendanceController@updatePayroll');
+    Router::post('attendance/payroll/{id}/confirm', 'AttendanceController@confirmPayroll');
+
     // Tags
     Router::get('tags', 'TagController@index');
     Router::get('tags/search', 'TagController@search');
