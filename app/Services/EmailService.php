@@ -166,9 +166,9 @@ class EmailService
     }
 
     // ---- Read Email Detail via API ----
-    public function readEmail(int $emailId): array
+    public function readEmail(string $email, int $emailId): array
     {
-        return $this->apiCall('GET', '/mailbox/read/' . $emailId);
+        return $this->apiCall('GET', '/read/' . urlencode($email) . '/' . $emailId);
     }
 
     // ---- Test Connection ----

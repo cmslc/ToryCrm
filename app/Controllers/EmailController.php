@@ -84,6 +84,25 @@ class EmailController extends Controller
         );
         if (!$msg) { $this->setFlash('error', 'Email không tồn tại.'); return $this->redirect('email'); }
 
+        // Fetch body from API if empty
+        if (empty($msg['body_html']) && empty($msg['body_text']) && $msg['message_uid']) {
+            $account = EmailService::getAccount((int)$msg['account_id']);
+            if ($account) {
+                $service = new EmailService($account);
+                $detail = $service->readEmail($account['email'], (int)$msg['message_uid']);
+                if ($detail['success'] ?? false) {
+                    $emailData = $detail['email'] ?? [];
+                    $msg['body_html'] = $emailData['body_html'] ?? '';
+                    $msg['body_text'] = $emailData['body_text'] ?? '';
+                    // Cache body locally
+                    Database::update('email_messages', [
+                        'body_html' => $msg['body_html'],
+                        'body_text' => $msg['body_text'],
+                    ], 'id = ?', [$id]);
+                }
+            }
+        }
+
         // Mark as read
         if (!$msg['is_read']) {
             Database::update('email_messages', ['is_read' => 1], 'id = ?', [$id]);
