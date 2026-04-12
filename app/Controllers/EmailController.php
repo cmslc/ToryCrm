@@ -113,7 +113,14 @@ class EmailController extends Controller
             Database::update('email_messages', ['is_read' => 1], 'id = ?', [$id]);
         }
 
-        return $this->view('email.read', ['message' => $msg]);
+        $accountId = (int)$msg['account_id'];
+        $accounts = $this->isAdminOrManager() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
+        $folders = Database::fetchAll(
+            "SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread
+             FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]
+        );
+
+        return $this->view('email.read', compact('message', 'accounts', 'accountId', 'folders'));
     }
 
     // ---- Compose ----
