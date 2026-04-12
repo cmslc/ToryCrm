@@ -102,6 +102,8 @@ class EmailService
     // ---- Send Email via API ----
     public function send(string $to, string $subject, string $body, array $cc = [], array $bcc = [], array $attachments = []): array
     {
+        // Fix CKEditor HTML entities
+        $body = html_entity_decode($body, ENT_QUOTES, 'UTF-8');
         if (!empty($attachments)) {
             $result = $this->apiSendWithAttachments($to, $subject, $body, $cc, $bcc, $attachments);
         } else {
