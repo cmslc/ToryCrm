@@ -46,61 +46,57 @@
         <form method="POST" action="<?= url('email/settings/save') ?>">
             <?= csrf_field() ?>
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
                     <input type="email" class="form-control" name="email" required placeholder="sales@congty.com">
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" name="password" required>
+                </div>
+                <div class="col-md-4 mb-3">
                     <label class="form-label">Tên hiển thị</label>
                     <input type="text" class="form-control" name="display_name" placeholder="VD: Phòng Kinh doanh">
                 </div>
             </div>
 
-            <h6 class="text-muted border-bottom pb-2 mb-3"><i class="ri-inbox-line me-1"></i> IMAP (Nhận email)</h6>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">IMAP Host</label>
-                    <input type="text" class="form-control" name="imap_host" placeholder="mail.getcodemail.com" value="mail.getcodemail.com">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Port</label>
-                    <input type="number" class="form-control" name="imap_port" value="993">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Mã hóa</label>
-                    <select name="imap_encryption" class="form-select">
-                        <option value="ssl" selected>SSL</option>
-                        <option value="tls">TLS</option>
-                        <option value="none">Không</option>
-                    </select>
-                </div>
+            <div class="mb-3">
+                <a class="text-muted fs-13" data-bs-toggle="collapse" href="#advancedSettings"><i class="ri-settings-3-line me-1"></i> Cài đặt nâng cao (IMAP/SMTP) <i class="ri-arrow-down-s-line"></i></a>
             </div>
-
-            <h6 class="text-muted border-bottom pb-2 mb-3"><i class="ri-send-plane-line me-1"></i> SMTP (Gửi email)</h6>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">SMTP Host</label>
-                    <input type="text" class="form-control" name="smtp_host" placeholder="mail.getcodemail.com" value="mail.getcodemail.com">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Port</label>
-                    <input type="number" class="form-control" name="smtp_port" value="587">
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Mã hóa</label>
-                    <select name="smtp_encryption" class="form-select">
-                        <option value="tls" selected>TLS</option>
-                        <option value="ssl">SSL</option>
-                        <option value="none">Không</option>
-                    </select>
-                </div>
-            </div>
-
-            <h6 class="text-muted border-bottom pb-2 mb-3"><i class="ri-lock-line me-1"></i> Mật khẩu</h6>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Mật khẩu email <span class="text-danger">*</span></label>
-                    <input type="password" class="form-control" name="password" required>
+            <div class="collapse" id="advancedSettings">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">IMAP Host</label>
+                        <input type="text" class="form-control" name="imap_host" value="mail.getcodemail.com">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Port</label>
+                        <input type="number" class="form-control" name="imap_port" value="993">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Mã hóa</label>
+                        <select name="imap_encryption" class="form-select">
+                            <option value="ssl" selected>SSL</option>
+                            <option value="tls">TLS</option>
+                            <option value="none">Không</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">SMTP Host</label>
+                        <input type="text" class="form-control" name="smtp_host" value="mail.getcodemail.com">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Port</label>
+                        <input type="number" class="form-control" name="smtp_port" value="587">
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Mã hóa</label>
+                        <select name="smtp_encryption" class="form-select">
+                            <option value="tls" selected>TLS</option>
+                            <option value="ssl">SSL</option>
+                            <option value="none">Không</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
