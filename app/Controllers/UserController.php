@@ -143,6 +143,7 @@ class UserController extends Controller
             'name' => $name,
             'email' => $email,
             'phone' => trim($data['phone'] ?? ''),
+            'address' => trim($data['address'] ?? '') ?: null,
             'role' => $data['role'] ?? $user['role'],
             'department' => trim($data['department'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
@@ -155,6 +156,26 @@ class UserController extends Controller
                 return $this->back();
             }
             $updateData['password'] = Auth::hashPassword($data['password']);
+        }
+
+        // Avatar upload
+        $avatar = $_FILES['avatar'] ?? null;
+        if ($avatar && $avatar['error'] === UPLOAD_ERR_OK && $avatar['size'] > 0) {
+            $allowed = ['jpg','jpeg','png','gif','webp'];
+            $ext = strtolower(pathinfo($avatar['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed) && $avatar['size'] <= 5 * 1024 * 1024) {
+                $uploadDir = BASE_PATH . '/public/uploads/avatars';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $fileName = 'avatar_' . $id . '_' . time() . '.' . $ext;
+                if (move_uploaded_file($avatar['tmp_name'], $uploadDir . '/' . $fileName)) {
+                    // Delete old avatar
+                    if (!empty($user['avatar'])) {
+                        $oldPath = BASE_PATH . '/public/' . $user['avatar'];
+                        if (file_exists($oldPath)) unlink($oldPath);
+                    }
+                    $updateData['avatar'] = 'uploads/avatars/' . $fileName;
+                }
+            }
         }
 
         // Salary fields (if attendance-payroll plugin)

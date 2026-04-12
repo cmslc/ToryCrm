@@ -11,7 +11,7 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
     <a href="<?= url('users') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Danh sách</a>
 </div>
 
-<form method="POST" action="<?= url('users/' . $u['id'] . '/update') ?>">
+<form method="POST" action="<?= url('users/' . $u['id'] . '/update') ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
     <div class="row">
         <!-- Left: Profile Card + Tabs -->
@@ -19,13 +19,35 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
             <!-- Profile Card -->
             <div class="card">
                 <div class="card-body text-center">
-                    <div class="avatar-xl mx-auto mb-3">
-                        <?php if (!empty($u['avatar'])): ?>
-                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle img-fluid" alt="">
-                        <?php else: ?>
-                        <div class="avatar-title bg-primary-subtle text-primary rounded-circle fs-24"><?= $initials ?></div>
-                        <?php endif; ?>
+                    <div class="position-relative d-inline-block mb-3">
+                        <div class="avatar-xl mx-auto">
+                            <?php if (!empty($u['avatar'])): ?>
+                            <img src="<?= asset($u['avatar']) ?>" class="rounded-circle img-fluid" id="avatarPreview" alt="" style="width:80px;height:80px;object-fit:cover">
+                            <?php else: ?>
+                            <div class="avatar-title bg-primary-subtle text-primary rounded-circle fs-24" id="avatarInitial"><?= $initials ?></div>
+                            <img src="" class="rounded-circle img-fluid d-none" id="avatarPreview" style="width:80px;height:80px;object-fit:cover">
+                            <?php endif; ?>
+                        </div>
+                        <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:28px;height:28px;cursor:pointer" title="Đổi ảnh">
+                            <i class="ri-camera-line fs-14"></i>
+                        </label>
+                        <input type="file" name="avatar" id="avatarInput" accept="image/*" class="d-none">
                     </div>
+                    <script>
+                    document.getElementById('avatarInput')?.addEventListener('change', function() {
+                        if (this.files && this.files[0]) {
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                                var preview = document.getElementById('avatarPreview');
+                                var initial = document.getElementById('avatarInitial');
+                                preview.src = e.target.result;
+                                preview.classList.remove('d-none');
+                                if (initial) initial.classList.add('d-none');
+                            };
+                            reader.readAsDataURL(this.files[0]);
+                        }
+                    });
+                    </script>
                     <h5 class="mb-1"><?= e($u['name']) ?></h5>
                     <p class="text-muted mb-2"><?= e($u['email']) ?></p>
                     <span class="badge bg-<?= $rc[$u['role']] ?? 'secondary' ?>"><?= $rl[$u['role']] ?? $u['role'] ?></span>
@@ -44,6 +66,12 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                         <i class="ri-building-line text-muted me-2 fs-16"></i>
                         <span><?= e($u['department'] ?? 'Chưa có') ?></span>
                     </div>
+                    <?php if (!empty($u['address'])): ?>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="ri-map-pin-line text-muted me-2 fs-16"></i>
+                        <span class="text-muted fs-13"><?= e($u['address']) ?></span>
+                    </div>
+                    <?php endif; ?>
                     <div class="d-flex align-items-center">
                         <i class="ri-time-line text-muted me-2 fs-16"></i>
                         <span class="text-muted fs-12">Đăng nhập: <?= !empty($u['last_login']) ? time_ago($u['last_login']) : 'Chưa' ?></span>
@@ -88,6 +116,10 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Số điện thoại</label>
                                     <input type="text" class="form-control" name="phone" value="<?= e($u['phone'] ?? '') ?>">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <input type="text" class="form-control" name="address" value="<?= e($u['address'] ?? '') ?>" placeholder="Địa chỉ thường trú">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Mật khẩu mới</label>
