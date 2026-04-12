@@ -9,14 +9,7 @@ class AutomationController extends Controller
 {
     public function index()
     {
-        $rules = Database::fetchAll(
-            "SELECT ar.*, u.name as created_by_name
-             FROM automation_rules ar
-             LEFT JOIN users u ON ar.created_by = u.id
-             ORDER BY ar.created_at DESC"
-        );
-
-        return $this->view('automation.index', ['rules' => $rules]);
+        return $this->redirect('workflows?tab=automation');
     }
 
     public function create()

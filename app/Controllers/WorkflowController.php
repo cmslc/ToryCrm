@@ -16,8 +16,16 @@ class WorkflowController extends Controller
              ORDER BY w.created_at DESC"
         );
 
+        $rules = Database::fetchAll(
+            "SELECT ar.*, u.name as created_by_name
+             FROM automation_rules ar
+             LEFT JOIN users u ON ar.created_by = u.id
+             ORDER BY ar.created_at DESC"
+        );
+
         return $this->view('workflows.index', [
             'workflows' => $workflows,
+            'rules' => $rules,
         ]);
     }
 
