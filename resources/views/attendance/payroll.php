@@ -18,6 +18,15 @@ $fmt = function($v) { return $v > 0 ? number_format($v) : '-'; };
             <button class="btn btn-primary"><i class="ri-calculator-line me-1"></i> Tạo bảng lương</button>
         </form>
         <?php if (!empty($payrolls)): ?>
+        <form method="POST" action="<?= url('attendance/payroll/generate') ?>" class="d-inline" onsubmit="return confirm('Tạo lại sẽ xóa bảng lương nháp và tính lại. Tiếp tục?')">
+            <?= csrf_field() ?>
+            <input type="hidden" name="month" value="<?= $month ?>">
+            <input type="hidden" name="year" value="<?= $year ?>">
+            <input type="hidden" name="regenerate" value="1">
+            <button class="btn btn-soft-warning"><i class="ri-refresh-line me-1"></i> Tạo lại</button>
+        </form>
+        <?php endif; ?>
+        <?php if (!empty($payrolls)): ?>
         <a href="<?= url("attendance/payroll/export?month=$month&year=$year") ?>" class="btn btn-soft-success"><i class="ri-file-excel-line me-1"></i> Xuất Excel</a>
         <?php endif; ?>
         <a href="<?= url('attendance/advances') ?>" class="btn btn-soft-warning"><i class="ri-hand-coin-line me-1"></i> Tạm ứng</a>

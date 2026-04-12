@@ -280,6 +280,12 @@ class AttendanceController extends Controller
         $tid = Database::tenantId();
         $month = (int)$this->input('month');
         $year = (int)$this->input('year');
+        $regenerate = $this->input('regenerate');
+
+        // Tạo lại: xóa bảng lương draft cũ
+        if ($regenerate) {
+            Database::query("DELETE FROM payrolls WHERE tenant_id = ? AND month = ? AND year = ? AND status = 'draft'", [$tid, $month, $year]);
+        }
 
         $users = Database::fetchAll(
             "SELECT id, base_salary, allowance_lunch, allowance_transport, allowance_phone, allowance_other, dependents
