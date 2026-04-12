@@ -102,26 +102,18 @@ class EmailService
     // ---- Send Email via API ----
     public function send(string $to, string $subject, string $body, array $cc = [], array $bcc = [], array $attachments = []): array
     {
-        // Append attachment download links to body
         if (!empty($attachments)) {
-            $baseUrl = rtrim($_ENV['APP_URL'] ?? (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'torycrm.com'), '/');
-            $body .= '<br><hr style="border:none;border-top:1px solid #eee;margin:20px 0">';
-            $body .= '<p style="color:#666;font-size:13px"><strong>📎 ' . count($attachments) . ' tệp đính kèm:</strong></p>';
-            foreach ($attachments as $att) {
-                $url = $baseUrl . '/' . ($att['relative'] ?? $att['path']);
-                $size = isset($att['size']) ? ($att['size'] < 1048576 ? round($att['size']/1024) . ' KB' : round($att['size']/1048576, 1) . ' MB') : '';
-                $body .= '<p style="margin:5px 0"><a href="' . $url . '" style="color:#405189;text-decoration:none">📄 ' . htmlspecialchars($att['name']) . '</a> <span style="color:#999;font-size:12px">' . $size . '</span></p>';
-            }
+            $result = $this->apiSendWithAttachments($to, $subject, $body, $cc, $bcc, $attachments);
+        } else {
+            $data = [
+                'to' => $to,
+                'subject' => $subject,
+                'body' => $body,
+            ];
+            if (!empty($cc)) $data['cc'] = implode(',', $cc);
+            if (!empty($bcc)) $data['bcc'] = implode(',', $bcc);
+            $result = $this->apiCall('POST', '/send', $data);
         }
-
-        $data = [
-            'to' => $to,
-            'subject' => $subject,
-            'body' => $body,
-        ];
-        if (!empty($cc)) $data['cc'] = implode(',', $cc);
-        if (!empty($bcc)) $data['bcc'] = implode(',', $bcc);
-        $result = $this->apiCall('POST', '/send', $data);
 
         if ($result['success'] ?? false) {
             // Store in local sent folder
