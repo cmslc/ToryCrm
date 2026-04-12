@@ -16,6 +16,8 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
 </div>
 <?php else: ?>
 
+<div class="page-title-box"><h4 class="mb-0"><i class="ri-mail-line me-2"></i> Email</h4></div>
+
 <div class="d-flex" style="min-height:calc(100vh - 140px)">
     <!-- Sidebar Gmail style -->
     <div class="flex-shrink-0" style="width:220px">
