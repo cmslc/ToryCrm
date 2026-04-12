@@ -61,7 +61,7 @@
         <?php if (!empty($monthlyChart)): ?>
         <div class="row mb-3">
             <div class="col-lg-8">
-                <div class="card">
+                <div class="card card-height-100">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-line me-2"></i> Thu chi theo tháng</h5></div>
                     <div class="card-body"><div style="max-height:250px"><canvas id="fundChart"></canvas></div></div>
                 </div>
