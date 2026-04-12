@@ -14,71 +14,105 @@ $pageTitle = 'Đăng nhập';
     <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
 </head>
 <body>
-    <div class="auth-page-wrapper pt-5">
-        <div class="auth-one-bg-position auth-one-bg" id="auth-particles">
-            <div class="bg-overlay"></div>
-            <div class="shape">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="var(--vz-body-bg)" d="M0,36L48,42.7C96,49,192,63,288,58.7C384,55,480,33,576,33.3C672,33,768,55,864,66C960,77,1056,77,1152,69.3C1248,62,1344,48,1392,40.7L1440,33V120H0Z"></path></svg>
-            </div>
-        </div>
+    <div class="auth-page-wrapper auth-bg-cover py-5 d-flex justify-content-center align-items-center min-vh-100">
+        <div class="bg-overlay bg-overlay-pattern"></div>
 
-        <div class="auth-page-content">
+        <div class="auth-page-content overflow-hidden pt-lg-5">
             <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-6 col-xl-5">
-                        <div class="text-center mt-sm-5 mb-4">
-                            <h2 class="text-white"><i class="ri-customer-service-2-line me-2"></i>ToryCRM</h2>
-                        </div>
-                        <div class="card mt-4 card-bg-fill">
-                            <div class="card-body p-4">
-                                <div class="text-center mt-2">
-                                    <h5 class="text-primary">Chào mừng trở lại!</h5>
-                                    <p class="text-muted">Đăng nhập để tiếp tục sử dụng ToryCRM.</p>
-                                </div>
-
-                                <?php $flashMsg = flash(); if ($flashMsg): ?>
-                                    <?php $alertType = ($flashMsg['type'] === 'success') ? 'success' : (($flashMsg['type'] === 'warning') ? 'warning' : 'danger'); ?>
-                                    <div class="alert alert-<?= $alertType ?> alert-dismissible fade show" role="alert">
-                                        <?= e($flashMsg['message']) ?>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                <?php endif; ?>
-
-                                <div class="p-2 mt-4">
-                                    <form action="<?= url('login') ?>" method="POST">
-                                        <?= csrf_field() ?>
-
-                                        <div class="mb-3">
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email" name="email" value="<?= e(old('email')) ?>" placeholder="Nhập email" required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <div class="float-end"><a href="<?= url('forgot-password') ?>" class="text-muted">Quên mật khẩu?</a></div>
-                                            <label for="password" class="form-label">Mật khẩu</label>
-                                            <div class="position-relative auth-pass-inputgroup mb-3">
-                                                <input type="password" class="form-control pe-5 password-input" id="password" name="password" placeholder="Nhập mật khẩu" required>
-                                                <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" onclick="togglePassword('password', this)">
-                                                    <i class="ri-eye-off-fill align-middle"></i>
-                                                </button>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card overflow-hidden m-0">
+                            <div class="row g-0">
+                                <!-- Cover side -->
+                                <div class="col-lg-6">
+                                    <div class="p-lg-5 p-4 auth-one-bg h-100">
+                                        <div class="bg-overlay"></div>
+                                        <div class="position-relative h-100 d-flex flex-column">
+                                            <div class="mb-4">
+                                                <a href="<?= url('/') ?>" class="d-block">
+                                                    <h2 class="text-white"><i class="ri-customer-service-2-line me-2"></i>ToryCRM</h2>
+                                                </a>
+                                            </div>
+                                            <div class="mt-auto">
+                                                <div class="mb-3">
+                                                    <i class="ri-double-quotes-l display-4 text-success"></i>
+                                                </div>
+                                                <div id="qoutescar498" class="carousel slide" data-bs-ride="carousel">
+                                                    <div class="carousel-inner text-center text-white-50 pb-5">
+                                                        <div class="carousel-item active">
+                                                            <p class="fs-15 fst-italic">"Quản lý khách hàng hiệu quả, tăng trưởng doanh thu bền vững."</p>
+                                                        </div>
+                                                        <div class="carousel-item">
+                                                            <p class="fs-15 fst-italic">"Theo dõi đơn hàng, vận chuyển và kho hàng trong một nền tảng duy nhất."</p>
+                                                        </div>
+                                                        <div class="carousel-item">
+                                                            <p class="fs-15 fst-italic">"Tự động hóa quy trình, tiết kiệm thời gian, nâng cao hiệu suất."</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="carousel-indicators">
+                                                        <button type="button" data-bs-target="#qoutescarousel498" data-bs-slide-to="0" class="active"></button>
+                                                        <button type="button" data-bs-target="#qoutescarousel498" data-bs-slide-to="1"></button>
+                                                        <button type="button" data-bs-target="#qoutescarousel498" data-bs-slide-to="2"></button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
-                                            <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
+                                <!-- Form side -->
+                                <div class="col-lg-6">
+                                    <div class="p-lg-5 p-4">
+                                        <div>
+                                            <h5 class="text-primary">Chào mừng trở lại!</h5>
+                                            <p class="text-muted">Đăng nhập để tiếp tục sử dụng ToryCRM.</p>
                                         </div>
+
+                                        <?php $flashMsg = flash(); if ($flashMsg): ?>
+                                            <?php $alertType = ($flashMsg['type'] === 'success') ? 'success' : (($flashMsg['type'] === 'warning') ? 'warning' : 'danger'); ?>
+                                            <div class="alert alert-<?= $alertType ?> alert-dismissible fade show" role="alert">
+                                                <?= e($flashMsg['message']) ?>
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                            </div>
+                                        <?php endif; ?>
 
                                         <div class="mt-4">
-                                            <button class="btn btn-success w-100" type="submit">Đăng nhập</button>
+                                            <form action="<?= url('login') ?>" method="POST">
+                                                <?= csrf_field() ?>
+
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="email" name="email" value="<?= e(old('email')) ?>" placeholder="Nhập email" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <div class="float-end"><a href="<?= url('forgot-password') ?>" class="text-muted">Quên mật khẩu?</a></div>
+                                                    <label for="password" class="form-label">Mật khẩu</label>
+                                                    <div class="position-relative auth-pass-inputgroup mb-3">
+                                                        <input type="password" class="form-control pe-5 password-input" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                                                        <button class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" type="button" onclick="togglePassword('password', this)">
+                                                            <i class="ri-eye-off-fill align-middle"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
+                                                    <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
+                                                </div>
+
+                                                <div class="mt-4">
+                                                    <button class="btn btn-success w-100" type="submit">Đăng nhập</button>
+                                                </div>
+                                            </form>
                                         </div>
-                                    </form>
+
+                                        <div class="mt-4 text-center">
+                                            <p class="mb-0">Chưa có tài khoản? <a href="<?= url('register') ?>" class="fw-semibold text-primary text-decoration-underline">Đăng ký</a></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="mt-4 text-center">
-                            <p class="mb-0">Chưa có tài khoản? <a href="<?= url('register') ?>" class="fw-semibold text-primary text-decoration-underline">Đăng ký</a></p>
                         </div>
                     </div>
                 </div>
