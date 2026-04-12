@@ -82,9 +82,39 @@ $defaultBody = $template['body'] ?? '';
             </div>
             <div class="mb-3">
                 <label class="form-label"><i class="ri-attachment-line me-1"></i> Đính kèm</label>
-                <input type="file" class="form-control" name="attachments[]" multiple>
+                <input type="file" class="form-control" name="attachments[]" multiple id="attachInput" onchange="previewFiles(this)">
                 <small class="text-muted">Tối đa 10MB/file. Chọn nhiều file cùng lúc.</small>
+                <div id="attachPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
             </div>
+            <script>
+            function previewFiles(input) {
+                var preview = document.getElementById('attachPreview');
+                preview.innerHTML = '';
+                if (!input.files.length) return;
+                Array.from(input.files).forEach(function(file) {
+                    var div = document.createElement('div');
+                    div.className = 'border rounded p-2 d-flex align-items-center gap-2';
+                    div.style.maxWidth = '250px';
+                    var isImage = file.type.startsWith('image/');
+                    if (isImage) {
+                        var img = document.createElement('img');
+                        img.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:4px';
+                        var reader = new FileReader();
+                        reader.onload = function(e) { img.src = e.target.result; };
+                        reader.readAsDataURL(file);
+                        div.appendChild(img);
+                    } else {
+                        var icon = document.createElement('i');
+                        icon.className = 'ri-file-line fs-20 text-muted';
+                        div.appendChild(icon);
+                    }
+                    var info = document.createElement('div');
+                    info.innerHTML = '<div class="fw-medium fs-12 text-truncate" style="max-width:150px">' + file.name + '</div><small class="text-muted">' + (file.size < 1024*1024 ? Math.round(file.size/1024) + ' KB' : (file.size/1024/1024).toFixed(1) + ' MB') + '</small>';
+                    div.appendChild(info);
+                    preview.appendChild(div);
+                });
+            }
+            </script>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
                 <a href="<?= url('email') ?>" class="btn btn-soft-secondary">Hủy</a>
