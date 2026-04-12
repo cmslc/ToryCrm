@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Marketplace';
+$pageTitle = 'Thêm plugin';
 $tab = $_GET['tab'] ?? 'plugins';
 $integrationCards = [
     ['type'=>'zalo_oa','name'=>'Zalo OA','description'=>'Kết nối Zalo Official Account để gửi/nhận tin nhắn, quản lý follower.','icon'=>'ri-message-3-line','color'=>'primary','url'=>url('integrations/zalo')],
@@ -18,8 +18,8 @@ try {
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0">Marketplace</h4>
-    <a href="<?= url('plugins') ?>" class="btn btn-soft-primary"><i class="ri-list-check me-1"></i> Plugin đã cài</a>
+    <h4 class="mb-0">Thêm plugin</h4>
+    <a href="<?= url('plugins') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Plugin đã cài</a>
 </div>
 
 <!-- Tabs -->

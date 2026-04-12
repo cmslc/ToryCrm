@@ -1,8 +1,8 @@
 <?php $pageTitle = 'Plugin đã cài đặt'; ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Plugin đã cài đặt</h4>
-            <a href="<?= url('plugins/marketplace') ?>" class="btn btn-primary"><i class="ri-store-2-line me-1"></i> Marketplace</a>
+            <h4 class="mb-0">Plugin</h4>
+            <a href="<?= url('plugins/marketplace') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm plugin</a>
         </div>
 
         <div class="card">
@@ -67,7 +67,7 @@
                                     <td colspan="6" class="text-center py-4 text-muted">
                                         <i class="ri-plug-line fs-1 d-block mb-2"></i>
                                         Chưa cài đặt plugin nào.
-                                        <a href="<?= url('plugins/marketplace') ?>">Khám phá Marketplace</a>
+                                        <a href="<?= url('plugins/marketplace') ?>">Thêm plugin</a>
                                     </td>
                                 </tr>
                             <?php endif; ?>
