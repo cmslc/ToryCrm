@@ -2,9 +2,11 @@
 $pageTitle = 'Soạn email';
 $isReply = !empty($replyMsg);
 $isForward = !empty($forwardMsg);
-$defaultTo = $contactEmail ?? ($isReply ? $replyMsg['from_email'] : '');
-$defaultSubject = $isReply ? 'Re: ' . ($replyMsg['subject'] ?? '') : ($isForward ? 'Fwd: ' . ($forwardMsg['subject'] ?? '') : ($template['subject'] ?? ''));
-$defaultBody = $template['body'] ?? '';
+$isDraft = !empty($draftMsg);
+$defaultTo = $contactEmail ?? ($isReply ? $replyMsg['from_email'] : ($isDraft ? ($draftMsg['to_emails'] ?? '') : ''));
+$defaultSubject = $isReply ? 'Re: ' . ($replyMsg['subject'] ?? '') : ($isForward ? 'Fwd: ' . ($forwardMsg['subject'] ?? '') : ($isDraft ? ($draftMsg['subject'] ?? '') : ($template['subject'] ?? '')));
+$defaultBody = $isDraft ? ($draftMsg['body_html'] ?? '') : ($template['body'] ?? '');
+$defaultCc = $isDraft ? ($draftMsg['cc_emails'] ?? '') : '';
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -26,6 +28,7 @@ $defaultBody = $template['body'] ?? '';
     <div class="card-body">
         <form method="POST" action="<?= url('email/send') ?>" enctype="multipart/form-data">
             <?= csrf_field() ?>
+            <?php if ($isDraft): ?><input type="hidden" name="draft_id" value="<?= $draftMsg['id'] ?>"><?php endif; ?>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Từ</label>
@@ -54,7 +57,7 @@ $defaultBody = $template['body'] ?? '';
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">CC</label>
-                    <input type="text" class="form-control" name="cc" placeholder="Phân cách bằng dấu phẩy">
+                    <input type="text" class="form-control" name="cc" value="<?= e($defaultCc) ?>" placeholder="Phân cách bằng dấu phẩy">
                 </div>
             </div>
             <div class="mb-3">
@@ -117,6 +120,7 @@ $defaultBody = $template['body'] ?? '';
             </script>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
+                <button type="submit" name="save_draft" value="1" class="btn btn-soft-info"><i class="ri-draft-line me-1"></i> Lưu nháp</button>
                 <a href="<?= url('email') ?>" class="btn btn-soft-secondary">Hủy</a>
             </div>
         </form>

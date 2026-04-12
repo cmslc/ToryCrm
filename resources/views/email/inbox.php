@@ -101,7 +101,8 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
                 $preview = $m['body_text'] ? ' - ' . e(mb_substr(strip_tags($m['body_text']), 0, 80)) : '';
                 $time = $m['sent_at'] ? (date('Y-m-d', strtotime($m['sent_at'])) === date('Y-m-d') ? date('H:i', strtotime($m['sent_at'])) : date('d/m', strtotime($m['sent_at']))) : '';
             ?>
-            <div class="d-flex align-items-center px-3 py-2 border-bottom email-row <?= !$m['is_read'] ? 'bg-light fw-medium' : '' ?>" style="cursor:pointer" onclick="if(!event.target.closest('.no-nav'))location.href='<?= url('email/' . $m['id']) ?>'">
+            <?php $emailUrl = ($folder === 'drafts') ? url('email/compose?draft=' . $m['id']) : url('email/' . $m['id']); ?>
+            <div class="d-flex align-items-center px-3 py-2 border-bottom email-row <?= !$m['is_read'] ? 'bg-light fw-medium' : '' ?>" style="cursor:pointer" onclick="if(!event.target.closest('.no-nav'))location.href='<?= $emailUrl ?>'">
                 <input type="checkbox" class="form-check-input me-2 row-check no-nav" value="<?= $m['id'] ?>">
                 <button class="btn btn-link p-0 me-2 star-btn no-nav" data-id="<?= $m['id'] ?>" style="font-size:14px;line-height:1">
                     <i class="ri-star-<?= $m['is_starred'] ? 'fill text-warning' : 'line text-muted' ?>"></i>

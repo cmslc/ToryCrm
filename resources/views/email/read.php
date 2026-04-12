@@ -135,8 +135,32 @@ $folder = $m['folder'] ?? 'inbox';
                     <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Gửi</button>
                     <label class="btn btn-soft-secondary mb-0" style="cursor:pointer">
                         <i class="ri-attachment-line me-1"></i> Đính kèm
-                        <input type="file" name="attachments[]" multiple class="d-none" onchange="this.closest('label').querySelector('span')?.remove();var s=document.createElement('span');s.className='ms-1 badge bg-primary';s.textContent=this.files.length+' file';this.closest('label').appendChild(s)">
+                        <input type="file" name="attachments[]" multiple class="d-none" onchange="previewReplyFiles(this)">
                     </label>
+                </div>
+                <div id="replyAttachPreview" class="d-flex gap-2 flex-wrap mt-2"></div>
+                <script>
+                function previewReplyFiles(input) {
+                    var preview = document.getElementById('replyAttachPreview');
+                    preview.innerHTML = '';
+                    Array.from(input.files).forEach(function(file) {
+                        var div = document.createElement('div');
+                        div.className = 'border rounded p-2 d-flex align-items-center gap-2';
+                        if (file.type.startsWith('image/')) {
+                            var img = document.createElement('img');
+                            img.style.cssText = 'width:36px;height:36px;object-fit:cover;border-radius:4px';
+                            var r = new FileReader(); r.onload = function(e){img.src=e.target.result}; r.readAsDataURL(file);
+                            div.appendChild(img);
+                        } else {
+                            var i = document.createElement('i'); i.className = 'ri-file-line fs-18 text-muted'; div.appendChild(i);
+                        }
+                        var info = document.createElement('div');
+                        info.innerHTML = '<div class="fw-medium fs-12 text-truncate" style="max-width:120px">' + file.name + '</div><small class="text-muted">' + (file.size<1048576?Math.round(file.size/1024)+' KB':(file.size/1048576).toFixed(1)+' MB') + '</small>';
+                        div.appendChild(info);
+                        preview.appendChild(div);
+                    });
+                }
+                </script>
                 </div>
             </form>
         </div>

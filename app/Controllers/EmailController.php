@@ -132,6 +132,13 @@ class EmailController extends Controller
         if ($replyTo) {
             $replyMsg = Database::fetch("SELECT * FROM email_messages WHERE id = ? AND tenant_id = ?", [$replyTo, Database::tenantId()]);
         }
+        // Draft edit
+        $draftId = $this->input('draft') ? (int)$this->input('draft') : null;
+        $draftMsg = null;
+        if ($draftId) {
+            $draftMsg = Database::fetch("SELECT * FROM email_messages WHERE id = ? AND tenant_id = ? AND folder = 'drafts'", [$draftId, Database::tenantId()]);
+        }
+
         // Forward
         $forwardId = $this->input('forward') ? (int)$this->input('forward') : null;
         $forwardMsg = null;
@@ -149,7 +156,7 @@ class EmailController extends Controller
         }
         $templates = Database::fetchAll("SELECT id, name FROM email_templates WHERE tenant_id = ? ORDER BY name", [Database::tenantId()]);
 
-        return $this->view('email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'contactEmail', 'template', 'templates'));
+        return $this->view('email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'draftMsg', 'contactEmail', 'template', 'templates'));
     }
 
     public function send()
@@ -163,6 +170,32 @@ class EmailController extends Controller
         $subject = trim($this->input('subject') ?? '');
         $body = $this->input('body') ?? '';
         $cc = array_filter(array_map('trim', explode(',', $this->input('cc') ?? '')));
+        $isDraft = $this->input('save_draft');
+
+        // Save as draft
+        if ($isDraft) {
+            $draftId = $this->input('draft_id') ? (int)$this->input('draft_id') : null;
+            $draftData = [
+                'tenant_id' => Database::tenantId(),
+                'account_id' => $account['id'],
+                'folder' => 'drafts',
+                'from_email' => $account['email'],
+                'from_name' => $account['display_name'],
+                'to_emails' => $to,
+                'cc_emails' => implode(', ', $cc),
+                'subject' => $subject,
+                'body_html' => $body,
+                'is_read' => 1,
+                'sent_at' => date('Y-m-d H:i:s'),
+            ];
+            if ($draftId) {
+                Database::update('email_messages', $draftData, 'id = ? AND tenant_id = ? AND folder = ?', [$draftId, Database::tenantId(), 'drafts']);
+            } else {
+                Database::insert('email_messages', $draftData);
+            }
+            $this->setFlash('success', 'Đã lưu nháp.');
+            return $this->redirect('email?folder=drafts');
+        }
 
         if (empty($to) || empty($subject)) {
             $this->setFlash('error', 'Vui lòng nhập người nhận và tiêu đề.');
