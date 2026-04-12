@@ -12,7 +12,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Email</th><th>IMAP</th><th>SMTP</th><th>Đồng bộ cuối</th><th>Mặc định</th><th>Thao tác</th></tr></thead>
+                <thead class="table-light"><tr><th>Email</th><th>API Token</th><th>Đồng bộ cuối</th><th>Mặc định</th><th>Thao tác</th></tr></thead>
                 <tbody>
                 <?php foreach ($accounts as $acc): ?>
                 <tr>
@@ -20,8 +20,7 @@
                         <span class="fw-medium"><?= e($acc['email']) ?></span>
                         <?php if ($acc['display_name']): ?><br><small class="text-muted"><?= e($acc['display_name']) ?></small><?php endif; ?>
                     </td>
-                    <td class="fs-12"><?= e($acc['imap_host']) ?>:<?= $acc['imap_port'] ?></td>
-                    <td class="fs-12"><?= e($acc['smtp_host']) ?>:<?= $acc['smtp_port'] ?></td>
+                    <td class="fs-12"><code><?= e(substr($acc['api_token'] ?? '', 0, 12)) ?>...</code></td>
                     <td class="fs-12 text-muted"><?= $acc['last_sync'] ? created_ago($acc['last_sync']) : 'Chưa' ?></td>
                     <td><?= $acc['is_default'] ? '<span class="badge bg-success">Mặc định</span>' : '' ?></td>
                     <td>
@@ -51,8 +50,9 @@
                     <input type="email" class="form-control" name="email" required placeholder="sales@congty.com">
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                    <input type="password" class="form-control" name="password" required>
+                    <label class="form-label">API Token <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="api_token" required placeholder="Token từ GetcodeMail">
+                    <small class="text-muted">Lấy token tại GetcodeMail > Mailbox > API Token</small>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Tên hiển thị</label>
@@ -61,54 +61,10 @@
             </div>
 
             <div class="mb-3">
-                <a class="text-muted fs-13" data-bs-toggle="collapse" href="#advancedSettings"><i class="ri-settings-3-line me-1"></i> Cài đặt nâng cao (IMAP/SMTP) <i class="ri-arrow-down-s-line"></i></a>
-            </div>
-            <div class="collapse" id="advancedSettings">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">IMAP Host</label>
-                        <input type="text" class="form-control" name="imap_host" value="mail.getcodemail.com">
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Port</label>
-                        <input type="number" class="form-control" name="imap_port" value="993">
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Mã hóa</label>
-                        <select name="imap_encryption" class="form-select">
-                            <option value="ssl" selected>SSL</option>
-                            <option value="tls">TLS</option>
-                            <option value="none">Không</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">SMTP Host</label>
-                        <input type="text" class="form-control" name="smtp_host" value="mail.getcodemail.com">
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Port</label>
-                        <input type="number" class="form-control" name="smtp_port" value="587">
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Mã hóa</label>
-                        <select name="smtp_encryption" class="form-select">
-                            <option value="tls" selected>TLS</option>
-                            <option value="ssl">SSL</option>
-                            <option value="none">Không</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="is_default" value="1" id="isDefault">
                     <label class="form-check-label" for="isDefault">Đặt làm tài khoản mặc định</label>
                 </div>
-            </div>
-
-            <div class="alert alert-info py-2 mb-3">
-                <i class="ri-information-line me-1"></i> Sử dụng thông tin IMAP/SMTP từ hệ thống <a href="https://getcodemail.com" target="_blank">GetcodeMail</a> hoặc nhà cung cấp email của bạn.
             </div>
 
             <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu tài khoản</button>
@@ -128,49 +84,34 @@
                     <li>Vào <strong>Tên miền</strong> > Thêm tên miền công ty (VD: <code>congty.com</code>)</li>
                     <li>Cấu hình DNS theo hướng dẫn (MX, SPF, DKIM)</li>
                     <li>Vào <strong>Hộp thư</strong> > Tạo mailbox (VD: <code>sales@congty.com</code>)</li>
-                    <li>Ghi nhớ email và mật khẩu đã tạo</li>
                 </ol>
 
-                <h6 class="fw-medium mb-3">2. Cấu hình trong ToryCRM</h6>
-                <ol class="text-muted mb-0">
-                    <li>Điền email và mật khẩu vào form bên trên</li>
-                    <li>IMAP/SMTP Host giữ mặc định <code>mail.getcodemail.com</code></li>
+                <h6 class="fw-medium mb-3">2. Lấy API Token</h6>
+                <ol class="text-muted mb-4">
+                    <li>Trên GetcodeMail, vào mailbox vừa tạo</li>
+                    <li>Tìm mục <strong>API Token</strong> hoặc tạo token mới</li>
+                    <li>Copy token (chuỗi dài ~64 ký tự)</li>
+                </ol>
+            </div>
+            <div class="col-lg-6">
+                <h6 class="fw-medium mb-3">3. Cấu hình trong ToryCRM</h6>
+                <ol class="text-muted mb-4">
+                    <li>Điền <strong>Email</strong> và <strong>API Token</strong> vào form bên trên</li>
                     <li>Bấm <strong>Lưu tài khoản</strong></li>
                     <li>Bấm nút <strong>Test kết nối</strong> để kiểm tra</li>
                     <li>Vào <strong>Email > Đồng bộ</strong> để pull email về CRM</li>
                 </ol>
-            </div>
-            <div class="col-lg-6">
-                <h6 class="fw-medium mb-3">Thông số kết nối</h6>
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-4">
-                        <thead class="table-light"><tr><th>Mục</th><th>GetcodeMail</th><th>Gmail</th></tr></thead>
-                        <tbody>
-                            <tr><td>IMAP Host</td><td><code>mail.getcodemail.com</code></td><td><code>imap.gmail.com</code></td></tr>
-                            <tr><td>IMAP Port</td><td><code>993</code></td><td><code>993</code></td></tr>
-                            <tr><td>IMAP Mã hóa</td><td>SSL</td><td>SSL</td></tr>
-                            <tr><td>SMTP Host</td><td><code>mail.getcodemail.com</code></td><td><code>smtp.gmail.com</code></td></tr>
-                            <tr><td>SMTP Port</td><td><code>587</code></td><td><code>587</code></td></tr>
-                            <tr><td>SMTP Mã hóa</td><td>TLS</td><td>TLS</td></tr>
-                        </tbody>
-                    </table>
+
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="ri-information-line me-1"></i> API Token dùng để ToryCRM kết nối với GetcodeMail một cách an toàn. Không cần nhập mật khẩu email.
                 </div>
 
-                <h6 class="fw-medium mb-3">Nhà cung cấp khác</h6>
-                <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-light"><tr><th>Nhà cung cấp</th><th>IMAP</th><th>SMTP</th></tr></thead>
-                        <tbody>
-                            <tr><td>Zoho Mail</td><td><code>imap.zoho.com:993</code></td><td><code>smtp.zoho.com:587</code></td></tr>
-                            <tr><td>Outlook/Office 365</td><td><code>outlook.office365.com:993</code></td><td><code>smtp.office365.com:587</code></td></tr>
-                            <tr><td>Yahoo Mail</td><td><code>imap.mail.yahoo.com:993</code></td><td><code>smtp.mail.yahoo.com:587</code></td></tr>
-                            <tr><td>Yandex Mail</td><td><code>imap.yandex.com:993</code></td><td><code>smtp.yandex.com:587</code></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="alert alert-warning py-2 mt-3 mb-0">
-                    <i class="ri-error-warning-line me-1"></i> <strong>Gmail:</strong> Cần bật "Mật khẩu ứng dụng" (App Password) trong cài đặt bảo mật Google, không dùng mật khẩu thường.
+                <div class="alert alert-light border py-2 mb-0">
+                    <strong>API Endpoints:</strong><br>
+                    <code class="fs-12">GET /api/v1/mailbox/inbox</code> — Đọc inbox<br>
+                    <code class="fs-12">GET /api/v1/mailbox/read/{id}</code> — Đọc email<br>
+                    <code class="fs-12">POST /api/v1/send</code> — Gửi email<br>
+                    <small class="text-muted">Base URL: https://getcodemail.com</small>
                 </div>
             </div>
         </div>

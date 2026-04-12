@@ -212,6 +212,7 @@ class EmailController extends Controller
             'smtp_encryption' => $this->input('smtp_encryption') ?: 'tls',
             'username' => trim($this->input('email') ?? ''),
             'password' => trim($this->input('password') ?? ''),
+            'api_token' => trim($this->input('api_token') ?? ''),
             'is_default' => $this->input('is_default') ? 1 : 0,
         ];
 
@@ -242,9 +243,11 @@ class EmailController extends Controller
         $service = new EmailService($account);
         $result = $service->testConnection();
 
-        $msg = 'IMAP: ' . ($result['imap'] ? 'OK' : 'Lỗi - ' . $result['imap_error']);
-        $msg .= ' | SMTP: ' . ($result['smtp'] ? 'OK' : 'Lỗi - ' . $result['smtp_error']);
-        $this->setFlash($result['imap'] && $result['smtp'] ? 'success' : 'warning', $msg);
+        if ($result['api']) {
+            $this->setFlash('success', 'Kết nối API thành công cho ' . $result['email']);
+        } else {
+            $this->setFlash('error', 'Lỗi kết nối: ' . $result['api_error']);
+        }
         return $this->redirect('email/settings');
     }
 

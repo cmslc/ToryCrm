@@ -1,0 +1,1 @@
+ALTER TABLE `email_accounts` ADD COLUMN `api_token` VARCHAR(255) DEFAULT NULL AFTER `password`;
