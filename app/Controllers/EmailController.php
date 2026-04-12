@@ -122,7 +122,16 @@ class EmailController extends Controller
             $replyMsg = Database::fetch("SELECT * FROM email_messages WHERE id = ? AND tenant_id = ?", [$replyTo, Database::tenantId()]);
         }
         $contactEmail = $this->input('to');
-        return $this->view('email.compose', compact('accounts', 'replyMsg', 'contactEmail'));
+
+        // Template
+        $template = null;
+        $templateId = $this->input('template') ? (int)$this->input('template') : null;
+        if ($templateId) {
+            $template = Database::fetch("SELECT * FROM email_templates WHERE id = ? AND tenant_id = ?", [$templateId, Database::tenantId()]);
+        }
+        $templates = Database::fetchAll("SELECT id, name FROM email_templates WHERE tenant_id = ? ORDER BY name", [Database::tenantId()]);
+
+        return $this->view('email.compose', compact('accounts', 'replyMsg', 'contactEmail', 'template', 'templates'));
     }
 
     public function send()
@@ -271,5 +280,83 @@ class EmailController extends Controller
         Database::query("DELETE FROM email_accounts WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
         $this->setFlash('success', 'Đã xóa tài khoản email.');
         return $this->redirect('email/settings');
+    }
+
+    public function saveSignature()
+    {
+        if (!$this->isPost()) return $this->redirect('email/settings');
+        $id = (int)$this->input('account_id');
+        $signature = $this->input('signature') ?? '';
+        Database::update('email_accounts', ['signature' => $signature], 'id = ? AND tenant_id = ?', [$id, Database::tenantId()]);
+        $this->setFlash('success', 'Đã lưu chữ ký.');
+        return $this->redirect('email/settings');
+    }
+
+    // ---- Bulk Actions ----
+    public function bulkAction()
+    {
+        if (!$this->isPost()) return $this->redirect('email');
+        $tid = Database::tenantId();
+        $ids = $this->input('email_ids') ?: [];
+        $action = $this->input('action');
+        if (empty($ids)) { $this->setFlash('error', 'Chưa chọn email.'); return $this->redirect('email'); }
+
+        $ph = implode(',', array_fill(0, count($ids), '?'));
+        $params = array_merge($ids, [$tid]);
+
+        if ($action === 'read') {
+            Database::query("UPDATE email_messages SET is_read = 1 WHERE id IN ($ph) AND tenant_id = ?", $params);
+            $this->setFlash('success', 'Đã đánh dấu đã đọc.');
+        } elseif ($action === 'unread') {
+            Database::query("UPDATE email_messages SET is_read = 0 WHERE id IN ($ph) AND tenant_id = ?", $params);
+            $this->setFlash('success', 'Đã đánh dấu chưa đọc.');
+        } elseif ($action === 'trash') {
+            Database::query("UPDATE email_messages SET folder = 'trash' WHERE id IN ($ph) AND tenant_id = ?", $params);
+            $this->setFlash('success', 'Đã chuyển vào thùng rác.');
+        } elseif ($action === 'delete') {
+            Database::query("DELETE FROM email_messages WHERE id IN ($ph) AND tenant_id = ?", $params);
+            $this->setFlash('success', 'Đã xóa.');
+        }
+        return $this->redirect('email');
+    }
+
+    // ---- Templates ----
+    public function templates()
+    {
+        if (!$this->checkPlugin()) return;
+        $tid = Database::tenantId();
+        $templates = Database::fetchAll("SELECT * FROM email_templates WHERE tenant_id = ? ORDER BY name", [$tid]);
+        return $this->view('email.templates', compact('templates'));
+    }
+
+    public function saveTemplate()
+    {
+        if (!$this->isPost()) return $this->redirect('email/templates');
+        $tid = Database::tenantId();
+        $id = (int)$this->input('id');
+        $data = [
+            'name' => trim($this->input('name') ?? ''),
+            'subject' => trim($this->input('subject') ?? ''),
+            'body' => $this->input('body') ?? '',
+        ];
+        if (empty($data['name'])) { $this->setFlash('error', 'Nhập tên mẫu.'); return $this->redirect('email/templates'); }
+
+        if ($id) {
+            Database::update('email_templates', $data, 'id = ? AND tenant_id = ?', [$id, $tid]);
+        } else {
+            $data['tenant_id'] = $tid;
+            $data['created_by'] = $this->userId();
+            Database::insert('email_templates', $data);
+        }
+        $this->setFlash('success', 'Đã lưu mẫu email.');
+        return $this->redirect('email/templates');
+    }
+
+    public function deleteTemplate($id)
+    {
+        if (!$this->isPost()) return $this->redirect('email/templates');
+        Database::query("DELETE FROM email_templates WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        $this->setFlash('success', 'Đã xóa mẫu.');
+        return $this->redirect('email/templates');
     }
 }

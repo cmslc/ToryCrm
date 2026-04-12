@@ -36,7 +36,25 @@
         </div>
     </div>
 </div>
-<?php endif; ?>
+<?php
+// Signature form for first account
+$firstAcc = $accounts[0] ?? null;
+if ($firstAcc): ?>
+<div class="card mb-3">
+    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-quill-pen-line me-2"></i> Chữ ký email</h5></div>
+    <div class="card-body">
+        <form method="POST" action="<?= url('email/settings/signature') ?>">
+            <?= csrf_field() ?>
+            <input type="hidden" name="account_id" value="<?= $firstAcc['id'] ?>">
+            <div class="mb-3">
+                <textarea class="form-control" name="signature" rows="4" placeholder="VD: Trân trọng,&#10;Nguyễn Văn A&#10;Phòng Kinh doanh | Công ty ABC&#10;SĐT: 0123 456 789"><?= e($firstAcc['signature'] ?? '') ?></textarea>
+                <small class="text-muted">Chữ ký sẽ tự động thêm vào cuối mỗi email gửi đi.</small>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu chữ ký</button>
+        </form>
+    </div>
+</div>
+<?php endif; endif; ?>
 
 <!-- Add new account -->
 <div class="card">

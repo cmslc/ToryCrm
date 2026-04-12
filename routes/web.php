@@ -502,6 +502,11 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('email/settings/save', 'EmailController@saveAccount');
     Router::post('email/settings/test', 'EmailController@testAccount');
     Router::post('email/settings/{id}/delete', 'EmailController@deleteAccount');
+    Router::post('email/settings/signature', 'EmailController@saveSignature');
+    Router::post('email/bulk', 'EmailController@bulkAction');
+    Router::get('email/templates', 'EmailController@templates');
+    Router::post('email/templates/save', 'EmailController@saveTemplate');
+    Router::post('email/templates/{id}/delete', 'EmailController@deleteTemplate');
     Router::get('email/{id}', 'EmailController@read');
     Router::post('email/{id}/star', 'EmailController@toggleStar');
     Router::post('email/{id}/trash', 'EmailController@moveToTrash');

@@ -70,6 +70,11 @@
                         </div>
 
                         <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+                            <?php if (!empty($contact['email']) && plugin_active('email')): ?>
+                            <a href="<?= url('email/compose?to=' . urlencode($contact['email'])) ?>" class="btn btn-soft-info">
+                                <i class="ri-mail-send-line me-1"></i> Gửi email
+                            </a>
+                            <?php endif; ?>
                             <a href="<?= url('contacts/' . $contact['id'] . '/edit') ?>" class="btn btn-primary">
                                 <i class="ri-pencil-line me-1"></i> Sửa
                             </a>
