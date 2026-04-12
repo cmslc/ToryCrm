@@ -3,10 +3,63 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Sản phẩm & Dịch vụ</h4>
             <div class="d-flex gap-2">
+                <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportProdModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
                 <a href="<?= url('products/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
                 <a href="<?= url('products/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm sản phẩm</a>
             </div>
         </div>
+
+<!-- Import/Export Modal -->
+<div class="modal fade" id="importExportProdModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title"><i class="ri-upload-2-line me-2"></i> Import / Export Sản phẩm</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabImportP">Import</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabExportP">Export</a></li>
+                </ul>
+                <div class="tab-content pt-3">
+                    <div class="tab-pane active" id="tabImportP">
+                        <form method="POST" action="<?= url('import-export/import-products') ?>" enctype="multipart/form-data">
+                            <?= csrf_field() ?>
+                            <div class="mb-3">
+                                <label class="form-label">Chọn file CSV</label>
+                                <input type="file" class="form-control" name="file" accept=".csv" required>
+                            </div>
+                            <div class="alert alert-light border py-2 mb-3">
+                                <i class="ri-information-line me-1"></i> File CSV UTF-8, phân cách dấu phẩy. Cột bắt buộc: <code>name</code>. Khác: <code>sku, type, unit, price, cost_price, category, description</code>.
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary"><i class="ri-upload-2-line me-1"></i> Import</button>
+                                <a href="<?= url('import-export/template/products') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Tải template</a>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane" id="tabExportP">
+                        <div class="mb-3">
+                            <label class="form-label">Khoảng thời gian (tùy chọn)</label>
+                            <div class="row g-2">
+                                <div class="col-6"><input type="date" class="form-control" id="expPDateFrom"></div>
+                                <div class="col-6"><input type="date" class="form-control" id="expPDateTo"></div>
+                            </div>
+                        </div>
+                        <a href="<?= url('import-export/export-products') ?>" class="btn btn-success" id="btnExpProducts"><i class="ri-download-2-line me-1"></i> Export Sản phẩm</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function(){
+    var df=document.getElementById('expPDateFrom'), dt=document.getElementById('expPDateTo'), btn=document.getElementById('btnExpProducts');
+    if(!df||!dt||!btn) return;
+    var base='<?= url("import-export/export-products") ?>';
+    function upd(){ var p=[]; if(df.value)p.push('date_from='+df.value); if(dt.value)p.push('date_to='+dt.value); btn.href=base+(p.length?'?'+p.join('&'):''); }
+    df.addEventListener('change',upd); dt.addEventListener('change',upd);
+})();
+</script>
 
         <div class="card">
             <div class="card-body">

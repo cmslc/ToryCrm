@@ -10,7 +10,7 @@ class ImportExportController extends Controller
 {
     public function index()
     {
-        return $this->view('import.index');
+        return $this->redirect('contacts');
     }
 
     public function importContacts()
