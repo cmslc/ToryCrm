@@ -235,7 +235,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
 
                 <?php if (canSee('reports') || canSee('users') || canSee('automation') || canSee('webhooks')): ?>
-                <?php $sysOpen = isOpen(['reports','automation','users','webhooks','plugins','integrations','duplicates','billing'], $currentUrl); ?>
+                <?php $sysOpen = isOpen(['reports','automation','users','plugins','integrations','duplicates','billing'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
                         <i class="ri-settings-3-line"></i> <span>Hệ thống</span>
@@ -245,7 +245,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <?php if (canSee('reports')): ?><li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= isActive('reports', $currentUrl) ?>">Báo cáo</a></li><?php endif; ?>
                             <?php if (canSee('users')): ?><li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li><?php endif; ?>
                             <?php if (canSee('automation')): ?><li class="nav-item"><a href="<?= url('automation') ?>" class="nav-link <?= isActive('automation', $currentUrl) ?>">Automation</a></li><?php endif; ?>
-                            <?php if (canSee('webhooks')): ?><li class="nav-item"><a href="<?= url('webhooks') ?>" class="nav-link <?= isActive('webhooks', $currentUrl) ?>">Webhook</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li>
                             <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins/marketplace') ?>" class="nav-link <?= isActive(['plugins','integrations'], $currentUrl) ?>">Marketplace</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>

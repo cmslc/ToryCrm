@@ -7,6 +7,7 @@ $integrationCards = [
     ['type'=>'google_calendar','name'=>'Google Calendar','description'=>'Đồng bộ lịch hẹn CRM với Google Calendar.','icon'=>'ri-calendar-2-line','color'=>'warning','url'=>'#'],
     ['type'=>'vnpay','name'=>'VNPay','description'=>'Cổng thanh toán VNPay, nhận thanh toán trực tuyến.','icon'=>'ri-bank-card-line','color'=>'info','url'=>'#'],
     ['type'=>'momo','name'=>'MoMo','description'=>'Kết nối ví MoMo, thanh toán QR code.','icon'=>'ri-wallet-line','color'=>'danger','url'=>'#'],
+    ['type'=>'webhook','name'=>'Webhook','description'=>'Gửi dữ liệu tự động đến hệ thống bên ngoài khi có sự kiện.','icon'=>'ri-links-line','color'=>'secondary','url'=>url('webhooks')],
 ];
 // Integration status
 $intStatusMap = [];
