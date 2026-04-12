@@ -295,8 +295,11 @@ class SettingController extends Controller
         $settings = json_decode($tenant['settings'] ?? '{}', true);
         $aiConfig = $settings['ai'] ?? [];
 
+        $activeProvider = $aiConfig['provider'] ?? 'groq';
+
         return $this->view('settings.api', [
             'aiConfig' => $aiConfig,
+            'activeProvider' => $activeProvider,
         ]);
     }
 
