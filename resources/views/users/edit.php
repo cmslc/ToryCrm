@@ -94,6 +94,7 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                 <div class="card-header p-0 border-bottom-0">
                     <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
                         <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabInfo"><i class="ri-user-line me-1"></i> Thông tin</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabProfile"><i class="ri-profile-line me-1"></i> Hồ sơ</a></li>
                         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabAccess"><i class="ri-shield-check-line me-1"></i> Quyền hạn</a></li>
                         <?php if (plugin_active('attendance-payroll')): ?>
                         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabSalary"><i class="ri-money-dollar-circle-line me-1"></i> Lương</a></li>
@@ -129,6 +130,74 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                                             <i class="ri-eye-off-line"></i>
                                         </button>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Hồ sơ -->
+                        <div class="tab-pane" id="tabProfile">
+                            <h6 class="text-muted border-bottom pb-2 mb-3"><i class="ri-user-heart-line me-1"></i> Thông tin cá nhân</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Ngày sinh</label>
+                                    <input type="date" class="form-control" name="date_of_birth" value="<?= $u['date_of_birth'] ?? '' ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Giới tính</label>
+                                    <select name="gender" class="form-select">
+                                        <option value="">Chưa chọn</option>
+                                        <option value="male" <?= ($u['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Nam</option>
+                                        <option value="female" <?= ($u['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Nữ</option>
+                                        <option value="other" <?= ($u['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Khác</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Ngày vào làm</label>
+                                    <input type="date" class="form-control" name="join_date" value="<?= $u['join_date'] ?? '' ?>">
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted border-bottom pb-2 mb-3 mt-2"><i class="ri-bank-card-line me-1"></i> CMND / CCCD</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Số CMND/CCCD</label>
+                                    <input type="text" class="form-control" name="id_number" value="<?= e($u['id_number'] ?? '') ?>" placeholder="VD: 001234567890">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Ngày cấp</label>
+                                    <input type="date" class="form-control" name="id_issued_date" value="<?= $u['id_issued_date'] ?? '' ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Nơi cấp</label>
+                                    <input type="text" class="form-control" name="id_issued_place" value="<?= e($u['id_issued_place'] ?? '') ?>" placeholder="VD: CA TP.HCM">
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted border-bottom pb-2 mb-3 mt-2"><i class="ri-bank-line me-1"></i> Tài khoản ngân hàng</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Ngân hàng</label>
+                                    <input type="text" class="form-control" name="bank_name" value="<?= e($u['bank_name'] ?? '') ?>" placeholder="VD: Vietcombank">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Số tài khoản</label>
+                                    <input type="text" class="form-control" name="bank_account" value="<?= e($u['bank_account'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Chi nhánh</label>
+                                    <input type="text" class="form-control" name="bank_branch" value="<?= e($u['bank_branch'] ?? '') ?>">
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted border-bottom pb-2 mb-3 mt-2"><i class="ri-phone-line me-1"></i> Liên hệ khẩn cấp</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Người liên hệ</label>
+                                    <input type="text" class="form-control" name="emergency_contact" value="<?= e($u['emergency_contact'] ?? '') ?>" placeholder="Tên người thân">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">SĐT khẩn cấp</label>
+                                    <input type="text" class="form-control" name="emergency_phone" value="<?= e($u['emergency_phone'] ?? '') ?>">
                                 </div>
                             </div>
                         </div>
