@@ -7,6 +7,7 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0"><i class="ri-mail-line me-2"></i> Email</h4>
     <div class="d-flex gap-2">
+        <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary"><i class="ri-settings-3-line me-1"></i> Cài đặt</a>
         <form method="POST" action="<?= url('email/sync') ?>" class="d-inline">
             <?= csrf_field() ?>
             <input type="hidden" name="account_id" value="<?= $accountId ?>">
@@ -63,7 +64,6 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
                 </ul>
             </div>
         </div>
-        <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary w-100"><i class="ri-settings-3-line me-1"></i> Cài đặt</a>
     </div>
 
     <!-- Messages -->
