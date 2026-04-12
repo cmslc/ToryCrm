@@ -10,25 +10,6 @@
             </div>
         </div>
 
-        <?php if (!empty($byEmployee)): ?>
-        <div class="card mb-3">
-            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-horizontal-line me-2"></i> Hoa hồng theo nhân viên</h5></div>
-            <div class="card-body"><canvas id="commChart" height="200"></canvas></div>
-        </div>
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Chart === 'undefined') return;
-            new Chart(document.getElementById('commChart'), {
-                type: 'bar',
-                data: {
-                    labels: <?= json_encode(array_column($byEmployee, 'name')) ?>,
-                    datasets: [{label:'Hoa hồng', data:<?= json_encode(array_map(function($e){return (float)$e['total'];}, $byEmployee)) ?>, backgroundColor:'rgba(64,81,137,0.7)'}]
-                },
-                options:{indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{callback:function(v){return (v/1000000)+'tr'}}}}}
-            });
-        });
-        </script>
-        <?php endif; ?>
 
         <!-- Summary Cards -->
         <div class="row mb-4">
