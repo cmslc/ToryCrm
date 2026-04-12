@@ -103,13 +103,16 @@ $folder = $m['folder'] ?? 'inbox';
             <div class="d-flex gap-2 flex-wrap">
                 <?php foreach ($attachments as $att): ?>
                 <?php $attUrl = (str_starts_with($att['file_path'], 'http')) ? $att['file_path'] : url($att['file_path']); ?>
-                <a href="<?= $attUrl ?>" class="border rounded px-3 py-2 text-decoration-none text-body d-flex align-items-center" target="_blank" download>
-                    <i class="ri-file-line me-2 text-muted fs-18"></i>
-                    <div>
-                        <div class="fw-medium fs-13"><?= e($att['filename']) ?></div>
-                        <small class="text-muted"><?= round($att['size'] / 1024) ?> KB</small>
+                <div class="border rounded px-3 py-2 d-flex align-items-center gap-2">
+                    <div class="avatar-xs flex-shrink-0">
+                        <div class="avatar-title bg-primary-subtle text-primary rounded fs-18"><i class="ri-file-line"></i></div>
                     </div>
-                </a>
+                    <div class="flex-grow-1">
+                        <div class="fw-medium fs-13"><?= e($att['filename']) ?></div>
+                        <small class="text-muted"><?= $att['size'] < 1048576 ? round($att['size'] / 1024, 2) . ' KB' : round($att['size'] / 1048576, 2) . ' MB' ?></small>
+                    </div>
+                    <a href="<?= $attUrl ?>" class="btn btn-soft-primary btn-icon" target="_blank" download title="Tải xuống"><i class="ri-download-2-line"></i></a>
+                </div>
                 <?php endforeach; ?>
             </div>
         </div>
