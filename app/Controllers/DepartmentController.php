@@ -312,6 +312,42 @@ class DepartmentController extends Controller
         return $this->redirect('departments/' . $id);
     }
 
+    // ---- KPI Comparison ----
+    public function kpiComparison()
+    {
+        $tid = $this->tenantId();
+        $period = $this->input('period') ?: date('Y-m');
+
+        $departments = Database::fetchAll(
+            "SELECT d.id, d.name, d.color,
+                    (SELECT COUNT(*) FROM users WHERE department_id = d.id AND is_active = 1) as member_count
+             FROM departments d WHERE d.tenant_id = ? ORDER BY d.name",
+            [$tid]
+        );
+
+        $comparison = [];
+        foreach ($departments as $d) {
+            $kpi = null;
+            try {
+                $kpi = Database::fetch("SELECT * FROM department_kpi WHERE department_id = ? AND period = ?", [$d['id'], $period]);
+            } catch (\Exception $e) {}
+
+            $memberIds = array_column(Database::fetchAll("SELECT id FROM users WHERE department_id = ? AND is_active = 1", [$d['id']]), 'id');
+            $stats = ['deals' => 0, 'revenue' => 0, 'tasks_done' => 0, 'contacts' => 0];
+            if (!empty($memberIds)) {
+                $ph = implode(',', array_fill(0, count($memberIds), '?'));
+                $stats['deals'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM deals WHERE owner_id IN ({$ph}) AND status = 'won'", $memberIds)['c'] ?? 0);
+                $stats['revenue'] = (float)(Database::fetch("SELECT COALESCE(SUM(value),0) as v FROM deals WHERE owner_id IN ({$ph}) AND status = 'won'", $memberIds)['v'] ?? 0);
+                $stats['tasks_done'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE assigned_to IN ({$ph}) AND is_deleted = 0 AND parent_id IS NULL AND status = 'done'", $memberIds)['c'] ?? 0);
+                $stats['contacts'] = (int)(Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE owner_id IN ({$ph}) AND is_deleted = 0", $memberIds)['c'] ?? 0);
+            }
+
+            $comparison[] = array_merge($d, ['kpi' => $kpi, 'stats' => $stats]);
+        }
+
+        return $this->view('departments.kpi-comparison', compact('comparison', 'period'));
+    }
+
     // ---- Save KPI ----
     public function saveKpi($id)
     {

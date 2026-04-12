@@ -613,6 +613,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // Departments
     Router::get('departments', 'DepartmentController@index');
     Router::get('departments/org-chart', 'DepartmentController@orgChart');
+    Router::get('departments/kpi-comparison', 'DepartmentController@kpiComparison');
     Router::post('departments/store', 'DepartmentController@store');
     Router::post('departments/bulk-move', 'DepartmentController@bulkMove');
     Router::get('departments/{id}', 'DepartmentController@show');

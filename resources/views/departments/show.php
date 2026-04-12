@@ -55,6 +55,7 @@ try {
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabInfo" role="tab">Thông tin</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabMembers" role="tab">Nhân viên <span class="badge bg-primary-subtle text-primary ms-1"><?= count($members) ?></span></a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabKpi" role="tab">KPI</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabHistory" role="tab">Lịch sử</a></li>
         </ul>
     </div>
     <div class="card-body">
@@ -193,6 +194,27 @@ try {
                     </div>
                     <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu KPI</button>
                 </form>
+            </div>
+
+            <!-- Tab: Lịch sử -->
+            <div class="tab-pane" id="tabHistory" role="tabpanel">
+                <?php if (!empty($activityLog)): ?>
+                <div class="timeline-2">
+                    <?php foreach ($activityLog as $log): ?>
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="avatar-xs"><div class="avatar-title bg-primary-subtle text-primary rounded-circle fs-14"><i class="ri-history-line"></i></div></div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <p class="mb-0"><?= e($log['title'] ?? '') ?></p>
+                            <div class="text-muted fs-12"><?= e($log['user_name'] ?? 'Hệ thống') ?> &bull; <?= created_ago($log['created_at']) ?></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php else: ?>
+                <div class="text-center text-muted py-4"><i class="ri-history-line fs-1 d-block mb-2"></i>Chưa có lịch sử</div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

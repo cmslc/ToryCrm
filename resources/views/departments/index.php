@@ -28,7 +28,10 @@ flattenDeptTree($tree, 0, $flatList);
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Sơ đồ tổ chức</h4>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Thêm phòng ban</button>
+    <div class="d-flex gap-2">
+        <a href="<?= url('departments/kpi-comparison') ?>" class="btn btn-soft-info"><i class="ri-bar-chart-grouped-line me-1"></i> So sánh KPI</a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Thêm phòng ban</button>
+    </div>
 </div>
 
 <div class="card">
@@ -124,6 +127,20 @@ flattenDeptTree($tree, 0, $flatList);
                             <?php endforeach; ?>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Trưởng phòng</label>
+                            <select name="manager_id" class="form-select" id="deptManager"><option value="">Chọn...</option>
+                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Phó phòng</label>
+                            <select name="vice_manager_id" class="form-select" id="deptVice"><option value="">Chọn...</option>
+                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
                     <div class="mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" name="description" id="deptDesc" rows="2"></textarea></div>
                 </div>
                 <div class="modal-footer">
@@ -143,6 +160,8 @@ document.querySelectorAll('.edit-dept').forEach(function(btn) {
         document.getElementById('deptModalTitle').textContent = 'Sửa phòng ban';
         document.getElementById('deptName').value = this.dataset.name;
         document.getElementById('deptParent').value = this.dataset.parent;
+        document.getElementById('deptManager').value = this.dataset.manager || '';
+        document.getElementById('deptVice').value = this.dataset.vicemanager || '';
         document.getElementById('deptDesc').value = this.dataset.description;
         var c = this.dataset.color;
         document.querySelectorAll('[name=color]').forEach(function(r) { r.checked = r.value === c; });
@@ -154,6 +173,8 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
     document.getElementById('deptModalTitle').textContent = 'Thêm phòng ban';
     document.getElementById('deptName').value = '';
     document.getElementById('deptParent').value = '';
+    document.getElementById('deptManager').value = '';
+    document.getElementById('deptVice').value = '';
     document.getElementById('deptDesc').value = '';
 });
 </script>
