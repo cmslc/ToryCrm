@@ -39,72 +39,104 @@ try {
 <div class="tab-content">
     <!-- Plugins Tab -->
     <div class="tab-pane <?= $tab === 'plugins' ? 'active' : '' ?>" id="tabPlugins">
+        <?php
+        // Mark new plugins (created within 30 days)
+        $newPluginIds = [];
+        $hotPluginSlugs = ['kho-logistics','attendance-payroll','gamification'];
+        foreach ($plugins as $p) {
+            if (!empty($p['created_at']) && strtotime($p['created_at']) > strtotime('-30 days')) $newPluginIds[] = $p['id'];
+        }
+        // Tenant active map
+        $activeMap = [];
+        try {
+            $tpRows = \Core\Database::fetchAll("SELECT plugin_id, is_active FROM tenant_plugins WHERE tenant_id = ?", [\Core\Database::tenantId()]);
+            foreach ($tpRows as $tp) $activeMap[$tp['plugin_id']] = $tp['is_active'];
+        } catch (\Exception $e) {}
+        ?>
+
         <!-- Search & Filter -->
-        <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?= url('plugins/marketplace') ?>" class="row g-3">
-                    <div class="col-md-6">
-                        <div class="search-box">
-                            <input type="text" class="form-control" name="search" placeholder="Tìm kiếm plugin..." value="<?= e($filters['search'] ?? '') ?>">
-                            <i class="ri-search-line search-icon"></i>
-                        </div>
+        <div class="card mb-2">
+            <div class="card-header p-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="search-box flex-grow-1" style="max-width:300px">
+                        <input type="text" class="form-control" id="pluginSearch" placeholder="Tìm kiếm plugin..." value="<?= e($filters['search'] ?? '') ?>">
+                        <i class="ri-search-line search-icon"></i>
                     </div>
-                    <div class="col-md-4">
-                        <select name="category" class="form-select" onchange="this.form.submit()">
+                    <form method="GET" action="<?= url('plugins/marketplace') ?>" id="filterForm" class="d-flex gap-2">
+                        <select name="category" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
                             <option value="">Tất cả danh mục</option>
                             <?php foreach ($categories as $cat): ?>
-                                <option value="<?= e($cat) ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : '' ?>><?= e(ucfirst($cat)) ?></option>
+                            <option value="<?= e($cat) ?>" <?= ($filters['category'] ?? '') === $cat ? 'selected' : '' ?>><?= e(ucfirst($cat)) ?></option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100"><i class="ri-search-line me-1"></i> Lọc</button>
-                    </div>
-                </form>
+                        <select name="sort" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                            <option value="">Mặc định</option>
+                            <option value="name" <?= ($filters['sort'] ?? '') === 'name' ? 'selected' : '' ?>>Tên A-Z</option>
+                            <option value="newest" <?= ($filters['sort'] ?? '') === 'newest' ? 'selected' : '' ?>>Mới nhất</option>
+                        </select>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" id="pluginGrid">
             <?php if (!empty($plugins)): ?>
-                <?php foreach ($plugins as $plugin): ?>
-                    <?php $isInstalled = in_array($plugin['id'], $installedIds); ?>
-                    <div class="col-xl-4 col-md-6">
+                <?php foreach ($plugins as $plugin):
+                    $isInstalled = in_array($plugin['id'], $installedIds);
+                    $isActive = $isInstalled && ($activeMap[$plugin['id']] ?? 0);
+                    $isNew = in_array($plugin['id'], $newPluginIds);
+                    $isHot = in_array($plugin['slug'], $hotPluginSlugs);
+                ?>
+                    <div class="col-xl-4 col-md-6 plugin-card" data-name="<?= e(strtolower($plugin['name'])) ?>" data-desc="<?= e(strtolower($plugin['description'])) ?>">
                         <div class="card card-height-100">
                             <div class="card-body">
                                 <div class="d-flex align-items-start mb-3">
                                     <div class="flex-shrink-0">
                                         <div class="avatar-sm">
-                                            <div class="avatar-title bg-primary-subtle text-primary rounded fs-18">
+                                            <div class="avatar-title bg-<?= $isActive ? 'success' : 'primary' ?>-subtle text-<?= $isActive ? 'success' : 'primary' ?> rounded fs-18">
                                                 <i class="<?= e($plugin['icon']) ?>"></i>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flex-grow-1 ms-3">
-                                        <h5 class="mb-1"><?= e($plugin['name']) ?></h5>
-                                        <div class="d-flex gap-2 align-items-center">
+                                        <h6 class="mb-1"><?= e($plugin['name']) ?></h6>
+                                        <div class="d-flex gap-1 align-items-center flex-wrap">
                                             <span class="badge bg-info-subtle text-info"><?= e(ucfirst($plugin['category'])) ?></span>
-                                            <span class="text-muted">v<?= e($plugin['version']) ?></span>
+                                            <span class="text-muted fs-11">v<?= e($plugin['version']) ?></span>
+                                            <?php if ($isNew): ?><span class="badge bg-success">Mới</span><?php endif; ?>
+                                            <?php if ($isHot): ?><span class="badge bg-danger">Hot</span><?php endif; ?>
                                         </div>
                                     </div>
                                     <?php if ($isInstalled): ?>
-                                        <span class="badge bg-success-subtle text-success">Đã cài</span>
-                                    <?php endif; ?>
-                                </div>
-                                <p class="text-muted mb-3"><?= e($plugin['description']) ?></p>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span class="text-muted"><i class="ri-user-line me-1"></i><?= e($plugin['author']) ?></span>
-                                    <?php if ($isInstalled): ?>
-                                        <a href="<?= url('plugins/' . $plugin['id'] . '/configure') ?>" class="btn btn-soft-primary">
-                                            <i class="ri-settings-3-line me-1"></i> Cấu hình
-                                        </a>
-                                    <?php else: ?>
-                                        <form method="POST" action="<?= url('plugins/' . $plugin['id'] . '/install') ?>">
+                                        <form method="POST" action="<?= url('plugins/' . $plugin['id'] . '/toggle') ?>" class="ms-2">
                                             <?= csrf_field() ?>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="ri-download-line me-1"></i> Cài đặt
-                                            </button>
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" <?= $isActive ? 'checked' : '' ?> onchange="this.closest('form').submit()" title="<?= $isActive ? 'Tắt' : 'Bật' ?>">
+                                            </div>
                                         </form>
                                     <?php endif; ?>
+                                </div>
+                                <p class="text-muted fs-13 mb-3"><?= e($plugin['description']) ?></p>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-muted fs-12"><i class="ri-user-line me-1"></i><?= e($plugin['author']) ?></span>
+                                    <div class="d-flex gap-1">
+                                        <?php if ($isInstalled): ?>
+                                            <a href="<?= url('plugins/' . $plugin['id'] . '/configure') ?>" class="btn btn-soft-primary">
+                                                <i class="ri-settings-3-line me-1"></i> Cấu hình
+                                            </a>
+                                            <form method="POST" action="<?= url('plugins/' . $plugin['id'] . '/uninstall') ?>" onsubmit="return confirm('Gỡ cài đặt <?= e($plugin['name']) ?>?')">
+                                                <?= csrf_field() ?>
+                                                <button class="btn btn-soft-danger"><i class="ri-delete-bin-line"></i></button>
+                                            </form>
+                                        <?php else: ?>
+                                            <form method="POST" action="<?= url('plugins/' . $plugin['id'] . '/install') ?>">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="ri-download-line me-1"></i> Cài đặt
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -114,13 +146,24 @@ try {
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body text-center py-5">
-                            <i class="ri-store-2-line fs-1 text-muted d-block mb-3"></i>
+                            <i class="ri-plug-line fs-1 text-muted d-block mb-3"></i>
                             <h5 class="text-muted">Không tìm thấy plugin nào</h5>
                         </div>
                     </div>
                 </div>
             <?php endif; ?>
         </div>
+
+        <script>
+        document.getElementById('pluginSearch')?.addEventListener('input', function() {
+            var q = this.value.toLowerCase();
+            document.querySelectorAll('.plugin-card').forEach(function(card) {
+                var name = card.dataset.name || '';
+                var desc = card.dataset.desc || '';
+                card.style.display = (name.indexOf(q) >= 0 || desc.indexOf(q) >= 0) ? '' : 'none';
+            });
+        });
+        </script>
     </div>
 
     <!-- Integrations Tab -->

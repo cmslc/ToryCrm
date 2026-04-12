@@ -16,13 +16,22 @@ class PluginController extends Controller
 
         $search = $this->input('search');
         $category = $this->input('category');
+        $sort = $this->input('sort');
 
         // Filter
-        $plugins = array_filter($allPlugins, function ($p) use ($search, $category, $installedIds) {
+        $plugins = array_filter($allPlugins, function ($p) use ($search, $category) {
             if ($search && stripos($p['name'] . $p['description'], $search) === false) return false;
             if ($category && $p['category'] !== $category) return false;
             return true;
         });
+
+        // Sort
+        $plugins = array_values($plugins);
+        if ($sort === 'name') {
+            usort($plugins, function ($a, $b) { return strcasecmp($a['name'], $b['name']); });
+        } elseif ($sort === 'newest') {
+            usort($plugins, function ($a, $b) { return ($b['id'] ?? 0) - ($a['id'] ?? 0); });
+        }
 
         // Get categories
         $categories = array_unique(array_column($allPlugins, 'category'));
@@ -35,6 +44,7 @@ class PluginController extends Controller
             'filters' => [
                 'search' => $search,
                 'category' => $category,
+                'sort' => $sort,
             ],
         ]);
     }
