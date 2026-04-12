@@ -4,158 +4,146 @@ $folderLabels = ['inbox'=>'Hộp thư đến','sent'=>'Đã gửi','drafts'=>'Nh
 $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>'ri-draft-line','trash'=>'ri-delete-bin-line','spam'=>'ri-spam-line','archive'=>'ri-archive-line'];
 ?>
 
-<div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0"><i class="ri-mail-line me-2"></i> Email</h4>
-    <div class="d-flex gap-2">
-        <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary"><i class="ri-settings-3-line me-1"></i> Cài đặt</a>
-        <form method="POST" action="<?= url('email/sync') ?>" class="d-inline">
-            <?= csrf_field() ?>
-            <input type="hidden" name="account_id" value="<?= $accountId ?>">
-            <button class="btn btn-soft-info"><i class="ri-refresh-line me-1"></i> Đồng bộ</button>
-        </form>
-        <a href="<?= url('email/compose') ?>" class="btn btn-primary"><i class="ri-edit-line me-1"></i> Soạn email</a>
-    </div>
-</div>
-
 <?php if (empty($accounts)): ?>
+<div class="page-title-box"><h4 class="mb-0"><i class="ri-mail-line me-2"></i> Email</h4></div>
 <div class="card">
     <div class="card-body text-center py-5">
         <i class="ri-mail-settings-line fs-1 text-muted d-block mb-3"></i>
         <h5>Chưa cấu hình tài khoản email</h5>
-        <p class="text-muted">Thêm tài khoản IMAP/SMTP để bắt đầu gửi và nhận email.</p>
+        <p class="text-muted">Thêm tài khoản để bắt đầu gửi và nhận email.</p>
         <a href="<?= url('email/settings') ?>" class="btn btn-primary"><i class="ri-settings-3-line me-1"></i> Cấu hình ngay</a>
     </div>
 </div>
 <?php else: ?>
 
-<div class="row">
-    <!-- Sidebar -->
-    <div class="col-lg-3">
-        <div class="card">
-            <div class="card-body p-3">
-                <!-- Account selector -->
-                <?php if (count($accounts) > 1): ?>
-                <select class="form-select mb-3" onchange="location.href='<?= url('email') ?>?account='+this.value">
-                    <?php foreach ($accounts as $acc): ?>
-                    <option value="<?= $acc['id'] ?>" <?= $acc['id'] == $accountId ? 'selected' : '' ?>><?= e($acc['email']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <?php else: ?>
-                <p class="fw-medium mb-3"><?= e($accounts[0]['email']) ?></p>
-                <?php endif; ?>
+<div class="d-flex" style="min-height:calc(100vh - 140px)">
+    <!-- Sidebar Gmail style -->
+    <div class="flex-shrink-0" style="width:220px">
+        <a href="<?= url('email/compose') ?>" class="btn btn-primary w-100 mb-3 py-2">
+            <i class="ri-edit-line me-1"></i> Soạn thư
+        </a>
 
-                <!-- Folders -->
-                <ul class="list-group list-group-flush">
-                    <?php
-                    $folderMap = [];
-                    foreach ($folders ?? [] as $f) $folderMap[$f['folder']] = $f;
-                    foreach (['inbox','sent','drafts','trash','spam','archive'] as $f):
-                        $cnt = $folderMap[$f]['cnt'] ?? 0;
-                        $unread = $folderMap[$f]['unread'] ?? 0;
-                        if ($cnt == 0 && !in_array($f, ['inbox','sent','trash'])) continue;
-                    ?>
-                    <li class="list-group-item d-flex align-items-center px-0 <?= $folder === $f ? 'text-primary fw-medium' : '' ?>">
-                        <a href="<?= url('email?account=' . $accountId . '&folder=' . $f) ?>" class="flex-grow-1 text-decoration-none <?= $folder === $f ? 'text-primary' : 'text-body' ?>">
-                            <i class="<?= $folderIcons[$f] ?? 'ri-folder-line' ?> me-2"></i> <?= $folderLabels[$f] ?? ucfirst($f) ?>
-                        </a>
-                        <?php if ($unread > 0): ?><span class="badge bg-primary"><?= $unread ?></span><?php elseif ($cnt > 0): ?><span class="badge bg-secondary-subtle text-secondary"><?= $cnt ?></span><?php endif; ?>
-                    </li>
-                    <?php endforeach; ?>
-                </ul>
+        <div class="nav flex-column">
+            <?php
+            $folderMap = [];
+            foreach ($folders ?? [] as $f) $folderMap[$f['folder']] = $f;
+            foreach (['inbox','sent','drafts','trash','spam'] as $f):
+                $cnt = $folderMap[$f]['cnt'] ?? 0;
+                $unread = $folderMap[$f]['unread'] ?? 0;
+                if ($cnt == 0 && !in_array($f, ['inbox','sent','trash'])) continue;
+                $isActive = ($folder === $f);
+            ?>
+            <a href="<?= url('email?account=' . $accountId . '&folder=' . $f) ?>"
+               class="d-flex align-items-center px-3 py-2 rounded text-decoration-none mb-1 <?= $isActive ? 'bg-primary-subtle text-primary fw-medium' : 'text-body' ?>"
+               style="<?= $isActive ? '' : '' ?>">
+                <i class="<?= $folderIcons[$f] ?> me-2 fs-16"></i>
+                <span class="flex-grow-1"><?= $folderLabels[$f] ?></span>
+                <?php if ($unread > 0): ?><span class="fw-bold fs-12"><?= $unread ?></span>
+                <?php elseif ($cnt > 0 && $f !== 'inbox'): ?><span class="text-muted fs-12"><?= $cnt ?></span><?php endif; ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+
+        <hr class="my-3">
+        <div class="px-2">
+            <?php if (count($accounts) > 1): ?>
+            <select class="form-select form-select-sm mb-2" onchange="location.href='<?= url('email') ?>?account='+this.value">
+                <?php foreach ($accounts as $acc): ?>
+                <option value="<?= $acc['id'] ?>" <?= $acc['id'] == $accountId ? 'selected' : '' ?>><?= e($acc['email']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <?php else: ?>
+            <small class="text-muted d-block mb-2"><?= e($accounts[0]['email']) ?></small>
+            <?php endif; ?>
+            <div class="d-flex gap-1">
+                <form method="POST" action="<?= url('email/sync') ?>" class="flex-grow-1">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="account_id" value="<?= $accountId ?>">
+                    <button class="btn btn-soft-secondary btn-sm w-100"><i class="ri-refresh-line me-1"></i> Đồng bộ</button>
+                </form>
+                <a href="<?= url('email/settings') ?>" class="btn btn-soft-secondary btn-sm" title="Cài đặt"><i class="ri-settings-3-line"></i></a>
             </div>
         </div>
     </div>
 
-    <!-- Messages -->
-    <div class="col-lg-9">
-        <!-- Search -->
-        <div class="card mb-2">
-            <div class="card-body py-2">
-                <form method="GET" action="<?= url('email') ?>" class="d-flex gap-2">
-                    <input type="hidden" name="account" value="<?= $accountId ?>">
-                    <input type="hidden" name="folder" value="<?= e($folder) ?>">
-                    <div class="search-box flex-grow-1">
-                        <input type="text" class="form-control" name="search" placeholder="Tìm email..." value="<?= e($search) ?>">
-                        <i class="ri-search-line search-icon"></i>
-                    </div>
-                    <button class="btn btn-primary"><i class="ri-search-line"></i></button>
-                </form>
-            </div>
+    <!-- Main content -->
+    <div class="flex-grow-1 ms-3">
+        <!-- Toolbar -->
+        <div class="bg-white rounded-top border-bottom px-3 py-2 d-flex align-items-center gap-3">
+            <input type="checkbox" class="form-check-input" id="checkAll">
+            <form method="GET" action="<?= url('email') ?>" class="flex-grow-1 d-flex">
+                <input type="hidden" name="account" value="<?= $accountId ?>">
+                <input type="hidden" name="folder" value="<?= e($folder) ?>">
+                <div class="search-box w-100">
+                    <input type="text" class="form-control form-control-sm border-0 bg-light" name="search" placeholder="Tìm kiếm email..." value="<?= e($search) ?>" style="border-radius:8px">
+                    <i class="ri-search-line search-icon"></i>
+                </div>
+            </form>
+            <span class="text-muted fs-12 flex-shrink-0"><?= $total ?> email</span>
         </div>
 
         <!-- Bulk bar -->
-        <div class="card mb-2 d-none" id="bulkBar" style="position:sticky;top:70px;z-index:100">
-            <div class="card-body py-2">
-                <form method="POST" action="<?= url('email/bulk') ?>" class="d-flex align-items-center gap-2" id="bulkForm">
-                    <?= csrf_field() ?>
-                    <div id="bulkIds"></div>
-                    <span class="fw-medium"><span id="bulkCount">0</span> đã chọn</span>
-                    <button type="submit" name="action" value="read" class="btn btn-soft-primary"><i class="ri-mail-open-line me-1"></i> Đã đọc</button>
-                    <button type="submit" name="action" value="unread" class="btn btn-soft-info"><i class="ri-mail-line me-1"></i> Chưa đọc</button>
-                    <button type="submit" name="action" value="trash" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
-                </form>
-            </div>
+        <div class="bg-primary-subtle px-3 py-2 d-none" id="bulkBar">
+            <form method="POST" action="<?= url('email/bulk') ?>" class="d-flex align-items-center gap-2" id="bulkForm">
+                <?= csrf_field() ?>
+                <div id="bulkIds"></div>
+                <span class="fw-medium fs-13"><span id="bulkCount">0</span> đã chọn</span>
+                <button type="submit" name="action" value="read" class="btn btn-sm btn-light"><i class="ri-mail-open-line"></i></button>
+                <button type="submit" name="action" value="unread" class="btn btn-sm btn-light"><i class="ri-mail-unread-line"></i></button>
+                <button type="submit" name="action" value="trash" class="btn btn-sm btn-light text-danger"><i class="ri-delete-bin-line"></i></button>
+            </form>
         </div>
 
-        <div class="card">
-            <div class="card-header py-2">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="checkbox" class="form-check-input" id="checkAll">
-                        <span class="fw-medium"><?= $folderLabels[$folder] ?? ucfirst($folder) ?> <span class="text-muted">(<?= $total ?>)</span></span>
-                    </div>
-                    <?php if ($unreadCount > 0): ?><span class="badge bg-primary"><?= $unreadCount ?> chưa đọc</span><?php endif; ?>
-                </div>
+        <!-- Email list (Gmail style) -->
+        <div class="bg-white rounded-bottom border">
+            <?php foreach ($messages as $m):
+                $sender = $folder === 'sent' ? e($m['to_emails']) : e($m['from_name'] ?: $m['from_email']);
+                $subj = e(mb_substr($m['subject'] ?: '(Không tiêu đề)', 0, 60));
+                $preview = $m['body_text'] ? ' - ' . e(mb_substr(strip_tags($m['body_text']), 0, 80)) : '';
+                $time = $m['sent_at'] ? (date('Y-m-d', strtotime($m['sent_at'])) === date('Y-m-d') ? date('H:i', strtotime($m['sent_at'])) : date('d/m', strtotime($m['sent_at']))) : '';
+            ?>
+            <div class="d-flex align-items-center px-3 py-2 border-bottom email-row <?= !$m['is_read'] ? 'bg-light fw-medium' : '' ?>" style="cursor:pointer" onclick="if(!event.target.closest('.no-nav'))location.href='<?= url('email/' . $m['id']) ?>'">
+                <input type="checkbox" class="form-check-input me-2 row-check no-nav" value="<?= $m['id'] ?>">
+                <button class="btn btn-link p-0 me-2 star-btn no-nav" data-id="<?= $m['id'] ?>" style="font-size:14px;line-height:1">
+                    <i class="ri-star-<?= $m['is_starred'] ? 'fill text-warning' : 'line text-muted' ?>"></i>
+                </button>
+                <span class="flex-shrink-0 text-truncate <?= !$m['is_read'] ? 'fw-bold' : '' ?>" style="width:180px"><?= $sender ?></span>
+                <span class="flex-grow-1 text-truncate ms-2">
+                    <span class="<?= !$m['is_read'] ? '' : 'text-body' ?>"><?= $subj ?></span>
+                    <span class="text-muted fw-normal"><?= $preview ?></span>
+                </span>
+                <?php if ($m['has_attachments']): ?><i class="ri-attachment-line text-muted ms-2 flex-shrink-0"></i><?php endif; ?>
+                <?php if ($m['contact_id']): ?><span class="badge bg-success-subtle text-success ms-1 flex-shrink-0 fs-10">KH</span><?php endif; ?>
+                <span class="text-muted fs-12 ms-2 flex-shrink-0" style="min-width:40px;text-align:right"><?= $time ?></span>
             </div>
-            <div class="list-group list-group-flush">
-                <?php foreach ($messages as $m): ?>
-                <div class="list-group-item py-3 <?= !$m['is_read'] ? 'bg-light' : '' ?>">
-                    <div class="d-flex align-items-start">
-                        <input type="checkbox" class="form-check-input me-2 mt-1 row-check" value="<?= $m['id'] ?>">
-                        <button class="btn btn-link p-0 me-2 mt-1 star-btn" data-id="<?= $m['id'] ?>" style="font-size:16px">
-                            <i class="ri-star-<?= $m['is_starred'] ? 'fill text-warning' : 'line text-muted' ?>"></i>
-                        </button>
-                        <a href="<?= url('email/' . $m['id']) ?>" class="flex-grow-1 text-decoration-none text-body">
-                            <div class="d-flex align-items-center mb-1">
-                                <span class="fw-<?= !$m['is_read'] ? 'bold' : 'medium' ?> me-2">
-                                    <?php if ($folder === 'sent'): ?>
-                                        <?= e($m['to_emails']) ?>
-                                    <?php else: ?>
-                                        <?= e($m['from_name'] ?: $m['from_email']) ?>
-                                    <?php endif; ?>
-                                </span>
-                                <?php if ($m['has_attachments']): ?><i class="ri-attachment-line text-muted me-1"></i><?php endif; ?>
-                                <?php if ($m['contact_id']): ?><span class="badge bg-success-subtle text-success fs-10">KH</span><?php endif; ?>
-                                <span class="text-muted fs-12 ms-auto"><?= $m['sent_at'] ? created_ago($m['sent_at']) : '' ?></span>
-                            </div>
-                            <p class="mb-0 <?= !$m['is_read'] ? 'fw-medium' : 'text-muted' ?>"><?= e(mb_substr($m['subject'] ?: '(Không tiêu đề)', 0, 80)) ?></p>
-                            <?php if ($m['body_text']): ?><small class="text-muted"><?= e(mb_substr(strip_tags($m['body_text']), 0, 100)) ?>...</small><?php endif; ?>
-                        </a>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-                <?php if (empty($messages)): ?>
-                <div class="list-group-item text-center py-5 text-muted">
-                    <i class="ri-inbox-line fs-1 d-block mb-2"></i>
-                    Không có email trong <?= $folderLabels[$folder] ?? $folder ?>
-                </div>
-                <?php endif; ?>
-            </div>
-            <?php if ($totalPages > 1): ?>
-            <div class="card-footer">
-                <div class="d-flex align-items-center justify-content-between">
-                    <span class="text-muted fs-12"><?= $total ?> email</span>
-                    <ul class="pagination pagination-separated mb-0">
-                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <li class="page-item <?= $i === $page ? 'active' : '' ?>"><a class="page-link" href="<?= url("email?account={$accountId}&folder={$folder}&page={$i}") ?>"><?= $i ?></a></li>
-                        <?php endfor; ?>
-                    </ul>
-                </div>
+            <?php endforeach; ?>
+
+            <?php if (empty($messages)): ?>
+            <div class="text-center py-5 text-muted">
+                <i class="ri-inbox-line fs-1 d-block mb-2"></i>
+                Không có email trong <?= $folderLabels[$folder] ?? $folder ?>
             </div>
             <?php endif; ?>
         </div>
+
+        <?php if ($totalPages > 1): ?>
+        <div class="d-flex align-items-center justify-content-between mt-2">
+            <span class="text-muted fs-12"><?= $total ?> email</span>
+            <ul class="pagination pagination-sm mb-0">
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <li class="page-item <?= $i === $page ? 'active' : '' ?>"><a class="page-link" href="<?= url("email?account={$accountId}&folder={$folder}&page={$i}") ?>"><?= $i ?></a></li>
+                <?php endfor; ?>
+            </ul>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
+
+<style>
+.email-row:hover { background-color: #f8f9fa !important; }
+.email-row .star-btn:hover i { color: #f7b84b !important; }
+</style>
+
 <?php endif; ?>
 
 <script>
