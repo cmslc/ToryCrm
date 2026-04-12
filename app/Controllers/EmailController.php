@@ -53,6 +53,10 @@ class EmailController extends Controller
             $s = "%{$search}%";
             $params = array_merge($params, [$s, $s, $s]);
         }
+        if ($this->input('date_from')) { $where[] = "em.sent_at >= ?"; $params[] = $this->input('date_from') . ' 00:00:00'; }
+        if ($this->input('date_to')) { $where[] = "em.sent_at <= ?"; $params[] = $this->input('date_to') . ' 23:59:59'; }
+        if ($this->input('has_attach')) { $where[] = "em.has_attachments = 1"; }
+        if ($this->input('starred')) { $where[] = "em.is_starred = 1"; }
 
         $whereSql = implode(' AND ', $where);
         $total = Database::fetch("SELECT COUNT(*) as cnt FROM email_messages em WHERE $whereSql", $params)['cnt'];

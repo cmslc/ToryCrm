@@ -103,10 +103,15 @@ $folder = $m['folder'] ?? 'inbox';
             <div class="d-flex gap-2 flex-wrap">
                 <?php foreach ($attachments as $att): ?>
                 <?php $attUrl = (str_starts_with($att['file_path'], 'http')) ? $att['file_path'] : url($att['file_path']); ?>
+                <?php $isImage = str_starts_with($att['mime_type'] ?? '', 'image/'); ?>
                 <div class="border rounded px-3 py-2 d-flex align-items-center gap-2">
+                    <?php if ($isImage): ?>
+                    <img src="<?= $attUrl ?>" class="rounded flex-shrink-0" style="width:40px;height:40px;object-fit:cover" alt="">
+                    <?php else: ?>
                     <div class="avatar-xs flex-shrink-0">
                         <div class="avatar-title bg-primary-subtle text-primary rounded fs-18"><i class="ri-file-line"></i></div>
                     </div>
+                    <?php endif; ?>
                     <div class="flex-grow-1">
                         <div class="fw-medium fs-13"><?= e($att['filename']) ?></div>
                         <small class="text-muted"><?= $att['size'] < 1048576 ? round($att['size'] / 1024, 2) . ' KB' : round($att['size'] / 1048576, 2) . ' MB' ?></small>

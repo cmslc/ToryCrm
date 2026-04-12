@@ -70,12 +70,24 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
                 <input type="hidden" name="account_id" value="<?= $accountId ?>">
                 <button class="btn btn-link p-0 text-muted shadow-none" title="Đồng bộ"><i class="ri-refresh-line fs-18"></i></button>
             </form>
-            <form method="GET" action="<?= url('email') ?>" class="flex-grow-1 d-flex">
+            <form method="GET" action="<?= url('email') ?>" class="flex-grow-1 d-flex gap-2">
                 <input type="hidden" name="account" value="<?= $accountId ?>">
                 <input type="hidden" name="folder" value="<?= e($folder) ?>">
-                <div class="search-box w-100">
+                <div class="search-box flex-grow-1">
                     <input type="text" class="form-control border-0 bg-light" name="search" placeholder="Tìm kiếm email..." value="<?= e($search) ?>" style="border-radius:8px">
                     <i class="ri-search-line search-icon"></i>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-link text-muted shadow-none p-0" type="button" data-bs-toggle="dropdown" title="Bộ lọc"><i class="ri-filter-3-line fs-18"></i></button>
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:250px" onclick="event.stopPropagation()">
+                        <label class="form-label fs-12 text-muted">Từ ngày</label>
+                        <input type="date" class="form-control mb-2" name="date_from" value="<?= e($_GET['date_from'] ?? '') ?>">
+                        <label class="form-label fs-12 text-muted">Đến ngày</label>
+                        <input type="date" class="form-control mb-2" name="date_to" value="<?= e($_GET['date_to'] ?? '') ?>">
+                        <div class="form-check mb-2"><input type="checkbox" class="form-check-input" name="has_attach" value="1" id="fAttach" <?= ($_GET['has_attach'] ?? '') ? 'checked' : '' ?>><label class="form-check-label" for="fAttach">Có đính kèm</label></div>
+                        <div class="form-check mb-3"><input type="checkbox" class="form-check-input" name="starred" value="1" id="fStar" <?= ($_GET['starred'] ?? '') ? 'checked' : '' ?>><label class="form-check-label" for="fStar">Có gắn sao</label></div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="ri-filter-3-line me-1"></i> Lọc</button>
+                    </div>
                 </div>
             </form>
             <span class="text-muted fs-12 flex-shrink-0"><?= $total ?> email</span>

@@ -51,11 +51,13 @@ if ($firstAcc): ?>
             <?= csrf_field() ?>
             <input type="hidden" name="account_id" value="<?= $firstAcc['id'] ?>">
             <div class="mb-3">
-                <textarea class="form-control" name="signature" rows="4" placeholder="VD: Trân trọng,&#10;Nguyễn Văn A&#10;Phòng Kinh doanh | Công ty ABC&#10;SĐT: 0123 456 789"><?= e($firstAcc['signature'] ?? '') ?></textarea>
+                <textarea name="signature" id="signatureEditor"><?= e($firstAcc['signature'] ?? '') ?></textarea>
                 <small class="text-muted">Chữ ký sẽ tự động thêm vào cuối mỗi email gửi đi.</small>
             </div>
             <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu chữ ký</button>
         </form>
+        <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+        <script>CKEDITOR.replace('signatureEditor',{height:150,removeButtons:'About',toolbar:[['Bold','Italic','Underline'],['Link','Unlink'],['TextColor'],['Font','FontSize'],['Source']]});</script>
     </div>
 </div>
 <?php endif; endif; ?>
