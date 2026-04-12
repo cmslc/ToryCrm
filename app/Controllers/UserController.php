@@ -20,21 +20,21 @@ class UserController extends Controller
         $perPage = 10;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["tenant_id = ?"];
+        $where = ["u.tenant_id = ?"];
         $params = [$tid];
 
         if ($search) {
-            $where[] = "(name LIKE ? OR email LIKE ? OR phone LIKE ?)";
+            $where[] = "(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)";
             $s = "%{$search}%";
             $params = array_merge($params, [$s, $s, $s]);
         }
-        if ($role) { $where[] = "role = ?"; $params[] = $role; }
-        if ($status !== null && $status !== '') { $where[] = "is_active = ?"; $params[] = (int)$status; }
-        if ($dept) { $where[] = "department_id = ?"; $params[] = (int)$dept; }
+        if ($role) { $where[] = "u.role = ?"; $params[] = $role; }
+        if ($status !== null && $status !== '') { $where[] = "u.is_active = ?"; $params[] = (int)$status; }
+        if ($dept) { $where[] = "u.department_id = ?"; $params[] = (int)$dept; }
 
         $whereClause = implode(' AND ', $where);
 
-        $total = Database::fetch("SELECT COUNT(*) as count FROM users WHERE {$whereClause}", $params)['count'];
+        $total = Database::fetch("SELECT COUNT(*) as count FROM users u WHERE {$whereClause}", $params)['count'];
         $users = Database::fetchAll(
             "SELECT u.*, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE {$whereClause} ORDER BY u.created_at DESC LIMIT {$perPage} OFFSET {$offset}",
             $params
