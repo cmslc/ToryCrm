@@ -485,7 +485,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('automation/create', 'AutomationController@create');
     Router::post('automation/store', 'AutomationController@store');
     Router::get('automation/{id}/logs', 'AutomationController@logs');
-    Router::post('automation/{id}/toggle', 'AutomationController@toggleActive');
+    Router::post('automation/{id}/toggle-active', 'AutomationController@toggleActive');
     Router::post('automation/{id}/delete', 'AutomationController@delete');
 
     // Tags
