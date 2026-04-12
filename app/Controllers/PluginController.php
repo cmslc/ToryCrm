@@ -37,7 +37,7 @@ class PluginController extends Controller
         $categories = array_unique(array_column($allPlugins, 'category'));
         sort($categories);
 
-        return $this->view('plugins.marketplace', [
+        return $this->view('plugins.plugin-install', [
             'plugins' => $plugins,
             'installedIds' => $installedIds,
             'categories' => $categories,
