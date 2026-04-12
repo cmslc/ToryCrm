@@ -208,16 +208,23 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (plugin_active('email')): ?>
+                <?php
+                $__unread = 0;
+                try { $__unread = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM email_messages WHERE tenant_id = ? AND folder = 'inbox' AND is_read = 0", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
+                $emailOpen = isOpen(['email'], $currentUrl);
+                ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('email', $currentUrl) ?>" href="<?= url('email') ?>">
+                    <a class="nav-link menu-link <?= $emailOpen ? '' : 'collapsed' ?>" href="#sidebarEmail" data-bs-toggle="collapse" role="button" aria-expanded="<?= $emailOpen ? 'true' : 'false' ?>">
                         <i class="ri-mail-line"></i> <span>Email</span>
-                        <?php
-                        $__unread = 0;
-                        try { $__unread = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM email_messages WHERE tenant_id = ? AND folder = 'inbox' AND is_read = 0", [$_SESSION['tenant_id'] ?? 1])['c'] ?? 0); } catch (\Exception $e) {}
-                        if ($__unread > 0): ?>
-                        <span class="badge bg-danger ms-auto"><?= $__unread ?></span>
-                        <?php endif; ?>
+                        <?php if ($__unread > 0): ?><span class="badge bg-danger ms-auto"><?= $__unread ?></span><?php endif; ?>
                     </a>
+                    <div class="collapse menu-dropdown <?= $emailOpen ? 'show' : '' ?>" id="sidebarEmail">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('email') ?>" class="nav-link <?= $currentUrl === 'email' || str_starts_with($currentUrl, 'email?') ? 'active' : '' ?>">Hộp thư<?php if ($__unread > 0): ?> <span class="badge bg-danger ms-1"><?= $__unread ?></span><?php endif; ?></a></li>
+                            <li class="nav-item"><a href="<?= url('email/templates') ?>" class="nav-link <?= isActive('email/templates', $currentUrl) ?>">Mẫu email</a></li>
+                            <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('email/settings') ?>" class="nav-link <?= isActive('email/settings', $currentUrl) ?>">Cài đặt</a></li><?php endif; ?>
+                        </ul>
+                    </div>
                 </li>
                 <?php endif; ?>
 
