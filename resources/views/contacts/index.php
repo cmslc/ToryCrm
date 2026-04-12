@@ -194,7 +194,6 @@ $currentStatus = $filters['status'] ?? '';
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
-                        <li><a class="dropdown-item" href="<?= url('import-export') ?>"><i class="ri-download-line me-2"></i>Xuất Excel</a></li>
                         <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
                     </ul>
                 </div>
