@@ -219,6 +219,10 @@ class EmailController extends Controller
             $this->setFlash('success', 'Đã gửi email đến ' . $to . (!empty($attachments) ? ' (' . count($attachments) . ' đính kèm)' : ''));
             return $this->redirect('email?folder=sent');
         } else {
+            // Cleanup uploaded files on failure
+            foreach ($attachments as $att) {
+                if (file_exists($att['path'])) unlink($att['path']);
+            }
             $this->setFlash('error', 'Gửi thất bại: ' . ($result['error'] ?? 'Lỗi không xác định'));
             return $this->redirect('email/compose');
         }
