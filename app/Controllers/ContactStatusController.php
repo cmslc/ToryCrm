@@ -13,9 +13,14 @@ class ContactStatusController extends Controller
             "SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order",
             [$this->tenantId()]
         );
+        $tags = Database::fetchAll(
+            "SELECT t.*, (SELECT COUNT(*) FROM contact_tags WHERE tag_id = t.id) as use_count FROM tags t WHERE t.tenant_id = ? ORDER BY t.name",
+            [$this->tenantId()]
+        );
 
         return $this->view('settings.contact-statuses', [
             'statuses' => $statuses,
+            'tags' => $tags,
         ]);
     }
 

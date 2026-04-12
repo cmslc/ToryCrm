@@ -10,12 +10,7 @@ class TagController extends Controller
 {
     public function index()
     {
-        $tenantId = Database::tenantId();
-        $tags = TagService::getAll($tenantId);
-
-        return $this->view('tags.index', [
-            'tags' => $tags,
-        ]);
+        return $this->redirect('settings/contact-statuses?tab=tags');
     }
 
     public function store()
