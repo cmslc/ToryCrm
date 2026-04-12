@@ -33,9 +33,14 @@ class EmailController extends Controller
         $limit = 20;
         $offset = ($page - 1) * $limit;
 
-        $accounts = EmailService::getAllAccounts();
+        // Admin sees all, user sees own assigned accounts
+        if ($this->isAdminOrManager()) {
+            $accounts = EmailService::getAllAccounts();
+        } else {
+            $accounts = EmailService::getAccountsForUser($this->userId());
+        }
         if (empty($accounts)) {
-            return $this->view('email.inbox', ['accounts' => [], 'messages' => [], 'total' => 0, 'page' => 1, 'totalPages' => 0, 'folder' => $folder, 'accountId' => 0, 'search' => '', 'unreadCount' => 0]);
+            return $this->view('email.inbox', ['accounts' => [], 'messages' => [], 'total' => 0, 'page' => 1, 'totalPages' => 0, 'folder' => $folder, 'accountId' => 0, 'search' => '', 'unreadCount' => 0, 'folders' => []]);
         }
 
         $account = $accountId ? EmailService::getAccount($accountId) : $accounts[0];
@@ -217,6 +222,10 @@ class EmailController extends Controller
     public function settings()
     {
         if (!$this->checkPlugin()) return;
+        if (!$this->isAdminOrManager()) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('email');
+        }
         $accounts = EmailService::getAllAccounts();
         return $this->view('email.settings', compact('accounts'));
     }
@@ -229,7 +238,7 @@ class EmailController extends Controller
 
         $data = [
             'tenant_id' => $tid,
-            'user_id' => $this->userId(),
+            'user_id' => $this->input('user_id') ? (int)$this->input('user_id') : null,
             'email' => trim($this->input('email') ?? ''),
             'display_name' => trim($this->input('display_name') ?? ''),
             'username' => trim($this->input('email') ?? ''),

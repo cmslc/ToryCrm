@@ -12,7 +12,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light"><tr><th>Email</th><th>API Token</th><th>Đồng bộ cuối</th><th>Mặc định</th><th>Thao tác</th></tr></thead>
+                <thead class="table-light"><tr><th>Email</th><th>Nhân viên</th><th>API Token</th><th>Đồng bộ cuối</th><th>MĐ</th><th>Thao tác</th></tr></thead>
                 <tbody>
                 <?php foreach ($accounts as $acc): ?>
                 <tr>
@@ -20,6 +20,7 @@
                         <span class="fw-medium"><?= e($acc['email']) ?></span>
                         <?php if ($acc['display_name']): ?><br><small class="text-muted"><?= e($acc['display_name']) ?></small><?php endif; ?>
                     </td>
+                    <td><?= e($acc['user_name'] ?? 'Tất cả') ?></td>
                     <td class="fs-12"><code><?= e(substr($acc['api_token'] ?? '', 0, 12)) ?>...</code></td>
                     <td class="fs-12 text-muted"><?= $acc['last_sync'] ? created_ago($acc['last_sync']) : 'Chưa' ?></td>
                     <td><?= $acc['is_default'] ? '<span class="badge bg-success">Mặc định</span>' : '' ?></td>
@@ -72,9 +73,19 @@ if ($firstAcc): ?>
                     <input type="text" class="form-control" name="api_token" required placeholder="Token từ GetcodeMail">
                     <small class="text-muted">Lấy token tại GetcodeMail > Mailbox > API Token</small>
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-2 mb-3">
                     <label class="form-label">Tên hiển thị</label>
-                    <input type="text" class="form-control" name="display_name" placeholder="VD: Phòng Kinh doanh">
+                    <input type="text" class="form-control" name="display_name" placeholder="VD: Phòng KD">
+                </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Gán cho</label>
+                    <select name="user_id" class="form-select">
+                        <option value="">Tất cả</option>
+                        <?php $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [\Core\Database::tenantId()]); ?>
+                        <?php foreach ($allUsers as $u): ?>
+                        <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 

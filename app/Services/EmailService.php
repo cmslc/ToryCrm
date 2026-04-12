@@ -34,6 +34,15 @@ class EmailService
         return Database::fetchAll("SELECT ea.*, u.name as user_name FROM email_accounts ea LEFT JOIN users u ON ea.user_id = u.id WHERE ea.tenant_id = ? ORDER BY ea.is_default DESC, ea.email", [Database::tenantId()]);
     }
 
+    public static function getAccountsForUser(int $userId): array
+    {
+        $tid = Database::tenantId();
+        return Database::fetchAll(
+            "SELECT ea.*, u.name as user_name FROM email_accounts ea LEFT JOIN users u ON ea.user_id = u.id WHERE ea.tenant_id = ? AND (ea.user_id = ? OR ea.user_id IS NULL) AND ea.is_active = 1 ORDER BY ea.is_default DESC, ea.email",
+            [$tid, $userId]
+        );
+    }
+
     // ---- API Call ----
     private function apiCall(string $method, string $endpoint, array $data = []): array
     {
