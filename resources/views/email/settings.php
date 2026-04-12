@@ -26,7 +26,11 @@
                     <td><?= $acc['is_default'] ? '<span class="badge bg-success">Mặc định</span>' : '' ?></td>
                     <td>
                         <div class="d-flex gap-1">
-                            <form method="POST" action="<?= url('email/settings/test') ?>"><?= csrf_field() ?><input type="hidden" name="account_id" value="<?= $acc['id'] ?>"><button class="btn btn-soft-info btn-icon" title="Test kết nối"><i class="ri-wifi-line"></i></button></form>
+                            <button class="btn btn-soft-primary btn-icon edit-acc-btn" title="Sửa"
+                                data-id="<?= $acc['id'] ?>" data-email="<?= e($acc['email']) ?>"
+                                data-token="<?= e($acc['api_token'] ?? '') ?>" data-display="<?= e($acc['display_name'] ?? '') ?>"
+                                data-user="<?= $acc['user_id'] ?? '' ?>" data-default="<?= $acc['is_default'] ?>"><i class="ri-pencil-line"></i></button>
+                            <form method="POST" action="<?= url('email/settings/test') ?>"><?= csrf_field() ?><input type="hidden" name="account_id" value="<?= $acc['id'] ?>"><button class="btn btn-soft-info btn-icon" title="Test"><i class="ri-wifi-line"></i></button></form>
                             <form method="POST" action="<?= url('email/settings/' . $acc['id'] . '/delete') ?>" onsubmit="return confirm('Xóa tài khoản này?')"><?= csrf_field() ?><button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button></form>
                         </div>
                     </td>
@@ -146,3 +150,59 @@ if ($firstAcc): ?>
         </div>
     </div>
 </div>
+
+<!-- Edit Account Modal -->
+<div class="modal fade" id="editAccModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="<?= url('email/settings/save') ?>" id="editAccForm">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id" id="editAccId">
+                <div class="modal-header"><h5 class="modal-title">Sửa tài khoản email</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" id="editAccEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">API Token</label>
+                        <input type="text" class="form-control" name="api_token" id="editAccToken" placeholder="Để trống nếu không đổi">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên hiển thị</label>
+                        <input type="text" class="form-control" name="display_name" id="editAccDisplay">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gán cho</label>
+                        <select name="user_id" class="form-select" id="editAccUser">
+                            <option value="">Tất cả</option>
+                            <?php $allUsersEdit = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [\Core\Database::tenantId()]); ?>
+                            <?php foreach ($allUsersEdit as $u): ?>
+                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_default" value="1" id="editAccDefault">
+                        <label class="form-check-label" for="editAccDefault">Mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.edit-acc-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('editAccId').value = this.dataset.id;
+        document.getElementById('editAccEmail').value = this.dataset.email;
+        document.getElementById('editAccToken').value = '';
+        document.getElementById('editAccDisplay').value = this.dataset.display;
+        document.getElementById('editAccUser').value = this.dataset.user;
+        document.getElementById('editAccDefault').checked = this.dataset.default === '1';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('editAccModal')).show();
+    });
+});
+</script>

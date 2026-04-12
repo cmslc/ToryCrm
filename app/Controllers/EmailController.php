@@ -247,15 +247,29 @@ class EmailController extends Controller
             'is_default' => $this->input('is_default') ? 1 : 0,
         ];
 
-        if (empty($data['email']) || empty($data['api_token'])) {
-            $this->setFlash('error', 'Vui lòng nhập email và API token.');
-            return $this->redirect('email/settings');
-        }
-
         if ($id) {
-            unset($data['tenant_id'], $data['user_id']);
-            Database::update('email_accounts', $data, 'id = ? AND tenant_id = ?', [$id, $tid]);
+            // Edit: token optional
+            if (empty($data['email'])) {
+                $this->setFlash('error', 'Vui lòng nhập email.');
+                return $this->redirect('email/settings');
+            }
+            $updateData = [
+                'email' => $data['email'],
+                'username' => $data['email'],
+                'display_name' => $data['display_name'],
+                'user_id' => $data['user_id'],
+                'is_default' => $data['is_default'],
+            ];
+            if (!empty($data['api_token'])) {
+                $updateData['api_token'] = $data['api_token'];
+                $updateData['password'] = $data['api_token'];
+            }
+            Database::update('email_accounts', $updateData, 'id = ? AND tenant_id = ?', [$id, $tid]);
         } else {
+            if (empty($data['email']) || empty($data['api_token'])) {
+                $this->setFlash('error', 'Vui lòng nhập email và API token.');
+                return $this->redirect('email/settings');
+            }
             Database::insert('email_accounts', $data);
         }
 
