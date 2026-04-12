@@ -235,4 +235,86 @@ class UserController extends Controller
         $this->setFlash('success', "Đã {$status} tài khoản {$user['name']}.");
         return $this->redirect('users');
     }
+
+    public function quickView($id)
+    {
+        $user = Database::fetch(
+            "SELECT u.*, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.id = ?", [$id]
+        );
+        if (!$user) { echo '<div class="text-center py-4 text-muted">Không tìm thấy</div>'; return; }
+
+        // Render partial without layout
+        $viewUser = $user;
+        extract(['viewUser' => $user]);
+        include BASE_PATH . '/resources/views/users/quick-view.php';
+    }
+
+    public function resetPassword($id)
+    {
+        if (!$this->isPost()) return $this->redirect('users');
+        $this->authorize('users', 'edit');
+        $user = Database::fetch("SELECT * FROM users WHERE id = ?", [$id]);
+        if (!$user) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('users'); }
+
+        Database::update('users', ['password' => Auth::hashPassword('123456')], 'id = ?', [$id]);
+        $this->setFlash('success', 'Đã reset mật khẩu ' . $user['name'] . ' về 123456.');
+        return $this->redirect('users');
+    }
+
+    public function exportUsers()
+    {
+        $this->authorize('users', 'view');
+        $tid = $this->tenantId();
+        $users = Database::fetchAll(
+            "SELECT u.*, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? ORDER BY u.name", [$tid]
+        );
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="nhan-vien-' . date('Y-m-d') . '.csv"');
+        echo "\xEF\xBB\xBF";
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Họ tên','Email','SĐT','Phòng ban','Vai trò','Trạng thái','Ngày sinh','CCCD','Ngân hàng','STK','Lương CB','Ngày vào làm']);
+        $rl = ['admin'=>'Admin','manager'=>'Manager','staff'=>'Staff'];
+        foreach ($users as $u) {
+            fputcsv($out, [
+                $u['name'], $u['email'], $u['phone'] ?? '', $u['dept_name'] ?? $u['department'] ?? '',
+                $rl[$u['role']] ?? $u['role'], $u['is_active'] ? 'Hoạt động' : 'Bị khóa',
+                $u['date_of_birth'] ?? '', $u['id_number'] ?? '', $u['bank_name'] ?? '', $u['bank_account'] ?? '',
+                $u['base_salary'] ?? 0, $u['join_date'] ?? '',
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
+
+    public function bulkAction()
+    {
+        if (!$this->isPost()) return $this->redirect('users');
+        $this->authorize('users', 'edit');
+        $ids = $this->input('user_ids') ?: [];
+        $action = $this->input('action');
+        if (empty($ids)) { $this->setFlash('error', 'Chưa chọn người dùng.'); return $this->redirect('users'); }
+
+        $myId = $this->userId();
+        $ids = array_filter($ids, function($id) use ($myId) { return (int)$id !== $myId; });
+        if (empty($ids)) { $this->setFlash('error', 'Không thể thao tác trên tài khoản của bạn.'); return $this->redirect('users'); }
+
+        $ph = implode(',', array_fill(0, count($ids), '?'));
+
+        if ($action === 'activate') {
+            Database::query("UPDATE users SET is_active = 1 WHERE id IN ($ph)", $ids);
+            $this->setFlash('success', 'Đã mở khóa ' . count($ids) . ' tài khoản.');
+        } elseif ($action === 'deactivate') {
+            Database::query("UPDATE users SET is_active = 0 WHERE id IN ($ph)", $ids);
+            $this->setFlash('success', 'Đã khóa ' . count($ids) . ' tài khoản.');
+        } elseif ($action === 'move_dept') {
+            $deptId = (int)$this->input('move_dept');
+            if ($deptId) {
+                Database::query("UPDATE users SET department_id = ? WHERE id IN ($ph)", array_merge([$deptId], $ids));
+                $this->setFlash('success', 'Đã chuyển ' . count($ids) . ' nhân viên.');
+            }
+        }
+
+        return $this->redirect('users');
+    }
 }

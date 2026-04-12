@@ -435,10 +435,14 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // User Management
     Router::get('users', 'UserController@index');
     Router::get('users/create', 'UserController@create');
+    Router::get('users/export', 'UserController@exportUsers');
     Router::post('users/store', 'UserController@store');
+    Router::post('users/bulk-action', 'UserController@bulkAction');
     Router::get('users/{id}/edit', 'UserController@edit');
+    Router::get('users/{id}/quick-view', 'UserController@quickView');
     Router::post('users/{id}/update', 'UserController@update');
     Router::post('users/{id}/toggle-active', 'UserController@toggleActive');
+    Router::post('users/{id}/reset-password', 'UserController@resetPassword');
 
     // Webhooks
     Router::get('webhooks', 'WebhookController@index');
