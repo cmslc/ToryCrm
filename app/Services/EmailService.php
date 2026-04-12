@@ -122,7 +122,8 @@ class EmailService
     // ---- Fetch Inbox via API ----
     public function fetchInbox(): array
     {
-        $result = $this->apiCall('GET', '/mailbox/inbox');
+        $email = $this->account['email'];
+        $result = $this->apiCall('GET', '/inbox/' . urlencode($email));
 
         if (!($result['success'] ?? false)) {
             return ['success' => false, 'error' => $result['error'] ?? 'Lỗi lấy inbox', 'new_count' => 0];
@@ -173,7 +174,8 @@ class EmailService
     // ---- Test Connection ----
     public function testConnection(): array
     {
-        $result = $this->apiCall('GET', '/mailbox/inbox');
+        $email = $this->account['email'];
+        $result = $this->apiCall('GET', '/inbox/' . urlencode($email));
         $inboxOk = ($result['success'] ?? false);
 
         return [
