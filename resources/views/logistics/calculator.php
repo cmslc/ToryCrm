@@ -2,7 +2,6 @@
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Tính phí vận chuyển</h4>
-    <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
 </div>
 
 <div class="row">

@@ -6,7 +6,6 @@ $stColors = ['pending'=>'secondary','delivering'=>'warning','delivered'=>'succes
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Giao hàng</h4>
     <div class="d-flex gap-2">
-        <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDelModal"><i class="ri-add-line me-1"></i> Tạo phiếu giao</button>
     </div>
 </div>

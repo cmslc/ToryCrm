@@ -5,7 +5,6 @@ $c = $cfg;
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0"><i class="ri-settings-3-line me-2"></i> Cài đặt Kho Logistics</h4>
-    <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
 </div>
 
 <form method="POST" action="<?= url('logistics/settings') ?>">

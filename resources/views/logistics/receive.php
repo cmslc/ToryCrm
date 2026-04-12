@@ -16,7 +16,6 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
         <button type="button" class="btn btn-soft-secondary" id="soundToggle" title="Bật/tắt âm thanh">
             <i class="ri-volume-up-line" id="soundIcon"></i>
         </button>
-        <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
     </div>
 </div>
 

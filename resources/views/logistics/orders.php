@@ -20,7 +20,6 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Đơn hàng</h4>
     <div class="d-flex gap-2">
-        <a href="<?= url('logistics') ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Dashboard</a>
         <a href="<?= url('logistics/orders/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn</a>
     </div>
 </div>
