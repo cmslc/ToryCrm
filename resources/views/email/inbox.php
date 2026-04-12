@@ -68,7 +68,7 @@ $folderIcons = ['inbox'=>'ri-inbox-line','sent'=>'ri-send-plane-line','drafts'=>
             <form method="POST" action="<?= url('email/sync') ?>" class="d-inline">
                 <?= csrf_field() ?>
                 <input type="hidden" name="account_id" value="<?= $accountId ?>">
-                <button class="btn btn-link p-0 text-muted" title="Đồng bộ"><i class="ri-refresh-line fs-18"></i></button>
+                <button class="btn btn-link p-0 text-muted shadow-none" title="Đồng bộ"><i class="ri-refresh-line fs-18"></i></button>
             </form>
             <form method="GET" action="<?= url('email') ?>" class="flex-grow-1 d-flex">
                 <input type="hidden" name="account" value="<?= $accountId ?>">
