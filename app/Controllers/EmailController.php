@@ -99,10 +99,29 @@ class EmailController extends Controller
                     $emailData = $detail['email'] ?? [];
                     $message['body_html'] = $emailData['body_html'] ?? '';
                     $message['body_text'] = $emailData['body_text'] ?? '';
+                    $hasAtt = !empty($emailData['attachments']);
                     Database::update('email_messages', [
                         'body_html' => $message['body_html'],
                         'body_text' => $message['body_text'],
+                        'has_attachments' => $hasAtt ? 1 : 0,
                     ], 'id = ?', [$id]);
+                    $message['has_attachments'] = $hasAtt ? 1 : 0;
+
+                    // Store attachment info locally
+                    if ($hasAtt) {
+                        foreach ($emailData['attachments'] as $att) {
+                            $exists = Database::fetch("SELECT id FROM email_attachments WHERE message_id = ? AND filename = ?", [$id, $att['filename'] ?? '']);
+                            if (!$exists) {
+                                Database::insert('email_attachments', [
+                                    'message_id' => $id,
+                                    'filename' => $att['filename'] ?? 'attachment',
+                                    'mime_type' => $att['mime'] ?? 'application/octet-stream',
+                                    'size' => $att['size'] ?? 0,
+                                    'file_path' => $att['download_url'] ?? '',
+                                ]);
+                            }
+                        }
+                    }
                 }
             }
         }

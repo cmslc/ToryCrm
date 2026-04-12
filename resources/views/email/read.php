@@ -102,7 +102,8 @@ $folder = $m['folder'] ?? 'inbox';
             <span class="text-muted fs-13 mb-2 d-block"><i class="ri-attachment-line me-1"></i> <?= count($attachments) ?> đính kèm</span>
             <div class="d-flex gap-2 flex-wrap">
                 <?php foreach ($attachments as $att): ?>
-                <a href="<?= url($att['file_path']) ?>" class="border rounded px-3 py-2 text-decoration-none text-body d-flex align-items-center" target="_blank" download>
+                <?php $attUrl = (str_starts_with($att['file_path'], 'http')) ? $att['file_path'] : url($att['file_path']); ?>
+                <a href="<?= $attUrl ?>" class="border rounded px-3 py-2 text-decoration-none text-body d-flex align-items-center" target="_blank" download>
                     <i class="ri-file-line me-2 text-muted fs-18"></i>
                     <div>
                         <div class="fw-medium fs-13"><?= e($att['filename']) ?></div>
