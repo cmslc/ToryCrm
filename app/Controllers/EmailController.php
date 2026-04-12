@@ -316,8 +316,8 @@ class EmailController extends Controller
 
     public function downloadAttachment()
     {
-        $url = $this->input('url');
-        $name = $this->input('name') ?: 'attachment';
+        $url = $this->input('file_url');
+        $name = $this->input('file_name') ?: 'attachment';
         if (empty($url)) { $this->setFlash('error', 'URL không hợp lệ.'); return $this->redirect('email'); }
 
         $ch = curl_init($url);
