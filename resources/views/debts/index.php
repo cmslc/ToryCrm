@@ -2,41 +2,34 @@
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Công nợ</h4>
-            <div class="d-flex gap-2">
-                <a href="<?= url('debts/aging') ?>" class="btn btn-soft-warning"><i class="ri-bar-chart-grouped-line me-1"></i> Tuổi nợ</a>
-                <a href="<?= url('debts/by-contact') ?>" class="btn btn-soft-info"><i class="ri-group-line me-1"></i> Theo KH</a>
-                <a href="<?= url('debts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo công nợ</a>
-            </div>
+            <a href="<?= url('debts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo công nợ</a>
         </div>
 
-        <?php if (($overdueCount ?? 0) > 0): ?>
-        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-            <i class="ri-error-warning-line me-2"></i> <strong><?= $overdueCount ?> khoản nợ quá hạn</strong> cần xử lý.
-            <a href="<?= url('debts?status=overdue') ?>" class="alert-link ms-2">Xem ngay</a>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Summary + Aging -->
+        <div class="row mb-1">
+            <div class="col-6 col-md-3"><div class="card card-animate mb-2"><div class="card-body py-3"><p class="text-muted mb-1 fs-12">Phải thu</p><h5 class="mb-0 text-success"><?= format_money($summary['total_receivable'] ?? 0) ?></h5></div></div></div>
+            <div class="col-6 col-md-3"><div class="card card-animate mb-2"><div class="card-body py-3"><p class="text-muted mb-1 fs-12">Phải trả</p><h5 class="mb-0 text-danger"><?= format_money($summary['total_payable'] ?? 0) ?></h5></div></div></div>
+            <div class="col-6 col-md-3"><div class="card card-animate mb-2"><div class="card-body py-3"><p class="text-muted mb-1 fs-12">Quá hạn <?php if (($overdueCount ?? 0) > 0): ?><span class="badge bg-danger ms-1"><?= $overdueCount ?></span><?php endif; ?></p><h5 class="mb-0 text-warning"><?= format_money($summary['total_overdue'] ?? 0) ?></h5></div></div></div>
+            <div class="col-6 col-md-3"><div class="card card-animate mb-2"><div class="card-body py-3"><p class="text-muted mb-1 fs-12">Thu/trả tháng này</p><h5 class="mb-0 text-primary"><?= format_money($summary['collected_this_month'] ?? 0) ?></h5></div></div></div>
         </div>
-        <?php endif; ?>
 
-        <?php if (!empty($aging)): ?>
-        <div class="card mb-3">
-            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-grouped-line me-2"></i> Phân tích tuổi nợ</h5></div>
+        <?php if (!empty($aging) && (($aging['overdue_30'] ?? 0) + ($aging['overdue_60'] ?? 0) + ($aging['overdue_90'] ?? 0) + ($aging['overdue_90plus'] ?? 0)) > 0): ?>
+        <div class="card mb-2">
             <div class="card-body py-2">
-                <div class="d-flex gap-3 flex-wrap">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <span class="text-muted fw-medium fs-13"><i class="ri-timer-line me-1"></i> Tuổi nợ:</span>
                     <?php
                     $agingItems = [
-                        ['Chưa đến hạn', $aging['current_due'], 'success'],
-                        ['Quá 1-30 ngày', $aging['overdue_30'], 'warning'],
-                        ['Quá 31-60 ngày', $aging['overdue_60'], 'orange'],
-                        ['Quá 61-90 ngày', $aging['overdue_90'], 'danger'],
-                        ['Quá 90+ ngày', $aging['overdue_90plus'], 'dark'],
+                        ['Chưa hạn', $aging['current_due'], 'success'],
+                        ['1-30 ngày', $aging['overdue_30'], 'warning'],
+                        ['31-60', $aging['overdue_60'], 'warning'],
+                        ['61-90', $aging['overdue_90'], 'danger'],
+                        ['90+', $aging['overdue_90plus'], 'dark'],
                     ];
                     foreach ($agingItems as $ai):
                         if ($ai[1] <= 0) continue;
                     ?>
-                    <div class="border rounded px-3 py-2 text-center" style="min-width:120px">
-                        <div class="text-<?= $ai[2] ?> fw-medium"><?= format_money($ai[1]) ?></div>
-                        <small class="text-muted"><?= $ai[0] ?></small>
-                    </div>
+                    <span class="badge bg-<?= $ai[2] ?>-subtle text-<?= $ai[2] ?> px-2 py-1"><?= $ai[0] ?>: <?= format_money($ai[1]) ?></span>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -44,7 +37,7 @@
         <?php endif; ?>
 
         <!-- Tabs -->
-        <ul class="nav nav-pills mb-3">
+        <ul class="nav nav-pills mb-2">
             <li class="nav-item">
                 <a class="nav-link <?= ($filters['type'] ?? 'receivable') === 'receivable' ? 'active' : '' ?>" href="<?= url('debts?type=receivable') ?>">
                     <i class="ri-arrow-down-circle-line me-1"></i> Phải thu
@@ -57,78 +50,7 @@
             </li>
         </ul>
 
-        <!-- Summary Cards -->
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <p class="fw-medium text-muted mb-0">Tổng phải thu</p>
-                                <h4 class="mt-2 mb-0 text-success"><?= format_money($summary['total_receivable'] ?? 0) ?></h4>
-                            </div>
-                            <div class="avatar-md flex-shrink-0">
-                                <span class="avatar-title bg-success-subtle text-success rounded-circle fs-2">
-                                    <i class="ri-arrow-down-circle-line"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <p class="fw-medium text-muted mb-0">Tổng phải trả</p>
-                                <h4 class="mt-2 mb-0 text-danger"><?= format_money($summary['total_payable'] ?? 0) ?></h4>
-                            </div>
-                            <div class="avatar-md flex-shrink-0">
-                                <span class="avatar-title bg-danger-subtle text-danger rounded-circle fs-2">
-                                    <i class="ri-arrow-up-circle-line"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <p class="fw-medium text-muted mb-0">Quá hạn</p>
-                                <h4 class="mt-2 mb-0 text-warning"><?= format_money($summary['total_overdue'] ?? 0) ?></h4>
-                            </div>
-                            <div class="avatar-md flex-shrink-0">
-                                <span class="avatar-title bg-warning-subtle text-warning rounded-circle fs-2">
-                                    <i class="ri-error-warning-line"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <p class="fw-medium text-muted mb-0">Đã thu/trả tháng này</p>
-                                <h4 class="mt-2 mb-0 text-primary"><?= format_money($summary['collected_this_month'] ?? 0) ?></h4>
-                            </div>
-                            <div class="avatar-md flex-shrink-0">
-                                <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-2">
-                                    <i class="ri-checkbox-circle-line"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- PLACEHOLDER to match old code continuation -->
         <!-- Filters & Table -->
         <div class="card">
             <div class="card-body">
