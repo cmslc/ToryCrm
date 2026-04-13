@@ -63,7 +63,7 @@ class ContactController extends Controller
         )['count'];
 
         $contacts = Database::fetchAll(
-            "SELECT c.*, comp.name as company_name, u.name as owner_name,
+            "SELECT c.*, comp.name as company_name, u.name as owner_name, u.avatar as owner_avatar,
                     cs.name as source_name, cs.color as source_color,
                     (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = c.id) as last_activity_at
              FROM contacts c
@@ -208,7 +208,7 @@ class ContactController extends Controller
     {
         $this->authorize('contacts', 'view');
         $contact = Database::fetch(
-            "SELECT c.*, comp.name as company_name, u.name as owner_name, cs.name as source_name
+            "SELECT c.*, comp.name as company_name, u.name as owner_name, u.avatar as owner_avatar, cs.name as source_name
              FROM contacts c
              LEFT JOIN companies comp ON c.company_id = comp.id
              LEFT JOIN users u ON c.owner_id = u.id
