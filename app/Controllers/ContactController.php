@@ -156,6 +156,21 @@ class ContactController extends Controller
             'created_by' => $this->userId(),
         ]);
 
+        // Avatar upload
+        $avatar = $_FILES['avatar'] ?? null;
+        if ($avatar && $avatar['error'] === UPLOAD_ERR_OK && $avatar['size'] > 0) {
+            $allowed = ['jpg','jpeg','png','gif','webp'];
+            $ext = strtolower(pathinfo($avatar['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed) && $avatar['size'] <= 5 * 1024 * 1024) {
+                $uploadDir = BASE_PATH . '/public/uploads/avatars';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $fileName = 'contact_' . $contactId . '_' . time() . '.' . $ext;
+                if (move_uploaded_file($avatar['tmp_name'], $uploadDir . '/' . $fileName)) {
+                    Database::update('contacts', ['avatar' => $fileName], 'id = ?', [$contactId]);
+                }
+            }
+        }
+
         // Log activity
         Database::insert('activities', [
             'type' => 'system',
