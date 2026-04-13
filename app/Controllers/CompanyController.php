@@ -50,7 +50,7 @@ class CompanyController extends Controller
                     (SELECT COUNT(*) FROM deals d WHERE d.company_id = c.id AND d.status = 'open') as deal_count,
                     (SELECT COALESCE(SUM(d2.value),0) FROM deals d2 WHERE d2.company_id = c.id AND d2.status = 'won') as total_revenue,
                     (SELECT COUNT(*) FROM orders o WHERE o.company_id = c.id AND o.is_deleted = 0) as order_count,
-                    (SELECT MAX(a.created_at) FROM activities a WHERE a.company_id = c.id) as last_activity_at
+                    (SELECT MAX(a.created_at) FROM activities a WHERE a.company_id = c.id AND a.type != 'system') as last_activity_at
              FROM companies c
              LEFT JOIN users u ON c.owner_id = u.id
              WHERE {$whereClause}
