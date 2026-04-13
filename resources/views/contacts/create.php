@@ -55,13 +55,9 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Họ <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="first_name" value="<?= old('first_name') ?>" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tên</label>
-                                    <input type="text" class="form-control" name="last_name" value="<?= old('last_name') ?>">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" required placeholder="VD: Nguyễn Văn A">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Email</label>

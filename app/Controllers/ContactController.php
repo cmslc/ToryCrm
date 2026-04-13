@@ -130,9 +130,19 @@ class ContactController extends Controller
 
     private function buildContactData(array $data): array
     {
+        // Support full_name (single field) or first_name/last_name (separate)
+        if (!empty($data['full_name'])) {
+            $parts = explode(' ', trim($data['full_name']), 2);
+            $firstName = $parts[0];
+            $lastName = $parts[1] ?? '';
+        } else {
+            $firstName = trim($data['first_name'] ?? '');
+            $lastName = trim($data['last_name'] ?? '');
+        }
+
         return [
-            'first_name' => trim($data['first_name'] ?? ''),
-            'last_name' => trim($data['last_name'] ?? ''),
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'email' => trim($data['email'] ?? ''),
             'phone' => trim($data['phone'] ?? ''),
             'mobile' => trim($data['mobile'] ?? ''),
