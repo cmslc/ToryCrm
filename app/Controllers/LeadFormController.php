@@ -245,7 +245,6 @@ class LeadFormController extends Controller
                 'last_name' => $nameParts[1] ?? '',
                 'email' => $email ?: null,
                 'phone' => $phone ?: null,
-                'source' => 'web_form',
                 'status' => 'new',
                 'description' => 'Từ form: ' . $form['name'],
                 'owner_id' => $settings['auto_assign'] ?: null,
