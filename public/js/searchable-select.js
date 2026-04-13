@@ -31,12 +31,12 @@
 
         for (var i = 0; i < sel.children.length; i++) {
             var child = sel.children[i];
-            if (child.tagName === 'OPTGROUP') {
+            if (child.tagName.toUpperCase() === 'OPTGROUP') {
                 var groupName = child.label || '';
                 for (var j = 0; j < child.children.length; j++) {
                     addOption(child.children[j], groupName);
                 }
-            } else if (child.tagName === 'OPTION') {
+            } else if (child.tagName.toUpperCase() === 'OPTION') {
                 addOption(child, null);
             }
         }
