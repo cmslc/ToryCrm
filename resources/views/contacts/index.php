@@ -182,6 +182,7 @@ $currentStatus = $filters['status'] ?? '';
                             'col-owner' => 'Phụ trách',
                             'col-address' => 'Địa chỉ',
                             'col-birthday' => 'Ngày sinh',
+                            'col-group' => 'Nhóm KH',
                             'col-tags' => 'Nhãn',
                             'col-lastcontact' => 'Liên hệ lần cuối',
                             'col-created' => 'Ngày tạo',
@@ -226,6 +227,7 @@ $currentStatus = $filters['status'] ?? '';
                         <th class="col-owner">Người phụ trách</th>
                         <th class="col-address">Địa chỉ</th>
                         <th class="col-birthday">Ngày sinh</th>
+                        <th class="col-group">Nhóm KH</th>
                         <th class="col-tags">Nhãn</th>
                         <th class="col-lastcontact">Liên hệ lần cuối</th>
                         <th class="col-created">Ngày tạo</th>
@@ -288,6 +290,18 @@ $currentStatus = $filters['status'] ?? '';
                             </td>
                             <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>
                             <td class="col-birthday fs-12"><?= !empty($c['date_of_birth']) ? date('d/m/Y', strtotime($c['date_of_birth'])) : '-' ?></td>
+                            <td class="col-group">
+                                <?php
+                                $groupLabels = ['du_an'=>'Khách dự án','le'=>'Khách lẻ','dai_ly'=>'Khách đại lý','doanh_nghiep'=>'Doanh nghiệp','vip'=>'VIP'];
+                                $groupColors = ['du_an'=>'info','le'=>'secondary','dai_ly'=>'warning','doanh_nghiep'=>'primary','vip'=>'danger'];
+                                $grp = $c['customer_group'] ?? '';
+                                ?>
+                                <?php if ($grp && isset($groupLabels[$grp])): ?>
+                                    <span class="badge bg-<?= $groupColors[$grp] ?>-subtle text-<?= $groupColors[$grp] ?>"><?= $groupLabels[$grp] ?></span>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
                             <td class="col-tags">
                                 <?php
                                 $cTags = \Core\Database::fetchAll(
@@ -325,7 +339,7 @@ $currentStatus = $filters['status'] ?? '';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="12" class="text-center py-5">
+                            <td colspan="13" class="text-center py-5">
                                 <div class="avatar-md mx-auto mb-3">
                                     <span class="avatar-title bg-primary-subtle rounded-circle">
                                         <i class="ri-contacts-line text-primary fs-24"></i>
