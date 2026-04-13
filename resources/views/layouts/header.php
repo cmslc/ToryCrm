@@ -51,12 +51,6 @@
                         <i class="ri-settings-5-line fs-22"></i>
                     </button>
                 </div>
-                <script>
-                document.getElementById('customizer-open-btn')?.addEventListener('click', function() {
-                    var el = document.getElementById('theme-settings-offcanvas');
-                    if (el) bootstrap.Offcanvas.getOrCreateInstance(el).toggle();
-                });
-                </script>
 
                 <!-- Dark/Light Mode -->
                 <div class="ms-1 header-item d-none d-sm-flex">
