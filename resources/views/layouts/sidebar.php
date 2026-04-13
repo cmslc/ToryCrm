@@ -199,6 +199,14 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-checkbox-circle-line"></i> <span>Phê duyệt</span>
                     </a>
                 </li>
+                <?php if (plugin_active('lead-forms')): ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= isActive('lead-forms', $currentUrl) ?>" href="<?= url('lead-forms') ?>">
+                        <i class="ri-survey-line"></i> <span>Lead Forms</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+
                 <?php if (plugin_active('documents')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('documents', $currentUrl) ?>" href="<?= url('documents') ?>">
