@@ -201,7 +201,7 @@ $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','reject
                                 <span class="timeline-sm-date"><?= format_datetime($quotation['created_at']) ?></span>
                                 <h6 class="mb-0">Tạo báo giá</h6>
                             </div>
-                            <?php if ($quotation['sent_at']): ?>
+                            <?php if ($quotation['sent_at'] ?? null): ?>
                             <div class="timeline-sm-item">
                                 <span class="timeline-sm-date"><?= format_datetime($quotation['sent_at']) ?></span>
                                 <h6 class="mb-0 text-info">Đã gửi</h6>
@@ -232,7 +232,7 @@ $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','reject
                     </div>
                 </div>
 
-                <?php if ($quotation['converted_order_id']): ?>
+                <?php if ($quotation['converted_order_id'] ?? null): ?>
                 <div class="card border-success">
                     <div class="card-body text-center">
                         <i class="ri-checkbox-circle-line text-success fs-1"></i>
