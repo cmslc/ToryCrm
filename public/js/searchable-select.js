@@ -46,7 +46,8 @@
 
         // Create wrapper
         var wrapper = document.createElement('div');
-        wrapper.className = 'position-relative searchable-select-wrapper';
+        wrapper.className = 'position-relative searchable-select-wrapper flex-grow-1';
+        wrapper.style.minWidth = '0';
         sel.parentNode.insertBefore(wrapper, sel.nextSibling);
 
         // Display button
@@ -154,6 +155,25 @@
         document.addEventListener('click', function(e) {
             if (!wrapper.contains(e.target)) close();
         });
+
+        // Expose refresh for dynamic updates
+        sel._searchable = {
+            refresh: function() {
+                items = [];
+                selectedValue = sel.value;
+                selectedText = '';
+                for (var i = 0; i < sel.children.length; i++) {
+                    var child = sel.children[i];
+                    if (child.tagName.toUpperCase() === 'OPTGROUP') {
+                        var gn = child.label || '';
+                        for (var j = 0; j < child.children.length; j++) { addOption(child.children[j], gn); }
+                    } else if (child.tagName.toUpperCase() === 'OPTION') {
+                        addOption(child, null);
+                    }
+                }
+                btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">Chọn...</span>') + '</span>';
+            }
+        };
     }
 
     if (document.readyState === 'loading') {
