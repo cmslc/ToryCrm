@@ -71,7 +71,7 @@ class ContactController extends Controller
         );
 
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
-        $users = Database::fetchAll("SELECT id, name, role FROM users WHERE is_active = 1 ORDER BY role, name");
+        $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
         $statusCountsWhere = "is_deleted = 0 AND tenant_id = ?";
         $statusCountsParams = [Database::tenantId()];
         if (!$this->isAdminOrManager()) {
@@ -112,7 +112,7 @@ class ContactController extends Controller
         $this->authorize('contacts', 'create');
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
-        $users = Database::fetchAll("SELECT id, name, role FROM users WHERE is_active = 1 ORDER BY role, name");
+        $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('contacts.create', [
             'companies' => $companies,
@@ -291,7 +291,7 @@ class ContactController extends Controller
 
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
-        $users = Database::fetchAll("SELECT id, name, role FROM users WHERE is_active = 1 ORDER BY role, name");
+        $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('contacts.edit', [
             'contact' => $contact,

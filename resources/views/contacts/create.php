@@ -154,20 +154,20 @@
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
                                 <?php
-                                $roleLabels = ['admin'=>'Admin','manager'=>'Manager','staff'=>'Staff'];
-                                $grouped = [];
-                                foreach ($users ?? [] as $u) { $grouped[$u['role'] ?? 'staff'][] = $u; }
+                                $deptGrouped = [];
+                                foreach ($users ?? [] as $u) {
+                                    $deptName = $u['dept_name'] ?? 'Chưa phân phòng';
+                                    $deptGrouped[$deptName][] = $u;
+                                }
                                 ?>
                                 <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
-                                    <?php foreach (['admin','manager','staff'] as $role): ?>
-                                        <?php if (!empty($grouped[$role])): ?>
-                                        <optgroup label="<?= $roleLabels[$role] ?>">
-                                            <?php foreach ($grouped[$role] as $u): ?>
-                                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
-                                            <?php endforeach; ?>
-                                        </optgroup>
-                                        <?php endif; ?>
+                                    <?php foreach ($deptGrouped as $dept => $deptUsers): ?>
+                                    <optgroup label="<?= e($dept) ?>">
+                                        <?php foreach ($deptUsers as $u): ?>
+                                        <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
