@@ -66,11 +66,19 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Tự gán cho</label>
-                            <select name="auto_assign" class="form-select">
+                            <?php
+                            $usersAssign = \Core\Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+                            $deptGrouped = [];
+                            foreach ($usersAssign as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                            ?>
+                            <select name="auto_assign" class="form-select searchable-select">
                                 <option value="">Không gán</option>
-                                <?php $users = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
-                                <?php foreach ($users as $u): ?>
-                                <option value="<?= $u['id'] ?>" <?= ($form['settings']['auto_assign'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                <optgroup label="<?= e($dept) ?>">
+                                    <?php foreach ($dUsers as $u): ?>
+                                    <option value="<?= $u['id'] ?>" <?= ($form['settings']['auto_assign'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                                 <?php endforeach; ?>
                             </select>
                         </div>
