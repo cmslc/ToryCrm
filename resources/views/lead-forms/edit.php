@@ -125,9 +125,9 @@
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-4" style="align-self:flex-start;position:sticky;top:80px">
             <!-- Live Preview -->
-            <div class="card" style="position:sticky;top:80px">
+            <div class="card">
                 <div class="card-header"><h5 class="card-title mb-0"><i class="ri-eye-line me-2"></i> Xem trước</h5></div>
                 <div class="card-body p-3" id="livePreview">
                     <div style="max-width:100%;padding:24px" id="previewBox">
