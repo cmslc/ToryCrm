@@ -49,16 +49,16 @@
                             });
                             </script>
                             <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" required placeholder="VD: Nguyễn Văn A">
+                                </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Mã khách hàng</label>
                                     <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label class="form-label">Họ tên <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" required placeholder="VD: Nguyễn Văn A">
-                                </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Email</label>
                                     <input type="email" class="form-control" name="email" value="<?= old('email') ?>">
