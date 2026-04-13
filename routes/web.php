@@ -543,6 +543,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('attendance/advances/create', 'AttendanceController@createAdvance');
     Router::post('attendance/advances/{id}/approve', 'AttendanceController@approveAdvance');
 
+    // System Info
+    Router::get('system-info', 'SystemInfoController@index');
+
     // Lead Forms
     Router::get('lead-forms', 'LeadFormController@index');
     Router::get('lead-forms/create', 'LeadFormController@create');

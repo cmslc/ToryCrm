@@ -296,6 +296,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li>
                             <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins') ?>" class="nav-link <?= isActive(['plugins','integrations'], $currentUrl) ?>">Plugin</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>
+                            <li class="nav-item"><a href="<?= url('system-info') ?>" class="nav-link <?= isActive('system-info', $currentUrl) ?>">Thông tin hệ thống</a></li>
                         </ul>
                     </div>
                 </li>
