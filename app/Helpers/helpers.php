@@ -175,9 +175,13 @@ function user_avatar(?string $name, string $color = 'primary', ?string $avatar =
         $avatar = $avatarCache[$cacheKey] ?: null;
     }
 
-    if ($avatar && file_exists(BASE_PATH . '/public/uploads/' . $dir . '/' . $avatar)) {
-        $src = url('uploads/' . $dir . '/' . $avatar);
-        return '<div class="d-flex align-items-center gap-2"><div class="avatar-xs"><img src="' . $src . '" class="rounded-circle object-fit-cover" style="width:100%;height:100%"></div>' . e($name) . '</div>';
+    if ($avatar) {
+        // Support both "filename.jpg" and "uploads/avatars/filename.jpg" formats
+        $filePath = (str_starts_with($avatar, 'uploads/')) ? $avatar : 'uploads/' . $dir . '/' . $avatar;
+        if (file_exists(BASE_PATH . '/public/' . $filePath)) {
+            $src = url($filePath);
+            return '<div class="d-flex align-items-center gap-2"><div class="avatar-xs"><img src="' . $src . '" class="rounded-circle object-fit-cover" style="width:100%;height:100%"></div>' . e($name) . '</div>';
+        }
     }
     $initial = mb_strtoupper(mb_substr(trim($name), 0, 1));
     return '<div class="d-flex align-items-center gap-2"><div class="avatar-xs"><div class="avatar-title rounded-circle bg-' . $color . '-subtle text-' . $color . '">' . $initial . '</div></div>' . e($name) . '</div>';
