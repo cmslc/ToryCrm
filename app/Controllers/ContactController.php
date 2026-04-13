@@ -128,28 +128,12 @@ class ContactController extends Controller
         ]);
     }
 
-    public function store()
+    private function buildContactData(array $data): array
     {
-        if (!$this->isPost()) {
-            return $this->redirect('contacts');
-        }
-        $this->authorize('contacts', 'create');
-
-        $data = $this->allInput();
-
-        $firstName = trim($data['first_name'] ?? '');
-        $lastName = trim($data['last_name'] ?? '');
-        $email = trim($data['email'] ?? '');
-
-        if (empty($firstName)) {
-            $this->setFlash('error', 'First name is required.');
-            return $this->back();
-        }
-
-        $contactId = Database::insert('contacts', [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
+        return [
+            'first_name' => trim($data['first_name'] ?? ''),
+            'last_name' => trim($data['last_name'] ?? ''),
+            'email' => trim($data['email'] ?? ''),
             'phone' => trim($data['phone'] ?? ''),
             'mobile' => trim($data['mobile'] ?? ''),
             'position' => trim($data['position'] ?? ''),
@@ -167,24 +151,56 @@ class ContactController extends Controller
             'customer_group' => $data['customer_group'] ?? null ?: null,
             'referrer_code' => trim($data['referrer_code'] ?? '') ?: null,
             'is_private' => isset($data['is_private']) ? 1 : 0,
-            'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : $this->userId()),
-            'created_by' => $this->userId(),
-        ]);
+            'gender' => $data['gender'] ?? null ?: null,
+            'date_of_birth' => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
+            'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),
+        ];
+    }
 
-        // Avatar upload
+    private function handleAvatarUpload(int $contactId, ?string $oldAvatar = null): void
+    {
         $avatar = $_FILES['avatar'] ?? null;
-        if ($avatar && $avatar['error'] === UPLOAD_ERR_OK && $avatar['size'] > 0) {
-            $allowed = ['jpg','jpeg','png','gif','webp'];
-            $ext = strtolower(pathinfo($avatar['name'], PATHINFO_EXTENSION));
-            if (in_array($ext, $allowed) && $avatar['size'] <= 5 * 1024 * 1024) {
-                $uploadDir = BASE_PATH . '/public/uploads/avatars';
-                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-                $fileName = 'contact_' . $contactId . '_' . time() . '.' . $ext;
-                if (move_uploaded_file($avatar['tmp_name'], $uploadDir . '/' . $fileName)) {
-                    Database::update('contacts', ['avatar' => $fileName], 'id = ?', [$contactId]);
-                }
-            }
+        if (!$avatar || $avatar['error'] !== UPLOAD_ERR_OK || $avatar['size'] <= 0) return;
+
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        $ext = strtolower(pathinfo($avatar['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowed) || $avatar['size'] > 5 * 1024 * 1024) return;
+
+        $uploadDir = BASE_PATH . '/public/uploads/avatars';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        if ($oldAvatar) {
+            $oldFile = $uploadDir . '/' . $oldAvatar;
+            if (file_exists($oldFile)) unlink($oldFile);
         }
+
+        $fileName = 'contact_' . $contactId . '_' . time() . '.' . $ext;
+        if (move_uploaded_file($avatar['tmp_name'], $uploadDir . '/' . $fileName)) {
+            Database::update('contacts', ['avatar' => $fileName], 'id = ?', [$contactId]);
+        }
+    }
+
+    public function store()
+    {
+        if (!$this->isPost()) {
+            return $this->redirect('contacts');
+        }
+        $this->authorize('contacts', 'create');
+
+        $data = $this->allInput();
+        $contactData = $this->buildContactData($data);
+
+        if (empty($contactData['first_name'])) {
+            $this->setFlash('error', 'First name is required.');
+            return $this->back();
+        }
+
+        $contactData['owner_id'] = $contactData['owner_id'] ?: $this->userId();
+        $contactData['created_by'] = $this->userId();
+
+        $contactId = Database::insert('contacts', $contactData);
+
+        $this->handleAvatarUpload($contactId);
 
         // Log activity
         Database::insert('activities', [
@@ -337,44 +353,22 @@ class ContactController extends Controller
         }
 
         $data = $this->allInput();
+        $contactData = $this->buildContactData($data);
 
-        $firstName = trim($data['first_name'] ?? '');
-        $lastName = trim($data['last_name'] ?? '');
-
-        if (empty($firstName)) {
+        if (empty($contactData['first_name'])) {
             $this->setFlash('error', 'First name is required.');
             return $this->back();
         }
 
-        Database::update('contacts', [
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => trim($data['email'] ?? ''),
-            'phone' => trim($data['phone'] ?? ''),
-            'mobile' => trim($data['mobile'] ?? ''),
-            'position' => trim($data['position'] ?? ''),
-            'company_id' => (!empty($data['company_id']) ? $data['company_id'] : null),
-            'source_id' => (!empty($data['source_id']) ? $data['source_id'] : null),
-            'account_code' => trim($data['account_code'] ?? '') ?: null,
-            'address' => trim($data['address'] ?? ''),
-            'city' => trim($data['city'] ?? ''),
-            'province' => trim($data['province'] ?? '') ?: null,
-            'district' => trim($data['district'] ?? '') ?: null,
-            'ward' => trim($data['ward'] ?? '') ?: null,
-            'country' => trim($data['country'] ?? '') ?: 'Việt Nam',
-            'description' => trim($data['description'] ?? ''),
-            'status' => $data['status'] ?? 'new',
-            'customer_group' => $data['customer_group'] ?? null ?: null,
-            'referrer_code' => trim($data['referrer_code'] ?? '') ?: null,
-            'is_private' => isset($data['is_private']) ? 1 : 0,
-            'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),
-        ], 'id = ?', [$id]);
+        Database::update('contacts', $contactData, 'id = ?', [$id]);
+
+        $this->handleAvatarUpload($id, $contact['avatar'] ?? null);
 
         // Log activity
         Database::insert('activities', [
             'type' => 'system',
-            'title' => "Contact updated: {$firstName} {$lastName}",
-            'description' => "Contact {$firstName} {$lastName} was updated.",
+            'title' => "Contact updated: {$contactData['first_name']} {$contactData['last_name']}",
+            'description' => "Contact {$contactData['first_name']} {$contactData['last_name']} was updated.",
             'user_id' => $this->userId(),
             'contact_id' => $id,
         ]);

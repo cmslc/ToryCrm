@@ -85,11 +85,51 @@ class CompanyController extends Controller
     public function create()
     {
         $this->authorize('companies', 'create');
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('companies.create', [
             'users' => $users,
         ]);
+    }
+
+    private function buildCompanyData(array $data): array
+    {
+        return [
+            'name' => trim($data['name'] ?? ''),
+            'email' => trim($data['email'] ?? ''),
+            'phone' => trim($data['phone'] ?? ''),
+            'website' => trim($data['website'] ?? ''),
+            'industry' => trim($data['industry'] ?? ''),
+            'address' => trim($data['address'] ?? ''),
+            'city' => trim($data['city'] ?? ''),
+            'tax_code' => trim($data['tax_code'] ?? ''),
+            'company_size' => trim($data['company_size'] ?? ''),
+            'description' => trim($data['description'] ?? ''),
+            'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),
+        ];
+    }
+
+    private function handleLogoUpload(int $companyId, ?string $oldLogo = null): void
+    {
+        $logo = $_FILES['logo'] ?? null;
+        if (!$logo || $logo['error'] !== UPLOAD_ERR_OK || $logo['size'] <= 0) return;
+
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        $ext = strtolower(pathinfo($logo['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowed) || $logo['size'] > 5 * 1024 * 1024) return;
+
+        $uploadDir = BASE_PATH . '/public/uploads/logos';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        if ($oldLogo) {
+            $oldFile = $uploadDir . '/' . $oldLogo;
+            if (file_exists($oldFile)) unlink($oldFile);
+        }
+
+        $fileName = 'company_' . $companyId . '_' . time() . '.' . $ext;
+        if (move_uploaded_file($logo['tmp_name'], $uploadDir . '/' . $fileName)) {
+            Database::update('companies', ['logo' => $fileName], 'id = ?', [$companyId]);
+        }
     }
 
     public function store()
@@ -100,28 +140,19 @@ class CompanyController extends Controller
         $this->authorize('companies', 'create');
 
         $data = $this->allInput();
+        $companyData = $this->buildCompanyData($data);
 
-        $name = trim($data['name'] ?? '');
-
-        if (empty($name)) {
+        if (empty($companyData['name'])) {
             $this->setFlash('error', 'Company name is required.');
             return $this->back();
         }
 
-        $companyId = Database::insert('companies', [
-            'name' => $name,
-            'email' => trim($data['email'] ?? ''),
-            'phone' => trim($data['phone'] ?? ''),
-            'website' => trim($data['website'] ?? ''),
-            'industry' => trim($data['industry'] ?? ''),
-            'address' => trim($data['address'] ?? ''),
-            'city' => trim($data['city'] ?? ''),
-            'tax_code' => trim($data['tax_code'] ?? ''),
-            'company_size' => trim($data['company_size'] ?? ''),
-            'description' => trim($data['description'] ?? ''),
-            'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : $this->userId()),
-            'created_by' => $this->userId(),
-        ]);
+        $companyData['owner_id'] = $companyData['owner_id'] ?: $this->userId();
+        $companyData['created_by'] = $this->userId();
+
+        $companyId = Database::insert('companies', $companyData);
+
+        $this->handleLogoUpload($companyId);
 
         // Log activity
         Database::insert('activities', [
@@ -220,7 +251,7 @@ class CompanyController extends Controller
             return $this->redirect('companies');
         }
 
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('companies.edit', [
             'company' => $company,
@@ -249,32 +280,22 @@ class CompanyController extends Controller
         }
 
         $data = $this->allInput();
-        $name = trim($data['name'] ?? '');
+        $companyData = $this->buildCompanyData($data);
 
-        if (empty($name)) {
+        if (empty($companyData['name'])) {
             $this->setFlash('error', 'Company name is required.');
             return $this->back();
         }
 
-        Database::update('companies', [
-            'name' => $name,
-            'email' => trim($data['email'] ?? ''),
-            'phone' => trim($data['phone'] ?? ''),
-            'website' => trim($data['website'] ?? ''),
-            'industry' => trim($data['industry'] ?? ''),
-            'address' => trim($data['address'] ?? ''),
-            'city' => trim($data['city'] ?? ''),
-            'tax_code' => trim($data['tax_code'] ?? ''),
-            'company_size' => trim($data['company_size'] ?? ''),
-            'description' => trim($data['description'] ?? ''),
-            'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),
-        ], 'id = ?', [$id]);
+        Database::update('companies', $companyData, 'id = ?', [$id]);
+
+        $this->handleLogoUpload($id, $company['logo'] ?? null);
 
         // Log activity
         Database::insert('activities', [
             'type' => 'system',
-            'title' => "Company updated: {$name}",
-            'description' => "Company {$name} was updated.",
+            'title' => "Company updated: {$companyData['name']}",
+            'description' => "Company {$companyData['name']} was updated.",
             'user_id' => $this->userId(),
             'company_id' => $id,
         ]);

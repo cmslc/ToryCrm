@@ -92,15 +92,30 @@ class UserController extends Controller
             return $this->back();
         }
 
-        Database::insert('users', [
+        $userId = Database::insert('users', [
             'name' => $name,
             'email' => $email,
             'password' => Auth::hashPassword($password),
             'phone' => trim($data['phone'] ?? ''),
             'role' => $data['role'] ?? 'staff',
             'department' => trim($data['department'] ?? ''),
-            'is_active' => 1,
+            'is_active' => isset($data['is_active']) ? 1 : 0,
         ]);
+
+        // Avatar upload
+        $avatar = $_FILES['avatar'] ?? null;
+        if ($avatar && $avatar['error'] === UPLOAD_ERR_OK && $avatar['size'] > 0) {
+            $allowed = ['jpg','jpeg','png','gif','webp'];
+            $ext = strtolower(pathinfo($avatar['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, $allowed) && $avatar['size'] <= 5 * 1024 * 1024) {
+                $uploadDir = BASE_PATH . '/public/uploads/avatars';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $fileName = 'avatar_' . $userId . '_' . time() . '.' . $ext;
+                if (move_uploaded_file($avatar['tmp_name'], $uploadDir . '/' . $fileName)) {
+                    Database::update('users', ['avatar' => 'uploads/avatars/' . $fileName], 'id = ?', [$userId]);
+                }
+            }
+        }
 
         $this->setFlash('success', 'Tạo người dùng thành công.');
         return $this->redirect('users');
