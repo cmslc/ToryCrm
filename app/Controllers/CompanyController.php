@@ -183,6 +183,8 @@ class CompanyController extends Controller
             'phone' => trim($data['phone'] ?? ''),
             'email' => trim($data['email'] ?? ''),
             'tax_code' => trim($data['tax_code'] ?? ''),
+            'address' => trim($data['address'] ?? ''),
+            'city' => trim($data['city'] ?? ''),
             'owner_id' => $this->userId(),
             'created_by' => $this->userId(),
         ]);

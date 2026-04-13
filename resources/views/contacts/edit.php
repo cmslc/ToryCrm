@@ -248,6 +248,14 @@
                     <label class="form-label">Mã số thuế</label>
                     <input type="text" class="form-control" id="qcTaxCode">
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Địa chỉ</label>
+                    <input type="text" class="form-control" id="qcAddress">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Thành phố</label>
+                    <input type="text" class="form-control" id="qcCity">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -272,7 +280,9 @@ document.getElementById('btnQuickCompany')?.addEventListener('click', function()
             name: name,
             phone: document.getElementById('qcPhone').value.trim(),
             email: document.getElementById('qcEmail').value.trim(),
-            tax_code: document.getElementById('qcTaxCode').value.trim()
+            tax_code: document.getElementById('qcTaxCode').value.trim(),
+            address: document.getElementById('qcAddress').value.trim(),
+            city: document.getElementById('qcCity').value.trim()
         })
     })
     .then(r => r.json())
@@ -287,6 +297,8 @@ document.getElementById('btnQuickCompany')?.addEventListener('click', function()
             document.getElementById('qcPhone').value = '';
             document.getElementById('qcEmail').value = '';
             document.getElementById('qcTaxCode').value = '';
+            document.getElementById('qcAddress').value = '';
+            document.getElementById('qcCity').value = '';
         } else {
             alert(data.error || 'Có lỗi xảy ra');
         }
