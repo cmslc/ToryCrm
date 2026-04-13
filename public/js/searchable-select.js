@@ -2,7 +2,7 @@
  * ToryCRM Searchable Select
  *
  * Auto-converts any <select> with class "searchable-select" into
- * a dropdown with search input.
+ * a dropdown with search input. Supports optgroup.
  *
  * Usage: <select name="owner_id" class="form-select searchable-select">
  */
@@ -18,14 +18,27 @@
     }
 
     function convert(sel) {
-        // Collect options
-        var options = [];
+        // Collect options with groups
+        var items = [];
         var selectedValue = sel.value;
         var selectedText = '';
-        for (var i = 0; i < sel.options.length; i++) {
-            var opt = sel.options[i];
-            options.push({ value: opt.value, text: opt.textContent.trim() });
+
+        function addOption(opt, group) {
+            var item = { value: opt.value, text: opt.textContent.trim(), group: group || null };
+            items.push(item);
             if (opt.value === selectedValue && opt.value !== '') selectedText = opt.textContent.trim();
+        }
+
+        for (var i = 0; i < sel.children.length; i++) {
+            var child = sel.children[i];
+            if (child.tagName === 'OPTGROUP') {
+                var groupName = child.label || '';
+                for (var j = 0; j < child.children.length; j++) {
+                    addOption(child.children[j], groupName);
+                }
+            } else if (child.tagName === 'OPTION') {
+                addOption(child, null);
+            }
         }
 
         // Hide original select
@@ -67,7 +80,7 @@
 
         function renderOptions(q) {
             listEl.innerHTML = '';
-            var filtered = options.filter(function(o) {
+            var filtered = items.filter(function(o) {
                 if (o.value === '' && !q) return true;
                 if (o.value === '' && q) return false;
                 return !q || o.text.toLowerCase().indexOf(q.toLowerCase()) !== -1;
@@ -78,7 +91,17 @@
                 return;
             }
 
+            var lastGroup = null;
             filtered.forEach(function(o) {
+                // Group header
+                if (o.group && o.group !== lastGroup) {
+                    var groupEl = document.createElement('div');
+                    groupEl.className = 'px-3 py-1 text-muted fw-medium fs-11 text-uppercase bg-light border-bottom';
+                    groupEl.textContent = o.group;
+                    listEl.appendChild(groupEl);
+                    lastGroup = o.group;
+                }
+
                 var item = document.createElement('div');
                 item.className = 'px-3 py-2 fs-13' + (o.value === selectedValue ? ' bg-primary text-white' : '');
                 item.style.cursor = 'pointer';
@@ -98,7 +121,6 @@
                     selectedText = o.value ? o.text : '';
                     btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">Chọn...</span>') + '</span>';
                     close();
-                    // Trigger change event on original select
                     sel.dispatchEvent(new Event('change', { bubbles: true }));
                 });
                 listEl.appendChild(item);
@@ -129,19 +151,16 @@
             if (e.key === 'Escape') close();
         });
 
-        // Close on click outside
         document.addEventListener('click', function(e) {
             if (!wrapper.contains(e.target)) close();
         });
     }
 
-    // Init on DOM ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 
-    // Re-init on dynamic content
     window._initSearchableSelect = init;
 })();
