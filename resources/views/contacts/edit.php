@@ -136,12 +136,17 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Công ty</label>
-                        <select name="company_id" class="form-select searchable-select">
-                            <option value="">Chọn công ty</option>
-                            <?php foreach ($companies ?? [] as $company): ?>
-                            <option value="<?= $company['id'] ?>" <?= ($c['company_id'] ?? '') == $company['id'] ? 'selected' : '' ?>><?= e($company['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="d-flex gap-2">
+                            <select name="company_id" id="companySelect" class="form-select searchable-select flex-grow-1">
+                                <option value="">Chọn công ty</option>
+                                <?php foreach ($companies ?? [] as $company): ?>
+                                <option value="<?= $company['id'] ?>" <?= ($c['company_id'] ?? '') == $company['id'] ? 'selected' : '' ?>><?= e($company['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="button" class="btn btn-soft-primary flex-shrink-0" data-bs-toggle="modal" data-bs-target="#quickCompanyModal" title="Tạo nhanh doanh nghiệp">
+                                <i class="ri-add-line"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nguồn</label>
@@ -215,3 +220,78 @@
         </div>
     </div>
 </form>
+
+<!-- Modal tạo nhanh doanh nghiệp -->
+<div class="modal fade" id="quickCompanyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo nhanh doanh nghiệp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Tên doanh nghiệp <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="qcName" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Điện thoại</label>
+                        <input type="text" class="form-control" id="qcPhone">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="qcEmail">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mã số thuế</label>
+                    <input type="text" class="form-control" id="qcTaxCode">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnQuickCompany"><i class="ri-save-line me-1"></i> Tạo</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('btnQuickCompany')?.addEventListener('click', function() {
+    var btn = this;
+    var name = document.getElementById('qcName').value.trim();
+    if (!name) { document.getElementById('qcName').focus(); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i> Đang tạo...';
+
+    fetch('<?= url("companies/quick-store") ?>', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
+        body: JSON.stringify({
+            name: name,
+            phone: document.getElementById('qcPhone').value.trim(),
+            email: document.getElementById('qcEmail').value.trim(),
+            tax_code: document.getElementById('qcTaxCode').value.trim()
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            var sel = document.getElementById('companySelect');
+            var opt = new Option(data.company.name, data.company.id, true, true);
+            sel.appendChild(opt);
+            if (sel._searchable) sel._searchable.refresh();
+            bootstrap.Modal.getInstance(document.getElementById('quickCompanyModal')).hide();
+            document.getElementById('qcName').value = '';
+            document.getElementById('qcPhone').value = '';
+            document.getElementById('qcEmail').value = '';
+            document.getElementById('qcTaxCode').value = '';
+        } else {
+            alert(data.error || 'Có lỗi xảy ra');
+        }
+    })
+    .catch(() => alert('Có lỗi xảy ra'))
+    .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="ri-save-line me-1"></i> Tạo'; });
+});
+</script>

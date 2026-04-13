@@ -116,6 +116,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('companies/trash', 'CompanyController@trash');
     Router::get('companies/create', 'CompanyController@create');
     Router::post('companies/store', 'CompanyController@store');
+    Router::post('companies/quick-store', 'CompanyController@quickStore');
     Router::get('companies/{id}', 'CompanyController@show');
     Router::get('companies/{id}/edit', 'CompanyController@edit');
     Router::post('companies/{id}/update', 'CompanyController@update');

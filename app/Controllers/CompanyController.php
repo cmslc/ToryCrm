@@ -167,6 +167,32 @@ class CompanyController extends Controller
         return $this->redirect('companies/' . $companyId);
     }
 
+    public function quickStore()
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+
+        $data = $this->allInput();
+        $name = trim($data['name'] ?? '');
+
+        if (empty($name)) {
+            return $this->json(['error' => 'Tên doanh nghiệp không được để trống.'], 422);
+        }
+
+        $companyId = Database::insert('companies', [
+            'name' => $name,
+            'phone' => trim($data['phone'] ?? ''),
+            'email' => trim($data['email'] ?? ''),
+            'tax_code' => trim($data['tax_code'] ?? ''),
+            'owner_id' => $this->userId(),
+            'created_by' => $this->userId(),
+        ]);
+
+        return $this->json([
+            'success' => true,
+            'company' => ['id' => $companyId, 'name' => $name],
+        ]);
+    }
+
     public function show($id)
     {
         $this->authorize('companies', 'view');
