@@ -1,46 +1,33 @@
 -- Contacts
-ALTER TABLE `contacts` ADD INDEX IF NOT EXISTS `idx_contacts_search` (`tenant_id`, `is_deleted`, `status`);
-ALTER TABLE `contacts` ADD INDEX IF NOT EXISTS `idx_contacts_owner` (`owner_id`);
-ALTER TABLE `contacts` ADD INDEX IF NOT EXISTS `idx_contacts_email` (`email`);
-ALTER TABLE `contacts` ADD INDEX IF NOT EXISTS `idx_contacts_created` (`created_at`);
+CREATE INDEX idx_contacts_search ON contacts(tenant_id, is_deleted, status);
+CREATE INDEX idx_contacts_owner ON contacts(owner_id);
+CREATE INDEX idx_contacts_email ON contacts(email);
+CREATE INDEX idx_contacts_created ON contacts(created_at);
 
 -- Deals
-ALTER TABLE `deals` ADD INDEX IF NOT EXISTS `idx_deals_tenant_status` (`tenant_id`, `status`);
-ALTER TABLE `deals` ADD INDEX IF NOT EXISTS `idx_deals_owner` (`owner_id`);
-ALTER TABLE `deals` ADD INDEX IF NOT EXISTS `idx_deals_stage` (`stage_id`);
+CREATE INDEX idx_deals_tenant_status ON deals(tenant_id, status);
+CREATE INDEX idx_deals_owner ON deals(owner_id);
 
 -- Tasks
-ALTER TABLE `tasks` ADD INDEX IF NOT EXISTS `idx_tasks_assigned` (`assigned_to`, `is_deleted`, `status`);
-ALTER TABLE `tasks` ADD INDEX IF NOT EXISTS `idx_tasks_due` (`due_date`);
-
--- Orders
-ALTER TABLE `orders` ADD INDEX IF NOT EXISTS `idx_orders_tenant` (`tenant_id`, `status`);
-ALTER TABLE `orders` ADD INDEX IF NOT EXISTS `idx_orders_contact` (`contact_id`);
+CREATE INDEX idx_tasks_assigned ON tasks(assigned_to, is_deleted, status);
+CREATE INDEX idx_tasks_due ON tasks(due_date);
 
 -- Fund transactions
-ALTER TABLE `fund_transactions` ADD INDEX IF NOT EXISTS `idx_fund_tenant_date` (`tenant_id`, `transaction_date`);
-ALTER TABLE `fund_transactions` ADD INDEX IF NOT EXISTS `idx_fund_type_status` (`type`, `status`);
+CREATE INDEX idx_fund_tenant_date ON fund_transactions(tenant_id, transaction_date);
 
 -- Debts
-ALTER TABLE `debts` ADD INDEX IF NOT EXISTS `idx_debts_tenant_type` (`tenant_id`, `type`, `status`);
-ALTER TABLE `debts` ADD INDEX IF NOT EXISTS `idx_debts_due` (`due_date`);
+CREATE INDEX idx_debts_tenant_type ON debts(tenant_id, type, status);
+CREATE INDEX idx_debts_due ON debts(due_date);
 
 -- Email messages
-ALTER TABLE `email_messages` ADD INDEX IF NOT EXISTS `idx_email_sent` (`sent_at`);
-ALTER TABLE `email_messages` ADD INDEX IF NOT EXISTS `idx_email_read` (`account_id`, `is_read`);
+CREATE INDEX idx_email_sent ON email_messages(sent_at);
 
 -- Activities
-ALTER TABLE `activities` ADD INDEX IF NOT EXISTS `idx_activities_user` (`user_id`, `created_at`);
-ALTER TABLE `activities` ADD INDEX IF NOT EXISTS `idx_activities_contact` (`contact_id`);
+CREATE INDEX idx_activities_user ON activities(user_id, created_at);
 
 -- Logistics
-ALTER TABLE `logistics_packages` ADD INDEX IF NOT EXISTS `idx_pkg_tenant_status` (`tenant_id`, `status`);
-ALTER TABLE `logistics_packages` ADD INDEX IF NOT EXISTS `idx_pkg_tracking` (`tracking_code`);
-ALTER TABLE `logistics_orders` ADD INDEX IF NOT EXISTS `idx_lorder_tenant` (`tenant_id`, `status`);
-ALTER TABLE `logistics_bags` ADD INDEX IF NOT EXISTS `idx_bag_tenant` (`tenant_id`, `status`);
+CREATE INDEX idx_pkg_tracking ON logistics_packages(tracking_code);
+CREATE INDEX idx_lorder_tenant ON logistics_orders(tenant_id, status);
 
 -- Payrolls
-ALTER TABLE `payrolls` ADD INDEX IF NOT EXISTS `idx_payroll_period` (`tenant_id`, `month`, `year`);
-
--- Commissions
-ALTER TABLE `commissions` ADD INDEX IF NOT EXISTS `idx_comm_period` (`tenant_id`, `created_at`);
+CREATE INDEX idx_payroll_period ON payrolls(tenant_id, month, year);
