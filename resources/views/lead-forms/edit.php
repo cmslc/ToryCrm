@@ -66,6 +66,32 @@
                         <input type="text" class="form-control" name="button_text" value="<?= e($form['settings']['button_text'] ?? 'Gửi') ?>">
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Giao diện</label>
+                        <div class="row g-2">
+                            <?php
+                            $styles = [
+                                'classic' => ['name'=>'Classic','bg'=>'#fff','border'=>'1px solid #ddd','radius'=>'8px'],
+                                'modern' => ['name'=>'Modern','bg'=>'#f8f9fa','border'=>'none','radius'=>'16px'],
+                                'dark' => ['name'=>'Dark','bg'=>'#1a1d21','border'=>'none','radius'=>'12px'],
+                                'gradient' => ['name'=>'Gradient','bg'=>'linear-gradient(135deg,#667eea,#764ba2)','border'=>'none','radius'=>'16px'],
+                                'minimal' => ['name'=>'Minimal','bg'=>'#fff','border'=>'2px solid #000','radius'=>'0'],
+                            ];
+                            $currentStyle = $form['settings']['form_style'] ?? 'classic';
+                            foreach ($styles as $key => $st): ?>
+                            <div class="col-4">
+                                <label class="d-block">
+                                    <input type="radio" name="form_style" value="<?= $key ?>" class="d-none" <?= $key === $currentStyle ? 'checked' : '' ?>>
+                                    <div class="border rounded p-2 text-center style-option" style="cursor:pointer">
+                                        <div class="rounded mb-1" style="height:40px;background:<?= $st['bg'] ?>;border:<?= $st['border'] ?>;border-radius:<?= $st['radius'] ?>"></div>
+                                        <small class="fw-medium"><?= $st['name'] ?></small>
+                                    </div>
+                                </label>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <style>.style-option { transition:.2s } input[name=form_style]:checked + .style-option { border-color:#405189!important; box-shadow:0 0 0 2px #40518944 }</style>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Màu nút</label>
                         <input type="color" class="form-control form-control-color" name="button_color" value="<?= e($form['settings']['button_color'] ?? '#405189') ?>">
                     </div>

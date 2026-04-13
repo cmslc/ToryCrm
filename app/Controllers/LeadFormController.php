@@ -77,6 +77,7 @@ class LeadFormController extends Controller
             'button_text' => trim($this->input('button_text') ?? '') ?: 'Gửi',
             'button_color' => trim($this->input('button_color') ?? '') ?: '#405189',
             'auto_assign' => (int)($this->input('auto_assign') ?? 0),
+            'form_style' => $this->input('form_style') ?: 'classic',
         ];
 
         Database::insert('lead_forms', [
@@ -132,6 +133,7 @@ class LeadFormController extends Controller
             'button_text' => trim($this->input('button_text') ?? '') ?: 'Gửi',
             'button_color' => trim($this->input('button_color') ?? '') ?: '#405189',
             'auto_assign' => (int)($this->input('auto_assign') ?? 0),
+            'form_style' => $this->input('form_style') ?: 'classic',
         ];
 
         Database::update('lead_forms', [
