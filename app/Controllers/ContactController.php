@@ -42,6 +42,12 @@ class ContactController extends Controller
             $params[] = $ownerId;
         }
 
+        $customerGroup = $this->input('customer_group');
+        if ($customerGroup) {
+            $where[] = "c.customer_group = ?";
+            $params[] = $customerGroup;
+        }
+
         // Owner-based data scoping: staff only sees own records
         $ownerScope = $this->ownerScope('c', 'owner_id');
         if ($ownerScope['where']) {
@@ -103,6 +109,7 @@ class ContactController extends Controller
                 'status' => $status,
                 'source_id' => $sourceId,
                 'owner_id' => $ownerId,
+                'customer_group' => $customerGroup,
             ],
         ]);
     }
@@ -152,6 +159,7 @@ class ContactController extends Controller
             'city' => trim($data['city'] ?? ''),
             'description' => trim($data['description'] ?? ''),
             'status' => $data['status'] ?? 'new',
+            'customer_group' => $data['customer_group'] ?? null ?: null,
             'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : $this->userId()),
             'created_by' => $this->userId(),
         ]);

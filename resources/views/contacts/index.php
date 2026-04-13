@@ -101,6 +101,14 @@ $currentStatus = $filters['status'] ?? '';
                     <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
                 <?php endforeach; ?>
             </select>
+            <select name="customer_group" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                <option value="">Nhóm KH</option>
+                <option value="du_an" <?= ($filters['customer_group'] ?? '') === 'du_an' ? 'selected' : '' ?>>Khách dự án</option>
+                <option value="le" <?= ($filters['customer_group'] ?? '') === 'le' ? 'selected' : '' ?>>Khách lẻ</option>
+                <option value="dai_ly" <?= ($filters['customer_group'] ?? '') === 'dai_ly' ? 'selected' : '' ?>>Khách đại lý</option>
+                <option value="doanh_nghiep" <?= ($filters['customer_group'] ?? '') === 'doanh_nghiep' ? 'selected' : '' ?>>Doanh nghiệp</option>
+                <option value="vip" <?= ($filters['customer_group'] ?? '') === 'vip' ? 'selected' : '' ?>>VIP</option>
+            </select>
             <input type="hidden" name="status" id="statusInput" value="<?= e($currentStatus) ?>">
             <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
             <?php if (!empty(array_filter($filters ?? []))): ?>

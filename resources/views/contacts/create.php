@@ -152,6 +152,17 @@
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Nhóm khách hàng</label>
+                                <select name="customer_group" class="form-select">
+                                    <option value="">Chưa phân loại</option>
+                                    <option value="du_an">Khách dự án</option>
+                                    <option value="le">Khách lẻ</option>
+                                    <option value="dai_ly">Khách đại lý</option>
+                                    <option value="doanh_nghiep">Doanh nghiệp</option>
+                                    <option value="vip">VIP</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
                                 <?php
                                 $deptGrouped = [];
