@@ -68,8 +68,9 @@
                     <div class="row">
                         <div class="col-6 mb-3"><label class="form-label">Điện thoại</label><input type="text" class="form-control" name="phone" id="whPhone"></div>
                         <div class="col-6 mb-3"><label class="form-label">Quản lý kho</label>
+                            <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                             <select name="manager_id" class="form-select" id="whManager"><option value="">Chưa chọn</option>
-                            <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?></select>
+                            <?php foreach ($deptGrouped as $dept => $dUsers): ?><optgroup label="<?= e($dept) ?>"><?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select>
                         </div>
                     </div>
                     <div class="mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" name="description" id="whDesc" rows="2"></textarea></div>

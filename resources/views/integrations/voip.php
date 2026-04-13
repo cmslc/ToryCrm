@@ -55,10 +55,15 @@
                                 <?php foreach ($extensions as $i => $ext): ?>
                                 <div class="row mb-2 extension-row">
                                     <div class="col-5">
+                                        <?php if (!isset($deptGrouped)) { $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } } ?>
                                         <select class="form-select" name="ext_user_id[]">
                                             <option value="">-- Chọn nhân viên --</option>
-                                            <?php foreach ($users as $u): ?>
+                                            <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                            <optgroup label="<?= e($dept) ?>">
+                                                <?php foreach ($dUsers as $u): ?>
                                                 <option value="<?= $u['id'] ?>" <?= ($ext['user_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
@@ -205,8 +210,12 @@
                 <div class="col-5">
                     <select class="form-select" name="ext_user_id[]">
                         <option value="">-- Chọn nhân viên --</option>
-                        <?php foreach ($users as $u): ?>
-                        <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                        <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                        <optgroup label="<?= e($dept) ?>">
+                            <?php foreach ($dUsers as $u): ?>
+                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
                         <?php endforeach; ?>
                     </select>
                 </div>

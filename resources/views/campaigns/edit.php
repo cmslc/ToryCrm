@@ -67,12 +67,20 @@
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            <?php
+                            $deptGrouped = [];
+                            foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                            ?>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
                                 <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn</option>
-                                    <?php foreach ($users ?? [] as $u): ?>
+                                    <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                    <optgroup label="<?= e($dept) ?>">
+                                        <?php foreach ($dUsers as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($campaign['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
                                     <?php endforeach; ?>
                                 </select>
                             </div>

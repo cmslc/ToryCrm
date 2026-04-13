@@ -87,10 +87,15 @@
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">Người phê duyệt <span class="text-danger">*</span></label>
+                                <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                                 <select name="approver_id[]" class="form-select" required>
                                     <option value="">Chọn người duyệt</option>
-                                    <?php foreach ($users as $u): ?>
+                                    <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                    <optgroup label="<?= e($dept) ?>">
+                                        <?php foreach ($dUsers as $u): ?>
                                         <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -142,8 +147,12 @@ document.addEventListener('DOMContentLoaded', function() {
             '<div class="col-md-5"><select name="approver_id[]" class="form-select" required><option value="">Chọn người duyệt</option>' +
             <?php
                 $userOptions = '';
-                foreach ($users as $u) {
-                    $userOptions .= '<option value="' . $u['id'] . '">' . htmlspecialchars($u['name'], ENT_QUOTES) . '</option>';
+                foreach ($deptGrouped as $dept => $dUsers) {
+                    $userOptions .= '<optgroup label="' . htmlspecialchars($dept, ENT_QUOTES) . '">';
+                    foreach ($dUsers as $u) {
+                        $userOptions .= '<option value="' . $u['id'] . '">' . htmlspecialchars($u['name'], ENT_QUOTES) . '</option>';
+                    }
+                    $userOptions .= '</optgroup>';
                 }
                 echo json_encode($userOptions);
             ?> +

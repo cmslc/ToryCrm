@@ -37,10 +37,15 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                 <option value="medium" <?= $currentPriority === 'medium' ? 'selected' : '' ?>>Trung bình</option>
                 <option value="low" <?= $currentPriority === 'low' ? 'selected' : '' ?>>Thấp</option>
             </select>
+            <?php $deptGroupedFilter = []; foreach ($users ?? [] as $u) { $deptGroupedFilter[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
             <select name="assigned_to" class="form-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
                 <option value="">Phụ trách</option>
-                <?php foreach ($users ?? [] as $u): ?>
+                <?php foreach ($deptGroupedFilter as $dept => $dUsers): ?>
+                <optgroup label="<?= e($dept) ?>">
+                    <?php foreach ($dUsers as $u): ?>
                     <option value="<?= $u['id'] ?>" <?= ($filters['assigned_to'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                    <?php endforeach; ?>
+                </optgroup>
                 <?php endforeach; ?>
             </select>
             <input type="date" name="due_from" class="form-control" style="width:auto" value="<?= e($filters['due_from'] ?? '') ?>" placeholder="Hạn từ" title="Hạn từ ngày">
@@ -133,7 +138,11 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
             </select>
             <select name="bulk_assign_to" class="form-select" style="width:auto" onchange="if(this.value){this.form.querySelector('[name=action]').value='assign';this.form.submit()}">
                 <option value="">Gán cho</option>
-                <?php foreach ($users ?? [] as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                <?php foreach ($deptGroupedFilter as $dept => $dUsers): ?>
+                <optgroup label="<?= e($dept) ?>">
+                    <?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                </optgroup>
+                <?php endforeach; ?>
             </select>
             <button type="submit" name="action" value="delete" class="btn btn-soft-danger" data-confirm="Xóa các công việc đã chọn?"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
         </form>

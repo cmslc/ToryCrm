@@ -59,7 +59,7 @@ class CompanyController extends Controller
             $params
         );
 
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
         $cities = Database::fetchAll("SELECT DISTINCT city FROM companies WHERE tenant_id = ? AND city IS NOT NULL AND city != '' ORDER BY city", [Database::tenantId()]);
         $totalPages = ceil($total / $perPage);
 
@@ -249,7 +249,7 @@ class CompanyController extends Controller
             [$id]
         );
 
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('companies.show', [
             'company' => $company,

@@ -95,10 +95,15 @@ $currentStatus = $filters['status'] ?? '';
                     <option value="<?= $s['id'] ?>" <?= ($filters['source_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option>
                 <?php endforeach; ?>
             </select>
+            <?php $deptGroupedFilter = []; foreach ($users ?? [] as $u) { $deptGroupedFilter[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
             <select name="owner_id" class="form-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
                 <option value="">Phụ trách</option>
-                <?php foreach ($users ?? [] as $u): ?>
+                <?php foreach ($deptGroupedFilter as $dept => $dUsers): ?>
+                <optgroup label="<?= e($dept) ?>">
+                    <?php foreach ($dUsers as $u): ?>
                     <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                    <?php endforeach; ?>
+                </optgroup>
                 <?php endforeach; ?>
             </select>
             <select name="customer_group" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">

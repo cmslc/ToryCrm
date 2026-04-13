@@ -130,7 +130,7 @@ class DealController extends Controller
             "SELECT id, name FROM companies ORDER BY name"
         );
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('deals.create', [
             'contacts' => $contacts,
@@ -245,7 +245,7 @@ class DealController extends Controller
             "SELECT id, name, sku, price FROM products WHERE is_deleted = 0 ORDER BY name"
         );
 
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('deals.show', [
             'deal' => $deal,
@@ -281,7 +281,7 @@ class DealController extends Controller
             "SELECT id, name FROM companies ORDER BY name"
         );
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('deals.edit', [
             'deal' => $deal,

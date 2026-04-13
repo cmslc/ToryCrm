@@ -35,7 +35,7 @@ class PurchaseOrderController extends Controller
         $orderCode = $model->generateCode();
         $suppliers = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $products = Database::fetchAll("SELECT id, name, sku, cost_price as price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('purchase-orders.create', [
             'orderCode' => $orderCode,
@@ -134,7 +134,7 @@ class PurchaseOrderController extends Controller
         $items = $model->getItems($id);
         $suppliers = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $products = Database::fetchAll("SELECT id, name, sku, cost_price as price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('purchase-orders.edit', [
             'order' => $order,

@@ -52,7 +52,7 @@ class TicketController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $categories = $ticketModel->getCategories();
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('tickets.create', [
             'contacts' => $contacts,
@@ -170,7 +170,7 @@ class TicketController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $categories = $ticketModel->getCategories();
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('tickets.edit', [
             'ticket' => $ticket,

@@ -80,10 +80,15 @@
             <div class="card-body">
                 <form method="GET" action="<?= url('commissions') ?>" class="row g-3 mb-4">
                     <div class="col-md-2">
+                        <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                         <select name="user_id" class="form-select searchable-select">
                             <option value="">Tất cả nhân viên</option>
-                            <?php foreach ($users ?? [] as $u): ?>
+                            <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                            <optgroup label="<?= e($dept) ?>">
+                                <?php foreach ($dUsers as $u): ?>
                                 <option value="<?= $u['id'] ?>" <?= ($filters['user_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
                             <?php endforeach; ?>
                         </select>
                     </div>

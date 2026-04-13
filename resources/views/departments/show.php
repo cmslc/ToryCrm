@@ -178,9 +178,10 @@ try {
                         <?= csrf_field() ?>
                         <div class="flex-grow-1">
                             <label class="form-label fs-12">Thêm nhân viên</label>
+                            <?php $deptGrouped = []; foreach ($allUsers ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                             <select name="user_id" class="form-select" required>
                                 <option value="">Chọn...</option>
-                                <?php foreach ($allUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?><optgroup label="<?= e($dept) ?>"><?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary"><i class="ri-user-add-line me-1"></i> Thêm</button>

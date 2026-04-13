@@ -70,10 +70,15 @@
                     <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Chọn nhân viên</label>
+                        <?php $deptGrouped = []; foreach ($allUsers ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                         <select name="user_id" class="form-select searchable-select" required>
                             <option value="">Chọn nhân viên...</option>
-                            <?php foreach ($allUsers as $u): ?>
+                            <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                            <optgroup label="<?= e($dept) ?>">
+                                <?php foreach ($dUsers as $u): ?>
                                 <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
                             <?php endforeach; ?>
                         </select>
                     </div>

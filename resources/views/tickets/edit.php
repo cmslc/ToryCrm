@@ -64,10 +64,18 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Người phụ trách</label>
+                                <?php
+                                $deptGrouped = [];
+                                foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                                ?>
                                 <select name="assigned_to" class="form-select searchable-select">
                                     <option value="">Chọn</option>
-                                    <?php foreach ($users ?? [] as $u): ?>
+                                    <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                    <optgroup label="<?= e($dept) ?>">
+                                        <?php foreach ($dUsers as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($ticket['assigned_to'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
                                     <?php endforeach; ?>
                                 </select>
                             </div>

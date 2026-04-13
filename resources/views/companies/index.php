@@ -43,10 +43,15 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
                     <?php endforeach; ?>
                 </select>
 
+                <?php $deptGroupedFilter = []; foreach ($users ?? [] as $u) { $deptGroupedFilter[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                 <select name="owner_id" class="form-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
                     <option value="">Phụ trách</option>
-                    <?php foreach ($users ?? [] as $u): ?>
+                    <?php foreach ($deptGroupedFilter as $dept => $dUsers): ?>
+                    <optgroup label="<?= e($dept) ?>">
+                        <?php foreach ($dUsers as $u): ?>
                         <option value="<?= $u['id'] ?>" <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
                     <?php endforeach; ?>
                 </select>
 

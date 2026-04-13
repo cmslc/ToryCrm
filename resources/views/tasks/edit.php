@@ -32,7 +32,10 @@
                     <div class="card"><div class="card-body">
                         <div class="mb-3"><label class="form-label">Trạng thái</label><select name="status" class="form-select"><?php foreach (['todo'=>'Cần làm','in_progress'=>'Đang làm','review'=>'Review','done'=>'Xong'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($task['status'] ?? '') === $v ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></div>
                         <div class="mb-3"><label class="form-label">Ưu tiên</label><select name="priority" class="form-select"><?php foreach (['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($task['priority'] ?? '') === $v ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></div>
-                        <div class="mb-3"><label class="form-label">Giao cho</label><select name="assigned_to" class="form-select searchable-select"><option value="">Chọn</option><?php foreach ($users ?? [] as $u): ?><option value="<?= $u['id'] ?>" <?= ($task['assigned_to'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option><?php endforeach; ?></select></div>
+                        <div class="mb-3"><label class="form-label">Giao cho</label><?php
+                        $deptGrouped = [];
+                        foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                        ?><select name="assigned_to" class="form-select searchable-select"><option value="">Chọn</option><?php foreach ($deptGrouped as $dept => $dUsers): ?><optgroup label="<?= e($dept) ?>"><?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>" <?= ($task['assigned_to'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></div>
                     </div></div>
                     <div class="card"><div class="card-body d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Cập nhật</button>

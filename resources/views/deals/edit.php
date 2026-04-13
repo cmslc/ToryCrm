@@ -28,7 +28,10 @@
                         <div class="mb-3"><label class="form-label">Giai đoạn</label><select name="stage_id" class="form-select"><?php foreach ($stages ?? [] as $s): ?><option value="<?= $s['id'] ?>" <?= ($deal['stage_id'] ?? '') == $s['id'] ? 'selected' : '' ?>><?= e($s['name']) ?></option><?php endforeach; ?></select></div>
                         <div class="mb-3"><label class="form-label">Trạng thái</label><select name="status" class="form-select"><option value="open" <?= $deal['status']==='open'?'selected':'' ?>>Đang mở</option><option value="won" <?= $deal['status']==='won'?'selected':'' ?>>Thắng</option><option value="lost" <?= $deal['status']==='lost'?'selected':'' ?>>Thua</option></select></div>
                         <div class="mb-3"><label class="form-label">Ưu tiên</label><select name="priority" class="form-select"><?php foreach (['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn'] as $v=>$l): ?><option value="<?= $v ?>" <?= ($deal['priority'] ?? '') === $v ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></div>
-                        <div class="mb-3"><label class="form-label">Phụ trách</label><select name="owner_id" class="form-select searchable-select"><option value="">Chọn</option><?php foreach ($users ?? [] as $u): ?><option value="<?= $u['id'] ?>" <?= ($deal['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option><?php endforeach; ?></select></div>
+                        <div class="mb-3"><label class="form-label">Phụ trách</label><?php
+                        $deptGrouped = [];
+                        foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                        ?><select name="owner_id" class="form-select searchable-select"><option value="">Chọn</option><?php foreach ($deptGrouped as $dept => $dUsers): ?><optgroup label="<?= e($dept) ?>"><?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>" <?= ($deal['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?></select></div>
                     </div></div>
                     <div class="card"><div class="card-body d-flex gap-2">
                         <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Cập nhật</button>

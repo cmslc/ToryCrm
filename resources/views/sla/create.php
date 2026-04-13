@@ -31,10 +31,15 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Chuyển tiếp đến</label>
+                                    <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                                     <select name="escalate_to" class="form-select">
                                         <option value="">Chọn người nhận</option>
-                                        <?php foreach ($users ?? [] as $u): ?>
+                                        <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                        <optgroup label="<?= e($dept) ?>">
+                                            <?php foreach ($dUsers as $u): ?>
                                             <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
                                         <?php endforeach; ?>
                                     </select>
                                     <small class="text-muted">Người sẽ được gán khi SLA bị vi phạm</small>

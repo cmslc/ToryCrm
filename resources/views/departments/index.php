@@ -128,16 +128,17 @@ flattenDeptTree($tree, 0, $flatList);
                         </div>
                     </div>
                     <div class="row">
+                        <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                         <div class="col-6 mb-3">
                             <label class="form-label">Trưởng phòng</label>
                             <select name="manager_id" class="form-select" id="deptManager"><option value="">Chọn...</option>
-                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?><optgroup label="<?= e($dept) ?>"><?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-6 mb-3">
                             <label class="form-label">Phó phòng</label>
                             <select name="vice_manager_id" class="form-select" id="deptVice"><option value="">Chọn...</option>
-                                <?php foreach ($users as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?><optgroup label="<?= e($dept) ?>"><?php foreach ($dUsers as $u): ?><option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option><?php endforeach; ?></optgroup><?php endforeach; ?>
                             </select>
                         </div>
                     </div>

@@ -20,7 +20,7 @@ class WarehouseController extends Controller
             [$tid]
         );
 
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$tid]);
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('warehouses.index', ['warehouses' => $warehouses, 'users' => $users]);
     }

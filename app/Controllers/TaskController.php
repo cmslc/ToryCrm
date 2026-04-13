@@ -98,7 +98,7 @@ class TaskController extends Controller
 
         // Users for filter dropdown
         $users = Database::fetchAll(
-            "SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name",
+            "SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name",
             [Database::tenantId()]
         );
 
@@ -158,7 +158,7 @@ class TaskController extends Controller
         $deals = Database::fetchAll(
             "SELECT id, title FROM deals ORDER BY title"
         );
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('tasks.create', [
             'contacts' => $contacts,
@@ -316,7 +316,7 @@ class TaskController extends Controller
 
         // All users for follower picker
         $allUsers = Database::fetchAll(
-            "SELECT id, name, role FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name",
+            "SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name",
             [Database::tenantId()]
         );
 
@@ -357,7 +357,7 @@ class TaskController extends Controller
         $deals = Database::fetchAll(
             "SELECT id, title FROM deals ORDER BY title"
         );
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('tasks.edit', [
             'task' => $task,

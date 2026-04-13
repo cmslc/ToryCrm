@@ -38,7 +38,7 @@ class CalendarController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('calendar.create', [
             'contacts' => $contacts,
@@ -151,7 +151,7 @@ class CalendarController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
         return $this->view('calendar.edit', [
             'event' => $event,

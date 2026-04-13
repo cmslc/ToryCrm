@@ -103,7 +103,7 @@ class BudgetController extends Controller
     public function create()
     {
         $tid = Database::tenantId();
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$tid]);
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('budgets.create', [
             'users' => $users,
@@ -235,7 +235,7 @@ class BudgetController extends Controller
         }
 
         $items = Database::fetchAll("SELECT * FROM budget_items WHERE budget_id = ? ORDER BY sort_order", [$id]);
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$tid]);
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('budgets.edit', [
             'budget' => $budget,

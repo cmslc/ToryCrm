@@ -158,10 +158,15 @@
                     <div class="card-body">
                         <form method="POST" action="<?= url('conversations/' . $conversation['id'] . '/assign') ?>">
                             <?= csrf_field() ?>
+                            <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                             <select name="assigned_to" class="form-select mb-2">
                                 <option value="">-- Chưa gán --</option>
-                                <?php foreach ($users as $u): ?>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                <optgroup label="<?= e($dept) ?>">
+                                    <?php foreach ($dUsers as $u): ?>
                                     <option value="<?= $u['id'] ?>" <?= ($conversation['assigned_to'] ?? 0) == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                                 <?php endforeach; ?>
                             </select>
                             <button type="submit" class="btn btn-soft-primary w-100">Cập nhật</button>

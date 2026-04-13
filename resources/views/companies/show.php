@@ -58,10 +58,15 @@
                         <form method="POST" action="<?= url('companies/' . $company['id'] . '/change-owner') ?>">
                             <?= csrf_field() ?>
                             <div class="input-group">
+                                <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                                 <select name="owner_id" class="form-select searchable-select">
                                     <option value="">Chọn người mới</option>
-                                    <?php foreach ($users as $u): ?>
+                                    <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                    <optgroup label="<?= e($dept) ?>">
+                                        <?php foreach ($dUsers as $u): ?>
                                         <option value="<?= $u['id'] ?>" <?= ($company['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
                                     <?php endforeach; ?>
                                 </select>
                                 <button type="submit" class="btn btn-soft-primary"><i class="ri-refresh-line me-1"></i> Đổi</button>

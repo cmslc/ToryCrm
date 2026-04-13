@@ -435,10 +435,15 @@
                                         </div>
                                     </div>
                                     <div class="col-md-3">
+                                        <?php $deptGrouped = []; foreach ($allUsers ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                                         <select class="form-select" id="activityUserFilter">
                                             <option value="">Tất cả nhân viên</option>
-                                            <?php foreach ($allUsers as $u): ?>
+                                            <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                            <optgroup label="<?= e($dept) ?>">
+                                                <?php foreach ($dUsers as $u): ?>
                                                 <option value="<?= e($u['name']) ?>"><?= e($u['name']) ?></option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>

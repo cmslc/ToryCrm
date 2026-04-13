@@ -84,11 +84,16 @@ if ($firstAcc): ?>
                 </div>
                 <div class="col-md-2 mb-3">
                     <label class="form-label">Gán cho</label>
+                    <?php $allUsers = \Core\Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [\Core\Database::tenantId()]); ?>
+                    <?php $deptGroupedEmail = []; foreach ($allUsers as $u) { $deptGroupedEmail[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                     <select name="user_id" class="form-select">
                         <option value="">Tất cả</option>
-                        <?php $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [\Core\Database::tenantId()]); ?>
-                        <?php foreach ($allUsers as $u): ?>
-                        <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                        <?php foreach ($deptGroupedEmail as $dept => $dUsers): ?>
+                        <optgroup label="<?= e($dept) ?>">
+                            <?php foreach ($dUsers as $u): ?>
+                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -175,11 +180,16 @@ if ($firstAcc): ?>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Gán cho</label>
+                        <?php $allUsersEdit = \Core\Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [\Core\Database::tenantId()]); ?>
+                        <?php $deptGroupedEdit = []; foreach ($allUsersEdit as $u) { $deptGroupedEdit[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                         <select name="user_id" class="form-select" id="editAccUser">
                             <option value="">Tất cả</option>
-                            <?php $allUsersEdit = \Core\Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [\Core\Database::tenantId()]); ?>
-                            <?php foreach ($allUsersEdit as $u): ?>
-                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                            <?php foreach ($deptGroupedEdit as $dept => $dUsers): ?>
+                            <optgroup label="<?= e($dept) ?>">
+                                <?php foreach ($dUsers as $u): ?>
+                                <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
                             <?php endforeach; ?>
                         </select>
                     </div>
