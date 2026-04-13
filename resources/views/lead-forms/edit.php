@@ -125,7 +125,7 @@
             </div>
         </div>
 
-        <div class="col-lg-4" style="align-self:flex-start;position:sticky;top:80px">
+        <div class="col-lg-4" id="previewCol">
             <!-- Live Preview -->
             <div class="card">
                 <div class="card-header"><h5 class="card-title mb-0"><i class="ri-eye-line me-2"></i> Xem trước</h5></div>
@@ -210,4 +210,25 @@ function addField() {
     document.getElementById('fieldsContainer').insertAdjacentHTML('beforeend', html);
     fieldIdx++;
 }
+
+// Sticky preview
+(function(){
+    var col = document.getElementById('previewCol');
+    if (!col) return;
+    var card = col.querySelector('.card');
+    var offsetTop = col.offsetTop;
+    window.addEventListener('scroll', function() {
+        var scrollY = window.scrollY || window.pageYOffset;
+        if (scrollY > offsetTop - 80) {
+            card.style.position = 'fixed';
+            card.style.top = '80px';
+            card.style.width = col.offsetWidth + 'px';
+            card.style.zIndex = '50';
+        } else {
+            card.style.position = '';
+            card.style.top = '';
+            card.style.width = '';
+        }
+    });
+})();
 </script>
