@@ -51,23 +51,43 @@
                     <?php endforeach; ?>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
             <div class="card">
                 <div class="card-header"><h5 class="card-title mb-0">Cài đặt</h5></div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Lời cảm ơn</label>
-                        <textarea class="form-control" name="thank_you_message" rows="2"><?= e($form['settings']['thank_you_message'] ?? '') ?></textarea>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Nút gửi</label>
+                            <input type="text" class="form-control" name="button_text" value="<?= e($form['settings']['button_text'] ?? 'Gửi') ?>">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Màu nút</label>
+                            <input type="color" class="form-control form-control-color" name="button_color" value="<?= e($form['settings']['button_color'] ?? '#405189') ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Tự gán cho</label>
+                            <select name="auto_assign" class="form-select">
+                                <option value="">Không gán</option>
+                                <?php $users = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
+                                <?php foreach ($users as $u): ?>
+                                <option value="<?= $u['id'] ?>" <?= ($form['settings']['auto_assign'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3 d-flex align-items-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" <?= $form['is_active'] ? 'checked' : '' ?>>
+                                <label class="form-check-label" for="isActive">Kích hoạt</label>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Nút gửi</label>
-                        <input type="text" class="form-control" name="button_text" value="<?= e($form['settings']['button_text'] ?? 'Gửi') ?>">
+                        <label class="form-label">Lời cảm ơn</label>
+                        <input type="text" class="form-control" name="thank_you_message" value="<?= e($form['settings']['thank_you_message'] ?? '') ?>">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Giao diện</label>
-                        <div class="row g-2">
+                        <div class="d-flex gap-2">
                             <?php
                             $styles = [
                                 'classic' => ['name'=>'Classic','bg'=>'#fff','border'=>'1px solid #ddd','radius'=>'8px'],
@@ -78,50 +98,28 @@
                             ];
                             $currentStyle = $form['settings']['form_style'] ?? 'classic';
                             foreach ($styles as $key => $st): ?>
-                            <div class="col-4">
-                                <label class="d-block">
-                                    <input type="radio" name="form_style" value="<?= $key ?>" class="d-none" <?= $key === $currentStyle ? 'checked' : '' ?>>
-                                    <div class="border rounded p-2 text-center style-option" style="cursor:pointer">
-                                        <div class="rounded mb-1" style="height:40px;background:<?= $st['bg'] ?>;border:<?= $st['border'] ?>;border-radius:<?= $st['radius'] ?>"></div>
-                                        <small class="fw-medium"><?= $st['name'] ?></small>
-                                    </div>
-                                </label>
-                            </div>
+                            <label class="d-block" style="flex:1">
+                                <input type="radio" name="form_style" value="<?= $key ?>" class="d-none" <?= $key === $currentStyle ? 'checked' : '' ?>>
+                                <div class="border rounded p-2 text-center style-option" style="cursor:pointer">
+                                    <div class="rounded mb-1" style="height:30px;background:<?= $st['bg'] ?>;border:<?= $st['border'] ?>;border-radius:<?= $st['radius'] ?>"></div>
+                                    <small class="fw-medium fs-11"><?= $st['name'] ?></small>
+                                </div>
+                            </label>
                             <?php endforeach; ?>
                         </div>
                         <style>.style-option { transition:.2s } input[name=form_style]:checked + .style-option { border-color:#405189!important; box-shadow:0 0 0 2px #40518944 }</style>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Màu nút</label>
-                        <input type="color" class="form-control form-control-color" name="button_color" value="<?= e($form['settings']['button_color'] ?? '#405189') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tự gán cho</label>
-                        <select name="auto_assign" class="form-select">
-                            <option value="">Không gán</option>
-                            <?php $users = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
-                            <?php foreach ($users as $u): ?>
-                            <option value="<?= $u['id'] ?>" <?= ($form['settings']['auto_assign'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" <?= $form['is_active'] ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="isActive">Kích hoạt form</label>
-                        </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Cập nhật</button>
+                        <a href="<?= url('lead-forms/' . $form['id'] . '/embed') ?>" class="btn btn-soft-success"><i class="ri-code-line me-1"></i> Mã nhúng</a>
                     </div>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-body">
-                    <button type="submit" class="btn btn-primary w-100 mb-2"><i class="ri-save-line me-1"></i> Cập nhật</button>
-                    <a href="<?= url('lead-forms/' . $form['id'] . '/embed') ?>" class="btn btn-soft-success w-100"><i class="ri-code-line me-1"></i> Mã nhúng</a>
-                </div>
-            </div>
+        </div>
 
+        <div class="col-lg-4">
             <!-- Live Preview -->
-            <div class="card">
+            <div class="card" style="position:sticky;top:80px">
                 <div class="card-header"><h5 class="card-title mb-0"><i class="ri-eye-line me-2"></i> Xem trước</h5></div>
                 <div class="card-body p-3" id="livePreview">
                     <div style="max-width:100%;padding:24px" id="previewBox">
