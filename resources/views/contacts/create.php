@@ -49,6 +49,12 @@
                             });
                             </script>
                             <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Mã khách hàng</label>
+                                    <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Họ <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" name="first_name" value="<?= old('first_name') ?>" required>
@@ -96,13 +102,29 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-8 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Địa chỉ</label>
                                     <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Tỉnh/Thành phố</label>
+                                    <input type="text" class="form-control" name="province" value="<?= old('province') ?>" placeholder="VD: TP.HCM">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Quận/Huyện</label>
+                                    <input type="text" class="form-control" name="district" value="<?= old('district') ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Phường/Xã</label>
+                                    <input type="text" class="form-control" name="ward" value="<?= old('ward') ?>">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Thành phố</label>
                                     <input type="text" class="form-control" name="city" value="<?= old('city') ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Quốc gia</label>
+                                    <input type="text" class="form-control" name="country" value="<?= old('country') ?: 'Việt Nam' ?>">
                                 </div>
                             </div>
                         </div>
@@ -185,6 +207,16 @@
                             <div class="mb-3">
                                 <label class="form-label">Điểm (Score)</label>
                                 <input type="number" class="form-control" name="score" value="0" min="0" max="100">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Người giới thiệu</label>
+                                <input type="text" class="form-control" name="referrer_code" value="<?= old('referrer_code') ?>" placeholder="Mã/tên người giới thiệu">
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="is_private" value="1" id="isPrivate">
+                                    <label class="form-check-label" for="isPrivate">KH riêng tư (chỉ người phụ trách xem)</label>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,135 +1,187 @@
-<?php $pageTitle = 'Sửa khách hàng'; ?>
+<?php $pageTitle = 'Sửa khách hàng'; $c = $contact; ?>
 
-        <div class="row">
-            <div class="col-12">
-                <div class="page-title-box d-flex align-items-center justify-content-between">
-                    <h4 class="mb-0">Sửa khách hàng</h4>
-                    <div class="page-title-right">
-                        <ol class="breadcrumb m-0">
-                            <li class="breadcrumb-item"><a href="<?= url('contacts') ?>">Khách hàng</a></li>
-                            <li class="breadcrumb-item active">Sửa</li>
-                        </ol>
+<div class="page-title-box d-flex align-items-center justify-content-between">
+    <h4 class="mb-0">Sửa khách hàng</h4>
+    <a href="<?= url('contacts/' . $c['id']) ?>" class="btn btn-soft-secondary"><i class="ri-arrow-left-line me-1"></i> Quay lại</a>
+</div>
+
+<form method="POST" action="<?= url('contacts/' . $c['id'] . '/update') ?>" enctype="multipart/form-data">
+    <?= csrf_field() ?>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0">Thông tin cơ bản</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Mã khách hàng</label>
+                            <input type="text" class="form-control" name="account_code" value="<?= e($c['account_code'] ?? '') ?>">
+                        </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Họ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="first_name" value="<?= e($c['first_name']) ?>" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tên</label>
+                            <input type="text" class="form-control" name="last_name" value="<?= e($c['last_name'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="<?= e($c['email'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Điện thoại</label>
+                            <input type="text" class="form-control" name="phone" value="<?= e($c['phone'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Di động</label>
+                            <input type="text" class="form-control" name="mobile" value="<?= e($c['mobile'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Chức vụ</label>
+                            <input type="text" class="form-control" name="position" value="<?= e($c['position'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giới tính</label>
+                            <select name="gender" class="form-select">
+                                <option value="">Chọn</option>
+                                <option value="male" <?= ($c['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Nam</option>
+                                <option value="female" <?= ($c['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Nữ</option>
+                                <option value="other" <?= ($c['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Khác</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" class="form-control" name="date_of_birth" value="<?= $c['date_of_birth'] ?? '' ?>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0">Địa chỉ</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Tỉnh/Thành phố</label>
+                            <input type="text" class="form-control" name="province" value="<?= e($c['province'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Quận/Huyện</label>
+                            <input type="text" class="form-control" name="district" value="<?= e($c['district'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Phường/Xã</label>
+                            <input type="text" class="form-control" name="ward" value="<?= e($c['ward'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Thành phố</label>
+                            <input type="text" class="form-control" name="city" value="<?= e($c['city'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Quốc gia</label>
+                            <input type="text" class="form-control" name="country" value="<?= e($c['country'] ?? 'Việt Nam') ?>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0">Ghi chú</h5></div>
+                <div class="card-body">
+                    <textarea name="description" class="form-control" rows="3"><?= e($c['description'] ?? '') ?></textarea>
                 </div>
             </div>
         </div>
 
-        <form method="POST" action="<?= url('contacts/' . $contact['id'] . '/update') ?>">
-            <?= csrf_field() ?>
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Thông tin cơ bản</h5></div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Họ <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="first_name" value="<?= e($contact['first_name']) ?>" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tên</label>
-                                    <input type="text" class="form-control" name="last_name" value="<?= e($contact['last_name'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="email" value="<?= e($contact['email'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Điện thoại</label>
-                                    <input type="text" class="form-control" name="phone" value="<?= e($contact['phone'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Di động</label>
-                                    <input type="text" class="form-control" name="mobile" value="<?= e($contact['mobile'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Chức vụ</label>
-                                    <input type="text" class="form-control" name="position" value="<?= e($contact['position'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Giới tính</label>
-                                    <select name="gender" class="form-select">
-                                        <option value="">Chọn</option>
-                                        <option value="male" <?= ($contact['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Nam</option>
-                                        <option value="female" <?= ($contact['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Nữ</option>
-                                        <option value="other" <?= ($contact['gender'] ?? '') === 'other' ? 'selected' : '' ?>>Khác</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Ngày sinh</label>
-                                    <input type="date" class="form-control" name="date_of_birth" value="<?= $contact['date_of_birth'] ?? '' ?>">
-                                </div>
-                                <div class="col-md-8 mb-3">
-                                    <label class="form-label">Địa chỉ</label>
-                                    <input type="text" class="form-control" name="address" value="<?= e($contact['address'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Thành phố</label>
-                                    <input type="text" class="form-control" name="city" value="<?= e($contact['city'] ?? '') ?>">
-                                </div>
-                                <div class="col-12 mb-3">
-                                    <label class="form-label">Ghi chú</label>
-                                    <textarea name="description" class="form-control" rows="3"><?= e($contact['description'] ?? '') ?></textarea>
-                                </div>
-                            </div>
-                        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0">Phân loại</h5></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Công ty</label>
+                        <select name="company_id" class="form-select searchable-select">
+                            <option value="">Chọn công ty</option>
+                            <?php foreach ($companies ?? [] as $company): ?>
+                            <option value="<?= $company['id'] ?>" <?= ($c['company_id'] ?? '') == $company['id'] ? 'selected' : '' ?>><?= e($company['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                </div>
-
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Phân loại</h5></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Công ty</label>
-                                <select name="company_id" class="form-select searchable-select">
-                                    <option value="">Chọn công ty</option>
-                                    <?php foreach ($companies ?? [] as $company): ?>
-                                        <option value="<?= $company['id'] ?>" <?= ($contact['company_id'] ?? '') == $company['id'] ? 'selected' : '' ?>><?= e($company['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Nguồn</label>
-                                <select name="source_id" class="form-select">
-                                    <option value="">Chọn nguồn</option>
-                                    <?php foreach ($sources ?? [] as $source): ?>
-                                        <option value="<?= $source['id'] ?>" <?= ($contact['source_id'] ?? '') == $source['id'] ? 'selected' : '' ?>><?= e($source['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Trạng thái</label>
-                                <select name="status" class="form-select">
-                                    <?php $statuses = ['new' => 'Mới', 'contacted' => 'Đã liên hệ', 'qualified' => 'Tiềm năng', 'converted' => 'Chuyển đổi', 'lost' => 'Mất']; ?>
-                                    <?php foreach ($statuses as $val => $label): ?>
-                                        <option value="<?= $val ?>" <?= ($contact['status'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select searchable-select">
-                                    <option value="">Chọn</option>
-                                    <?php foreach ($users ?? [] as $u): ?>
-                                        <option value="<?= $u['id'] ?>" <?= ($contact['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Điểm</label>
-                                <input type="number" class="form-control" name="score" value="<?= $contact['score'] ?? 0 ?>" min="0" max="100">
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nguồn</label>
+                        <select name="source_id" class="form-select">
+                            <option value="">Chọn nguồn</option>
+                            <?php foreach ($sources ?? [] as $source): ?>
+                            <option value="<?= $source['id'] ?>" <?= ($c['source_id'] ?? '') == $source['id'] ? 'selected' : '' ?>><?= e($source['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Cập nhật</button>
-                                <a href="<?= url('contacts/' . $contact['id']) ?>" class="btn btn-soft-secondary">Hủy</a>
-                            </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <?php $statuses = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất']; ?>
+                            <?php foreach ($statuses as $val => $label): ?>
+                            <option value="<?= $val ?>" <?= ($c['status'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nhóm khách hàng</label>
+                        <select name="customer_group" class="form-select">
+                            <option value="">Chưa phân loại</option>
+                            <?php $groups = ['du_an'=>'Khách dự án','le'=>'Khách lẻ','dai_ly'=>'Khách đại lý','doanh_nghiep'=>'Doanh nghiệp','vip'=>'VIP']; ?>
+                            <?php foreach ($groups as $val => $label): ?>
+                            <option value="<?= $val ?>" <?= ($c['customer_group'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người phụ trách</label>
+                        <?php
+                        $deptGrouped = [];
+                        foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                        ?>
+                        <select name="owner_id" class="form-select searchable-select">
+                            <option value="">Chọn</option>
+                            <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                            <optgroup label="<?= e($dept) ?>">
+                                <?php foreach ($dUsers as $u): ?>
+                                <option value="<?= $u['id'] ?>" <?= ($c['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Điểm</label>
+                        <input type="number" class="form-control" name="score" value="<?= $c['score'] ?? 0 ?>" min="0" max="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người giới thiệu</label>
+                        <input type="text" class="form-control" name="referrer_code" value="<?= e($c['referrer_code'] ?? '') ?>">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_private" value="1" id="isPrivate" <?= ($c['is_private'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="isPrivate">KH riêng tư</label>
                         </div>
                     </div>
                 </div>
             </div>
-        </form>
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Cập nhật</button>
+                        <a href="<?= url('contacts/' . $c['id']) ?>" class="btn btn-soft-secondary">Hủy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
