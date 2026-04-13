@@ -121,11 +121,79 @@
                     <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Tạo form</button>
                 </div>
             </div>
+
+            <!-- Live Preview -->
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0"><i class="ri-eye-line me-2"></i> Xem trước</h5></div>
+                <div class="card-body p-3" id="livePreview">
+                    <div style="max-width:100%;background:#fff;border-radius:8px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.08)" id="previewBox">
+                        <div style="font-size:18px;font-weight:600;margin-bottom:16px" id="previewTitle">Form liên hệ</div>
+                        <div id="previewFields"></div>
+                        <button style="width:100%;padding:10px;border:none;border-radius:8px;color:#fff;font-weight:600;cursor:default" id="previewBtn">Gửi</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </form>
 
 <script>
+// Live preview
+var styleThemes = {
+    classic: {bg:'#fff',bodyBg:'#f8f9fa',text:'#333',inputBg:'#fff',inputBorder:'#ddd',radius:'8px',shadow:'0 2px 12px rgba(0,0,0,0.08)'},
+    modern: {bg:'#f8f9fa',bodyBg:'#fff',text:'#333',inputBg:'#fff',inputBorder:'#e9ecef',radius:'16px',shadow:'0 8px 32px rgba(0,0,0,0.06)'},
+    dark: {bg:'#1a1d21',bodyBg:'#111315',text:'#e0e0e0',inputBg:'#2a2d32',inputBorder:'#3a3d42',radius:'12px',shadow:'0 4px 24px rgba(0,0,0,0.3)'},
+    gradient: {bg:'transparent',bodyBg:'linear-gradient(135deg,#667eea,#764ba2)',text:'#fff',inputBg:'rgba(255,255,255,0.15)',inputBorder:'rgba(255,255,255,0.3)',radius:'16px',shadow:'none'},
+    minimal: {bg:'#fff',bodyBg:'#fff',text:'#000',inputBg:'#fff',inputBorder:'#000',radius:'0',shadow:'none'}
+};
+
+function updatePreview() {
+    var title = document.querySelector('[name=name]').value || 'Form liên hệ';
+    var btnText = document.querySelector('[name=button_text]').value || 'Gửi';
+    var btnColor = document.querySelector('[name=button_color]').value || '#405189';
+    var style = document.querySelector('[name=form_style]:checked')?.value || 'classic';
+    var t = styleThemes[style];
+
+    document.getElementById('previewTitle').textContent = title;
+    document.getElementById('previewBtn').textContent = btnText;
+    document.getElementById('previewBtn').style.background = btnColor;
+    document.getElementById('previewBtn').style.borderRadius = t.radius;
+
+    var box = document.getElementById('previewBox');
+    box.style.background = t.bg;
+    box.style.color = t.text;
+    box.style.borderRadius = t.radius;
+    box.style.boxShadow = t.shadow;
+    document.getElementById('livePreview').style.background = t.bodyBg.startsWith('linear') ? t.bodyBg : t.bodyBg;
+    document.getElementById('livePreview').style.borderRadius = '0 0 6px 6px';
+
+    // Render fields
+    var rows = document.querySelectorAll('.field-row');
+    var html = '';
+    rows.forEach(function(r) {
+        var label = r.querySelector('[name="field_label[]"]')?.value || 'Field';
+        var type = r.querySelector('[name="field_type[]"]')?.value || 'text';
+        html += '<div style="margin-bottom:12px"><label style="display:block;font-size:13px;color:' + t.text + ';opacity:0.7;margin-bottom:4px">' + label + '</label>';
+        if (type === 'textarea') {
+            html += '<textarea style="width:100%;padding:8px 12px;border:1px solid ' + t.inputBorder + ';border-radius:' + t.radius + ';background:' + t.inputBg + ';color:' + t.text + ';resize:none;height:60px;outline:none" disabled></textarea>';
+        } else {
+            html += '<input type="text" style="width:100%;padding:8px 12px;border:1px solid ' + t.inputBorder + ';border-radius:' + t.radius + ';background:' + t.inputBg + ';color:' + t.text + ';outline:none" disabled placeholder="' + label + '">';
+        }
+        html += '</div>';
+    });
+    document.getElementById('previewFields').innerHTML = html;
+}
+
+document.querySelectorAll('[name=name],[name=button_text],[name=button_color],[name=form_style]').forEach(function(el) {
+    el.addEventListener('input', updatePreview);
+    el.addEventListener('change', updatePreview);
+});
+setTimeout(updatePreview, 100);
+
+// Field observer
+var observer = new MutationObserver(updatePreview);
+observer.observe(document.getElementById('fieldsContainer'), {childList: true, subtree: true});
+
 var fieldIdx = 4;
 function addField() {
     var html = '<div class="field-row row mb-3 align-items-end">'

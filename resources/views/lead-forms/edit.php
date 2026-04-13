@@ -115,12 +115,30 @@
             </div>
             <div class="card">
                 <div class="card-body">
-                    <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Cập nhật</button>
+                    <button type="submit" class="btn btn-primary w-100 mb-2"><i class="ri-save-line me-1"></i> Cập nhật</button>
+                    <a href="<?= url('lead-forms/' . $form['id'] . '/embed') ?>" class="btn btn-soft-success w-100"><i class="ri-code-line me-1"></i> Mã nhúng</a>
+                </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <h5 class="card-title mb-0 flex-grow-1"><i class="ri-eye-line me-2"></i> Xem trước</h5>
+                    <button type="button" class="btn btn-soft-info btn-icon" onclick="refreshPreview()" title="Làm mới"><i class="ri-refresh-line"></i></button>
+                </div>
+                <div class="card-body p-0">
+                    <iframe id="formPreview" src="<?= url('form/' . $form['slug']) ?>" width="100%" height="450" frameborder="0" style="border:none;border-radius:0 0 6px 6px"></iframe>
                 </div>
             </div>
         </div>
     </div>
 </form>
+
+<script>
+function refreshPreview() {
+    document.getElementById('formPreview').src = '<?= url('form/' . $form['slug']) ?>?t=' + Date.now();
+}
+</script>
 
 <script>
 var fieldIdx = <?= count($form['fields']) ?>;
