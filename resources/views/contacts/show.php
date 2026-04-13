@@ -296,8 +296,9 @@
             <div class="col-xl-8">
                 <!-- Stats Bar -->
                 <?php
-                $activityCount = count($activities ?? []);
-                $lastActivity = !empty($activities) ? $activities[0] : null;
+                $realActivities = array_filter($activities ?? [], fn($a) => ($a['type'] ?? '') !== 'system');
+                $activityCount = count($realActivities);
+                $lastActivity = !empty($realActivities) ? reset($realActivities) : null;
                 $orderStats = \Core\Database::fetch(
                     "SELECT COUNT(*) as order_count, COALESCE(SUM(total), 0) as total_value FROM orders WHERE contact_id = ? AND is_deleted = 0",
                     [$contact['id']]
