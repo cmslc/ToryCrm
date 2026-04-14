@@ -222,17 +222,25 @@
 
     <!-- Map View (hidden by default) -->
     <div class="card-body d-none" id="mapView">
-        <div id="checkinMap" class="rounded border bg-light d-flex align-items-center justify-content-center" style="height:500px">
-            <div class="text-center text-muted">
-                <i class="ri-map-2-line" style="font-size:48px"></i>
-                <p class="mt-2">Tích hợp Google Maps API để hiển thị bản đồ</p>
-                <p class="fs-12">Các check-in sẽ được hiển thị dưới dạng marker trên bản đồ</p>
+        <?php if (!empty($checkins)): ?>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+            <div id="checkinMap" class="rounded border" style="height:500px"></div>
+        <?php else: ?>
+            <div class="rounded border bg-light d-flex align-items-center justify-content-center" style="height:500px">
+                <div class="text-center text-muted">
+                    <i class="ri-map-pin-line" style="font-size:48px"></i>
+                    <p class="mt-2">Chưa có check-in nào</p>
+                </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
 </div>
 
+<?php if (!empty($checkins)): ?>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<?php endif; ?>
 <script>
+var mapInitialized = false;
 function toggleView(view) {
     var listView = document.getElementById('listView');
     var mapView = document.getElementById('mapView');
@@ -244,6 +252,35 @@ function toggleView(view) {
         mapView.classList.remove('d-none');
         btnList.classList.remove('active');
         btnMap.classList.add('active');
+        if (!mapInitialized && document.getElementById('checkinMap')) {
+            mapInitialized = true;
+            var markers = <?= json_encode(array_filter(array_map(function($c) {
+                if (empty($c['latitude']) || empty($c['longitude'])) return null;
+                return [
+                    'lat' => (float)$c['latitude'],
+                    'lng' => (float)$c['longitude'],
+                    'title' => ($c['user_name'] ?? '') . ' - ' . ($c['contact_first_name'] ?? '') . ' ' . ($c['contact_last_name'] ?? ''),
+                    'address' => $c['address'] ?? '',
+                    'time' => date('d/m H:i', strtotime($c['created_at'])),
+                    'id' => $c['id'],
+                ];
+            }, $checkins ?? []))) ?>;
+            var center = markers.length > 0 ? [markers[0].lat, markers[0].lng] : [10.7769, 106.7009];
+            var map = L.map('checkinMap').setView(center, 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap'}).addTo(map);
+            var bounds = [];
+            markers.forEach(function(m) {
+                var latlng = [m.lat, m.lng];
+                bounds.push(latlng);
+                L.marker(latlng).addTo(map).bindPopup(
+                    '<div style="min-width:200px"><strong>' + m.title + '</strong><br>' +
+                    '<small>' + m.address + '</small><br>' +
+                    '<small class="text-muted">' + m.time + '</small><br>' +
+                    '<a href="/checkins/' + m.id + '">Xem chi tiết</a></div>'
+                );
+            });
+            if (bounds.length > 1) map.fitBounds(bounds, {padding: [30, 30]});
+        }
     } else {
         listView.classList.remove('d-none');
         mapView.classList.add('d-none');
