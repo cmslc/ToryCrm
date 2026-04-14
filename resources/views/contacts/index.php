@@ -200,11 +200,8 @@ $currentStatus = $filters['status'] ?? '';
                 <?php endforeach; ?>
             </div>
 
-            <!-- Right: Split View + Column Toggle + More -->
+            <!-- Right: Column Toggle + More -->
             <div class="d-flex align-items-center gap-2 ms-auto page-title-right" style="white-space:nowrap">
-                <label class="d-flex align-items-center gap-1 mb-0" style="cursor:pointer" title="Bấm vào dòng để xem nhanh">
-                    <input type="checkbox" class="form-check-input m-0" id="split-view-check"> <span class="fs-13">Xem nhanh</span>
-                </label>
                 <?php
                 $columns = [
                     'col-customer' => 'Khách hàng',
@@ -248,6 +245,12 @@ $currentStatus = $filters['status'] ?? '';
                         <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
                     </div>
                     <?php endforeach; ?>
+                </div>
+                <hr class="my-2">
+                <h6 class="mb-2">Chế độ xem</h6>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="split-view-check">
+                    <label class="form-check-label" for="split-view-check">Xem nhanh (bấm vào dòng để xem chi tiết bên phải)</label>
                 </div>
             </div>
             <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
