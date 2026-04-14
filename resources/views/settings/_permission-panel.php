@@ -9,6 +9,8 @@ $moduleLabels = [
     'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng', 'reports' => 'Báo cáo', 'automation' => 'Tự động hóa',
     'webhooks' => 'Webhooks', 'settings' => 'Cài đặt', 'import_export' => 'Import/Export',
 ];
+$group = $group ?? $selectedGroup ?? null;
+if (!$group) return;
 $selectedGroupId = $group['id'];
 ?>
 
