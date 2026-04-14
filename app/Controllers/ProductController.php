@@ -356,7 +356,7 @@ class ProductController extends Controller
             Database::execute("INSERT INTO product_manufacturers (name) VALUES (?)", [$name]);
             $this->setFlash('success', 'Đã thêm nhà sản xuất.');
         }
-        return $this->redirect('products/settings#manufacturers');
+        return $this->redirect('products/settings?tab=manufacturers');
     }
 
     public function deleteManufacturer($id)
@@ -371,7 +371,7 @@ class ProductController extends Controller
             Database::execute("DELETE FROM product_manufacturers WHERE id = ?", [$id]);
             $this->setFlash('success', 'Đã xóa nhà sản xuất.');
         }
-        return $this->redirect('products/settings#manufacturers');
+        return $this->redirect('products/settings?tab=manufacturers');
     }
 
     public function saveOrigin()
@@ -394,7 +394,7 @@ class ProductController extends Controller
             Database::execute("INSERT INTO product_origins (name) VALUES (?)", [$name]);
             $this->setFlash('success', 'Đã thêm xuất xứ.');
         }
-        return $this->redirect('products/settings#origins');
+        return $this->redirect('products/settings?tab=origins');
     }
 
     public function deleteOrigin($id)
@@ -409,6 +409,6 @@ class ProductController extends Controller
             Database::execute("DELETE FROM product_origins WHERE id = ?", [$id]);
             $this->setFlash('success', 'Đã xóa xuất xứ.');
         }
-        return $this->redirect('products/settings#origins');
+        return $this->redirect('products/settings?tab=origins');
     }
 }
