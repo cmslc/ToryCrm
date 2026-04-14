@@ -82,6 +82,32 @@ $currentStatus = $filters['status'] ?? '';
 })();
 </script>
 
+<!-- Column Options Panel (WordPress-style) -->
+<div class="card mb-2 d-none" id="columnPanel">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="mb-2">Cột</h6>
+                <div class="d-flex flex-wrap gap-3">
+                    <?php foreach ($columns as $colId => $colLabel): ?>
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <hr class="my-2">
+                <h6 class="mb-2">Chế độ xem</h6>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="split-view-check">
+                    <label class="form-check-label" for="split-view-check">Xem nhanh (bấm vào dòng để xem chi tiết bên phải)</label>
+                </div>
+            </div>
+            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+        </div>
+    </div>
+</div>
+
 <!-- Filter Row -->
 <div class="card mb-2">
     <div class="card-header p-2">
@@ -228,32 +254,6 @@ $currentStatus = $filters['status'] ?? '';
                     </ul>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Column Options Panel (WordPress-style) -->
-<div class="card mb-0 border-bottom-0 rounded-bottom-0 d-none" id="columnPanel">
-    <div class="card-body py-3">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h6 class="mb-2">Cột</h6>
-                <div class="d-flex flex-wrap gap-3">
-                    <?php foreach ($columns as $colId => $colLabel): ?>
-                    <div class="form-check">
-                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <hr class="my-2">
-                <h6 class="mb-2">Chế độ xem</h6>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="split-view-check">
-                    <label class="form-check-label" for="split-view-check">Xem nhanh (bấm vào dòng để xem chi tiết bên phải)</label>
-                </div>
-            </div>
-            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
         </div>
     </div>
 </div>
@@ -434,16 +434,9 @@ window.__inlineEditUsers = <?= json_encode($users ?? []) ?>;
 // Toggle column panel
 document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
     var panel = document.getElementById('columnPanel');
-    var tableCard = document.getElementById('tableCard');
-    var isHidden = panel.classList.contains('d-none');
     panel.classList.toggle('d-none');
-    if (isHidden) {
-        tableCard.classList.add('rounded-top-0');
-        this.innerHTML = 'Hiển thị cột <i class="ri-arrow-up-s-line ms-1"></i>';
-    } else {
-        tableCard.classList.remove('rounded-top-0');
-        this.innerHTML = 'Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i>';
-    }
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
 });
 
 // Column toggle
