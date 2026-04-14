@@ -210,9 +210,8 @@ class ReportController extends Controller
             "SELECT ds.name as stage, ds.color, COUNT(d.id) as count, COALESCE(SUM(d.value),0) as total_value
              FROM deal_stages ds
              LEFT JOIN deals d ON d.stage_id = ds.id AND d.status = 'open' AND d.is_deleted = 0 AND d.tenant_id = ?
-             WHERE ds.tenant_id = ?
              ORDER BY ds.sort_order",
-            [$tid, $tid]
+            [$tid]
         );
 
         // Win/Loss by month
