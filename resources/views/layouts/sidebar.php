@@ -146,7 +146,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
 
 
                 <?php if (canSee('tasks')): ?>
-                <?php $taskOpen = isOpen(['tasks','calendar','activities'], $currentUrl); ?>
+                <?php $taskOpen = isOpen(['tasks','calendar','activities','checkins'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $taskOpen ? '' : 'collapsed' ?>" href="#sidebarTasks" data-bs-toggle="collapse" role="button" aria-expanded="<?= $taskOpen ? 'true' : 'false' ?>">
                         <i class="ri-task-line"></i> <span>Công việc</span>
@@ -157,6 +157,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('tasks/kanban') ?>" class="nav-link <?= isActive('tasks/kanban', $currentUrl) ?>">Kanban</a></li>
                             <li class="nav-item"><a href="<?= url('calendar') ?>" class="nav-link <?= isActive('calendar', $currentUrl) ?>">Lịch hẹn</a></li>
                             <li class="nav-item"><a href="<?= url('activities') ?>" class="nav-link <?= isActive('activities', $currentUrl) ?>">Hoạt động</a></li>
+                            <?php if (plugin_active('checkin')): ?><li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -232,7 +233,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('reports')): ?>
-                <?php $rptOpen = isOpen(['reports','finance-reports','leaderboard','checkins'], $currentUrl); ?>
+                <?php $rptOpen = isOpen(['reports','finance-reports','leaderboard'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $rptOpen ? '' : 'collapsed' ?>" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="<?= $rptOpen ? 'true' : 'false' ?>">
                         <i class="ri-bar-chart-box-line"></i> <span>Báo cáo</span>
@@ -246,7 +247,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('reports/orders') ?>" class="nav-link <?= isActive('reports/orders', $currentUrl) ?>">Đơn hàng</a></li>
                             <li class="nav-item"><a href="<?= url('reports/tasks') ?>" class="nav-link <?= isActive('reports/tasks', $currentUrl) ?>">Công việc</a></li>
                             <li class="nav-item"><a href="<?= url('reports/staff') ?>" class="nav-link <?= isActive('reports/staff', $currentUrl) ?>">Nhân viên</a></li>
-                            <?php if (plugin_active('checkin')): ?><li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li><?php endif; ?>
                             <?php if (plugin_active('gamification')): ?><li class="nav-item"><a href="<?= url('leaderboard') ?>" class="nav-link <?= isActive('leaderboard', $currentUrl) ?>">Bảng xếp hạng</a></li><?php endif; ?>
                             <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Tài chính</a></li><?php endif; ?>
                         </ul>
