@@ -204,37 +204,25 @@ $currentStatus = $filters['status'] ?? '';
                 <label class="d-flex align-items-center gap-1 mb-0" style="cursor:pointer" title="Bấm vào dòng để xem nhanh">
                     <input type="checkbox" class="form-check-input m-0" id="split-view-check"> <span class="fs-13">Xem nhanh</span>
                 </label>
-                <div class="dropdown">
-                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
-                        <i class="ri-layout-column-line me-1"></i> Cột
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
-                        <h6 class="dropdown-header px-0">Hiển thị cột</h6>
-                        <?php
-                        $columns = [
-                            'col-customer' => 'Khách hàng',
-                            'col-contact' => 'Liên hệ',
-                            'col-company' => 'Công ty',
-                            'col-source' => 'Nguồn',
-                            'col-status' => 'Trạng thái',
-                            'col-owner' => 'Phụ trách',
-                            'col-address' => 'Địa chỉ',
-                            'col-birthday' => 'Ngày sinh',
-                            'col-group' => 'Nhóm KH',
-                            'col-tags' => 'Nhãn',
-                            'col-lastcontact' => 'Liên hệ lần cuối',
-                            'col-created' => 'Ngày tạo',
-                        ];
-                        foreach ($columns as $colId => $colLabel): ?>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                            <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
-                        </div>
-                        <?php endforeach; ?>
-                        <hr class="my-2">
-                        <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
-                    </div>
-                </div>
+                <?php
+                $columns = [
+                    'col-customer' => 'Khách hàng',
+                    'col-contact' => 'Liên hệ',
+                    'col-company' => 'Công ty',
+                    'col-source' => 'Nguồn',
+                    'col-status' => 'Trạng thái',
+                    'col-owner' => 'Phụ trách',
+                    'col-address' => 'Địa chỉ',
+                    'col-birthday' => 'Ngày sinh',
+                    'col-group' => 'Nhóm KH',
+                    'col-tags' => 'Nhãn',
+                    'col-lastcontact' => 'Liên hệ lần cuối',
+                    'col-created' => 'Ngày tạo',
+                ];
+                ?>
+                <button type="button" class="btn btn-soft-secondary py-1 px-2" id="toggleColumnPanel" title="Tùy chọn màn hình">
+                    Tùy chọn màn hình <i class="ri-arrow-down-s-line ms-1"></i>
+                </button>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
                         <i class="ri-more-fill"></i>
@@ -249,8 +237,28 @@ $currentStatus = $filters['status'] ?? '';
     </div>
 </div>
 
+<!-- Column Options Panel (WordPress-style) -->
+<div class="card mb-0 border-bottom-0 rounded-bottom-0 d-none" id="columnPanel">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="mb-2">Cột</h6>
+                <div class="d-flex flex-wrap gap-3">
+                    <?php foreach ($columns as $colId => $colLabel): ?>
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+        </div>
+    </div>
+</div>
+
 <!-- Table -->
-<div class="card">
+<div class="card" id="tableCard">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle table-nowrap mb-0">
@@ -422,10 +430,25 @@ $currentStatus = $filters['status'] ?? '';
 // Inline edit: preload users
 window.__inlineEditUsers = <?= json_encode($users ?? []) ?>;
 
+// Toggle column panel
+document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
+    var panel = document.getElementById('columnPanel');
+    var tableCard = document.getElementById('tableCard');
+    var isHidden = panel.classList.contains('d-none');
+    panel.classList.toggle('d-none');
+    if (isHidden) {
+        tableCard.classList.add('rounded-top-0');
+        this.innerHTML = 'Tùy chọn màn hình <i class="ri-arrow-up-s-line ms-1"></i>';
+    } else {
+        tableCard.classList.remove('rounded-top-0');
+        this.innerHTML = 'Tùy chọn màn hình <i class="ri-arrow-down-s-line ms-1"></i>';
+    }
+});
+
 // Column toggle
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
-    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-tags','col-lastcontact','col-created'];
+    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-group','col-tags','col-lastcontact','col-created'];
     var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-lastcontact','col-created'];
 
     function getVisible() {
