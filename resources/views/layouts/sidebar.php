@@ -79,7 +79,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('deals')): ?>
-                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast'], $currentUrl); ?>
+                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns','email-templates'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
                         <i class="ri-hand-coin-line"></i> <span>Marketing</span>
@@ -89,6 +89,11 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('deals') ?>" class="nav-link <?= isActive('deals', $currentUrl) && !str_contains($currentUrl, 'pipeline') && !str_contains($currentUrl, 'forecast') ? 'active' : '' ?>">Danh sách cơ hội</a></li>
                             <li class="nav-item"><a href="<?= url('deals/pipeline') ?>" class="nav-link <?= isActive('deals/pipeline', $currentUrl) ?>">Pipeline</a></li>
                             <li class="nav-item"><a href="<?= url('deals/forecast') ?>" class="nav-link <?= isActive('deals/forecast', $currentUrl) ?>">Dự báo</a></li>
+                            <?php if (plugin_active('lead-forms')): ?><li class="nav-item"><a href="<?= url('lead-forms') ?>" class="nav-link <?= isActive('lead-forms', $currentUrl) ?>">Lead Forms</a></li><?php endif; ?>
+                            <?php if (canSee('campaigns')): ?>
+                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch</a></li>
+                            <li class="nav-item"><a href="<?= url('email-templates') ?>" class="nav-link <?= isActive('email-templates', $currentUrl) ?>">Mẫu email</a></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -139,20 +144,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
-                <?php if (canSee('campaigns')): ?>
-                <?php $campOpen = isOpen(['campaigns','email-templates'], $currentUrl); ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= $campOpen ? '' : 'collapsed' ?>" href="#sidebarCampaigns" data-bs-toggle="collapse" role="button" aria-expanded="<?= $campOpen ? 'true' : 'false' ?>">
-                        <i class="ri-megaphone-line"></i> <span>Chiến dịch</span>
-                    </a>
-                    <div class="collapse menu-dropdown <?= $campOpen ? 'show' : '' ?>" id="sidebarCampaigns">
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Danh sách</a></li>
-                            <li class="nav-item"><a href="<?= url('email-templates') ?>" class="nav-link <?= isActive('email-templates', $currentUrl) ?>">Mẫu email</a></li>
-                        </ul>
-                    </div>
-                </li>
-                <?php endif; ?>
 
 
                 <?php if (canSee('tasks')): ?>
@@ -199,13 +190,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <i class="ri-checkbox-circle-line"></i> <span>Phê duyệt</span>
                     </a>
                 </li>
-                <?php if (plugin_active('lead-forms')): ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('lead-forms', $currentUrl) ?>" href="<?= url('lead-forms') ?>">
-                        <i class="ri-survey-line"></i> <span>Lead Forms</span>
-                    </a>
-                </li>
-                <?php endif; ?>
 
                 <?php if (plugin_active('documents')): ?>
                 <li class="nav-item">
