@@ -3,6 +3,7 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Sản phẩm & Dịch vụ</h4>
             <div class="d-flex gap-2">
+                <a href="<?= url('products/settings') ?>" class="btn btn-soft-secondary"><i class="ri-folder-settings-line me-1"></i> Danh mục</a>
                 <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportProdModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
                 <a href="<?= url('products/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
                 <a href="<?= url('products/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm sản phẩm</a>

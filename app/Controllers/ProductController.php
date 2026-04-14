@@ -282,4 +282,133 @@ class ProductController extends Controller
         $this->setFlash('success', 'Đã khôi phục sản phẩm.');
         return $this->redirect('products/trash');
     }
+
+    public function settings()
+    {
+        $this->authorize('products', 'view');
+        $categories = Database::fetchAll("SELECT * FROM product_categories ORDER BY sort_order, name");
+        $manufacturers = Database::fetchAll("SELECT * FROM product_manufacturers ORDER BY name");
+        $origins = Database::fetchAll("SELECT * FROM product_origins ORDER BY name");
+
+        return $this->view('products.settings', [
+            'categories' => $categories,
+            'manufacturers' => $manufacturers,
+            'origins' => $origins,
+        ]);
+    }
+
+    public function saveCategory()
+    {
+        if (!$this->isPost()) return $this->redirect('products/settings');
+        $this->authorize('products', 'create');
+
+        $id = (int)$this->input('id');
+        $name = trim($this->input('name'));
+        $sortOrder = (int)$this->input('sort_order');
+
+        if (!$name) {
+            $this->setFlash('error', 'Tên danh mục không được để trống.');
+            return $this->redirect('products/settings');
+        }
+
+        if ($id) {
+            Database::execute("UPDATE product_categories SET name = ?, sort_order = ? WHERE id = ?", [$name, $sortOrder, $id]);
+            $this->setFlash('success', 'Đã cập nhật danh mục.');
+        } else {
+            Database::execute("INSERT INTO product_categories (name, sort_order) VALUES (?, ?)", [$name, $sortOrder]);
+            $this->setFlash('success', 'Đã thêm danh mục.');
+        }
+        return $this->redirect('products/settings');
+    }
+
+    public function deleteCategory($id)
+    {
+        if (!$this->isPost()) return $this->redirect('products/settings');
+        $this->authorize('products', 'delete');
+
+        $count = (int)(Database::fetch("SELECT COUNT(*) as cnt FROM products WHERE category_id = ? AND is_deleted = 0", [$id])['cnt'] ?? 0);
+        if ($count > 0) {
+            $this->setFlash('error', "Không thể xóa: danh mục đang có $count sản phẩm.");
+        } else {
+            Database::execute("DELETE FROM product_categories WHERE id = ?", [$id]);
+            $this->setFlash('success', 'Đã xóa danh mục.');
+        }
+        return $this->redirect('products/settings');
+    }
+
+    public function saveManufacturer()
+    {
+        if (!$this->isPost()) return $this->redirect('products/settings');
+        $this->authorize('products', 'create');
+
+        $id = (int)$this->input('id');
+        $name = trim($this->input('name'));
+
+        if (!$name) {
+            $this->setFlash('error', 'Tên nhà sản xuất không được để trống.');
+            return $this->redirect('products/settings');
+        }
+
+        if ($id) {
+            Database::execute("UPDATE product_manufacturers SET name = ? WHERE id = ?", [$name, $id]);
+            $this->setFlash('success', 'Đã cập nhật nhà sản xuất.');
+        } else {
+            Database::execute("INSERT INTO product_manufacturers (name) VALUES (?)", [$name]);
+            $this->setFlash('success', 'Đã thêm nhà sản xuất.');
+        }
+        return $this->redirect('products/settings#manufacturers');
+    }
+
+    public function deleteManufacturer($id)
+    {
+        if (!$this->isPost()) return $this->redirect('products/settings');
+        $this->authorize('products', 'delete');
+
+        $count = (int)(Database::fetch("SELECT COUNT(*) as cnt FROM products WHERE manufacturer_id = ? AND is_deleted = 0", [$id])['cnt'] ?? 0);
+        if ($count > 0) {
+            $this->setFlash('error', "Không thể xóa: nhà sản xuất đang có $count sản phẩm.");
+        } else {
+            Database::execute("DELETE FROM product_manufacturers WHERE id = ?", [$id]);
+            $this->setFlash('success', 'Đã xóa nhà sản xuất.');
+        }
+        return $this->redirect('products/settings#manufacturers');
+    }
+
+    public function saveOrigin()
+    {
+        if (!$this->isPost()) return $this->redirect('products/settings');
+        $this->authorize('products', 'create');
+
+        $id = (int)$this->input('id');
+        $name = trim($this->input('name'));
+
+        if (!$name) {
+            $this->setFlash('error', 'Tên xuất xứ không được để trống.');
+            return $this->redirect('products/settings');
+        }
+
+        if ($id) {
+            Database::execute("UPDATE product_origins SET name = ? WHERE id = ?", [$name, $id]);
+            $this->setFlash('success', 'Đã cập nhật xuất xứ.');
+        } else {
+            Database::execute("INSERT INTO product_origins (name) VALUES (?)", [$name]);
+            $this->setFlash('success', 'Đã thêm xuất xứ.');
+        }
+        return $this->redirect('products/settings#origins');
+    }
+
+    public function deleteOrigin($id)
+    {
+        if (!$this->isPost()) return $this->redirect('products/settings');
+        $this->authorize('products', 'delete');
+
+        $count = (int)(Database::fetch("SELECT COUNT(*) as cnt FROM products WHERE origin_id = ? AND is_deleted = 0", [$id])['cnt'] ?? 0);
+        if ($count > 0) {
+            $this->setFlash('error', "Không thể xóa: xuất xứ đang có $count sản phẩm.");
+        } else {
+            Database::execute("DELETE FROM product_origins WHERE id = ?", [$id]);
+            $this->setFlash('success', 'Đã xóa xuất xứ.');
+        }
+        return $this->redirect('products/settings#origins');
+    }
 }

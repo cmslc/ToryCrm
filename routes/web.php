@@ -182,6 +182,13 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Products
     Router::get('products', 'ProductController@index');
+    Router::get('products/settings', 'ProductController@settings');
+    Router::post('products/settings/category', 'ProductController@saveCategory');
+    Router::post('products/settings/category/{id}/delete', 'ProductController@deleteCategory');
+    Router::post('products/settings/manufacturer', 'ProductController@saveManufacturer');
+    Router::post('products/settings/manufacturer/{id}/delete', 'ProductController@deleteManufacturer');
+    Router::post('products/settings/origin', 'ProductController@saveOrigin');
+    Router::post('products/settings/origin/{id}/delete', 'ProductController@deleteOrigin');
     Router::get('products/trash', 'ProductController@trash');
     Router::get('products/create', 'ProductController@create');
     Router::post('products/store', 'ProductController@store');
