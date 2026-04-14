@@ -168,10 +168,11 @@ $columns = [
 <div class="card mb-3">
     <div class="card-header p-2">
         <div class="d-flex align-items-center justify-content-between">
-            <!-- Left: Status Tabs + Quick Filters -->
+            <!-- Status Tabs with scroll -->
             <div class="d-flex align-items-center gap-0" style="white-space:nowrap">
-                <!-- Fixed Tabs -->
-                <ul class="nav nav-custom nav-custom-light mb-0 flex-shrink-0">
+                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
+                <div class="overflow-hidden flex-grow-1" id="tabScrollContainer" style="scroll-behavior:smooth">
+                <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
                     <li class="nav-item">
                         <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('contacts') ?>">
                             Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>
@@ -182,12 +183,6 @@ $columns = [
                             <i class="ri-time-line me-1"></i>Mới cập nhật <span class="badge bg-success-subtle text-success rounded-pill ms-1"><?= $todayCount ?? 0 ?></span>
                         </a>
                     </li>
-                </ul>
-                <div class="vr mx-1 opacity-25"></div>
-                <!-- Scrollable Status Tabs with arrows -->
-                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
-                <div class="overflow-hidden flex-grow-1 position-relative" id="tabScrollContainer" style="scroll-behavior:smooth">
-                <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
                     <?php
                     foreach ($sLabels as $key => $label):
                         $count = 0;
