@@ -40,7 +40,7 @@
                     <?php if (!empty($link['description'])): ?>
                         <p class="text-muted"><?= e($link['description']) ?></p>
                     <?php endif; ?>
-                    <span class="badge bg-primary-subtle text-primary"><i class="ri-time-line me-1"></i><?= (int)$link['duration'] ?> phút</span>
+                    <span class="badge bg-primary-subtle text-primary"><i class="ri-time-line me-1"></i><?= (int)$link['duration_minutes'] ?> phút</span>
                 </div>
 
                 <!-- Progress Steps -->
@@ -228,7 +228,7 @@
         selectedSlot = { start: el.dataset.start, end: el.dataset.end };
 
         var dateFormatted = selectedDate.split('-').reverse().join('/');
-        document.getElementById('bookingSummary').textContent = dateFormatted + ' | ' + selectedSlot.start + ' - ' + selectedSlot.end + ' (<?= (int)$link['duration'] ?> phút)';
+        document.getElementById('bookingSummary').textContent = dateFormatted + ' | ' + selectedSlot.start + ' - ' + selectedSlot.end + ' (<?= (int)$link['duration_minutes'] ?> phút)';
 
         goToStep(3);
     }
