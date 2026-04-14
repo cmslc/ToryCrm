@@ -198,4 +198,278 @@ class ReportController extends Controller
             'byOwner' => $byOwner,
         ]);
     }
+
+    public function deals()
+    {
+        $this->authorize('reports', 'view');
+        $tid = Database::tenantId();
+        $year = (int)($this->input('year') ?: date('Y'));
+
+        // Pipeline: deals by stage
+        $byStage = Database::fetchAll(
+            "SELECT ds.name as stage, ds.color, COUNT(d.id) as count, COALESCE(SUM(d.value),0) as total_value
+             FROM deal_stages ds
+             LEFT JOIN deals d ON d.stage_id = ds.id AND d.status = 'open' AND d.is_deleted = 0 AND d.tenant_id = ?
+             WHERE ds.tenant_id = ?
+             ORDER BY ds.sort_order",
+            [$tid, $tid]
+        );
+
+        // Win/Loss by month
+        $wonByMonth = Database::fetchAll(
+            "SELECT MONTH(actual_close_date) as month, COUNT(*) as count, SUM(value) as value
+             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0
+             GROUP BY MONTH(actual_close_date)",
+            [$year, $tid]
+        );
+        $lostByMonth = Database::fetchAll(
+            "SELECT MONTH(actual_close_date) as month, COUNT(*) as count
+             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0
+             GROUP BY MONTH(actual_close_date)",
+            [$year, $tid]
+        );
+        $wonData = array_fill(0, 12, 0);
+        $lostData = array_fill(0, 12, 0);
+        foreach ($wonByMonth as $r) { $wonData[$r['month'] - 1] = (int)$r['count']; }
+        foreach ($lostByMonth as $r) { $lostData[$r['month'] - 1] = (int)$r['count']; }
+
+        // Conversion rate
+        $totalDeals = (int)(Database::fetch(
+            "SELECT COUNT(*) as cnt FROM deals WHERE YEAR(created_at) = ? AND tenant_id = ? AND is_deleted = 0",
+            [$year, $tid]
+        )['cnt'] ?? 0);
+        $totalWon = array_sum($wonData);
+        $conversionRate = $totalDeals > 0 ? round($totalWon / $totalDeals * 100, 1) : 0;
+
+        // Average close time (days)
+        $avgClose = Database::fetch(
+            "SELECT AVG(DATEDIFF(actual_close_date, created_at)) as avg_days
+             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0",
+            [$year, $tid]
+        );
+        $avgCloseDays = round((float)($avgClose['avg_days'] ?? 0));
+
+        // Loss reasons
+        $lossReasons = Database::fetchAll(
+            "SELECT COALESCE(loss_reason, 'Không rõ') as reason, COUNT(*) as count
+             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0
+             GROUP BY loss_reason ORDER BY count DESC LIMIT 10",
+            [$year, $tid]
+        );
+
+        // By owner
+        $byOwner = Database::fetchAll(
+            "SELECT u.name, COUNT(d.id) as total,
+                    SUM(d.status='won') as won, SUM(d.status='lost') as lost,
+                    COALESCE(SUM(CASE WHEN d.status='won' THEN d.value END),0) as won_value
+             FROM deals d JOIN users u ON d.owner_id = u.id
+             WHERE YEAR(d.created_at) = ? AND d.tenant_id = ? AND d.is_deleted = 0
+             GROUP BY u.id, u.name ORDER BY won_value DESC",
+            [$year, $tid]
+        );
+
+        return $this->view('reports.deals', [
+            'year' => $year,
+            'byStage' => $byStage,
+            'wonData' => $wonData,
+            'lostData' => $lostData,
+            'totalDeals' => $totalDeals,
+            'totalWon' => $totalWon,
+            'conversionRate' => $conversionRate,
+            'avgCloseDays' => $avgCloseDays,
+            'lossReasons' => $lossReasons,
+            'byOwner' => $byOwner,
+        ]);
+    }
+
+    public function orders()
+    {
+        $this->authorize('reports', 'view');
+        $tid = Database::tenantId();
+        $year = (int)($this->input('year') ?: date('Y'));
+
+        // Orders by status
+        $byStatus = Database::fetchAll(
+            "SELECT status, COUNT(*) as count, COALESCE(SUM(total),0) as total_value
+             FROM orders WHERE YEAR(created_at) = ? AND tenant_id = ?
+             GROUP BY status ORDER BY count DESC",
+            [$year, $tid]
+        );
+
+        // Orders by month
+        $orderByMonth = Database::fetchAll(
+            "SELECT MONTH(created_at) as month, COUNT(*) as count, COALESCE(SUM(total),0) as revenue
+             FROM orders WHERE YEAR(created_at) = ? AND tenant_id = ? AND type = 'order'
+             GROUP BY MONTH(created_at)",
+            [$year, $tid]
+        );
+        $monthCount = array_fill(0, 12, 0);
+        $monthRevenue = array_fill(0, 12, 0);
+        foreach ($orderByMonth as $r) {
+            $monthCount[$r['month'] - 1] = (int)$r['count'];
+            $monthRevenue[$r['month'] - 1] = (float)$r['revenue'];
+        }
+
+        // Top products
+        $topProducts = Database::fetchAll(
+            "SELECT p.name, SUM(oi.quantity) as qty, SUM(oi.quantity * oi.unit_price) as revenue
+             FROM order_items oi
+             JOIN orders o ON oi.order_id = o.id
+             JOIN products p ON oi.product_id = p.id
+             WHERE YEAR(o.created_at) = ? AND o.tenant_id = ? AND o.type = 'order'
+             GROUP BY p.id, p.name ORDER BY revenue DESC LIMIT 10",
+            [$year, $tid]
+        );
+
+        // By sales person
+        $bySales = Database::fetchAll(
+            "SELECT u.name, COUNT(o.id) as count, COALESCE(SUM(o.total),0) as revenue
+             FROM orders o JOIN users u ON o.created_by = u.id
+             WHERE YEAR(o.created_at) = ? AND o.tenant_id = ? AND o.type = 'order'
+             GROUP BY u.id, u.name ORDER BY revenue DESC",
+            [$year, $tid]
+        );
+
+        // KPI
+        $totalOrders = array_sum($monthCount);
+        $totalRevenue = array_sum($monthRevenue);
+        $avgOrderValue = $totalOrders > 0 ? round($totalRevenue / $totalOrders) : 0;
+
+        return $this->view('reports.orders', [
+            'year' => $year,
+            'byStatus' => $byStatus,
+            'monthCount' => $monthCount,
+            'monthRevenue' => $monthRevenue,
+            'topProducts' => $topProducts,
+            'bySales' => $bySales,
+            'totalOrders' => $totalOrders,
+            'totalRevenue' => $totalRevenue,
+            'avgOrderValue' => $avgOrderValue,
+        ]);
+    }
+
+    public function tasks()
+    {
+        $this->authorize('reports', 'view');
+        $tid = Database::tenantId();
+
+        // By status
+        $byStatus = Database::fetchAll(
+            "SELECT status, COUNT(*) as count FROM tasks
+             WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL
+             GROUP BY status",
+            [$tid]
+        );
+
+        // Completion rate
+        $total = 0; $done = 0;
+        foreach ($byStatus as $r) {
+            $total += (int)$r['count'];
+            if ($r['status'] === 'done') $done = (int)$r['count'];
+        }
+        $completionRate = $total > 0 ? round($done / $total * 100, 1) : 0;
+
+        // Overdue tasks
+        $overdue = (int)(Database::fetch(
+            "SELECT COUNT(*) as cnt FROM tasks
+             WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL
+             AND status NOT IN ('done') AND due_date < NOW()",
+            [$tid]
+        )['cnt'] ?? 0);
+
+        // By priority
+        $byPriority = Database::fetchAll(
+            "SELECT priority, COUNT(*) as count FROM tasks
+             WHERE tenant_id = ? AND is_deleted = 0 AND parent_id IS NULL
+             GROUP BY priority",
+            [$tid]
+        );
+
+        // By assignee
+        $byAssignee = Database::fetchAll(
+            "SELECT u.name,
+                    COUNT(t.id) as total,
+                    SUM(t.status='done') as done,
+                    SUM(t.status != 'done' AND t.due_date < NOW()) as overdue
+             FROM tasks t JOIN users u ON t.assigned_to = u.id
+             WHERE t.tenant_id = ? AND t.is_deleted = 0 AND t.parent_id IS NULL
+             GROUP BY u.id, u.name ORDER BY total DESC",
+            [$tid]
+        );
+
+        // Completed by month (this year)
+        $year = (int)date('Y');
+        $completedByMonth = Database::fetchAll(
+            "SELECT MONTH(completed_at) as month, COUNT(*) as count FROM tasks
+             WHERE tenant_id = ? AND is_deleted = 0 AND status = 'done'
+             AND YEAR(completed_at) = ?
+             GROUP BY MONTH(completed_at)",
+            [$tid, $year]
+        );
+        $monthDone = array_fill(0, 12, 0);
+        foreach ($completedByMonth as $r) { $monthDone[$r['month'] - 1] = (int)$r['count']; }
+
+        // Average completion time
+        $avgTime = Database::fetch(
+            "SELECT AVG(DATEDIFF(completed_at, created_at)) as avg_days FROM tasks
+             WHERE tenant_id = ? AND is_deleted = 0 AND status = 'done' AND completed_at IS NOT NULL
+             AND YEAR(completed_at) = ?",
+            [$tid, $year]
+        );
+        $avgCompletionDays = round((float)($avgTime['avg_days'] ?? 0));
+
+        return $this->view('reports.tasks', [
+            'byStatus' => $byStatus,
+            'completionRate' => $completionRate,
+            'overdue' => $overdue,
+            'total' => $total,
+            'done' => $done,
+            'byPriority' => $byPriority,
+            'byAssignee' => $byAssignee,
+            'monthDone' => $monthDone,
+            'avgCompletionDays' => $avgCompletionDays,
+        ]);
+    }
+
+    public function staff()
+    {
+        $this->authorize('reports', 'view');
+        $tid = Database::tenantId();
+        $year = (int)($this->input('year') ?: date('Y'));
+
+        // Staff performance: deals + orders + tasks
+        $staffPerf = Database::fetchAll(
+            "SELECT u.id, u.name, d.name as dept_name,
+                    (SELECT COUNT(*) FROM deals dl WHERE dl.owner_id = u.id AND dl.status = 'won' AND YEAR(dl.actual_close_date) = ? AND dl.tenant_id = ?) as deals_won,
+                    (SELECT COALESCE(SUM(dl.value),0) FROM deals dl WHERE dl.owner_id = u.id AND dl.status = 'won' AND YEAR(dl.actual_close_date) = ? AND dl.tenant_id = ?) as deal_revenue,
+                    (SELECT COUNT(*) FROM orders o WHERE o.created_by = u.id AND YEAR(o.created_at) = ? AND o.tenant_id = ? AND o.type = 'order') as orders_count,
+                    (SELECT COALESCE(SUM(o.total),0) FROM orders o WHERE o.created_by = u.id AND YEAR(o.created_at) = ? AND o.tenant_id = ? AND o.type = 'order') as order_revenue,
+                    (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = u.id AND t.status = 'done' AND YEAR(t.completed_at) = ? AND t.tenant_id = ?) as tasks_done,
+                    (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = u.id AND t.is_deleted = 0 AND t.tenant_id = ?) as tasks_total,
+                    (SELECT COUNT(*) FROM activities a WHERE a.user_id = u.id AND YEAR(a.created_at) = ? AND a.tenant_id = ?) as activities
+             FROM users u
+             LEFT JOIN departments d ON u.department_id = d.id
+             WHERE u.is_active = 1 AND u.tenant_id = ?
+             ORDER BY deal_revenue DESC",
+            [$year, $tid, $year, $tid, $year, $tid, $year, $tid, $year, $tid, $tid, $year, $tid, $tid]
+        );
+
+        // Commission summary
+        $commissions = Database::fetchAll(
+            "SELECT u.name,
+                    COALESCE(SUM(CASE WHEN c.status = 'paid' THEN c.amount END),0) as paid,
+                    COALESCE(SUM(CASE WHEN c.status = 'approved' THEN c.amount END),0) as approved,
+                    COALESCE(SUM(CASE WHEN c.status = 'pending' THEN c.amount END),0) as pending
+             FROM commissions c JOIN users u ON c.user_id = u.id
+             WHERE YEAR(c.created_at) = ? AND c.tenant_id = ?
+             GROUP BY u.id, u.name ORDER BY paid DESC",
+            [$year, $tid]
+        );
+
+        return $this->view('reports.staff', [
+            'year' => $year,
+            'staffPerf' => $staffPerf,
+            'commissions' => $commissions,
+        ]);
+    }
 }

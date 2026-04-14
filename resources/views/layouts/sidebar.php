@@ -232,6 +232,27 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
+                <?php if (canSee('reports')): ?>
+                <?php $rptOpen = isOpen(['reports','finance-reports'], $currentUrl); ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= $rptOpen ? '' : 'collapsed' ?>" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="<?= $rptOpen ? 'true' : 'false' ?>">
+                        <i class="ri-bar-chart-box-line"></i> <span>Báo cáo</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?= $rptOpen ? 'show' : '' ?>" id="sidebarReports">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= $currentUrl === 'reports' ? 'active' : '' ?>">Tổng quan</a></li>
+                            <li class="nav-item"><a href="<?= url('reports/customers') ?>" class="nav-link <?= isActive('reports/customers', $currentUrl) ?>">Khách hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('reports/revenue') ?>" class="nav-link <?= isActive('reports/revenue', $currentUrl) ?>">Doanh thu</a></li>
+                            <li class="nav-item"><a href="<?= url('reports/deals') ?>" class="nav-link <?= isActive('reports/deals', $currentUrl) ?>">Cơ hội</a></li>
+                            <li class="nav-item"><a href="<?= url('reports/orders') ?>" class="nav-link <?= isActive('reports/orders', $currentUrl) ?>">Đơn hàng</a></li>
+                            <li class="nav-item"><a href="<?= url('reports/tasks') ?>" class="nav-link <?= isActive('reports/tasks', $currentUrl) ?>">Công việc</a></li>
+                            <li class="nav-item"><a href="<?= url('reports/staff') ?>" class="nav-link <?= isActive('reports/staff', $currentUrl) ?>">Nhân viên</a></li>
+                            <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Tài chính</a></li><?php endif; ?>
+                        </ul>
+                    </div>
+                </li>
+                <?php endif; ?>
+
                 <?php if (plugin_active('gamification')): ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('leaderboard', $currentUrl) || isActive('achievements', $currentUrl) ? 'active' : '' ?>" href="<?= url('leaderboard') ?>">
@@ -241,7 +262,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('fund')): ?>
-                <?php $financeOpen = isOpen(['fund','debts','contracts','budgets','commissions','finance-reports'], $currentUrl); ?>
+                <?php $financeOpen = isOpen(['fund','debts','contracts','budgets','commissions'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $financeOpen ? '' : 'collapsed' ?>" href="#sidebarFinance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $financeOpen ? 'true' : 'false' ?>">
                         <i class="ri-money-dollar-circle-line"></i> <span>Tài chính</span>
@@ -253,7 +274,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('contracts') ?>" class="nav-link <?= isActive('contracts', $currentUrl) ?>">Hợp đồng</a></li>
                             <li class="nav-item"><a href="<?= url('budgets') ?>" class="nav-link <?= isActive('budgets', $currentUrl) ?>">Ngân sách</a></li>
                             <li class="nav-item"><a href="<?= url('commissions') ?>" class="nav-link <?= isActive('commissions', $currentUrl) ?>">Hoa hồng</a></li>
-                            <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Báo cáo tài chính</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -262,14 +282,13 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php if ($_role !== 'staff'): ?>
 
                 <?php if (canSee('reports') || canSee('users') || canSee('automation') || canSee('webhooks')): ?>
-                <?php $sysOpen = isOpen(['reports','plugins','integrations','duplicates','billing'], $currentUrl); ?>
+                <?php $sysOpen = isOpen(['plugins','integrations','duplicates','billing'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
                         <i class="ri-settings-3-line"></i> <span>Hệ thống</span>
                     </a>
                     <div class="collapse menu-dropdown <?= $sysOpen ? 'show' : '' ?>" id="sidebarSystem">
                         <ul class="nav nav-sm flex-column">
-                            <?php if (canSee('reports')): ?><li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= isActive('reports', $currentUrl) ?>">Báo cáo</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li>
                             <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins') ?>" class="nav-link <?= isActive(['plugins','integrations'], $currentUrl) ?>">Plugin</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>

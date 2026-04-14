@@ -468,6 +468,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('reports', 'ReportController@index');
     Router::get('reports/customers', 'ReportController@customers');
     Router::get('reports/revenue', 'ReportController@revenue');
+    Router::get('reports/deals', 'ReportController@deals');
+    Router::get('reports/orders', 'ReportController@orders');
+    Router::get('reports/tasks', 'ReportController@tasks');
+    Router::get('reports/staff', 'ReportController@staff');
 
     // Global Search
     Router::get('search', 'SearchController@index');
