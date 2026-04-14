@@ -144,7 +144,7 @@ $currentStatus = $filters['status'] ?? '';
                     ?>
                     <li class="nav-item">
                         <a class="nav-link py-2 <?= $currentStatus === $key ? 'active' : '' ?>" href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>">
-                            <?= $label ?> <span class="badge bg-<?= $sColors[$key] ?>-subtle text-<?= $sColors[$key] ?> rounded-pill ms-1"><?= $count ?></span>
+                            <?php if (!empty($sIcons[$key])): ?><i class="<?= $sIcons[$key] ?> me-1"></i><?php endif; ?><?= $label ?> <span class="badge bg-<?= $sColors[$key] ?>-subtle text-<?= $sColors[$key] ?> rounded-pill ms-1"><?= $count ?></span>
                         </a>
                     </li>
                     <?php endforeach; ?>
