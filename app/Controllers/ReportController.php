@@ -249,8 +249,8 @@ class ReportController extends Controller
 
         // Loss reasons
         $lossReasons = Database::fetchAll(
-            "SELECT COALESCE(loss_reason, 'Không rõ') as reason, COUNT(*) as count
-             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ?              GROUP BY loss_reason ORDER BY count DESC LIMIT 10",
+            "SELECT COALESCE(loss_reason_category, 'other') as reason, COUNT(*) as count
+             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ?              GROUP BY loss_reason_category ORDER BY count DESC LIMIT 10",
             [$year, $tid]
         );
 
