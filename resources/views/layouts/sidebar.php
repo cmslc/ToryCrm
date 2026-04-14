@@ -240,7 +240,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                     <div class="collapse menu-dropdown <?= $rptOpen ? 'show' : '' ?>" id="sidebarReports">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('reports') ?>" class="nav-link <?= $currentUrl === 'reports' ? 'active' : '' ?>">Tổng quan</a></li>
                             <li class="nav-item"><a href="<?= url('reports/customers') ?>" class="nav-link <?= isActive('reports/customers', $currentUrl) ?>">Khách hàng</a></li>
                             <li class="nav-item"><a href="<?= url('reports/revenue') ?>" class="nav-link <?= isActive('reports/revenue', $currentUrl) ?>">Doanh thu</a></li>
                             <li class="nav-item"><a href="<?= url('reports/deals') ?>" class="nav-link <?= isActive('reports/deals', $currentUrl) ?>">Cơ hội</a></li>
