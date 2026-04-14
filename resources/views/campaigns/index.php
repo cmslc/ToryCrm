@@ -2,7 +2,10 @@
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Chiến dịch</h4>
-            <a href="<?= url('campaigns/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo chiến dịch</a>
+            <div class="d-flex gap-2">
+                <a href="<?= url('email-templates') ?>" class="btn btn-soft-info"><i class="ri-mail-line me-1"></i> Mẫu email</a>
+                <a href="<?= url('campaigns/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo chiến dịch</a>
+            </div>
         </div>
 
         <div class="card">

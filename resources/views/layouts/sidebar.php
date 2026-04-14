@@ -79,7 +79,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('deals')): ?>
-                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns','email-templates'], $currentUrl); ?>
+                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
                         <i class="ri-hand-coin-line"></i> <span>Marketing</span>
@@ -92,7 +92,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <?php if (plugin_active('lead-forms')): ?><li class="nav-item"><a href="<?= url('lead-forms') ?>" class="nav-link <?= isActive('lead-forms', $currentUrl) ?>">Lead Forms</a></li><?php endif; ?>
                             <?php if (canSee('campaigns')): ?>
                             <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch</a></li>
-                            <li class="nav-item"><a href="<?= url('email-templates') ?>" class="nav-link <?= isActive('email-templates', $currentUrl) ?>">Mẫu email</a></li>
                             <?php endif; ?>
                         </ul>
                     </div>
