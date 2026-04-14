@@ -8,7 +8,6 @@ foreach ($byId as &$d) {
 }
 unset($d);
 
-// Flatten tree with level + last-child info
 $flatList = [];
 if (!function_exists('flattenDeptTree')) {
     function flattenDeptTree($nodes, $level, &$out) {
@@ -24,80 +23,139 @@ if (!function_exists('flattenDeptTree')) {
     }
 }
 flattenDeptTree($tree, 0, $flatList);
+$activeView = $_GET['view'] ?? 'chart';
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
-    <h4 class="mb-0">Sơ đồ tổ chức</h4>
+    <h4 class="mb-0">Quản lý phòng ban</h4>
     <div class="d-flex gap-2">
         <a href="<?= url('departments/kpi-comparison') ?>" class="btn btn-soft-info"><i class="ri-bar-chart-grouped-line me-1"></i> So sánh KPI</a>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Thêm phòng ban</button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Thêm mới</button>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
-        <?php if (!empty($flatList)): ?>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="min-width:300px">Phòng ban</th>
-                        <th style="width:180px">Trưởng phòng</th>
-                        <th style="width:180px">Phó phòng</th>
-                        <th style="width:90px" class="text-center">Thành viên</th>
-                        <th style="width:120px" class="text-end">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($flatList as $dept):
-                        $indent = $dept['_level'] * 24;
-                        $prefix = '';
-                        if ($dept['_level'] > 0) {
-                            $prefix = $dept['_last'] ? '└' : '├';
-                        }
-                    ?>
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center" style="padding-left:<?= $indent ?>px">
-                                <?php if ($prefix): ?>
-                                    <span class="text-muted me-2 fs-12" style="font-family:monospace;line-height:1"><?= $prefix ?></span>
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link <?= $activeView === 'chart' ? 'active' : '' ?>" data-bs-toggle="tab" href="#viewChart" role="tab">
+                    <i class="ri-organization-chart me-1"></i> Sơ đồ tổ chức
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= $activeView === 'list' ? 'active' : '' ?>" data-bs-toggle="tab" href="#viewList" role="tab">
+                    <i class="ri-list-check me-1"></i> Danh sách
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Sơ đồ tổ chức -->
+            <div class="tab-pane fade <?= $activeView === 'chart' ? 'show active' : '' ?>" id="viewChart" role="tabpanel">
+                <?php if (!empty($tree)):
+                    if (!function_exists('renderOrgChart')) {
+                        function renderOrgChart($node) { ?>
+                            <li>
+                                <a href="<?= url('departments/' . $node['id']) ?>" class="org-node text-decoration-none">
+                                    <div class="org-card" style="border-top: 3px solid <?= e($node['color']) ?>">
+                                        <div class="org-card-title"><?= e($node['name']) ?></div>
+                                        <?php if (!empty($node['manager_name'])): ?>
+                                        <div class="org-card-manager">
+                                            <div class="org-avatar" style="background:<?= e($node['color']) ?>20;color:<?= e($node['color']) ?>"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
+                                            <span><?= e($node['manager_name']) ?></span>
+                                        </div>
+                                        <?php endif; ?>
+                                        <div class="org-card-meta"><i class="ri-team-line"></i> <?= $node['member_count'] ?> thành viên</div>
+                                    </div>
+                                </a>
+                                <?php if (!empty($node['children'])): ?>
+                                <ul>
+                                    <?php foreach ($node['children'] as $child) renderOrgChart($child); ?>
+                                </ul>
                                 <?php endif; ?>
-                                <span class="d-inline-block rounded-circle me-2 flex-shrink-0" style="width:10px;height:10px;background:<?= e($dept['color']) ?>"></span>
-                                <a href="<?= url('departments/' . $dept['id']) ?>" class="fw-semibold text-dark"><?= e($dept['name']) ?></a>
-                            </div>
-                        </td>
-                        <td><?= $dept['manager_name'] ? user_avatar($dept['manager_name'], 'primary', $dept['manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?></td>
-                        <td><?= $dept['vice_manager_name'] ? user_avatar($dept['vice_manager_name'], 'info', $dept['vice_manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?></td>
-                        <td class="text-center">
-                            <a href="<?= url('departments/' . $dept['id'] . '/members') ?>" class="badge bg-secondary-subtle text-secondary"><?= $dept['member_count'] ?></a>
-                        </td>
-                        <td class="text-end">
-                            <div class="d-flex justify-content-end gap-1">
-                                <a href="<?= url('departments/' . $dept['id']) ?>" class="btn btn-soft-primary btn-icon" title="Chi tiết"><i class="ri-eye-line"></i></a>
-                                <a href="#" class="btn btn-soft-secondary btn-icon edit-dept"
-                                    data-id="<?= $dept['id'] ?>" data-name="<?= e($dept['name']) ?>"
-                                    data-parent="<?= $dept['parent_id'] ?? '' ?>" data-manager="<?= $dept['manager_id'] ?? '' ?>"
-                                    data-vicemanager="<?= $dept['vice_manager_id'] ?? '' ?>"
-                                    data-description="<?= e($dept['description'] ?? '') ?>" data-color="<?= e($dept['color']) ?>"
-                                    title="Sửa"><i class="ri-pencil-line"></i></a>
-                                <form method="POST" action="<?= url('departments/' . $dept['id'] . '/delete') ?>" data-confirm="Xóa phòng ban <?= e($dept['name']) ?>?" class="d-inline">
-                                    <?= csrf_field() ?>
-                                    <button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                            </li>
+                        <?php }
+                    }
+                ?>
+                <div class="org-tree-wrap">
+                    <ul class="org-tree">
+                        <?php foreach ($tree as $root) renderOrgChart($root); ?>
+                    </ul>
+                </div>
+                <?php else: ?>
+                <div class="text-center py-5 text-muted">
+                    <i class="ri-organization-chart fs-1 d-block mb-2"></i>
+                    <h5>Chưa có phòng ban nào</h5>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Danh sách -->
+            <div class="tab-pane fade <?= $activeView === 'list' ? 'show active' : '' ?>" id="viewList" role="tabpanel">
+                <?php if (!empty($flatList)): ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="min-width:300px">Phòng ban</th>
+                                <th style="width:180px">Trưởng phòng</th>
+                                <th style="width:180px">Phó phòng</th>
+                                <th style="width:90px" class="text-center">Thành viên</th>
+                                <th style="width:120px" class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($flatList as $dept):
+                                $indent = $dept['_level'] * 24;
+                                $prefix = '';
+                                if ($dept['_level'] > 0) {
+                                    $prefix = $dept['_last'] ? '└' : '├';
+                                }
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center" style="padding-left:<?= $indent ?>px">
+                                        <?php if ($prefix): ?>
+                                            <span class="text-muted me-2 fs-12" style="font-family:monospace;line-height:1"><?= $prefix ?></span>
+                                        <?php endif; ?>
+                                        <span class="d-inline-block rounded-circle me-2 flex-shrink-0" style="width:10px;height:10px;background:<?= e($dept['color']) ?>"></span>
+                                        <a href="<?= url('departments/' . $dept['id']) ?>" class="fw-semibold text-dark"><?= e($dept['name']) ?></a>
+                                    </div>
+                                </td>
+                                <td><?= $dept['manager_name'] ? user_avatar($dept['manager_name'], 'primary', $dept['manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?></td>
+                                <td><?= $dept['vice_manager_name'] ? user_avatar($dept['vice_manager_name'], 'info', $dept['vice_manager_avatar'] ?? null) : '<span class="text-muted">—</span>' ?></td>
+                                <td class="text-center">
+                                    <a href="<?= url('departments/' . $dept['id'] . '/members') ?>" class="badge bg-secondary-subtle text-secondary"><?= $dept['member_count'] ?></a>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a href="<?= url('departments/' . $dept['id']) ?>" class="btn btn-soft-primary btn-icon" title="Chi tiết"><i class="ri-eye-line"></i></a>
+                                        <a href="#" class="btn btn-soft-secondary btn-icon edit-dept"
+                                            data-id="<?= $dept['id'] ?>" data-name="<?= e($dept['name']) ?>"
+                                            data-parent="<?= $dept['parent_id'] ?? '' ?>" data-manager="<?= $dept['manager_id'] ?? '' ?>"
+                                            data-vicemanager="<?= $dept['vice_manager_id'] ?? '' ?>"
+                                            data-description="<?= e($dept['description'] ?? '') ?>" data-color="<?= e($dept['color']) ?>"
+                                            title="Sửa"><i class="ri-pencil-line"></i></a>
+                                        <form method="POST" action="<?= url('departments/' . $dept['id'] . '/delete') ?>" data-confirm="Xóa phòng ban <?= e($dept['name']) ?>?" class="d-inline">
+                                            <?= csrf_field() ?>
+                                            <button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php else: ?>
+                <div class="text-center py-5 text-muted">
+                    <i class="ri-organization-chart fs-1 d-block mb-2"></i>
+                    <h5>Chưa có phòng ban nào</h5>
+                </div>
+                <?php endif; ?>
+            </div>
         </div>
-        <?php else: ?>
-        <div class="text-center py-5 text-muted">
-            <i class="ri-organization-chart fs-1 d-block mb-2"></i>
-            <h5>Chưa có phòng ban nào</h5>
-            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addDeptModal"><i class="ri-add-line me-1"></i> Tạo phòng ban đầu tiên</button>
-        </div>
-        <?php endif; ?>
     </div>
 </div>
 
@@ -152,6 +210,57 @@ flattenDeptTree($tree, 0, $flatList);
         </div>
     </div>
 </div>
+
+<style>
+/* Org Chart Styles */
+.org-tree-wrap { overflow-x: auto; padding: 20px 0; }
+.org-tree, .org-tree ul { list-style: none; padding: 0; margin: 0; }
+.org-tree { display: flex; justify-content: center; }
+.org-tree ul { display: flex; justify-content: center; margin-top: 0; position: relative; padding-top: 24px; }
+.org-tree ul::before {
+    content: ''; position: absolute; top: 0; left: calc(50% - 0px);
+    border-left: 2px solid #cbd5e1; height: 24px;
+    display: none;
+}
+.org-tree li {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 8px; position: relative;
+}
+/* Vertical line from parent down */
+.org-tree li::before {
+    content: ''; position: absolute; top: 0; left: 50%;
+    border-left: 2px solid #cbd5e1; height: 24px;
+}
+/* Horizontal connector line */
+.org-tree li::after {
+    content: ''; position: absolute; top: 0;
+    border-top: 2px solid #cbd5e1;
+    width: 100%; left: 0;
+}
+.org-tree li:first-child::after { left: 50%; width: 50%; }
+.org-tree li:last-child::after { width: 50%; }
+.org-tree li:only-child::after { display: none; }
+/* Root level: no connectors */
+.org-tree > li::before, .org-tree > li::after { display: none; }
+
+.org-node { display: block; margin-top: 24px; position: relative; }
+.org-tree > li > .org-node { margin-top: 0; }
+
+.org-card {
+    background: #fef7ed; border: 1px solid #f0e0c8; border-radius: 8px;
+    padding: 12px 18px; min-width: 170px; max-width: 220px;
+    text-align: center; transition: all .2s; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.org-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); transform: translateY(-2px); }
+.org-card-title { font-weight: 600; font-size: 13px; color: #1a1a2e; margin-bottom: 6px; }
+.org-card-manager { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #555; margin-bottom: 4px; }
+.org-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; flex-shrink: 0;
+}
+.org-card-meta { font-size: 11px; color: #888; }
+</style>
 
 <script>
 document.querySelectorAll('.edit-dept').forEach(function(btn) {
