@@ -258,7 +258,7 @@ document.querySelectorAll('.edit-group').forEach(function(btn) {
 
 // Add group modal reset
 document.getElementById('btnAddGroup')?.addEventListener('click', function() {
-    document.getElementById('groupForm').action = baseUrl + '/store';
+    document.getElementById('groupForm').action = apiUrl + '/store';
     document.getElementById('groupModalTitle').textContent = 'Thêm nhóm quyền';
     document.getElementById('groupName').value = '';
     document.getElementById('groupParent').value = '';
