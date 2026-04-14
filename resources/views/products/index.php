@@ -177,11 +177,35 @@
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div class="text-muted">Hiển thị <?= count($products['items']) ?> / <?= $products['total'] ?></div>
                         <nav><ul class="pagination mb-0">
-                            <?php for ($i = 1; $i <= $products['total_pages']; $i++): ?>
-                                <li class="page-item <?= $i === $products['page'] ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= url('products?page=' . $i . '&' . http_build_query(array_filter($filters ?? []))) ?>"><?= $i ?></a>
+                            <?php
+                            $curPage = $products['page'];
+                            $totalPages = $products['total_pages'];
+                            $qs = http_build_query(array_filter($filters ?? []));
+                            $pageUrl = function($p) use ($qs) { return url('products?page=' . $p . ($qs ? '&' . $qs : '')); };
+
+                            if ($curPage > 1): ?>
+                                <li class="page-item"><a class="page-link" href="<?= $pageUrl($curPage - 1) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
+                            <?php endif;
+
+                            if ($curPage > 3): ?>
+                                <li class="page-item"><a class="page-link" href="<?= $pageUrl(1) ?>">1</a></li>
+                                <?php if ($curPage > 4): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif;
+                            endif;
+
+                            for ($i = max(1, $curPage - 2); $i <= min($totalPages, $curPage + 2); $i++): ?>
+                                <li class="page-item <?= $i === $curPage ? 'active' : '' ?>">
+                                    <a class="page-link" href="<?= $pageUrl($i) ?>"><?= $i ?></a>
                                 </li>
-                            <?php endfor; ?>
+                            <?php endfor;
+
+                            if ($curPage < $totalPages - 2): ?>
+                                <?php if ($curPage < $totalPages - 3): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
+                                <li class="page-item"><a class="page-link" href="<?= $pageUrl($totalPages) ?>"><?= $totalPages ?></a></li>
+                            <?php endif;
+
+                            if ($curPage < $totalPages): ?>
+                                <li class="page-item"><a class="page-link" href="<?= $pageUrl($curPage + 1) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
+                            <?php endif; ?>
                         </ul></nav>
                     </div>
                 <?php endif; ?>
