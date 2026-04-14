@@ -84,8 +84,8 @@ $activeView = $_GET['view'] ?? 'chart';
                     <button type="button" class="btn btn-soft-secondary py-1 px-2" id="zoomReset" title="Đặt lại">100%</button>
                     <span class="text-muted fs-13 d-flex align-items-center" id="zoomLevel">100%</span>
                 </div>
-                <div class="org-tree-wrap" id="orgTreeWrap">
-                    <div id="orgTreeZoom" style="transform-origin:top left;transition:transform .2s">
+                <div class="org-tree-wrap" id="orgTreeWrap" style="overflow:auto">
+                    <div id="orgTreeZoom" style="transform-origin:top center;transition:transform .2s;display:inline-block;min-width:100%">
                         <ul class="org-tree">
                             <?php foreach ($tree as $root) renderOrgChart($root); ?>
                         </ul>
