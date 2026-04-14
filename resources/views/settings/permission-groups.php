@@ -288,6 +288,12 @@ function loadGroupPanel(groupId, el) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         panel.innerHTML = data.html;
+        // Execute inline scripts from loaded HTML
+        panel.querySelectorAll('script').forEach(function(oldScript) {
+            var newScript = document.createElement('script');
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
         bindPanelEvents();
     })
     .catch(function() { panel.innerHTML = '<div class="card-body text-center py-5 text-danger">Lỗi tải dữ liệu</div>'; });
