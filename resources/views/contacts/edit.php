@@ -156,9 +156,8 @@
                     <div class="mb-3">
                         <label class="form-label">Trạng thái</label>
                         <select name="status" class="form-select">
-                            <?php $statuses = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất']; ?>
-                            <?php foreach ($statuses as $val => $label): ?>
-                            <option value="<?= $val ?>" <?= ($c['status'] ?? '') === $val ? 'selected' : '' ?>><?= $label ?></option>
+                            <?php foreach ($contactStatuses ?? [] as $st): ?>
+                            <option value="<?= e($st['slug']) ?>" <?= ($c['status'] ?? '') === $st['slug'] ? 'selected' : '' ?>><?= e($st['name']) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

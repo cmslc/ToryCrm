@@ -168,10 +168,9 @@
                             <div class="mb-3">
                                 <label class="form-label">Trạng thái</label>
                                 <select name="status" class="form-select">
-                                    <option value="new">Mới</option>
-                                    <option value="contacted">Đã liên hệ</option>
-                                    <option value="qualified">Tiềm năng</option>
-                                    <option value="converted">Chuyển đổi</option>
+                                    <?php foreach ($contactStatuses ?? [] as $st): ?>
+                                    <option value="<?= e($st['slug']) ?>"><?= e($st['name']) ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="mb-3">

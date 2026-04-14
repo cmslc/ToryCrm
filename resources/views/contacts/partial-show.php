@@ -1,6 +1,7 @@
 <?php
-$statusLabels = ['new' => 'Mới', 'contacted' => 'Đã liên hệ', 'qualified' => 'Tiềm năng', 'converted' => 'Chuyển đổi', 'lost' => 'Mất'];
-$statusColors = ['new' => 'info', 'contacted' => 'primary', 'qualified' => 'warning', 'converted' => 'success', 'lost' => 'danger'];
+$statusLabels = []; $statusColors = [];
+foreach ($contactStatuses ?? [] as $_cs) { $statusLabels[$_cs['slug']] = $_cs['name']; $statusColors[$_cs['slug']] = $_cs['color']; }
+if (empty($statusLabels)) { $statusLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất']; $statusColors = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger']; }
 $st = $contact['status'] ?? 'new';
 ?>
 

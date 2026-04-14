@@ -22,9 +22,9 @@ class ContactController extends Controller
         $params = [Database::tenantId()];
 
         if ($search) {
-            $where[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ?)";
+            $where[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR c.mobile LIKE ? OR c.account_code LIKE ?)";
             $searchTerm = "%{$search}%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
 
         if ($status) {
@@ -121,10 +121,13 @@ class ContactController extends Controller
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
+        $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+
         return $this->view('contacts.create', [
             'companies' => $companies,
             'sources' => $sources,
             'users' => $users,
+            'contactStatuses' => $contactStatuses,
         ]);
     }
 
@@ -334,11 +337,14 @@ class ContactController extends Controller
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
+        $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+
         return $this->view('contacts.edit', [
             'contact' => $contact,
             'companies' => $companies,
             'sources' => $sources,
             'users' => $users,
+            'contactStatuses' => $contactStatuses,
         ]);
     }
 
