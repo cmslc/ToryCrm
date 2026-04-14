@@ -104,7 +104,7 @@ class PermissionGroupController extends Controller
         if (!$this->isPost()) return $this->redirect('settings/permissions');
         $this->authorize('settings', 'manage');
 
-        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ?", [$id]);
+        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$group) return $this->redirect('settings/permissions');
 
         $name = trim($this->input('name') ?? '');
@@ -129,7 +129,7 @@ class PermissionGroupController extends Controller
         if (!$this->isPost()) return $this->redirect('settings/permissions');
         $this->authorize('settings', 'manage');
 
-        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ?", [$id]);
+        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$group || $group['is_system']) {
             $this->setFlash('error', 'Không thể xóa nhóm hệ thống.');
             return $this->redirect('settings/permissions');
@@ -142,7 +142,7 @@ class PermissionGroupController extends Controller
         // Set children parent to null
         Database::query("UPDATE permission_groups SET parent_id = NULL WHERE parent_id = ?", [$id]);
         // Delete group
-        Database::query("DELETE FROM permission_groups WHERE id = ?", [$id]);
+        Database::query("DELETE FROM permission_groups WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
 
         PermissionService::clearCache();
         $this->setFlash('success', 'Đã xóa nhóm quyền.');
@@ -167,7 +167,7 @@ class PermissionGroupController extends Controller
     {
         $this->authorize('settings', 'manage');
 
-        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ?", [$id]);
+        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$group) return $this->json(['error' => 'Not found'], 404);
 
         $permissions = Database::fetchAll("SELECT * FROM permissions ORDER BY module, FIELD(action, 'view','create','edit','delete','approve','view_all')");
