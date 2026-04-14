@@ -78,10 +78,18 @@ $activeView = $_GET['view'] ?? 'chart';
                         <?php }
                     }
                 ?>
-                <div class="org-tree-wrap">
-                    <ul class="org-tree">
-                        <?php foreach ($tree as $root) renderOrgChart($root); ?>
-                    </ul>
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="zoomIn" title="Phóng to"><i class="ri-zoom-in-line"></i></button>
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="zoomOut" title="Thu nhỏ"><i class="ri-zoom-out-line"></i></button>
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="zoomReset" title="Đặt lại">100%</button>
+                    <span class="text-muted fs-13 d-flex align-items-center" id="zoomLevel">100%</span>
+                </div>
+                <div class="org-tree-wrap" id="orgTreeWrap">
+                    <div id="orgTreeZoom" style="transform-origin:top left;transition:transform .2s">
+                        <ul class="org-tree">
+                            <?php foreach ($tree as $root) renderOrgChart($root); ?>
+                        </ul>
+                    </div>
                 </div>
                 <?php else: ?>
                 <div class="text-center py-5 text-muted">
@@ -287,4 +295,30 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
     document.getElementById('deptVice').value = '';
     document.getElementById('deptDesc').value = '';
 });
+
+// Org chart zoom
+(function() {
+    var zoom = 1, min = 0.3, max = 1.5, step = 0.1;
+    var el = document.getElementById('orgTreeZoom');
+    var label = document.getElementById('zoomLevel');
+    if (!el) return;
+
+    function apply() {
+        el.style.transform = 'scale(' + zoom + ')';
+        label.textContent = Math.round(zoom * 100) + '%';
+    }
+
+    document.getElementById('zoomIn')?.addEventListener('click', function() { zoom = Math.min(max, zoom + step); apply(); });
+    document.getElementById('zoomOut')?.addEventListener('click', function() { zoom = Math.max(min, zoom - step); apply(); });
+    document.getElementById('zoomReset')?.addEventListener('click', function() { zoom = 1; apply(); });
+
+    // Ctrl+scroll / pinch zoom
+    document.getElementById('orgTreeWrap')?.addEventListener('wheel', function(e) {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            zoom = Math.max(min, Math.min(max, zoom + (e.deltaY < 0 ? step : -step)));
+            apply();
+        }
+    }, {passive: false});
+})();
 </script>
