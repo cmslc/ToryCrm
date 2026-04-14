@@ -29,7 +29,7 @@
                 'done' => ['label' => 'Hoàn thành', 'color' => '#0ab39c', 'icon' => 'ri-check-double-line'],
             ];
             foreach ($columns as $status => $info):
-                $items = $kanban[$status] ?? [];
+                $items = $board[$status] ?? [];
             ?>
                 <div class="kanban-stage flex-shrink-0" style="min-width: 280px; max-width: 320px;" data-status="<?= $status ?>">
                     <div class="card mb-0 h-100">
