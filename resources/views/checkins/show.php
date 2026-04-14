@@ -107,29 +107,17 @@
                 <h6 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Vị trí check-in</h6>
             </div>
             <div class="card-body p-0">
-                <?php $gmapsKey = $_ENV['GOOGLE_MAPS_API_KEY'] ?? getenv('GOOGLE_MAPS_API_KEY') ?: ''; ?>
-                <?php if (!empty($gmapsKey)): ?>
-                    <div id="checkinMap" style="height:300px;border-radius:0 0 .25rem .25rem"></div>
-                    <script>
-                    function initMap() {
-                        var pos = {lat: <?= $checkin['latitude'] ?>, lng: <?= $checkin['longitude'] ?>};
-                        var map = new google.maps.Map(document.getElementById('checkinMap'), {zoom: 16, center: pos});
-                        new google.maps.Marker({position: pos, map: map, title: '<?= e($checkin['address'] ?? 'Check-in') ?>'});
-                    }
-                    </script>
-                    <script src="https://maps.googleapis.com/maps/api/js?key=<?= e($gmapsKey) ?>&callback=initMap" async defer></script>
-                <?php else: ?>
-                    <div class="rounded-bottom bg-light d-flex align-items-center justify-content-center" style="height:300px">
-                        <div class="text-center text-muted">
-                            <i class="ri-map-pin-2-fill text-danger" style="font-size:48px"></i>
-                            <p class="mt-2 mb-1"><?= $checkin['latitude'] ?>, <?= $checkin['longitude'] ?></p>
-                            <a href="https://www.google.com/maps?q=<?= $checkin['latitude'] ?>,<?= $checkin['longitude'] ?>" target="_blank" class="btn btn-soft-primary mt-2">
-                                <i class="ri-map-2-line me-1"></i> Xem trên Google Maps
-                            </a>
-                            <p class="mt-2 fs-12 text-muted">Thêm Google Maps API key tại <a href="<?= url('settings/ai') ?>">Cài đặt → API</a></p>
-                        </div>
-                    </div>
-                <?php endif; ?>
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                <div id="checkinMap" style="height:300px;border-radius:0 0 .25rem .25rem"></div>
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                <script>
+                (function() {
+                    var lat = <?= (float)$checkin['latitude'] ?>, lng = <?= (float)$checkin['longitude'] ?>;
+                    var map = L.map('checkinMap').setView([lat, lng], 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap'}).addTo(map);
+                    L.marker([lat, lng]).addTo(map).bindPopup('<?= e($checkin['address'] ?? 'Check-in') ?>').openPopup();
+                })();
+                </script>
             </div>
         </div>
     </div>
