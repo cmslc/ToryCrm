@@ -140,7 +140,7 @@ $currentStatus = $filters['status'] ?? '';
                     foreach ($sLabels as $key => $label):
                         $count = 0;
                         foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
-                        if ($count == 0 && $currentStatus !== $key) continue;
+                        // Show all statuses, even with 0 count
                     ?>
                     <li class="nav-item">
                         <a class="nav-link py-2 <?= $currentStatus === $key ? 'active' : '' ?>" href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>">
