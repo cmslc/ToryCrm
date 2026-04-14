@@ -127,7 +127,7 @@
                     </button>
                     <div class="dropdown-menu dropdown-menu-end">
                         <h6 class="dropdown-header">Xin chào, <?= e($user['name'] ?? '') ?>!</h6>
-                        <a class="dropdown-item" href="<?= url('settings') ?>"><i class="mdi mdi-cog-outline text-muted fs-16 align-middle me-1"></i> Cài đặt</a>
+                        <a class="dropdown-item" href="<?= url('settings') ?>"><i class="mdi mdi-account-circle-outline text-muted fs-16 align-middle me-1"></i> Tài khoản</a>
                         <a class="dropdown-item" href="<?= url('billing') ?>"><i class="mdi mdi-wallet text-muted fs-16 align-middle me-1"></i> Gói dịch vụ</a>
                         <a class="dropdown-item" href="<?= url('help') ?>"><i class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> Trợ giúp</a>
                         <div class="dropdown-divider"></div>

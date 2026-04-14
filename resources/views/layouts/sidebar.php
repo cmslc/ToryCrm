@@ -298,7 +298,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                     <div class="collapse menu-dropdown <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('settings') ?>" class="nav-link <?= $currentUrl === 'settings' || str_starts_with($currentUrl, 'settings?') ? 'active' : '' ?>">Tài khoản</a></li>
                             <?php if ($_role !== 'staff'): ?>
                             <li class="nav-item"><a href="<?= url('settings/widgets') ?>" class="nav-link <?= isActive('settings/widgets', $currentUrl) ?>">Dashboard</a></li>
                             <?php endif; ?>
