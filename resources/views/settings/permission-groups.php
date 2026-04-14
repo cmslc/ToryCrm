@@ -39,24 +39,29 @@ foreach ($modules as $mod => $perms) {
 
 function renderGroupTree($nodes, $selectedId, $level = 0) {
     foreach ($nodes as $g):
-        $active = ($g['id'] == $selectedId) ? 'active bg-primary-subtle' : '';
-        $indent = $level * 20;
+        $isActive = ($g['id'] == $selectedId);
+        $indent = $level * 16;
+        $color = $g['color'] ?? '#405189';
 ?>
-    <a href="<?= url('settings/permissions?group=' . $g['id']) ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 <?= $active ?>" style="padding-left:<?= 12 + $indent ?>px">
-        <?php if ($level > 0): ?><span class="text-muted">|<?= str_repeat('--', $level) ?></span><?php endif; ?>
-        <span class="flex-grow-1">
-            <?= e($g['name']) ?>
-            <?php if ($g['is_system']): ?><i class="ri-shield-check-line text-warning ms-1" title="Nhóm hệ thống"></i><?php endif; ?>
-        </span>
-        <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?= $g['user_count'] ?></span>
+    <div class="group-item <?= $isActive ? 'active' : '' ?>" style="padding-left:<?= 12 + $indent ?>px">
+        <a href="<?= url('settings/permissions?group=' . $g['id']) ?>" class="group-link">
+            <span class="group-dot" style="background:<?= e($color) ?>"></span>
+            <span class="group-name">
+                <?= e($g['name']) ?>
+                <?php if ($g['is_system']): ?><i class="ri-shield-check-line text-warning ms-1 fs-12"></i><?php endif; ?>
+            </span>
+            <span class="badge bg-light text-dark rounded-pill ms-auto"><?= $g['user_count'] ?></span>
+        </a>
         <?php if (!$g['is_system']): ?>
-        <button type="button" class="btn btn-link p-0 text-muted edit-group" data-id="<?= $g['id'] ?>" data-name="<?= e($g['name']) ?>" data-parent="<?= $g['parent_id'] ?>" data-desc="<?= e($g['description'] ?? '') ?>" data-color="<?= e($g['color']) ?>" title="Sửa"><i class="ri-pencil-line"></i></button>
-        <form method="POST" action="<?= url('settings/permissions/' . $g['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa nhóm <?= e($g['name']) ?>?">
-            <?= csrf_field() ?>
-            <button type="submit" class="btn btn-link p-0 text-danger" title="Xóa"><i class="ri-delete-bin-line"></i></button>
-        </form>
+        <div class="group-actions">
+            <button type="button" class="edit-group" data-id="<?= $g['id'] ?>" data-name="<?= e($g['name']) ?>" data-parent="<?= $g['parent_id'] ?>" data-desc="<?= e($g['description'] ?? '') ?>" data-color="<?= e($color) ?>" title="Sửa"><i class="ri-pencil-line"></i></button>
+            <form method="POST" action="<?= url('settings/permissions/' . $g['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa nhóm <?= e($g['name']) ?>?">
+                <?= csrf_field() ?>
+                <button type="submit" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+            </form>
+        </div>
         <?php endif; ?>
-    </a>
+    </div>
     <?php if (!empty($g['children'])) renderGroupTree($g['children'], $selectedId, $level + 1); ?>
 <?php endforeach;
 }
@@ -74,7 +79,7 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
                 <h5 class="card-title mb-0">Nhóm quyền</h5>
                 <button type="button" class="btn btn-primary py-1 px-2" data-bs-toggle="modal" data-bs-target="#groupModal" id="btnAddGroup"><i class="ri-add-line"></i></button>
             </div>
-            <div class="list-group list-group-flush">
+            <div class="group-tree">
                 <?php renderGroupTree($tree, $selectedGroupId); ?>
             </div>
         </div>
@@ -243,6 +248,22 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
         </div>
     </div>
 </div>
+
+<style>
+.group-tree { padding: 8px 0; }
+.group-item { position: relative; display: flex; align-items: center; border-radius: 6px; margin: 2px 8px; transition: background .15s; }
+.group-item:hover { background: #f3f6f9; }
+.group-item.active { background: #e8effc; }
+.group-item.active .group-name { font-weight: 600; color: #405189; }
+.group-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; flex-grow: 1; text-decoration: none; color: inherit; }
+.group-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.group-name { font-size: 14px; color: #333; }
+.group-actions { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); gap: 4px; }
+.group-item:hover .group-actions { display: flex; }
+.group-actions button { border: none; background: none; padding: 4px 6px; border-radius: 4px; color: #888; cursor: pointer; font-size: 14px; }
+.group-actions button:hover { background: #e2e8f0; color: #333; }
+.group-actions form button:hover { color: #dc3545; }
+</style>
 
 <script>
 // Edit group
