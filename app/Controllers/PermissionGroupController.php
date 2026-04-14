@@ -75,7 +75,7 @@ class PermissionGroupController extends Controller
 
     public function store()
     {
-        if (!$this->isPost()) return $this->redirect('settings/permission-groups');
+        if (!$this->isPost()) return $this->redirect('settings/permissions');
         $this->authorize('settings', 'manage');
 
         $name = trim($this->input('name') ?? '');
@@ -96,16 +96,16 @@ class PermissionGroupController extends Controller
         ]);
 
         $this->setFlash('success', 'Đã tạo nhóm quyền.');
-        return $this->redirect('settings/permission-groups');
+        return $this->redirect('settings/permissions');
     }
 
     public function update($id)
     {
-        if (!$this->isPost()) return $this->redirect('settings/permission-groups');
+        if (!$this->isPost()) return $this->redirect('settings/permissions');
         $this->authorize('settings', 'manage');
 
         $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ?", [$id]);
-        if (!$group) return $this->redirect('settings/permission-groups');
+        if (!$group) return $this->redirect('settings/permissions');
 
         $name = trim($this->input('name') ?? '');
         if (empty($name)) {
@@ -121,18 +121,18 @@ class PermissionGroupController extends Controller
         ], 'id = ?', [$id]);
 
         $this->setFlash('success', 'Đã cập nhật nhóm quyền.');
-        return $this->redirect('settings/permission-groups?group=' . $id);
+        return $this->redirect('settings/permissions?group=' . $id);
     }
 
     public function destroy($id)
     {
-        if (!$this->isPost()) return $this->redirect('settings/permission-groups');
+        if (!$this->isPost()) return $this->redirect('settings/permissions');
         $this->authorize('settings', 'manage');
 
         $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ?", [$id]);
         if (!$group || $group['is_system']) {
             $this->setFlash('error', 'Không thể xóa nhóm hệ thống.');
-            return $this->redirect('settings/permission-groups');
+            return $this->redirect('settings/permissions');
         }
 
         // Remove user assignments
@@ -146,12 +146,12 @@ class PermissionGroupController extends Controller
 
         PermissionService::clearCache();
         $this->setFlash('success', 'Đã xóa nhóm quyền.');
-        return $this->redirect('settings/permission-groups');
+        return $this->redirect('settings/permissions');
     }
 
     public function savePermissions($id)
     {
-        if (!$this->isPost()) return $this->redirect('settings/permission-groups');
+        if (!$this->isPost()) return $this->redirect('settings/permissions');
         $this->authorize('settings', 'manage');
 
         $permIds = $this->input('perms') ?? [];
@@ -160,7 +160,7 @@ class PermissionGroupController extends Controller
         PermissionService::updateGroupPermissions((int)$id, $permIds);
 
         $this->setFlash('success', 'Đã lưu phân quyền.');
-        return $this->redirect('settings/permission-groups?group=' . $id);
+        return $this->redirect('settings/permissions?group=' . $id);
     }
 
     public function getPanel($id)

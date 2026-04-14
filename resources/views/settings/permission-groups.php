@@ -51,7 +51,7 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
         <span class="badge <?= $isActive ? 'bg-white text-primary' : 'bg-secondary-subtle text-secondary' ?> rounded-pill"><?= $g['user_count'] ?></span>
         <?php if (!$g['is_system']): ?>
         <button type="button" class="btn btn-ghost-secondary btn-icon btn-sm ms-1 edit-group" data-id="<?= $g['id'] ?>" data-name="<?= e($g['name']) ?>" data-parent="<?= $g['parent_id'] ?>" data-desc="<?= e($g['description'] ?? '') ?>" data-color="<?= e($g['color'] ?? '#405189') ?>" title="Sửa"><i class="ri-pencil-line"></i></button>
-        <form method="POST" action="<?= url('settings/permissions/' . $g['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa nhóm <?= e($g['name']) ?>?">
+        <form method="POST" action="<?= url('settings/perm-groups/' . $g['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa nhóm <?= e($g['name']) ?>?">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-ghost-danger btn-icon btn-sm" title="Xóa"><i class="ri-delete-bin-line"></i></button>
         </form>
@@ -98,7 +98,7 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
 <!-- Modal: Add/Edit Group -->
 <div class="modal fade" id="groupModal" tabindex="-1">
     <div class="modal-dialog">
-        <form method="POST" action="<?= url('settings/permissions/store') ?>" id="groupForm">
+        <form method="POST" action="<?= url('settings/perm-groups/store') ?>" id="groupForm">
             <?= csrf_field() ?>
             <div class="modal-content">
                 <div class="modal-header">
@@ -172,6 +172,7 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
 var currentGroupId = <?= $selectedGroupId ?>;
 var csrfToken = '<?= csrf_token() ?>';
 var baseUrl = '<?= url('settings/permissions') ?>';
+var apiUrl = '<?= url('settings/perm-groups') ?>';
 
 // Load group panel via AJAX
 function loadGroupPanel(groupId, el) {
@@ -185,7 +186,7 @@ function loadGroupPanel(groupId, el) {
     var panel = document.getElementById('permPanel');
     panel.innerHTML = '<div class="card-body text-center py-5"><div class="spinner-border text-primary"></div></div>';
 
-    fetch(baseUrl + '/' + groupId + '/panel', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+    fetch(apiUrl + '/' + groupId + '/panel', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
     .then(function(r) { return r.json(); })
     .then(function(data) {
         panel.innerHTML = data.html;
@@ -200,7 +201,7 @@ function bindPanelEvents() {
     document.querySelectorAll('.remove-user').forEach(function(btn) {
         btn.addEventListener('click', function() {
             if (!confirm('Xóa người dùng khỏi nhóm?')) return;
-            fetch(baseUrl + '/' + currentGroupId + '/remove-user', {
+            fetch(apiUrl + '/' + currentGroupId + '/remove-user', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken},
                 body: JSON.stringify({user_id: this.dataset.userId})
@@ -214,7 +215,7 @@ function bindPanelEvents() {
 // Add user (modal)
 document.querySelectorAll('.add-user-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-        fetch(baseUrl + '/' + currentGroupId + '/add-user', {
+        fetch(apiUrl + '/' + currentGroupId + '/add-user', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken},
             body: JSON.stringify({user_id: this.dataset.userId})
@@ -245,7 +246,7 @@ document.getElementById('userSearch')?.addEventListener('input', function() {
 document.querySelectorAll('.edit-group').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.preventDefault(); e.stopPropagation();
-        document.getElementById('groupForm').action = baseUrl + '/' + this.dataset.id + '/update';
+        document.getElementById('groupForm').action = apiUrl + '/' + this.dataset.id + '/update';
         document.getElementById('groupModalTitle').textContent = 'Sửa nhóm quyền';
         document.getElementById('groupName').value = this.dataset.name;
         document.getElementById('groupParent').value = this.dataset.parent || '';

@@ -46,7 +46,7 @@ $selectedGroupId = $group['id'];
 </div>
 
 <?php if (!$group['is_system']): ?>
-<form method="POST" action="<?= url('settings/permissions/' . $selectedGroupId . '/save-perms') ?>" id="permForm">
+<form method="POST" action="<?= url('settings/perm-groups/' . $selectedGroupId . '/save-perms') ?>" id="permForm">
     <?= csrf_field() ?>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
