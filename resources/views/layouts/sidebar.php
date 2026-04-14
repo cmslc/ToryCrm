@@ -86,7 +86,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                     <div class="collapse menu-dropdown <?= $dealOpen ? 'show' : '' ?>" id="sidebarDeals">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('deals') ?>" class="nav-link <?= isActive('deals', $currentUrl) && !str_contains($currentUrl, 'pipeline') && !str_contains($currentUrl, 'forecast') ? 'active' : '' ?>">Danh sách cơ hội</a></li>
+                            <li class="nav-item"><a href="<?= url('deals') ?>" class="nav-link <?= isActive('deals', $currentUrl) && !str_contains($currentUrl, 'pipeline') && !str_contains($currentUrl, 'forecast') ? 'active' : '' ?>">Các cơ hội</a></li>
                             <li class="nav-item"><a href="<?= url('deals/pipeline') ?>" class="nav-link <?= isActive('deals/pipeline', $currentUrl) ?>">Pipeline</a></li>
                             <li class="nav-item"><a href="<?= url('deals/forecast') ?>" class="nav-link <?= isActive('deals/forecast', $currentUrl) ?>">Dự báo</a></li>
                             <?php if (plugin_active('lead-forms')): ?><li class="nav-item"><a href="<?= url('lead-forms') ?>" class="nav-link <?= isActive('lead-forms', $currentUrl) ?>">Lead Forms</a></li><?php endif; ?>
