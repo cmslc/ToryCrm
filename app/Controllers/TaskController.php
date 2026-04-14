@@ -137,9 +137,9 @@ class TaskController extends Controller
                  LEFT JOIN users u ON t.assigned_to = u.id
                  LEFT JOIN contacts c ON t.contact_id = c.id
                  LEFT JOIN deals d ON t.deal_id = d.id
-                 WHERE t.status = ? AND t.is_deleted = 0 AND t.parent_id IS NULL
+                 WHERE t.status = ? AND t.tenant_id = ? AND t.is_deleted = 0 AND t.parent_id IS NULL
                  ORDER BY t.priority DESC, t.due_date ASC",
-                [$status]
+                [$status, Database::tenantId()]
             );
         }
 
