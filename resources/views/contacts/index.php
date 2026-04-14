@@ -18,6 +18,20 @@ if (empty($sLabels)) {
     $sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
 }
 $currentStatus = $filters['status'] ?? '';
+$columns = [
+    'col-customer' => 'Khách hàng',
+    'col-contact' => 'Liên hệ',
+    'col-company' => 'Công ty',
+    'col-source' => 'Nguồn',
+    'col-status' => 'Trạng thái',
+    'col-owner' => 'Phụ trách',
+    'col-address' => 'Địa chỉ',
+    'col-birthday' => 'Ngày sinh',
+    'col-group' => 'Nhóm KH',
+    'col-tags' => 'Nhãn',
+    'col-lastcontact' => 'Liên hệ lần cuối',
+    'col-created' => 'Ngày tạo',
+];
 ?>
 
 <!-- Title Row -->
@@ -228,22 +242,6 @@ $currentStatus = $filters['status'] ?? '';
 
             <!-- Right: Column Toggle + More -->
             <div class="d-flex align-items-center gap-2 ms-auto page-title-right" style="white-space:nowrap">
-                <?php
-                $columns = [
-                    'col-customer' => 'Khách hàng',
-                    'col-contact' => 'Liên hệ',
-                    'col-company' => 'Công ty',
-                    'col-source' => 'Nguồn',
-                    'col-status' => 'Trạng thái',
-                    'col-owner' => 'Phụ trách',
-                    'col-address' => 'Địa chỉ',
-                    'col-birthday' => 'Ngày sinh',
-                    'col-group' => 'Nhóm KH',
-                    'col-tags' => 'Nhãn',
-                    'col-lastcontact' => 'Liên hệ lần cuối',
-                    'col-created' => 'Ngày tạo',
-                ];
-                ?>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
                         <i class="ri-more-fill"></i>
