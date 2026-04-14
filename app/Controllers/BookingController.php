@@ -203,7 +203,13 @@ class BookingController extends Controller
         $date = $this->input('date', date('Y-m-d'));
         $dayOfWeek = (int)date('N', strtotime($date)); // 1=Mon, 7=Sun
 
-        $availableDays = array_map('intval', explode(',', $link['available_days']));
+        // Map day names to numbers
+        $dayMap = ['mon'=>1,'tue'=>2,'wed'=>3,'thu'=>4,'fri'=>5,'sat'=>6,'sun'=>7];
+        $rawDays = json_decode($link['available_days'] ?? '[]', true) ?: [];
+        $availableDays = array_map(function($d) use ($dayMap) {
+            return is_numeric($d) ? (int)$d : ($dayMap[strtolower($d)] ?? 0);
+        }, $rawDays);
+
         if (!in_array($dayOfWeek, $availableDays)) {
             return $this->json(['slots' => [], 'message' => 'Ngày này không khả dụng']);
         }
@@ -216,16 +222,20 @@ class BookingController extends Controller
 
         // Get existing bookings for this date
         $existingBookings = Database::fetchAll(
-            "SELECT TIME(start_at), TIME(end_at) FROM bookings
+            "SELECT TIME(start_at) as start_time, TIME(end_at) as end_time FROM bookings
              WHERE link_id = ? AND DATE(start_at) = ? AND status = 'confirmed'",
             [$link['id'], $date]
         );
 
-        // Generate time slots
-        $duration = (int)$link['duration'];
-        $buffer = (int)$link['buffer_minutes'];
-        $startTime = strtotime($date . ' ' . $link['TIME(start_at)']);
-        $endTime = strtotime($date . ' ' . $link['TIME(end_at)']);
+        // Parse available hours
+        $hours = json_decode($link['available_hours'] ?? '{}', true) ?: [];
+        $startHour = $hours['start'] ?? '08:00';
+        $endHour = $hours['end'] ?? '17:00';
+
+        $duration = (int)($link['duration_minutes'] ?? 30);
+        $buffer = (int)($link['buffer_minutes'] ?? 15);
+        $startTime = strtotime($date . ' ' . $startHour);
+        $endTime = strtotime($date . ' ' . $endHour);
 
         $slots = [];
         $current = $startTime;
@@ -237,8 +247,8 @@ class BookingController extends Controller
             // Check if slot overlaps with existing bookings
             $isAvailable = true;
             foreach ($existingBookings as $booking) {
-                $bStart = substr($booking['TIME(start_at)'], 0, 5);
-                $bEnd = substr($booking['TIME(end_at)'], 0, 5);
+                $bStart = substr($booking['start_time'], 0, 5);
+                $bEnd = substr($booking['end_time'], 0, 5);
                 if ($slotStart < $bEnd && $slotEnd > $bStart) {
                     $isAvailable = false;
                     break;
