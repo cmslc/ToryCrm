@@ -233,7 +233,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('reports')): ?>
-                <?php $rptOpen = isOpen(['reports','finance-reports'], $currentUrl); ?>
+                <?php $rptOpen = isOpen(['reports','finance-reports','leaderboard'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $rptOpen ? '' : 'collapsed' ?>" href="#sidebarReports" data-bs-toggle="collapse" role="button" aria-expanded="<?= $rptOpen ? 'true' : 'false' ?>">
                         <i class="ri-bar-chart-box-line"></i> <span>Báo cáo</span>
@@ -247,17 +247,10 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('reports/orders') ?>" class="nav-link <?= isActive('reports/orders', $currentUrl) ?>">Đơn hàng</a></li>
                             <li class="nav-item"><a href="<?= url('reports/tasks') ?>" class="nav-link <?= isActive('reports/tasks', $currentUrl) ?>">Công việc</a></li>
                             <li class="nav-item"><a href="<?= url('reports/staff') ?>" class="nav-link <?= isActive('reports/staff', $currentUrl) ?>">Nhân viên</a></li>
+                            <?php if (plugin_active('gamification')): ?><li class="nav-item"><a href="<?= url('leaderboard') ?>" class="nav-link <?= isActive('leaderboard', $currentUrl) ?>">Bảng xếp hạng</a></li><?php endif; ?>
                             <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Tài chính</a></li><?php endif; ?>
                         </ul>
                     </div>
-                </li>
-                <?php endif; ?>
-
-                <?php if (plugin_active('gamification')): ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive('leaderboard', $currentUrl) || isActive('achievements', $currentUrl) ? 'active' : '' ?>" href="<?= url('leaderboard') ?>">
-                        <i class="ri-trophy-line"></i> <span>Bảng xếp hạng</span>
-                    </a>
                 </li>
                 <?php endif; ?>
 
