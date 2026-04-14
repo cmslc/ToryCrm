@@ -103,9 +103,9 @@
             <!-- Step 1: Calendar -->
             <div class="step active" id="step1">
                 <div class="cal-nav">
-                    <button onclick="changeMonth(-1)"><i class="ri-arrow-left-s-line"></i></button>
+                    <button type="button" onclick="changeMonth(-1)"><i class="ri-arrow-left-s-line"></i></button>
                     <h6 id="calMonthYear"></h6>
-                    <button onclick="changeMonth(1)"><i class="ri-arrow-right-s-line"></i></button>
+                    <button type="button" onclick="changeMonth(1)"><i class="ri-arrow-right-s-line"></i></button>
                 </div>
                 <div class="cal-grid" id="calendarGrid"></div>
             </div>
@@ -179,7 +179,9 @@ var currentYear = new Date().getFullYear();
 var selectedDate = null;
 var selectedSlot = null;
 var slug = '<?= e($link['slug']) ?>';
-var availableDays = [<?= e($link['available_days']) ?>];
+var dayNameToNum = {"mon":1,"tue":2,"wed":3,"thu":4,"fri":5,"sat":6,"sun":7};
+var rawDays = <?= $link['available_days'] ?: '[]' ?>;
+var availableDays = rawDays.map(function(d) { return typeof d === 'number' ? d : (dayNameToNum[d.toLowerCase()] || 0); });
 var maxAdvanceDays = <?= (int)$link['max_advance_days'] ?>;
 var todayStr = new Date().toISOString().slice(0,10);
 
