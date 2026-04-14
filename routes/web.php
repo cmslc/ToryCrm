@@ -692,8 +692,15 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/api-keys', 'SettingController@apiKeys');
     Router::post('settings/api-keys/create', 'SettingController@createApiKey');
     Router::post('settings/api-keys/{id}/delete', 'SettingController@deleteApiKey');
-    Router::get('settings/permissions', 'SettingController@permissions');
-    Router::post('settings/permissions', 'SettingController@savePermissions');
+    Router::get('settings/permissions', 'PermissionGroupController@index');
+    Router::post('settings/permissions/store', 'PermissionGroupController@store');
+    Router::post('settings/permissions/{id}/update', 'PermissionGroupController@update');
+    Router::post('settings/permissions/{id}/delete', 'PermissionGroupController@destroy');
+    Router::post('settings/permissions/{id}/save-perms', 'PermissionGroupController@savePermissions');
+    Router::post('settings/permissions/{id}/add-user', 'PermissionGroupController@addUser');
+    Router::post('settings/permissions/{id}/remove-user', 'PermissionGroupController@removeUser');
+    Router::get('settings/permissions-legacy', 'SettingController@permissions');
+    Router::post('settings/permissions-legacy', 'SettingController@savePermissions');
     Router::get('settings/audit-log', 'SettingController@auditLog');
     Router::get('settings/white-label', 'WhiteLabelController@settings');
     Router::post('settings/white-label', 'WhiteLabelController@save');
