@@ -44,7 +44,7 @@
                                 <small class="text-muted"><?= e(mb_substr($link['description'], 0, 60)) ?></small>
                             <?php endif; ?>
                         </td>
-                        <td><?= (int)$link['duration'] ?> phút</td>
+                        <td><?= (int)($link['duration_minutes'] ?? 0) ?> phút</td>
                         <td>
                             <div class="input-group" style="max-width:320px">
                                 <input type="text" class="form-control bg-light" value="<?= url('book/' . e($link['slug'])) ?>" readonly id="link-<?= $link['id'] ?>">
