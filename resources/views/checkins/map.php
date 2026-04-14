@@ -23,11 +23,12 @@
     </div>
 
     <div class="card-body">
-        <?php $gmapsKey = $_ENV['GOOGLE_MAPS_API_KEY'] ?? getenv('GOOGLE_MAPS_API_KEY') ?: ''; ?>
-        <?php if (!empty($gmapsKey) && !empty($checkins)): ?>
+        <?php if (!empty($checkins)): ?>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
             <div id="checkinMap" class="rounded border" style="height:500px"></div>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
             <script>
-            function initMap() {
+            (function() {
                 var markers = <?= json_encode(array_map(function($c) {
                     return [
                         'lat' => (float)$c['latitude'],
@@ -39,32 +40,29 @@
                     ];
                 }, $checkins)) ?>;
 
-                var center = markers.length > 0 ? {lat: markers[0].lat, lng: markers[0].lng} : {lat: 10.7769, lng: 106.7009};
-                var map = new google.maps.Map(document.getElementById('checkinMap'), {zoom: 12, center: center});
-                var bounds = new google.maps.LatLngBounds();
+                var center = markers.length > 0 ? [markers[0].lat, markers[0].lng] : [10.7769, 106.7009];
+                var map = L.map('checkinMap').setView(center, 12);
 
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(map);
+
+                var bounds = [];
                 markers.forEach(function(m) {
-                    var pos = {lat: m.lat, lng: m.lng};
-                    var marker = new google.maps.Marker({position: pos, map: map, title: m.title});
-                    bounds.extend(pos);
-                    var info = new google.maps.InfoWindow({
-                        content: '<div style="min-width:200px"><strong>' + m.title + '</strong><br><small>' + m.address + '</small><br><small class="text-muted">' + m.time + '</small><br><a href="/checkins/' + m.id + '">Xem chi tiết</a></div>'
-                    });
-                    marker.addListener('click', function() { info.open(map, marker); });
+                    var latlng = [m.lat, m.lng];
+                    bounds.push(latlng);
+                    var marker = L.marker(latlng).addTo(map);
+                    marker.bindPopup(
+                        '<div style="min-width:200px"><strong>' + m.title + '</strong><br>' +
+                        '<small>' + m.address + '</small><br>' +
+                        '<small class="text-muted">' + m.time + '</small><br>' +
+                        '<a href="/checkins/' + m.id + '">Xem chi tiết</a></div>'
+                    );
                 });
 
-                if (markers.length > 1) map.fitBounds(bounds);
-            }
+                if (bounds.length > 1) map.fitBounds(bounds, {padding: [30, 30]});
+            })();
             </script>
-            <script src="https://maps.googleapis.com/maps/api/js?key=<?= e($gmapsKey) ?>&callback=initMap" async defer></script>
-        <?php elseif (empty($gmapsKey)): ?>
-            <div id="checkinMap" class="rounded border bg-light d-flex align-items-center justify-content-center" style="height:500px">
-                <div class="text-center text-muted">
-                    <i class="ri-map-2-line" style="font-size:48px"></i>
-                    <p class="mt-2">Thêm Google Maps API key để hiển thị bản đồ</p>
-                    <a href="<?= url('settings/api') ?>" class="btn btn-soft-primary"><i class="ri-settings-3-line me-1"></i> Cài đặt API</a>
-                </div>
-            </div>
         <?php else: ?>
             <div id="checkinMap" class="rounded border bg-light d-flex align-items-center justify-content-center" style="height:500px">
                 <div class="text-center text-muted">
