@@ -61,6 +61,16 @@ class PermissionGroupController extends Controller
             );
         }
 
+        // User-group mappings for the user list tab
+        $userGroupMap = [];
+        $ugRows = Database::fetchAll(
+            "SELECT upg.user_id, pg.id as group_id, pg.name, pg.color FROM user_permission_groups upg JOIN permission_groups pg ON upg.group_id = pg.id WHERE pg.tenant_id = ?",
+            [$tid]
+        );
+        foreach ($ugRows as $row) {
+            $userGroupMap[$row['user_id']][] = $row;
+        }
+
         return $this->view('settings.permission-groups', [
             'tree' => $tree,
             'groups' => $groups,
@@ -70,6 +80,7 @@ class PermissionGroupController extends Controller
             'selectedGroupId' => (int)$selectedGroupId,
             'groupPermIds' => $groupPermIds,
             'groupUsers' => $groupUsers,
+            'userGroupMap' => $userGroupMap,
         ]);
     }
 
@@ -93,6 +104,13 @@ class PermissionGroupController extends Controller
             'parent_id' => $this->input('parent_id') ?: null,
             'description' => trim($this->input('description') ?? ''),
             'color' => $this->input('color') ?: '#405189',
+        ]);
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Tạo nhóm quyền: $name",
+            'user_id' => $this->userId(),
+            'tenant_id' => Database::tenantId(),
         ]);
 
         $this->setFlash('success', 'Đã tạo nhóm quyền.');
@@ -120,6 +138,13 @@ class PermissionGroupController extends Controller
             'color' => $this->input('color') ?: $group['color'],
         ], 'id = ?', [$id]);
 
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Cập nhật nhóm quyền: $name",
+            'user_id' => $this->userId(),
+            'tenant_id' => Database::tenantId(),
+        ]);
+
         $this->setFlash('success', 'Đã cập nhật nhóm quyền.');
         return $this->redirect('settings/permissions?group=' . $id);
     }
@@ -144,6 +169,13 @@ class PermissionGroupController extends Controller
         // Delete group
         Database::query("DELETE FROM permission_groups WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
 
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Xóa nhóm quyền: " . $group['name'],
+            'user_id' => $this->userId(),
+            'tenant_id' => Database::tenantId(),
+        ]);
+
         PermissionService::clearCache();
         $this->setFlash('success', 'Đã xóa nhóm quyền.');
         return $this->redirect('settings/permissions');
@@ -158,6 +190,14 @@ class PermissionGroupController extends Controller
         if (!is_array($permIds)) $permIds = [];
 
         PermissionService::updateGroupPermissions((int)$id, $permIds);
+
+        $group = Database::fetch("SELECT name FROM permission_groups WHERE id = ?", [$id]);
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Cập nhật phân quyền nhóm: " . ($group['name'] ?? $id),
+            'user_id' => $this->userId(),
+            'tenant_id' => Database::tenantId(),
+        ]);
 
         $this->setFlash('success', 'Đã lưu phân quyền.');
         return $this->redirect('settings/permissions?group=' . $id);
@@ -207,6 +247,15 @@ class PermissionGroupController extends Controller
             [$userId, $groupId]
         );
 
+        $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$userId]);
+        $group = Database::fetch("SELECT name FROM permission_groups WHERE id = ?", [$groupId]);
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Thêm user " . ($user['name'] ?? $userId) . " vào nhóm " . ($group['name'] ?? $groupId),
+            'user_id' => $this->userId(),
+            'tenant_id' => Database::tenantId(),
+        ]);
+
         PermissionService::clearCache();
         return $this->json(['success' => true]);
     }
@@ -217,13 +266,68 @@ class PermissionGroupController extends Controller
         $this->authorize('settings', 'manage');
 
         $userId = (int)$this->input('user_id');
+
+        $user = Database::fetch("SELECT name FROM users WHERE id = ?", [$userId]);
+        $group = Database::fetch("SELECT name FROM permission_groups WHERE id = ?", [$groupId]);
+
         Database::query(
             "DELETE FROM user_permission_groups WHERE user_id = ? AND group_id = ?",
             [$userId, $groupId]
         );
 
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Xóa user " . ($user['name'] ?? $userId) . " khỏi nhóm " . ($group['name'] ?? $groupId),
+            'user_id' => $this->userId(),
+            'tenant_id' => Database::tenantId(),
+        ]);
+
         PermissionService::clearCache();
         return $this->json(['success' => true]);
+    }
+
+    public function clone($id)
+    {
+        if (!$this->isPost()) return $this->redirect('settings/permissions');
+        $this->authorize('settings', 'manage');
+
+        $tid = Database::tenantId();
+        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$group) {
+            $this->setFlash('error', 'Nhóm quyền không tồn tại.');
+            return $this->redirect('settings/permissions');
+        }
+
+        $newName = 'Copy of ' . $group['name'];
+        $slug = preg_replace('/[^a-z0-9-]/', '-', strtolower($this->removeVietnamese($newName)));
+
+        $newId = Database::insert('permission_groups', [
+            'tenant_id' => $tid,
+            'name' => $newName,
+            'slug' => $slug,
+            'parent_id' => $group['parent_id'],
+            'description' => $group['description'],
+            'color' => $group['color'],
+        ]);
+
+        // Copy permissions
+        $perms = Database::fetchAll("SELECT permission_id FROM group_permissions WHERE group_id = ?", [$id]);
+        foreach ($perms as $p) {
+            Database::insert('group_permissions', [
+                'group_id' => $newId,
+                'permission_id' => $p['permission_id'],
+            ]);
+        }
+
+        Database::insert('activities', [
+            'type' => 'system',
+            'title' => "Nhân bản nhóm quyền: " . $group['name'] . " -> $newName",
+            'user_id' => $this->userId(),
+            'tenant_id' => $tid,
+        ]);
+
+        $this->setFlash('success', 'Đã nhân bản nhóm quyền.');
+        return $this->redirect('settings/permissions?group=' . $newId);
     }
 
     private function removeVietnamese(string $str): string

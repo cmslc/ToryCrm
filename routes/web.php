@@ -700,6 +700,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/perm-groups/{id}/panel', 'PermissionGroupController@getPanel');
     Router::post('settings/perm-groups/{id}/add-user', 'PermissionGroupController@addUser');
     Router::post('settings/perm-groups/{id}/remove-user', 'PermissionGroupController@removeUser');
+    Router::post('settings/perm-groups/{id}/clone', 'PermissionGroupController@clone');
     Router::get('settings/permissions-legacy', 'SettingController@permissions');
     Router::post('settings/permissions-legacy', 'SettingController@savePermissions');
     Router::get('settings/audit-log', 'SettingController@auditLog');

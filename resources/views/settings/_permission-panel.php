@@ -52,9 +52,19 @@ $selectedGroupId = $group['id'];
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th style="min-width:200px">Chức năng</th>
-                    <?php foreach ($allActions as $act): ?>
-                    <th class="text-center" style="min-width:80px"><?= $actionLabels[$act] ?? ucfirst($act) ?></th>
+                    <th style="min-width:200px">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="permMasterToggle">
+                            <label class="form-check-label fw-medium" for="permMasterToggle">Chọn tất cả</label>
+                        </div>
+                    </th>
+                    <?php foreach ($allActions as $idx => $act): ?>
+                    <th class="text-center" style="min-width:80px">
+                        <div class="form-check d-flex flex-column align-items-center gap-1">
+                            <input type="checkbox" class="form-check-input perm-col-toggle" data-col="<?= $idx ?>">
+                            <label class="form-check-label"><?= $actionLabels[$act] ?? ucfirst($act) ?></label>
+                        </div>
+                    </th>
                     <?php endforeach; ?>
                 </tr>
             </thead>
@@ -63,14 +73,19 @@ $selectedGroupId = $group['id'];
                     $permByAction = [];
                     foreach ($perms as $p) $permByAction[$p['action']] = $p;
                 ?>
-                <tr>
-                    <td class="fw-medium"><?= $moduleLabels[$mod] ?? ucfirst($mod) ?></td>
-                    <?php foreach ($allActions as $act):
+                <tr data-module="<?= $mod ?>">
+                    <td class="fw-medium">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input perm-row-toggle">
+                            <label class="form-check-label"><?= $moduleLabels[$mod] ?? ucfirst($mod) ?></label>
+                        </div>
+                    </td>
+                    <?php foreach ($allActions as $idx => $act):
                         $p = $permByAction[$act] ?? null;
                     ?>
                     <td class="text-center">
                         <?php if ($p): ?>
-                        <input type="checkbox" class="form-check-input" name="perms[]" value="<?= $p['id'] ?>" <?= in_array($p['id'], $groupPermIds) ? 'checked' : '' ?>>
+                        <input type="checkbox" class="form-check-input perm-checkbox" name="perms[]" value="<?= $p['id'] ?>" data-col="<?= $idx ?>" <?= in_array($p['id'], $groupPermIds) ? 'checked' : '' ?>>
                         <?php endif; ?>
                     </td>
                     <?php endforeach; ?>
@@ -83,6 +98,112 @@ $selectedGroupId = $group['id'];
         <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i>Lưu phân quyền</button>
     </div>
 </form>
+<script>
+(function() {
+    var form = document.getElementById('permForm');
+    if (!form) return;
+
+    var master = form.querySelector('#permMasterToggle');
+    var colToggles = form.querySelectorAll('.perm-col-toggle');
+    var rowToggles = form.querySelectorAll('.perm-row-toggle');
+    var allCheckboxes = form.querySelectorAll('.perm-checkbox');
+
+    function setIndeterminate(toggle, checked, total) {
+        if (total === 0) {
+            toggle.checked = false;
+            toggle.indeterminate = false;
+        } else if (checked === total) {
+            toggle.checked = true;
+            toggle.indeterminate = false;
+        } else if (checked === 0) {
+            toggle.checked = false;
+            toggle.indeterminate = false;
+        } else {
+            toggle.checked = false;
+            toggle.indeterminate = true;
+        }
+    }
+
+    function updateColToggle(colIdx) {
+        var cbs = form.querySelectorAll('.perm-checkbox[data-col="' + colIdx + '"]');
+        var total = cbs.length;
+        var checked = 0;
+        cbs.forEach(function(cb) { if (cb.checked) checked++; });
+        colToggles.forEach(function(ct) {
+            if (ct.dataset.col == colIdx) setIndeterminate(ct, checked, total);
+        });
+    }
+
+    function updateRowToggle(row) {
+        var rt = row.querySelector('.perm-row-toggle');
+        if (!rt) return;
+        var cbs = row.querySelectorAll('.perm-checkbox');
+        var total = cbs.length;
+        var checked = 0;
+        cbs.forEach(function(cb) { if (cb.checked) checked++; });
+        setIndeterminate(rt, checked, total);
+    }
+
+    function updateMaster() {
+        var total = allCheckboxes.length;
+        var checked = 0;
+        allCheckboxes.forEach(function(cb) { if (cb.checked) checked++; });
+        setIndeterminate(master, checked, total);
+    }
+
+    function updateAllToggles() {
+        colToggles.forEach(function(ct) { updateColToggle(ct.dataset.col); });
+        rowToggles.forEach(function(rt) { updateRowToggle(rt.closest('tr')); });
+        updateMaster();
+    }
+
+    // Master toggle
+    master.addEventListener('change', function() {
+        var state = this.checked;
+        allCheckboxes.forEach(function(cb) { cb.checked = state; });
+        colToggles.forEach(function(ct) { ct.checked = state; ct.indeterminate = false; });
+        rowToggles.forEach(function(rt) { rt.checked = state; rt.indeterminate = false; });
+    });
+
+    // Column toggle
+    colToggles.forEach(function(ct) {
+        ct.addEventListener('change', function() {
+            var state = this.checked;
+            var col = this.dataset.col;
+            form.querySelectorAll('.perm-checkbox[data-col="' + col + '"]').forEach(function(cb) {
+                cb.checked = state;
+            });
+            rowToggles.forEach(function(rt) { updateRowToggle(rt.closest('tr')); });
+            updateMaster();
+        });
+    });
+
+    // Row toggle
+    rowToggles.forEach(function(rt) {
+        rt.addEventListener('change', function() {
+            var state = this.checked;
+            var row = this.closest('tr');
+            row.querySelectorAll('.perm-checkbox').forEach(function(cb) {
+                cb.checked = state;
+            });
+            colToggles.forEach(function(ct) { updateColToggle(ct.dataset.col); });
+            updateMaster();
+        });
+    });
+
+    // Individual checkbox
+    allCheckboxes.forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            updateColToggle(this.dataset.col);
+            updateRowToggle(this.closest('tr'));
+            updateMaster();
+        });
+    });
+
+    // Init states on load
+    updateAllToggles();
+})();
+</script>
 <?php else: ?>
 <div class="card-body text-center py-4 text-muted">
     <i class="ri-shield-check-line fs-36 text-warning d-block mb-2"></i>

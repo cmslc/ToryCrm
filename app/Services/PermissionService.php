@@ -10,6 +10,7 @@ class PermissionService
     private static ?array $userGroupIds = null;
     private static ?bool $isSystemGroup = null;
     private static ?array $groupPerms = null;
+    private static array $ancestorCache = [];
 
     /**
      * Check if the current user has permission for a module/action.
@@ -131,17 +132,21 @@ class PermissionService
     }
 
     /**
-     * Check if any of the user's groups has a specific permission.
-     * Preloads all permissions for the user's groups on first call.
+     * Check if any of the user's groups (or their ancestor groups) has a specific permission.
+     * Preloads all permissions for the user's groups and ancestors on first call.
      */
     private static function checkGroupPermission(array $groupIds, string $module, string $action): bool
     {
         if (self::$groupPerms === null) {
             self::$groupPerms = [];
-            $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+            $expandedIds = self::getGroupWithAncestors($groupIds);
+            if (empty($expandedIds)) {
+                return false;
+            }
+            $placeholders = implode(',', array_fill(0, count($expandedIds), '?'));
             $rows = Database::fetchAll(
                 "SELECT p.module, p.action FROM group_permissions gp JOIN permissions p ON gp.permission_id = p.id WHERE gp.group_id IN ({$placeholders})",
-                $groupIds
+                $expandedIds
             );
             foreach ($rows as $row) {
                 self::$groupPerms[$row['module'] . ':' . $row['action']] = true;
@@ -149,6 +154,66 @@ class PermissionService
         }
 
         return isset(self::$groupPerms[$module . ':' . $action]);
+    }
+
+    /**
+     * Expand group IDs to include all ancestor groups (parent, grandparent, etc.).
+     * Results are cached per-request via static property.
+     *
+     * @param array $groupIds Direct group IDs
+     * @return array Expanded list including all ancestor group IDs
+     */
+    public static function getGroupWithAncestors(array $groupIds): array
+    {
+        if (empty($groupIds)) {
+            return [];
+        }
+
+        // Check which group IDs still need ancestor resolution
+        $toResolve = [];
+        $result = [];
+        foreach ($groupIds as $gid) {
+            $gid = (int)$gid;
+            if (isset(self::$ancestorCache[$gid])) {
+                foreach (self::$ancestorCache[$gid] as $id) {
+                    $result[$id] = true;
+                }
+            } else {
+                $toResolve[] = $gid;
+                $result[$gid] = true;
+            }
+        }
+
+        if (!empty($toResolve)) {
+            // Load parent_id map for all groups in one query
+            $allGroups = Database::fetchAll(
+                "SELECT id, parent_id FROM permission_groups"
+            );
+            $parentMap = [];
+            foreach ($allGroups as $row) {
+                $parentMap[(int)$row['id']] = $row['parent_id'] ? (int)$row['parent_id'] : null;
+            }
+
+            // Resolve ancestors for each group that needs it
+            foreach ($toResolve as $gid) {
+                $chain = [$gid];
+                $current = $gid;
+                $visited = [$gid => true];
+                while (isset($parentMap[$current]) && $parentMap[$current] !== null) {
+                    $parent = $parentMap[$current];
+                    if (isset($visited[$parent])) {
+                        break; // prevent circular references
+                    }
+                    $chain[] = $parent;
+                    $visited[$parent] = true;
+                    $result[$parent] = true;
+                    $current = $parent;
+                }
+                self::$ancestorCache[$gid] = $chain;
+            }
+        }
+
+        return array_keys($result);
     }
 
     /**
@@ -214,6 +279,7 @@ class PermissionService
         self::$userGroupIds = null;
         self::$isSystemGroup = null;
         self::$groupPerms = null;
+        self::$ancestorCache = [];
         // Clear session cache
         unset($_SESSION['user']['permission_group_ids'], $_SESSION['user']['is_system_group']);
     }

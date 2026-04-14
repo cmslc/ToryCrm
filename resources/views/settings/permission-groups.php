@@ -50,6 +50,10 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
         </span>
         <span class="badge <?= $isActive ? 'bg-white text-primary' : 'bg-secondary-subtle text-secondary' ?> rounded-pill"><?= $g['user_count'] ?></span>
         <?php if (!$g['is_system']): ?>
+        <form method="POST" action="<?= url('settings/perm-groups/' . $g['id'] . '/clone') ?>" class="d-inline">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-ghost-info btn-icon btn-sm ms-1" title="Nhân bản"><i class="ri-file-copy-line"></i></button>
+        </form>
         <button type="button" class="btn btn-ghost-secondary btn-icon btn-sm ms-1 edit-group" data-id="<?= $g['id'] ?>" data-name="<?= e($g['name']) ?>" data-parent="<?= $g['parent_id'] ?>" data-desc="<?= e($g['description'] ?? '') ?>" data-color="<?= e($g['color'] ?? '#405189') ?>" title="Sửa"><i class="ri-pencil-line"></i></button>
         <form method="POST" action="<?= url('settings/perm-groups/' . $g['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa nhóm <?= e($g['name']) ?>?">
             <?= csrf_field() ?>
@@ -66,6 +70,18 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
     <h4 class="mb-0">Phân quyền</h4>
 </div>
 
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tab-groups" role="tab"><i class="ri-shield-user-line me-1"></i>Nhóm quyền</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-userlist" role="tab"><i class="ri-group-line me-1"></i>Danh sách người dùng</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+<!-- Tab 1: Nhóm quyền -->
+<div class="tab-pane fade show active" id="tab-groups" role="tabpanel">
 <div class="row">
     <!-- Left: Group Tree -->
     <div class="col-lg-3">
@@ -93,6 +109,58 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
             <?php endif; ?>
         </div>
     </div>
+</div>
+</div>
+
+<!-- Tab 2: Danh sách người dùng -->
+<div class="tab-pane fade" id="tab-userlist" role="tabpanel">
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Danh sách người dùng</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Người dùng</th>
+                    <th>Email</th>
+                    <th>Nhóm quyền</th>
+                    <th class="text-center" style="width:120px">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($allUsers as $u): ?>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <?php if (!empty($u['avatar'])): ?>
+                            <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="32" height="32" style="object-fit:cover">
+                            <?php else: ?>
+                            <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:13px"><?= strtoupper(substr($u['name'], 0, 1)) ?></span>
+                            <?php endif; ?>
+                            <span class="fw-medium"><?= e($u['name']) ?></span>
+                        </div>
+                    </td>
+                    <td class="text-muted"><?= e($u['email']) ?></td>
+                    <td>
+                        <?php if (!empty($userGroupMap[$u['id']])): ?>
+                            <?php foreach ($userGroupMap[$u['id']] as $ug): ?>
+                            <span class="badge rounded-pill me-1" style="background-color:<?= e($ug['color'] ?? '#405189') ?>"><?= e($ug['name']) ?></span>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <span class="text-muted fs-12">Chưa có nhóm</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-soft-primary py-1 px-2 change-user-group" data-user-id="<?= $u['id'] ?>" data-user-name="<?= e($u['name']) ?>" data-bs-toggle="modal" data-bs-target="#changeGroupModal"><i class="ri-exchange-line me-1"></i>Đổi nhóm</button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
 </div>
 
 <!-- Modal: Add/Edit Group -->
@@ -163,6 +231,36 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
                     </div>
                     <?php endforeach; ?>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Change User Group -->
+<div class="modal fade" id="changeGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đổi nhóm quyền - <span id="changeGroupUserName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="changeGroupUserId">
+                <div id="changeGroupList">
+                    <?php foreach ($groups as $g): ?>
+                    <div class="form-check py-2 border-bottom">
+                        <input class="form-check-input change-group-checkbox" type="checkbox" value="<?= $g['id'] ?>" id="chgGroup<?= $g['id'] ?>" data-group-name="<?= e($g['name']) ?>">
+                        <label class="form-check-label" for="chgGroup<?= $g['id'] ?>">
+                            <span class="badge rounded-pill me-1" style="background-color:<?= e($g['color'] ?? '#405189') ?>">&nbsp;</span>
+                            <?= e($g['name']) ?>
+                        </label>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnSaveChangeGroup"><i class="ri-save-line me-1"></i>Lưu</button>
             </div>
         </div>
     </div>
@@ -264,6 +362,64 @@ document.getElementById('btnAddGroup')?.addEventListener('click', function() {
     document.getElementById('groupParent').value = '';
     document.getElementById('groupDesc').value = '';
     document.getElementById('groupColor').value = '#405189';
+});
+
+// Change user group modal
+document.querySelectorAll('.change-user-group').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var userId = this.dataset.userId;
+        var userName = this.dataset.userName;
+        document.getElementById('changeGroupUserId').value = userId;
+        document.getElementById('changeGroupUserName').textContent = userName;
+        // Check current groups for this user
+        document.querySelectorAll('.change-group-checkbox').forEach(function(cb) { cb.checked = false; });
+        // Find current groups from badges in the same row
+        var row = this.closest('tr');
+        var badges = row.querySelectorAll('.badge');
+        var currentGroups = [];
+        badges.forEach(function(b) { currentGroups.push(b.textContent.trim()); });
+        document.querySelectorAll('.change-group-checkbox').forEach(function(cb) {
+            if (currentGroups.includes(cb.dataset.groupName)) cb.checked = true;
+        });
+    });
+});
+
+// Save group changes
+document.getElementById('btnSaveChangeGroup')?.addEventListener('click', function() {
+    var userId = document.getElementById('changeGroupUserId').value;
+    var checkedGroups = [];
+    document.querySelectorAll('.change-group-checkbox:checked').forEach(function(cb) {
+        checkedGroups.push(cb.value);
+    });
+    // First remove from all groups, then add to selected
+    var allGroupIds = [];
+    document.querySelectorAll('.change-group-checkbox').forEach(function(cb) { allGroupIds.push(cb.value); });
+
+    var promises = [];
+    // Remove from all first
+    allGroupIds.forEach(function(gid) {
+        promises.push(fetch(apiUrl + '/' + gid + '/remove-user', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+            body: JSON.stringify({user_id: userId})
+        }));
+    });
+
+    Promise.all(promises).then(function() {
+        // Add to selected groups
+        var addPromises = [];
+        checkedGroups.forEach(function(gid) {
+            addPromises.push(fetch(apiUrl + '/' + gid + '/add-user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+                body: JSON.stringify({user_id: userId})
+            }));
+        });
+        return Promise.all(addPromises);
+    }).then(function() {
+        bootstrap.Modal.getInstance(document.getElementById('changeGroupModal'))?.hide();
+        location.reload();
+    });
 });
 
 // Bind initial panel events
