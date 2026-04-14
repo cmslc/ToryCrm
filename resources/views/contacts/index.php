@@ -136,6 +136,11 @@ $currentStatus = $filters['status'] ?? '';
                             Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 <?= $currentStatus === 'today' ? 'active' : '' ?>" href="<?= url('contacts?status=today') ?>">
+                            <i class="ri-time-line me-1"></i>Mới cập nhật <span class="badge bg-success-subtle text-success rounded-pill ms-1"><?= $todayCount ?? 0 ?></span>
+                        </a>
+                    </li>
                     <?php
                     foreach ($sLabels as $key => $label):
                         $count = 0;

@@ -27,7 +27,9 @@ class ContactController extends Controller
             $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
 
-        if ($status) {
+        if ($status === 'today') {
+            $where[] = "DATE(c.created_at) = CURDATE()";
+        } elseif ($status) {
             $where[] = "c.status = ?";
             $params[] = $status;
         }
@@ -93,6 +95,11 @@ class ContactController extends Controller
             [Database::tenantId()]
         );
 
+        $todayCount = Database::fetch(
+            "SELECT COUNT(*) as count FROM contacts WHERE is_deleted = 0 AND tenant_id = ? AND DATE(created_at) = CURDATE()",
+            [Database::tenantId()]
+        )['count'];
+
         return $this->view('contacts.index', [
             'contacts' => [
                 'items' => $contacts,
@@ -104,6 +111,7 @@ class ContactController extends Controller
             'users' => $users,
             'statusCounts' => $statusCounts,
             'contactStatuses' => $contactStatuses,
+            'todayCount' => $todayCount,
             'filters' => [
                 'search' => $search,
                 'status' => $status,
