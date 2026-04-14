@@ -697,6 +697,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/permissions/{id}/update', 'PermissionGroupController@update');
     Router::post('settings/permissions/{id}/delete', 'PermissionGroupController@destroy');
     Router::post('settings/permissions/{id}/save-perms', 'PermissionGroupController@savePermissions');
+    Router::get('settings/permissions/{id}/panel', 'PermissionGroupController@getPanel');
     Router::post('settings/permissions/{id}/add-user', 'PermissionGroupController@addUser');
     Router::post('settings/permissions/{id}/remove-user', 'PermissionGroupController@removeUser');
     Router::get('settings/permissions-legacy', 'SettingController@permissions');

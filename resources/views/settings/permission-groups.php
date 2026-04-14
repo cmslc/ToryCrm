@@ -42,7 +42,7 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
         $isActive = ($g['id'] == $selectedId);
         $indent = $level * 20;
 ?>
-    <li class="list-group-item list-group-item-action d-flex align-items-center px-3 py-2 <?= $isActive ? 'active' : '' ?>" style="padding-left:<?= 16 + $indent ?>px!important;cursor:pointer" onclick="if(!event.target.closest('button,form'))location='<?= url('settings/permissions?group=' . $g['id']) ?>'">
+    <li class="list-group-item list-group-item-action d-flex align-items-center px-3 py-2 <?= $isActive ? 'active' : '' ?>" style="padding-left:<?= 16 + $indent ?>px!important;cursor:pointer" data-group-id="<?= $g['id'] ?>" onclick="if(!event.target.closest('button,form'))loadGroupPanel(<?= $g['id'] ?>,this)">
         <?php if ($level > 0): ?><i class="ri-arrow-right-s-line text-muted me-1"></i><?php else: ?><i class="ri-folder-line me-2 <?= $isActive ? '' : 'text-muted' ?>"></i><?php endif; ?>
         <span class="flex-grow-1 <?= $isActive ? 'fw-medium' : '' ?>">
             <?= e($g['name']) ?>
@@ -80,94 +80,18 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
         </div>
     </div>
 
-    <!-- Right: Permission Matrix -->
+    <!-- Right: Permission Matrix (AJAX loaded) -->
     <div class="col-lg-9">
-        <?php if ($selectedGroup): ?>
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title mb-1"><?= e($selectedGroup['name']) ?></h5>
-                        <?php if ($selectedGroup['description']): ?>
-                        <p class="text-muted mb-0 fs-13"><?= e($selectedGroup['description']) ?></p>
-                        <?php endif; ?>
-                    </div>
-                    <?php if ($selectedGroup['is_system']): ?>
-                    <span class="badge bg-warning-subtle text-warning"><i class="ri-shield-check-line me-1"></i>Toàn quyền</span>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <div class="card-body border-bottom">
-                <h6 class="mb-2">Người dùng trong nhóm</h6>
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <?php foreach ($groupUsers as $gu): ?>
-                    <div class="d-flex align-items-center gap-1 border rounded-pill py-1 px-2 bg-light">
-                        <?php if (!empty($gu['avatar'])): ?>
-                        <img src="<?= asset($gu['avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
-                        <?php else: ?>
-                        <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(substr($gu['name'], 0, 1)) ?></span>
-                        <?php endif; ?>
-                        <span class="fs-13"><?= e($gu['name']) ?></span>
-                        <button type="button" class="btn btn-link p-0 text-danger ms-1 remove-user" data-user-id="<?= $gu['id'] ?>" data-group-id="<?= $selectedGroupId ?>" title="Xóa khỏi nhóm"><i class="ri-close-line fs-14"></i></button>
-                    </div>
-                    <?php endforeach; ?>
-                    <button type="button" class="btn btn-soft-primary py-1 px-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="ri-add-line me-1"></i>Thêm</button>
-                </div>
-            </div>
-
-            <?php if (!$selectedGroup['is_system']): ?>
-            <form method="POST" action="<?= url('settings/permissions/' . $selectedGroupId . '/save-perms') ?>">
-                <?= csrf_field() ?>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="min-width:200px">Chức năng</th>
-                                <?php foreach ($allActions as $act): ?>
-                                <th class="text-center" style="min-width:80px"><?= $actionLabels[$act] ?? ucfirst($act) ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($modules as $mod => $perms):
-                                $permByAction = [];
-                                foreach ($perms as $p) $permByAction[$p['action']] = $p;
-                            ?>
-                            <tr>
-                                <td class="fw-medium"><?= $moduleLabels[$mod] ?? ucfirst($mod) ?></td>
-                                <?php foreach ($allActions as $act):
-                                    $p = $permByAction[$act] ?? null;
-                                ?>
-                                <td class="text-center">
-                                    <?php if ($p): ?>
-                                    <input type="checkbox" class="form-check-input" name="perms[]" value="<?= $p['id'] ?>" <?= in_array($p['id'], $groupPermIds) ? 'checked' : '' ?>>
-                                    <?php endif; ?>
-                                </td>
-                                <?php endforeach; ?>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i>Lưu phân quyền</button>
-                </div>
-            </form>
+        <div class="card" id="permPanel">
+            <?php if ($selectedGroup): ?>
+                <?php include __DIR__ . '/_permission-panel.php'; ?>
             <?php else: ?>
-            <div class="card-body text-center py-4 text-muted">
-                <i class="ri-shield-check-line fs-36 text-warning d-block mb-2"></i>
-                <p>Nhóm hệ thống có toàn quyền truy cập tất cả chức năng.</p>
-            </div>
-            <?php endif; ?>
-        </div>
-        <?php else: ?>
-        <div class="card">
             <div class="card-body text-center py-5 text-muted">
                 <i class="ri-shield-user-line fs-48 d-block mb-3"></i>
                 <h5>Chọn nhóm quyền bên trái</h5>
             </div>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 </div>
 
@@ -245,11 +169,83 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
 </div>
 
 <script>
+var currentGroupId = <?= $selectedGroupId ?>;
+var csrfToken = '<?= csrf_token() ?>';
+var baseUrl = '<?= url('settings/permissions') ?>';
+
+// Load group panel via AJAX
+function loadGroupPanel(groupId, el) {
+    currentGroupId = groupId;
+    // Update active state in sidebar
+    document.querySelectorAll('.list-group-item').forEach(function(li) { li.classList.remove('active'); });
+    if (el) el.classList.add('active');
+    // Update URL without reload
+    history.replaceState(null, '', baseUrl + '?group=' + groupId);
+
+    var panel = document.getElementById('permPanel');
+    panel.innerHTML = '<div class="card-body text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
+    fetch(baseUrl + '/' + groupId + '/panel', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        panel.innerHTML = data.html;
+        bindPanelEvents();
+    })
+    .catch(function() { panel.innerHTML = '<div class="card-body text-center py-5 text-danger">Lỗi tải dữ liệu</div>'; });
+}
+
+// Bind events for dynamically loaded panel
+function bindPanelEvents() {
+    // Remove user
+    document.querySelectorAll('.remove-user').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (!confirm('Xóa người dùng khỏi nhóm?')) return;
+            fetch(baseUrl + '/' + currentGroupId + '/remove-user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+                body: JSON.stringify({user_id: this.dataset.userId})
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.success) loadGroupPanel(currentGroupId);
+            });
+        });
+    });
+}
+
+// Add user (modal)
+document.querySelectorAll('.add-user-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        fetch(baseUrl + '/' + currentGroupId + '/add-user', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+            body: JSON.stringify({user_id: this.dataset.userId})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('addUserModal'))?.hide();
+                loadGroupPanel(currentGroupId);
+                // Update user count badge in sidebar
+                var li = document.querySelector('[data-group-id="' + currentGroupId + '"]');
+                if (li) {
+                    var badge = li.querySelector('.badge');
+                    if (badge) badge.textContent = parseInt(badge.textContent) + 1;
+                }
+            } else alert(data.error || 'Lỗi');
+        });
+    });
+});
+
+// Search users in modal
+document.getElementById('userSearch')?.addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('.user-item').forEach(function(el) {
+        el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+    });
+});
+
 // Edit group
 document.querySelectorAll('.edit-group').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
         e.preventDefault(); e.stopPropagation();
-        document.getElementById('groupForm').action = '<?= url('settings/permissions/') ?>' + this.dataset.id + '/update';
+        document.getElementById('groupForm').action = baseUrl + '/' + this.dataset.id + '/update';
         document.getElementById('groupModalTitle').textContent = 'Sửa nhóm quyền';
         document.getElementById('groupName').value = this.dataset.name;
         document.getElementById('groupParent').value = this.dataset.parent || '';
@@ -259,9 +255,9 @@ document.querySelectorAll('.edit-group').forEach(function(btn) {
     });
 });
 
-// Reset modal for new group
+// Add group modal reset
 document.getElementById('btnAddGroup')?.addEventListener('click', function() {
-    document.getElementById('groupForm').action = '<?= url('settings/permissions/store') ?>';
+    document.getElementById('groupForm').action = baseUrl + '/store';
     document.getElementById('groupModalTitle').textContent = 'Thêm nhóm quyền';
     document.getElementById('groupName').value = '';
     document.getElementById('groupParent').value = '';
@@ -269,41 +265,6 @@ document.getElementById('btnAddGroup')?.addEventListener('click', function() {
     document.getElementById('groupColor').value = '#405189';
 });
 
-// Search users
-document.getElementById('userSearch')?.addEventListener('input', function() {
-    var q = this.value.toLowerCase();
-    document.querySelectorAll('.user-item').forEach(function(el) {
-        el.style.display = el.dataset.name.includes(q) ? '' : 'none';
-    });
-});
-
-// Add user to group
-document.querySelectorAll('.add-user-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var userId = this.dataset.userId;
-        fetch('<?= url('settings/permissions/' . $selectedGroupId . '/add-user') ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
-            body: JSON.stringify({user_id: userId})
-        }).then(r => r.json()).then(function(data) {
-            if (data.success) location.reload();
-            else alert(data.error || 'Lỗi');
-        });
-    });
-});
-
-// Remove user from group
-document.querySelectorAll('.remove-user').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        if (!confirm('Xóa người dùng khỏi nhóm?')) return;
-        fetch('<?= url('settings/permissions/' . $selectedGroupId . '/remove-user') ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
-            body: JSON.stringify({user_id: this.dataset.userId})
-        }).then(r => r.json()).then(function(data) {
-            if (data.success) location.reload();
-            else alert(data.error || 'Lỗi');
-        });
-    });
-});
+// Bind initial panel events
+bindPanelEvents();
 </script>

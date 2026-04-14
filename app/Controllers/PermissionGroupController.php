@@ -163,6 +163,37 @@ class PermissionGroupController extends Controller
         return $this->redirect('settings/permission-groups?group=' . $id);
     }
 
+    public function getPanel($id)
+    {
+        $this->authorize('settings', 'manage');
+
+        $group = Database::fetch("SELECT * FROM permission_groups WHERE id = ?", [$id]);
+        if (!$group) return $this->json(['error' => 'Not found'], 404);
+
+        $permissions = Database::fetchAll("SELECT * FROM permissions ORDER BY module, FIELD(action, 'view','create','edit','delete','approve','view_all')");
+        $modules = [];
+        foreach ($permissions as $p) $modules[$p['module']][] = $p;
+
+        $allActions = [];
+        foreach ($permissions as $p) {
+            if (!in_array($p['action'], $allActions)) $allActions[] = $p['action'];
+        }
+
+        $gp = Database::fetchAll("SELECT permission_id FROM group_permissions WHERE group_id = ?", [$id]);
+        $groupPermIds = array_column($gp, 'permission_id');
+
+        $groupUsers = Database::fetchAll(
+            "SELECT u.id, u.name, u.avatar, u.email FROM users u JOIN user_permission_groups upg ON u.id = upg.user_id WHERE upg.group_id = ?",
+            [$id]
+        );
+
+        ob_start();
+        include BASE_PATH . '/resources/views/settings/_permission-panel.php';
+        $html = ob_get_clean();
+
+        return $this->json(['html' => $html]);
+    }
+
     public function addUser($groupId)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
