@@ -24,6 +24,7 @@ $currentStatus = $filters['status'] ?? '';
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Khách hàng</h4>
     <div class="d-flex gap-2">
+        <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Tùy chọn màn hình <i class="ri-arrow-down-s-line ms-1"></i></button>
         <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
         <a href="<?= url('contacts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
     </div>
@@ -220,9 +221,6 @@ $currentStatus = $filters['status'] ?? '';
                     'col-created' => 'Ngày tạo',
                 ];
                 ?>
-                <button type="button" class="btn btn-soft-secondary py-1 px-2" id="toggleColumnPanel" title="Tùy chọn màn hình">
-                    Tùy chọn màn hình <i class="ri-arrow-down-s-line ms-1"></i>
-                </button>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
                         <i class="ri-more-fill"></i>
