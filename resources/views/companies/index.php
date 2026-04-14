@@ -2,14 +2,46 @@
 $pageTitle = 'Doanh nghiệp';
 $industries = ['Công nghệ', 'Tài chính', 'Bất động sản', 'Sản xuất', 'Thương mại', 'Y tế', 'Giáo dục', 'Truyền thông', 'Vận tải', 'F&B', 'Du lịch', 'Nông nghiệp', 'Khác'];
 $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
+$columns = [
+    'col-company' => 'Doanh nghiệp',
+    'col-contact' => 'Liên hệ',
+    'col-industry' => 'Ngành nghề',
+    'col-size' => 'Quy mô',
+    'col-customers' => 'KH',
+    'col-deals' => 'Cơ hội',
+    'col-revenue' => 'Doanh thu',
+    'col-owner' => 'Phụ trách',
+    'col-lastact' => 'Liên hệ cuối',
+];
 ?>
 
 <!-- Title Row -->
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Doanh nghiệp</h4>
     <div class="d-flex gap-2">
+        <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
         <a href="<?= url('companies/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Thùng rác</a>
         <a href="<?= url('companies/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm DN</a>
+    </div>
+</div>
+
+<!-- Column Options Panel -->
+<div class="card mb-2 d-none" id="columnPanel">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="mb-2">Cột</h6>
+                <div class="d-flex flex-wrap gap-3">
+                    <?php foreach ($columns as $colId => $colLabel): ?>
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+        </div>
     </div>
 </div>
 
@@ -63,42 +95,7 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
     </div>
 </div>
 
-<!-- Column Toggle + Table -->
-<div class="card mb-2">
-    <div class="card-header p-2">
-        <div class="d-flex justify-content-end">
-            <div class="dropdown">
-                <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
-                    <i class="ri-layout-column-line me-1"></i> Cột
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
-                    <h6 class="dropdown-header px-0">Hiển thị cột</h6>
-                    <?php
-                    $columns = [
-                        'col-company' => 'Doanh nghiệp',
-                        'col-contact' => 'Liên hệ',
-                        'col-industry' => 'Ngành nghề',
-                        'col-size' => 'Quy mô',
-                        'col-customers' => 'KH',
-                        'col-deals' => 'Cơ hội',
-                        'col-revenue' => 'Doanh thu',
-                        'col-owner' => 'Phụ trách',
-                        'col-lastact' => 'Liên hệ cuối',
-                    ];
-                    foreach ($columns as $colId => $colLabel): ?>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
-                    </div>
-                    <?php endforeach; ?>
-                    <hr class="my-2">
-                    <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- Table -->
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -216,6 +213,15 @@ $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
 </div>
 
 <script>
+// Toggle column panel
+document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
+    var panel = document.getElementById('columnPanel');
+    panel.classList.toggle('d-none');
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+});
+
+// Column toggle
 (function() {
     var storageKey = 'company_columns';
     var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
