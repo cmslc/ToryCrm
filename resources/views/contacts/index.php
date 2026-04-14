@@ -143,14 +143,14 @@ $currentStatus = $filters['status'] ?? '';
                     </li>
                 </ul>
                 <div class="vr mx-1 opacity-25"></div>
-                <!-- Scrollable Status Tabs -->
-                <div class="overflow-auto flex-grow-1">
-                <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap">
+                <!-- Scrollable Status Tabs with arrows -->
+                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
+                <div class="overflow-hidden flex-grow-1 position-relative" id="tabScrollContainer" style="scroll-behavior:smooth">
+                <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
                     <?php
                     foreach ($sLabels as $key => $label):
                         $count = 0;
                         foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
-                        // Show all statuses, even with 0 count
                     ?>
                     <li class="nav-item">
                         <a class="nav-link py-2 <?= $currentStatus === $key ? 'active' : '' ?>" href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>">
@@ -160,6 +160,28 @@ $currentStatus = $filters['status'] ?? '';
                     <?php endforeach; ?>
                 </ul>
                 </div>
+                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight" style="font-size:18px;line-height:1"><i class="ri-arrow-right-s-line"></i></button>
+                <script>
+                (function() {
+                    var container = document.getElementById('tabScrollContainer');
+                    var inner = document.getElementById('tabScrollInner');
+                    var btnL = document.getElementById('tabScrollLeft');
+                    var btnR = document.getElementById('tabScrollRight');
+                    var step = 200;
+
+                    function update() {
+                        var overflow = inner.scrollWidth > container.clientWidth + 2;
+                        btnL.classList.toggle('d-none', !overflow || container.scrollLeft <= 0);
+                        btnR.classList.toggle('d-none', !overflow || container.scrollLeft + container.clientWidth >= inner.scrollWidth - 2);
+                    }
+
+                    btnL.addEventListener('click', function() { container.scrollLeft -= step; setTimeout(update, 300); });
+                    btnR.addEventListener('click', function() { container.scrollLeft += step; setTimeout(update, 300); });
+                    container.addEventListener('scroll', update);
+                    window.addEventListener('resize', update);
+                    setTimeout(update, 100);
+                })();
+                </script>
 
                 <!-- Saved Views as tabs -->
                 <?php
