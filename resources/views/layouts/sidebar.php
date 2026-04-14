@@ -79,7 +79,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
 
                 <?php if (canSee('deals')): ?>
-                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns'], $currentUrl); ?>
+                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns','workflows','automation'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
                         <i class="ri-hand-coin-line"></i> <span>Marketing</span>
@@ -93,6 +93,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <?php if (canSee('campaigns')): ?>
                             <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch Email</a></li>
                             <?php endif; ?>
+                            <?php if (canSee('automation')): ?><li class="nav-item"><a href="<?= url('workflows') ?>" class="nav-link <?= isActive(['workflows','automation'], $currentUrl) ?>">Tự động hóa</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -177,13 +178,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
-                <?php if (canSee('automation')): ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= isActive(['workflows','automation'], $currentUrl) ?>" href="<?= url('workflows') ?>">
-                        <i class="ri-flow-chart"></i> <span>Tự động hóa</span>
-                    </a>
-                </li>
-                <?php endif; ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('approvals', $currentUrl) ?>" href="<?= url('approvals/pending') ?>">
                         <i class="ri-checkbox-circle-line"></i> <span>Phê duyệt</span>
