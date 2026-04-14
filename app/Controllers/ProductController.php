@@ -286,9 +286,21 @@ class ProductController extends Controller
     public function settings()
     {
         $this->authorize('products', 'view');
-        $categories = Database::fetchAll("SELECT * FROM product_categories ORDER BY sort_order, name");
-        $manufacturers = Database::fetchAll("SELECT * FROM product_manufacturers ORDER BY name");
-        $origins = Database::fetchAll("SELECT * FROM product_origins ORDER BY name");
+        $categories = Database::fetchAll(
+            "SELECT c.*, COUNT(p.id) as product_count FROM product_categories c
+             LEFT JOIN products p ON p.category_id = c.id AND p.is_deleted = 0
+             GROUP BY c.id ORDER BY c.sort_order, c.name"
+        );
+        $manufacturers = Database::fetchAll(
+            "SELECT m.*, COUNT(p.id) as product_count FROM product_manufacturers m
+             LEFT JOIN products p ON p.manufacturer_id = m.id AND p.is_deleted = 0
+             GROUP BY m.id ORDER BY m.name"
+        );
+        $origins = Database::fetchAll(
+            "SELECT o.*, COUNT(p.id) as product_count FROM product_origins o
+             LEFT JOIN products p ON p.origin_id = o.id AND p.is_deleted = 0
+             GROUP BY o.id ORDER BY o.name"
+        );
 
         return $this->view('products.settings', [
             'categories' => $categories,

@@ -38,13 +38,14 @@ $activeTab = $_GET['tab'] ?? 'categories';
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr><th>#</th><th>Tên danh mục</th><th class="text-center" style="width:100px">Thứ tự</th><th style="width:120px"></th></tr>
+                            <tr><th>#</th><th>Tên danh mục</th><th class="text-center" style="width:80px">Sản phẩm</th><th class="text-center" style="width:80px">Thứ tự</th><th style="width:120px"></th></tr>
                         </thead>
                         <tbody>
                         <?php foreach ($categories as $i => $c): ?>
                             <tr>
                                 <td class="text-muted"><?= $i + 1 ?></td>
                                 <td class="fw-medium"><?= e($c['name']) ?></td>
+                                <td class="text-center"><span class="badge bg-primary-subtle text-primary"><?= $c['product_count'] ?></span></td>
                                 <td class="text-center"><?= $c['sort_order'] ?></td>
                                 <td>
                                     <div class="d-flex gap-1">
@@ -58,7 +59,7 @@ $activeTab = $_GET['tab'] ?? 'categories';
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($categories)): ?>
-                            <tr><td colspan="4" class="text-center text-muted py-4">Chưa có danh mục</td></tr>
+                            <tr><td colspan="5" class="text-center text-muted py-4">Chưa có danh mục</td></tr>
                         <?php endif; ?>
                         </tbody>
                     </table>
@@ -73,13 +74,14 @@ $activeTab = $_GET['tab'] ?? 'categories';
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr><th>#</th><th>Tên nhà sản xuất</th><th style="width:120px"></th></tr>
+                            <tr><th>#</th><th>Tên nhà sản xuất</th><th class="text-center" style="width:80px">Sản phẩm</th><th style="width:120px"></th></tr>
                         </thead>
                         <tbody>
                         <?php foreach ($manufacturers as $i => $m): ?>
                             <tr>
                                 <td class="text-muted"><?= $i + 1 ?></td>
                                 <td class="fw-medium"><?= e($m['name']) ?></td>
+                                <td class="text-center"><span class="badge bg-primary-subtle text-primary"><?= $m['product_count'] ?></span></td>
                                 <td>
                                     <div class="d-flex gap-1">
                                         <button class="btn btn-soft-primary btn-sm btn-icon" title="Sửa" onclick="editMfr(<?= $m['id'] ?>, '<?= e(addslashes($m['name'])) ?>')"><i class="ri-pencil-line"></i></button>
@@ -92,7 +94,7 @@ $activeTab = $_GET['tab'] ?? 'categories';
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($manufacturers)): ?>
-                            <tr><td colspan="3" class="text-center text-muted py-4">Chưa có nhà sản xuất</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted py-4">Chưa có nhà sản xuất</td></tr>
                         <?php endif; ?>
                         </tbody>
                     </table>
@@ -107,13 +109,14 @@ $activeTab = $_GET['tab'] ?? 'categories';
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr><th>#</th><th>Tên xuất xứ</th><th style="width:120px"></th></tr>
+                            <tr><th>#</th><th>Tên xuất xứ</th><th class="text-center" style="width:80px">Sản phẩm</th><th style="width:120px"></th></tr>
                         </thead>
                         <tbody>
                         <?php foreach ($origins as $i => $o): ?>
                             <tr>
                                 <td class="text-muted"><?= $i + 1 ?></td>
                                 <td class="fw-medium"><?= e($o['name']) ?></td>
+                                <td class="text-center"><span class="badge bg-primary-subtle text-primary"><?= $o['product_count'] ?></span></td>
                                 <td>
                                     <div class="d-flex gap-1">
                                         <button class="btn btn-soft-primary btn-sm btn-icon" title="Sửa" onclick="editOri(<?= $o['id'] ?>, '<?= e(addslashes($o['name'])) ?>')"><i class="ri-pencil-line"></i></button>
@@ -126,7 +129,7 @@ $activeTab = $_GET['tab'] ?? 'categories';
                             </tr>
                         <?php endforeach; ?>
                         <?php if (empty($origins)): ?>
-                            <tr><td colspan="3" class="text-center text-muted py-4">Chưa có xuất xứ</td></tr>
+                            <tr><td colspan="4" class="text-center text-muted py-4">Chưa có xuất xứ</td></tr>
                         <?php endif; ?>
                         </tbody>
                     </table>
