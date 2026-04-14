@@ -209,7 +209,7 @@ class ReportController extends Controller
         $byStage = Database::fetchAll(
             "SELECT ds.name as stage, ds.color, COUNT(d.id) as count, COALESCE(SUM(d.value),0) as total_value
              FROM deal_stages ds
-             LEFT JOIN deals d ON d.stage_id = ds.id AND d.status = 'open' AND d.is_deleted = 0 AND d.tenant_id = ?
+             LEFT JOIN deals d ON d.stage_id = ds.id AND d.status = 'open' AND d.tenant_id = ?
              ORDER BY ds.sort_order",
             [$tid]
         );
@@ -217,14 +217,12 @@ class ReportController extends Controller
         // Win/Loss by month
         $wonByMonth = Database::fetchAll(
             "SELECT MONTH(actual_close_date) as month, COUNT(*) as count, SUM(value) as value
-             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0
-             GROUP BY MONTH(actual_close_date)",
+             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ?              GROUP BY MONTH(actual_close_date)",
             [$year, $tid]
         );
         $lostByMonth = Database::fetchAll(
             "SELECT MONTH(actual_close_date) as month, COUNT(*) as count
-             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0
-             GROUP BY MONTH(actual_close_date)",
+             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ?              GROUP BY MONTH(actual_close_date)",
             [$year, $tid]
         );
         $wonData = array_fill(0, 12, 0);
@@ -234,7 +232,7 @@ class ReportController extends Controller
 
         // Conversion rate
         $totalDeals = (int)(Database::fetch(
-            "SELECT COUNT(*) as cnt FROM deals WHERE YEAR(created_at) = ? AND tenant_id = ? AND is_deleted = 0",
+            "SELECT COUNT(*) as cnt FROM deals WHERE YEAR(created_at) = ? AND tenant_id = ?",
             [$year, $tid]
         )['cnt'] ?? 0);
         $totalWon = array_sum($wonData);
@@ -243,7 +241,7 @@ class ReportController extends Controller
         // Average close time (days)
         $avgClose = Database::fetch(
             "SELECT AVG(DATEDIFF(actual_close_date, created_at)) as avg_days
-             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0",
+             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ?",
             [$year, $tid]
         );
         $avgCloseDays = round((float)($avgClose['avg_days'] ?? 0));
@@ -251,8 +249,7 @@ class ReportController extends Controller
         // Loss reasons
         $lossReasons = Database::fetchAll(
             "SELECT COALESCE(loss_reason, 'Không rõ') as reason, COUNT(*) as count
-             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ? AND is_deleted = 0
-             GROUP BY loss_reason ORDER BY count DESC LIMIT 10",
+             FROM deals WHERE status = 'lost' AND YEAR(actual_close_date) = ? AND tenant_id = ?              GROUP BY loss_reason ORDER BY count DESC LIMIT 10",
             [$year, $tid]
         );
 
@@ -262,8 +259,7 @@ class ReportController extends Controller
                     SUM(d.status='won') as won, SUM(d.status='lost') as lost,
                     COALESCE(SUM(CASE WHEN d.status='won' THEN d.value END),0) as won_value
              FROM deals d JOIN users u ON d.owner_id = u.id
-             WHERE YEAR(d.created_at) = ? AND d.tenant_id = ? AND d.is_deleted = 0
-             GROUP BY u.id, u.name ORDER BY won_value DESC",
+             WHERE YEAR(d.created_at) = ? AND d.tenant_id = ?              GROUP BY u.id, u.name ORDER BY won_value DESC",
             [$year, $tid]
         );
 
