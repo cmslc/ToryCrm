@@ -91,7 +91,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('deals/forecast') ?>" class="nav-link <?= isActive('deals/forecast', $currentUrl) ?>">Dự báo</a></li>
                             <?php if (plugin_active('lead-forms')): ?><li class="nav-item"><a href="<?= url('lead-forms') ?>" class="nav-link <?= isActive('lead-forms', $currentUrl) ?>">Lead Forms</a></li><?php endif; ?>
                             <?php if (canSee('campaigns')): ?>
-                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch</a></li>
+                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch Email</a></li>
                             <?php endif; ?>
                         </ul>
                     </div>
