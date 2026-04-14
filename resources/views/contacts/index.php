@@ -167,11 +167,11 @@ $columns = [
 <!-- Tabs Row -->
 <div class="card mb-3">
     <div class="card-header p-2">
-        <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
             <!-- Status Tabs with scroll -->
-            <div class="d-flex align-items-center gap-0" style="white-space:nowrap">
-                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
-                <div class="overflow-hidden flex-grow-1" id="tabScrollContainer" style="scroll-behavior:smooth">
+            <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
+            <div class="overflow-auto flex-grow-1" id="tabScrollContainer" style="scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none">
+            <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
                 <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
                     <li class="nav-item">
                         <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('contacts') ?>">
@@ -196,7 +196,7 @@ $columns = [
                     <?php endforeach; ?>
                 </ul>
                 </div>
-                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight" style="font-size:18px;line-height:1"><i class="ri-arrow-right-s-line"></i></button>
+            <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollRight" style="font-size:18px;line-height:1"><i class="ri-arrow-right-s-line"></i></button>
                 <script>
                 (function() {
                     var container = document.getElementById('tabScrollContainer');
