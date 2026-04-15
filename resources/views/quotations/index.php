@@ -75,11 +75,13 @@ foreach ($stats as $v) $totalAll += (int)$v;
             </div>
         </div>
 
-                <?php
-                $sc = ['draft'=>'secondary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning'];
-                $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','rejected'=>'Từ chối','expired'=>'Hết hạn'];
-                ?>
+        <?php
+        $sc = ['draft'=>'secondary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning'];
+        $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','rejected'=>'Từ chối','expired'=>'Hết hạn'];
+        ?>
 
+        <div class="card">
+            <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -152,8 +154,8 @@ foreach ($stats as $v) $totalAll += (int)$v;
                 </div>
 
                 <?php if (($quotations['total_pages'] ?? 0) > 1): ?>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted">Hiển thị <?= count($quotations['items']) ?> / <?= $quotations['total'] ?></div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
+                        <div class="text-muted fs-13">Hiển thị <strong><?= (($quotations['page'] - 1) * ($filters['per_page'] ?? 10)) + 1 ?> - <?= min($quotations['page'] * ($filters['per_page'] ?? 10), $quotations['total']) ?></strong> / <strong><?= number_format($quotations['total']) ?></strong></div>
                         <nav><ul class="pagination mb-0">
                             <?php for ($i = 1; $i <= $quotations['total_pages']; $i++): ?>
                                 <li class="page-item <?= $i === $quotations['page'] ? 'active' : '' ?>">
