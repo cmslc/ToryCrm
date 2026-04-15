@@ -1,7 +1,7 @@
-<?php $pageTitle = 'Kanban'; ?>
+<?php $pageTitle = 'Kiểm soát CV'; ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Kanban - Công việc</h4>
+            <h4 class="mb-0">Kiểm soát công việc</h4>
             <div>
                 <a href="<?= url('tasks') ?>" class="btn btn-soft-secondary me-1"><i class="ri-list-check me-1"></i> Danh sách</a>
                 <a href="<?= url('tasks/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm</a>

@@ -156,7 +156,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $taskOpen ? 'show' : '' ?>" id="sidebarTasks">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('tasks') ?>" class="nav-link <?= isActive('tasks', $currentUrl) && !str_contains($currentUrl, 'kanban') ? 'active' : '' ?>">Các công việc</a></li>
-                            <li class="nav-item"><a href="<?= url('tasks/kanban') ?>" class="nav-link <?= isActive('tasks/kanban', $currentUrl) ?>">Kanban</a></li>
+                            <li class="nav-item"><a href="<?= url('tasks/kanban') ?>" class="nav-link <?= isActive('tasks/kanban', $currentUrl) ?>">Kiểm soát CV</a></li>
                             <li class="nav-item"><a href="<?= url('calendar') ?>" class="nav-link <?= isActive('calendar', $currentUrl) ?>">Lịch hẹn</a></li>
                             <li class="nav-item"><a href="<?= url('activities') ?>" class="nav-link <?= isActive('activities', $currentUrl) ?>">Hoạt động</a></li>
                             <?php if (plugin_active('checkin')): ?><li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li><?php endif; ?>
