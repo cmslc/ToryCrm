@@ -237,10 +237,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                             <?php
                             // Custom rendering per field
                             switch ($field):
-                                case 'first_name':
-                                case 'last_name':
-                                    // Skip - handled by account_code or shown raw
-                                    echo e($val ?: '-');
+                                case 'full_name':
+                                    $fullName = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                                    echo '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium text-dark">' . e($fullName ?: '-') . '</a>';
                                     break;
                                 case 'account_code':
                                     echo '<code>' . e($val ?: '-') . '</code>';
@@ -365,7 +364,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
     var allColumns = <?= json_encode($colKeys) ?>;
-    var defaultVisible = ['col-accountcode','col-firstname','col-lastname','col-title','col-email','col-phone','col-mobile','col-companyid','col-position','col-sourceid','col-status','col-ownerid','col-gender','col-address','col-province','col-district','col-customergroup','col-lastactivityat','col-createdat'];
+    var defaultVisible = ['col-accountcode','col-fullname','col-title','col-email','col-phone','col-mobile','col-companyid','col-position','col-sourceid','col-status','col-ownerid','col-gender','col-address','col-province','col-district','col-customergroup','col-lastactivityat','col-createdat'];
 
     function getVisible() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
