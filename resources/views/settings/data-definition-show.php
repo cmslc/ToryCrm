@@ -169,6 +169,28 @@
     </div>
 </div>
 
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title mb-3"><i class="ri-information-line me-1 text-info"></i>Ghi chú</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="list-unstyled mb-0 vstack gap-2">
+                    <li><i class="ri-checkbox-circle-line text-success me-1"></i><strong>Đang sử dụng</strong> - Các trường người dùng nhìn thấy và nhập liệu trên form. Admin có thể sửa tên hiển thị, đặt bắt buộc, bật kiểm tra trùng.</li>
+                    <li><i class="ri-settings-3-line text-secondary me-1"></i><strong>Hệ thống</strong> - Các trường được hệ thống tự động quản lý (ID, mật khẩu, token, ngày tạo...). Không nên chỉnh sửa.</li>
+                    <li><i class="ri-paint-brush-line text-info me-1"></i><strong>Tùy chỉnh</strong> - Các trường do admin tạo thêm qua "Trường tùy chỉnh". Có thể sửa và xóa.</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="list-unstyled mb-0 vstack gap-2">
+                    <li><i class="ri-error-warning-line text-danger me-1"></i><strong>Bắt buộc</strong> - Trường bắt buộc nhập khi tạo/sửa dữ liệu. Nếu bỏ trống sẽ báo lỗi.</li>
+                    <li><i class="ri-file-copy-line text-warning me-1"></i><strong>Kiểm tra trùng</strong> - Khi bật, hệ thống sẽ cảnh báo nếu giá trị đã tồn tại (VD: email, SĐT trùng).</li>
+                    <li><i class="ri-add-circle-line text-primary me-1"></i>Thêm trường mới bằng nút <strong>"Thêm trường"</strong> ở góc trên phải.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal sửa trường -->
 <div class="modal fade" id="editFieldModal" tabindex="-1">
     <div class="modal-dialog">
