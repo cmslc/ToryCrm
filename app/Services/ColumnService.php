@@ -170,7 +170,8 @@ class ColumnService
     ];
 
     private static array $systemFields = [
-        'id', 'tenant_id', 'first_name', 'last_name', 'is_deleted', 'deleted_at', 'created_at', 'updated_at',
+        'id', 'tenant_id', 'first_name', 'last_name', 'city',
+        'is_deleted', 'deleted_at', 'created_at', 'updated_at',
         'created_by', 'avatar', 'logo', 'image', 'currency', 'discount_type',
         'portal_token', 'portal_password', 'portal_active',
         'total_revenue', 'bonus_points', 'score', 'relation_id', 'industry_id', 'referrer_type',
