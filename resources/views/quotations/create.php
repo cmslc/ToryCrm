@@ -22,10 +22,6 @@
                                     <label class="form-label">Mã báo giá</label>
                                     <input type="text" class="form-control" value="<?= e($quoteNumber) ?>" readonly>
                                 </div>
-                                <div class="col-md-8 mb-3">
-                                    <label class="form-label">Tiêu đề</label>
-                                    <input type="text" class="form-control" name="title" placeholder="VD: Báo giá thiết kế website...">
-                                </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Khách hàng</label>
                                     <select name="contact_id" class="form-select searchable-select">

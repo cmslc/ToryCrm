@@ -102,7 +102,6 @@ class ColumnService
         ],
         'quotations' => [
             'quote_number' => 'Mã BG',
-            'title' => 'Tiêu đề',
             'contact_id' => 'Khách hàng',
             'company_id' => 'Công ty',
             'deal_id' => 'Cơ hội',

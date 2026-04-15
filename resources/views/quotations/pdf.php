@@ -135,11 +135,6 @@
         </div>
     </div>
 
-    <!-- Title -->
-    <?php if ($quotation['title']): ?>
-    <div class="title-bar">
-        <h3><?= e($quotation['title']) ?></h3>
-    </div>
     <?php endif; ?>
 
     <!-- Items -->

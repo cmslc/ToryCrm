@@ -18,7 +18,7 @@ $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','reject
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title mb-1"><?= e($quotation['quote_number']) ?> <?= $quotation['title'] ? '- ' . e($quotation['title']) : '' ?></h5>
+                            <h5 class="card-title mb-1"><?= e($quotation['quote_number']) ?></h5>
                             <span class="badge bg-<?= $sc[$quotation['status']] ?? 'secondary' ?>"><?= $sl[$quotation['status']] ?? '' ?></span>
                         </div>
                         <div class="d-flex gap-1 flex-wrap">
