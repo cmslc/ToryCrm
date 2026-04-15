@@ -156,7 +156,7 @@ class DataDefinitionController extends Controller
             'avatar', 'logo', 'image', 'featured_image', 'currency',
             // Contacts
             'portal_token', 'portal_password', 'portal_active',
-            'total_revenue', 'bonus_points', 'relation_id', 'industry_id', 'referrer_type',
+            'total_revenue', 'bonus_points', 'score', 'relation_id', 'industry_id', 'referrer_type',
             // Orders
             'approved_by', 'approved_at', 'cancelled_at', 'cancelled_reason',
             'is_auto_approve', 'tracking_url',

@@ -227,10 +227,6 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Điểm (Score)</label>
-                                <input type="number" class="form-control" name="score" value="0" min="0" max="100">
-                            </div>
-                            <div class="mb-3">
                                 <label class="form-label">Người giới thiệu</label>
                                 <input type="text" class="form-control" name="referrer_code" value="<?= old('referrer_code') ?>" placeholder="Mã/tên người giới thiệu">
                             </div>
