@@ -132,7 +132,12 @@ class DataDefinitionController extends Controller
 
         // Build field list
         $fields = [];
-        $systemFields = ['id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at'];
+        $systemFields = [
+            'id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at',
+            'approved_by', 'approved_at', 'cancelled_at', 'cancelled_reason',
+            'is_auto_approve', 'created_by', 'password', 'login_attempts', 'locked_until',
+            'password_changed_at', 'last_login', 'sort_order', 'tracking_url',
+        ];
 
         foreach ($columns as $col) {
             $isSystem = in_array($col['Field'], $systemFields);
