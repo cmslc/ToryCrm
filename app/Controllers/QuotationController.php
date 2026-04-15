@@ -27,11 +27,11 @@ class QuotationController extends Controller
         // Stats
         $stats = Database::fetch(
             "SELECT
-                SUM(status = 'pending') as pending,
-                SUM(status = 'approved') as approved,
-                SUM(order_id IS NOT NULL) as has_order,
-                SUM(order_id IS NULL AND status != 'pending') as no_order,
-                SUM(is_deleted = 1) as deleted
+                SUM(status = 'draft' OR status = 'sent') as pending,
+                SUM(status = 'accepted') as approved,
+                SUM(status = 'converted') as has_order,
+                SUM(status NOT IN ('draft','sent','accepted','converted','rejected') OR status IS NULL) as no_order,
+                SUM(status = 'rejected' OR status = 'expired') as deleted
              FROM quotations WHERE tenant_id = ?" . (!$this->isAdminOrManager() && !$this->getDeptMemberIds() ? " AND owner_id = " . (int)$this->userId() : ($this->getDeptMemberIds() ? " AND owner_id IN (" . implode(',', $this->getDeptMemberIds()) . ")" : '')),
             [$tid]
         );
