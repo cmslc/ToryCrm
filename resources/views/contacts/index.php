@@ -169,11 +169,11 @@ $columns = [
     <div class="flex-grow-1 d-flex" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
     <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
         <div class="d-flex gap-1 flex-nowrap" id="tabScrollInner">
-            <a href="<?= url('contacts') ?>" class="btn btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-secondary' ?> rounded-pill text-nowrap">
-                Tất cả <span class="badge bg-white text-dark ms-1"><?= number_format($totalAll) ?></span>
+            <a href="<?= url('contacts') ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> btn-label right rounded-pill text-nowrap waves-effect">
+                Tất cả <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($totalAll) ?></span>
             </a>
-            <a href="<?= url('contacts?status=today') ?>" class="btn btn <?= $currentStatus === 'today' ? 'btn-success' : 'btn-outline-success' ?> rounded-pill text-nowrap">
-                Mới cập nhật <span class="badge <?= $currentStatus === 'today' ? 'bg-white text-success' : 'bg-success text-white' ?> rounded-pill ms-1"><?= $todayCount ?? 0 ?></span>
+            <a href="<?= url('contacts?status=today') ?>" class="btn <?= $currentStatus === 'today' ? 'btn-success' : 'btn-soft-success' ?> btn-label right rounded-pill text-nowrap waves-effect">
+                Mới cập nhật <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= $todayCount ?? 0 ?></span>
             </a>
             <?php foreach ($sLabels as $key => $label):
                 $count = 0;
@@ -182,8 +182,8 @@ $columns = [
                 $isActive = $currentStatus === $key;
             ?>
             <a href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
-               class="btn btn <?= $isActive ? "btn-{$color}" : "btn-outline-{$color}" ?> rounded-pill text-nowrap">
-                <?= $label ?> <span class="badge <?= $isActive ? 'bg-white text-' . $color : "bg-{$color} text-white" ?> rounded-pill ms-1"><?= number_format($count) ?></span>
+               class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> btn-label right rounded-pill text-nowrap waves-effect">
+                <?= $label ?> <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($count) ?></span>
             </a>
             <?php endforeach; ?>
         </div>
