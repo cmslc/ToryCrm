@@ -135,8 +135,6 @@
         </div>
     </div>
 
-    <?php endif; ?>
-
     <!-- Items -->
     <div class="items-table">
         <table>
