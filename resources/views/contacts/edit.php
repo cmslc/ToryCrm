@@ -123,15 +123,11 @@
                             <label class="form-label">Quận/Huyện</label>
                             <input type="text" class="form-control" name="district" value="<?= e($c['district'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Phường/Xã</label>
                             <input type="text" class="form-control" name="ward" value="<?= e($c['ward'] ?? '') ?>">
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Thành phố</label>
-                            <input type="text" class="form-control" name="city" value="<?= e($c['city'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Quốc gia</label>
                             <input type="text" class="form-control" name="country" value="<?= e($c['country'] ?? 'Việt Nam') ?>">
                         </div>

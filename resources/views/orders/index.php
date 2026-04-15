@@ -3,13 +3,48 @@ $pageTitle = 'Đơn hàng & Báo giá';
 $currentStatus = $filters['status'] ?? '';
 $sc = ['pending'=>'warning','approved'=>'primary','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'dark','collected'=>'secondary'];
 $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ'];
+$orderColumns = [
+    'col-code' => 'Mã',
+    'col-type' => 'Loại',
+    'col-customer' => 'Khách hàng',
+    'col-company' => 'Công ty',
+    'col-total' => 'Tổng tiền',
+    'col-status' => 'Trạng thái',
+    'col-payment' => 'Thanh toán',
+    'col-owner' => 'Phụ trách',
+    'col-shipping' => 'Giao hàng',
+    'col-lading' => 'Vận đơn',
+    'col-commission' => 'Hoa hồng',
+    'col-created' => 'Ngày tạo',
+];
 ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Đơn hàng & Báo giá</h4>
             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
                 <a href="<?= url('orders/create?type=quote') ?>" class="btn btn-soft-info"><i class="ri-file-text-line me-1"></i> Tạo báo giá</a>
                 <a href="<?= url('orders/create?type=order') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn hàng</a>
+            </div>
+        </div>
+
+        <!-- Column Options Panel -->
+        <div class="card mb-2 d-none" id="columnPanel">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-2">Cột</h6>
+                        <div class="d-flex flex-wrap gap-3">
+                            <?php foreach ($orderColumns as $colId => $colLabel): ?>
+                            <div class="form-check">
+                                <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
+                                <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                </div>
             </div>
         </div>
 
@@ -73,14 +108,18 @@ $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã 
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Mã</th>
-                                <th>Loại</th>
-                                <th>Khách hàng</th>
-                                <th>Công ty</th>
-                                <th>Tổng tiền</th>
-                                <th>Trạng thái</th>
-                                <th>Thanh toán</th>
-                                <th>Ngày tạo</th>
+                                <th class="col-code">Mã</th>
+                                <th class="col-type">Loại</th>
+                                <th class="col-customer">Khách hàng</th>
+                                <th class="col-company">Công ty</th>
+                                <th class="col-total">Tổng tiền</th>
+                                <th class="col-status">Trạng thái</th>
+                                <th class="col-payment">Thanh toán</th>
+                                <th class="col-owner">Phụ trách</th>
+                                <th class="col-shipping">Giao hàng</th>
+                                <th class="col-lading">Vận đơn</th>
+                                <th class="col-commission">Hoa hồng</th>
+                                <th class="col-created">Ngày tạo</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -92,18 +131,22 @@ $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã 
                                 ?>
                                 <?php foreach ($orders['items'] as $order): ?>
                                     <tr>
-                                        <td><a href="<?= url('orders/' . $order['id']) ?>" class="fw-medium"><?= e($order['order_number']) ?></a></td>
-                                        <td>
+                                        <td class="col-code"><a href="<?= url('orders/' . $order['id']) ?>" class="fw-medium"><?= e($order['order_number']) ?></a></td>
+                                        <td class="col-type">
                                             <?= $order['type'] === 'quote'
                                                 ? '<span class="badge bg-info-subtle text-info">Báo giá</span>'
                                                 : '<span class="badge bg-primary-subtle text-primary">Đơn hàng</span>' ?>
                                         </td>
-                                        <td><?= e(trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? ''))) ?: '-' ?></td>
-                                        <td><?= e($order['company_name'] ?? '-') ?></td>
-                                        <td class="fw-medium"><?= format_money($order['total']) ?></td>
-                                        <td><span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?>"><?= $sl[$order['status']] ?? '' ?></span></td>
-                                        <td><span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>-subtle text-<?= $pc[$order['payment_status']] ?? 'secondary' ?>"><?= $pl[$order['payment_status']] ?? '' ?></span></td>
-                                        <td><?= format_date($order['created_at']) ?></td>
+                                        <td class="col-customer"><?= e(trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? ''))) ?: '-' ?></td>
+                                        <td class="col-company"><?= e($order['company_name'] ?? '-') ?></td>
+                                        <td class="col-total fw-medium"><?= format_money($order['total']) ?></td>
+                                        <td class="col-status"><span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?>"><?= $sl[$order['status']] ?? '' ?></span></td>
+                                        <td class="col-payment"><span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>-subtle text-<?= $pc[$order['payment_status']] ?? 'secondary' ?>"><?= $pl[$order['payment_status']] ?? '' ?></span></td>
+                                        <td class="col-owner"><?= e($order['owner_name'] ?? '-') ?></td>
+                                        <td class="col-shipping fs-12 text-muted"><?= e($order['shipping_contact'] ?? '') ? e($order['shipping_contact']) . ' - ' . e($order['shipping_phone'] ?? '') : '-' ?></td>
+                                        <td class="col-lading fs-12"><?= e($order['lading_code'] ?? '') ?: '-' ?></td>
+                                        <td class="col-commission"><?= ($order['commission_amount'] ?? 0) > 0 ? format_money($order['commission_amount']) : '-' ?></td>
+                                        <td class="col-created"><?= format_date($order['created_at']) ?></td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -142,3 +185,40 @@ $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã 
                 <?php endif; ?>
             </div>
         </div>
+
+<script>
+// Toggle column panel
+document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
+    var panel = document.getElementById('columnPanel');
+    panel.classList.toggle('d-none');
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+});
+
+// Column toggle
+(function() {
+    var storageKey = 'order_columns';
+    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    function applyColumns() {
+        document.querySelectorAll('.column-toggle').forEach(function(cb) {
+            var col = cb.dataset.column;
+            var visible = saved[col] !== false;
+            cb.checked = visible;
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = visible ? '' : 'none'; });
+        });
+    }
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            saved[this.dataset.column] = this.checked;
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+            applyColumns();
+        });
+    });
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        saved = {};
+        localStorage.removeItem(storageKey);
+        applyColumns();
+    });
+    applyColumns();
+})();
+</script>

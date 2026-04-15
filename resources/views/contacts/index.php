@@ -21,15 +21,20 @@ $currentStatus = $filters['status'] ?? '';
 $columns = [
     'col-customer' => 'Khách hàng',
     'col-contact' => 'Liên hệ',
+    'col-mobile' => 'Di động',
     'col-company' => 'Công ty',
+    'col-position' => 'Chức vụ',
     'col-source' => 'Nguồn',
     'col-status' => 'Trạng thái',
     'col-owner' => 'Phụ trách',
+    'col-gender' => 'Giới tính',
     'col-address' => 'Địa chỉ',
     'col-birthday' => 'Ngày sinh',
     'col-group' => 'Nhóm KH',
     'col-taxcode' => 'MST',
     'col-website' => 'Website',
+    'col-fax' => 'Fax',
+    'col-referrer' => 'Người giới thiệu',
     'col-tags' => 'Nhãn',
     'col-lastcontact' => 'Liên hệ lần cuối',
     'col-created' => 'Ngày tạo',
@@ -230,15 +235,20 @@ $columns = [
                         <th style="width:30px" class="ps-3"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <th class="col-customer">Khách hàng</th>
                         <th class="col-contact">Liên hệ</th>
+                        <th class="col-mobile">Di động</th>
                         <th class="col-company">Công ty</th>
+                        <th class="col-position">Chức vụ</th>
                         <th class="col-source">Nguồn</th>
                         <th class="col-status">Trạng thái</th>
                         <th class="col-owner">Người phụ trách</th>
+                        <th class="col-gender">Giới tính</th>
                         <th class="col-address">Địa chỉ</th>
                         <th class="col-birthday">Ngày sinh</th>
                         <th class="col-group">Nhóm KH</th>
                         <th class="col-taxcode">MST</th>
                         <th class="col-website">Website</th>
+                        <th class="col-fax">Fax</th>
+                        <th class="col-referrer">Người GT</th>
                         <th class="col-tags">Nhãn</th>
                         <th class="col-lastcontact">Liên hệ lần cuối</th>
                         <th class="col-created">Ngày tạo</th>
@@ -271,6 +281,7 @@ $columns = [
                                 <?php if ($c['email']): ?><div class="fs-12"><i class="ri-mail-line me-1 text-muted"></i><?= e($c['email']) ?></div><?php endif; ?>
                                 <?php if ($c['phone']): ?><div class="fs-12"><i class="ri-phone-line me-1 text-muted"></i><?= e($c['phone']) ?></div><?php endif; ?>
                             </td>
+                            <td class="col-mobile fs-12"><?= e($c['mobile'] ?? '') ?: '-' ?></td>
                             <td class="col-company">
                                 <?php if ($c['company_id']): ?>
                                     <a href="<?= url('companies/' . $c['company_id']) ?>" class="text-body"><?= e($c['company_name']) ?></a>
@@ -278,6 +289,7 @@ $columns = [
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
+                            <td class="col-position fs-12 text-muted"><?= e($c['position'] ?? '') ?: '-' ?></td>
                             <td class="col-source">
                                 <?php if (!empty($c['source_name'])): ?>
                                     <span class="badge bg-secondary-subtle text-secondary"><?= e($c['source_name']) ?></span>
@@ -299,6 +311,7 @@ $columns = [
                                     <?= user_avatar($c['owner_name'] ?? null, 'primary', $c['owner_avatar'] ?? null) ?>
                                 </span>
                             </td>
+                            <td class="col-gender fs-12"><?php $gl=['male'=>'Nam','female'=>'Nữ','other'=>'Khác']; echo $gl[$c['gender'] ?? ''] ?? '-'; ?></td>
                             <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>
                             <td class="col-birthday fs-12"><?= !empty($c['date_of_birth']) ? date('d/m/Y', strtotime($c['date_of_birth'])) : '-' ?></td>
                             <td class="col-group">
@@ -315,6 +328,8 @@ $columns = [
                             </td>
                             <td class="col-taxcode fs-12 text-muted"><?= e($c['tax_code'] ?? '-') ?></td>
                             <td class="col-website fs-12"><?= !empty($c['website']) ? '<a href="' . e($c['website']) . '" target="_blank" class="text-truncate d-inline-block" style="max-width:120px">' . e($c['website']) . '</a>' : '-' ?></td>
+                            <td class="col-fax fs-12 text-muted"><?= e($c['fax'] ?? '') ?: '-' ?></td>
+                            <td class="col-referrer fs-12 text-muted"><?= e($c['referrer_code'] ?? '') ?: '-' ?></td>
                             <td class="col-tags">
                                 <?php
                                 $cTags = \Core\Database::fetchAll(
@@ -352,7 +367,7 @@ $columns = [
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="15" class="text-center py-5">
+                            <td colspan="20" class="text-center py-5">
                                 <div class="avatar-md mx-auto mb-3">
                                     <span class="avatar-title bg-primary-subtle rounded-circle">
                                         <i class="ri-contacts-line text-primary fs-24"></i>
@@ -408,7 +423,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 // Column toggle
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
-    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-group','col-taxcode','col-website','col-tags','col-lastcontact','col-created'];
+    var allColumns = ['col-customer','col-contact','col-mobile','col-company','col-position','col-source','col-status','col-owner','col-gender','col-address','col-birthday','col-group','col-taxcode','col-website','col-fax','col-referrer','col-tags','col-lastcontact','col-created'];
     var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-lastcontact','col-created'];
 
     function getVisible() {
