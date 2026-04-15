@@ -47,7 +47,9 @@
         // Create wrapper
         var wrapper = document.createElement('div');
         wrapper.className = 'position-relative searchable-select-wrapper flex-grow-1';
-        wrapper.style.minWidth = '0';
+        wrapper.style.minWidth = sel.style.minWidth || '0';
+        if (sel.style.maxWidth) wrapper.style.maxWidth = sel.style.maxWidth;
+        if (sel.style.width) wrapper.style.width = sel.style.width;
         sel.parentNode.insertBefore(wrapper, sel.nextSibling);
 
         // Display button
