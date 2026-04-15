@@ -195,7 +195,6 @@ $columns = [
                     </li>
                     <?php endforeach; ?>
                 </ul>
-                </div>
             </div>
             <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollRight" style="font-size:18px;line-height:1"><i class="ri-arrow-right-s-line"></i></button>
             <div class="dropdown flex-shrink-0 ms-1">
