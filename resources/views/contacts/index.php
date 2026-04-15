@@ -170,7 +170,7 @@ $columns = [
         <div class="d-flex align-items-center">
             <!-- Status Tabs with scroll -->
             <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
-            <div class="overflow-auto flex-grow-1" id="tabScrollContainer" style="scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none">
+            <div class="overflow-auto flex-grow-1" id="tabScrollContainer" style="scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
             <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
                 <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
                     <li class="nav-item">
