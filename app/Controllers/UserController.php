@@ -64,7 +64,8 @@ class UserController extends Controller
     {
         $this->authorize('users', 'create');
         $permGroups = Database::fetchAll("SELECT * FROM permission_groups WHERE tenant_id = ? ORDER BY sort_order, name", [Database::tenantId()]);
-        return $this->view('users.create', ['permGroups' => $permGroups]);
+        $positions = Database::fetchAll("SELECT * FROM positions WHERE tenant_id = ? AND is_active = 1 ORDER BY sort_order", [Database::tenantId()]);
+        return $this->view('users.create', ['permGroups' => $permGroups, 'positions' => $positions]);
     }
 
     public function store()
@@ -99,6 +100,7 @@ class UserController extends Controller
             'password' => Auth::hashPassword($password),
             'phone' => trim($data['phone'] ?? ''),
             'role' => $data['role'] ?? 'staff',
+            'position_id' => !empty($data['position_id']) ? (int)$data['position_id'] : null,
             'department' => trim($data['department'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
         ]);
@@ -141,8 +143,9 @@ class UserController extends Controller
 
         $permGroups = Database::fetchAll("SELECT * FROM permission_groups WHERE tenant_id = ? ORDER BY sort_order, name", [Database::tenantId()]);
         $userGroupIds = array_column(Database::fetchAll("SELECT group_id FROM user_permission_groups WHERE user_id = ?", [$id]), 'group_id');
+        $positions = Database::fetchAll("SELECT * FROM positions WHERE tenant_id = ? AND is_active = 1 ORDER BY sort_order", [Database::tenantId()]);
 
-        return $this->view('users.edit', ['editUser' => $user, 'permGroups' => $permGroups, 'userGroupIds' => $userGroupIds]);
+        return $this->view('users.edit', ['editUser' => $user, 'permGroups' => $permGroups, 'userGroupIds' => $userGroupIds, 'positions' => $positions]);
     }
 
     public function update($id)
@@ -188,6 +191,7 @@ class UserController extends Controller
             'emergency_contact' => trim($data['emergency_contact'] ?? '') ?: null,
             'emergency_phone' => trim($data['emergency_phone'] ?? '') ?: null,
             'role' => $data['role'] ?? $user['role'],
+            'position_id' => !empty($data['position_id']) ? (int)$data['position_id'] : null,
             'department' => trim($data['department'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
         ];

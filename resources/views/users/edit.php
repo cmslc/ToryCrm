@@ -206,18 +206,13 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                         <div class="tab-pane" id="tabAccess">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Chức vụ <span class="text-danger">*</span></label>
-                                    <select name="role" class="form-select" required>
-                                        <option value="">Chọn vai trò</option>
-                                        <option value="admin" <?= ($u['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-                                        <option value="manager" <?= ($u['role'] ?? '') === 'manager' ? 'selected' : '' ?>>Manager</option>
-                                        <option value="staff" <?= ($u['role'] ?? '') === 'staff' ? 'selected' : '' ?>>Staff</option>
+                                    <label class="form-label">Chức vụ</label>
+                                    <select name="position_id" class="form-select">
+                                        <option value="">Chọn chức vụ</option>
+                                        <?php foreach ($positions ?? [] as $pos): ?>
+                                        <option value="<?= $pos['id'] ?>" <?= ($u['position_id'] ?? '') == $pos['id'] ? 'selected' : '' ?>><?= e($pos['name']) ?></option>
+                                        <?php endforeach; ?>
                                     </select>
-                                    <small class="text-muted mt-1 d-block">
-                                        <strong>Admin</strong> — toàn quyền &bull;
-                                        <strong>Manager</strong> — quản lý phòng ban &bull;
-                                        <strong>Staff</strong> — nhân viên
-                                    </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Phòng ban</label>

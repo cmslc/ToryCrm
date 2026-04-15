@@ -77,14 +77,15 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label">Chức vụ <span class="text-danger">*</span></label>
-                                <select name="role" class="form-select" required>
-                                    <option value="">Chọn vai trò</option>
-                                    <option value="admin" <?= ($old['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-                                    <option value="manager" <?= ($old['role'] ?? '') === 'manager' ? 'selected' : '' ?>>Manager</option>
-                                    <option value="staff" <?= ($old['role'] ?? '') === 'staff' ? 'selected' : '' ?>>Staff</option>
+                                <label class="form-label">Chức vụ</label>
+                                <select name="position_id" class="form-select">
+                                    <option value="">Chọn chức vụ</option>
+                                    <?php foreach ($positions ?? [] as $pos): ?>
+                                    <option value="<?= $pos['id'] ?>"><?= e($pos['name']) ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
+                            <input type="hidden" name="role" value="staff">
                             <div class="mb-3">
                                 <label class="form-label">Phòng ban</label>
                                 <input type="text" class="form-control" name="department" value="<?= e($old['department'] ?? '') ?>" placeholder="Nhập phòng ban">

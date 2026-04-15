@@ -692,6 +692,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/api-keys', 'SettingController@apiKeys');
     Router::post('settings/api-keys/create', 'SettingController@createApiKey');
     Router::post('settings/api-keys/{id}/delete', 'SettingController@deleteApiKey');
+    Router::get('settings/positions', 'PositionController@index');
+    Router::post('settings/positions/store', 'PositionController@store');
+    Router::post('settings/positions/{id}/update', 'PositionController@update');
+    Router::post('settings/positions/{id}/delete', 'PositionController@delete');
     Router::get('settings/permissions', 'PermissionGroupController@index');
     Router::post('settings/perm-groups/store', 'PermissionGroupController@store');
     Router::post('settings/perm-groups/{id}/update', 'PermissionGroupController@update');
