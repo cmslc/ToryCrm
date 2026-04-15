@@ -360,8 +360,8 @@ document.getElementById('btnQcLookupTax')?.addEventListener('click', function() 
                 var d = data.data;
                 var nameEl = document.getElementById('qcName');
                 var addrEl = document.getElementById('qcAddress');
-                if (nameEl && !nameEl.value) nameEl.value = d.name || '';
-                if (addrEl && !addrEl.value) addrEl.value = d.address || '';
+                if (nameEl) nameEl.value = d.name || '';
+                if (addrEl) addrEl.value = d.address || '';
                 status.textContent = '✓ Đã tìm thấy: ' + (d.name || '');
                 status.classList.remove('d-none', 'text-danger');
                 status.classList.add('text-success');

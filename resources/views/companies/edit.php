@@ -157,8 +157,8 @@ document.getElementById('btnLookupTax')?.addEventListener('click', function() {
                 var d = data.data;
                 var nameInput = document.querySelector('input[name="name"]');
                 var addressInput = document.querySelector('input[name="address"]');
-                if (nameInput && !nameInput.value) nameInput.value = d.name || '';
-                if (addressInput && !addressInput.value) addressInput.value = d.address || '';
+                if (nameInput) nameInput.value = d.name || '';
+                if (addressInput) addressInput.value = d.address || '';
                 status.textContent = '✓ Đã tìm thấy: ' + (d.name || '');
                 status.classList.remove('d-none', 'text-danger');
                 status.classList.add('text-success');
