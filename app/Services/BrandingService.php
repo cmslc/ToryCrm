@@ -10,6 +10,17 @@ class BrandingService
 
     private static array $defaults = [
         'name' => 'ToryCRM',
+        'tax_code' => '',
+        'address' => '',
+        'branch_address' => '',
+        'email' => '',
+        'phone' => '',
+        'fax' => '',
+        'website' => '',
+        'representative' => '',
+        'representative_title' => '',
+        'bank_account' => '',
+        'bank_name' => '',
         'logo_url' => '',
         'favicon_url' => '',
         'primary_color' => '#405189',
