@@ -131,13 +131,24 @@ class ColumnService
             }
         } catch (\Exception $e) {}
 
+        // Get ALL columns from DB table (not just defaults)
+        try {
+            $dbColumns = Database::fetchAll("SHOW COLUMNS FROM `{$module}`");
+            foreach ($dbColumns as $col) {
+                $field = $col['Field'];
+                if (!isset($defaults[$field]) && !in_array($field, ['id', 'tenant_id'])) {
+                    $defaults[$field] = $field; // raw name as label if not defined
+                }
+            }
+        } catch (\Exception $e) {}
+
         $columns = [];
         foreach ($defaults as $field => $label) {
-            if (in_array($field, self::$systemFields)) continue;
             $columns[] = [
                 'key' => 'col-' . str_replace('_', '', $field),
                 'field' => $field,
                 'label' => $label,
+                'is_system' => in_array($field, self::$systemFields),
             ];
         }
 
