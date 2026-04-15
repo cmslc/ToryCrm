@@ -75,7 +75,9 @@ class UserController extends Controller
         $permGroups = Database::fetchAll("SELECT * FROM permission_groups WHERE tenant_id = ? ORDER BY sort_order, name", [Database::tenantId()]);
         $positions = Database::fetchAll("SELECT * FROM positions WHERE tenant_id = ? AND is_active = 1 ORDER BY sort_order", [Database::tenantId()]);
         $departments = Database::fetchAll("SELECT id, name FROM departments WHERE tenant_id = ? ORDER BY name", [Database::tenantId()]);
-        return $this->view('users.create', ['permGroups' => $permGroups, 'positions' => $positions, 'departments' => $departments]);
+        $old = $_SESSION['old_input'] ?? [];
+        unset($_SESSION['old_input']);
+        return $this->view('users.create', ['permGroups' => $permGroups, 'positions' => $positions, 'departments' => $departments, 'old' => $old]);
     }
 
     public function store()
@@ -87,6 +89,9 @@ class UserController extends Controller
         $name = trim($data['name'] ?? '');
         $email = trim($data['email'] ?? '');
         $password = $data['password'] ?? '';
+
+        // Save old input for form repopulation
+        $_SESSION['old_input'] = $data;
 
         if (empty($name) || empty($email) || empty($password)) {
             $this->setFlash('error', 'Vui lòng nhập đầy đủ thông tin.');
@@ -139,6 +144,7 @@ class UserController extends Controller
             }
         }
 
+        unset($_SESSION['old_input']);
         $this->setFlash('success', 'Tạo người dùng thành công.');
         return $this->redirect('users');
     }

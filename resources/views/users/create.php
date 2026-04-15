@@ -81,7 +81,7 @@
                                 <select name="position_id" class="form-select">
                                     <option value="">Chọn chức vụ</option>
                                     <?php foreach ($positions ?? [] as $pos): ?>
-                                    <option value="<?= $pos['id'] ?>"><?= e($pos['name']) ?></option>
+                                    <option value="<?= $pos['id'] ?>" <?= ($old['position_id'] ?? '') == $pos['id'] ? 'selected' : '' ?>><?= e($pos['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -91,15 +91,16 @@
                                 <select name="department_id" class="form-select">
                                     <option value="">Chọn phòng ban</option>
                                     <?php foreach ($departments ?? [] as $dept): ?>
-                                    <option value="<?= $dept['id'] ?>"><?= e($dept['name']) ?></option>
+                                    <option value="<?= $dept['id'] ?>" <?= ($old['department_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>><?= e($dept['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Nhóm quyền</label>
                                 <select name="permission_groups[]" class="form-select" multiple size="8">
+                                    <?php $oldGroups = $old['permission_groups'] ?? []; ?>
                                     <?php foreach ($permGroups ?? [] as $pg): ?>
-                                    <option value="<?= $pg['id'] ?>"><?= e($pg['name']) ?><?= $pg['is_system'] ? ' (Hệ thống)' : '' ?></option>
+                                    <option value="<?= $pg['id'] ?>" <?= in_array($pg['id'], $oldGroups) ? 'selected' : '' ?>><?= e($pg['name']) ?><?= $pg['is_system'] ? ' (Hệ thống)' : '' ?></option>
                                     <?php endforeach; ?>
                                 </select>
                                 <small class="text-muted">Giữ Ctrl để chọn nhiều nhóm</small>
