@@ -15,6 +15,7 @@ class DataDefinitionController extends Controller
         'products' => ['label' => 'Sản phẩm', 'icon' => 'ri-shopping-bag-line', 'desc' => 'Định nghĩa dữ liệu sản phẩm'],
         'orders' => ['label' => 'Đơn hàng', 'icon' => 'ri-file-list-3-line', 'desc' => 'Định nghĩa dữ liệu đơn hàng'],
         'order_items' => ['label' => 'Chi tiết đơn hàng', 'icon' => 'ri-list-check', 'desc' => 'Định nghĩa dữ liệu chi tiết đơn hàng'],
+        'quotations' => ['label' => 'Báo giá', 'icon' => 'ri-file-list-2-line', 'desc' => 'Định nghĩa dữ liệu báo giá'],
         'contracts' => ['label' => 'Hợp đồng', 'icon' => 'ri-file-text-line', 'desc' => 'Định nghĩa dữ liệu hợp đồng'],
         'tickets' => ['label' => 'Hỗ trợ', 'icon' => 'ri-customer-service-line', 'desc' => 'Định nghĩa dữ liệu ticket'],
         'users' => ['label' => 'Người dùng', 'icon' => 'ri-user-line', 'desc' => 'Định nghĩa dữ liệu người dùng'],

@@ -3,6 +3,9 @@ $pageTitle = 'Báo giá';
 $currentStatus = $filters['status'] ?? '';
 $qsc = ['pending'=>'warning','approved'=>'primary','has_order'=>'success','no_order'=>'info','deleted'=>'danger'];
 $qsl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','has_order'=>'Đã tạo ĐH','no_order'=>'Chưa tạo ĐH','deleted'=>'Đã xóa'];
+$sc = ['draft'=>'secondary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning','converted'=>'primary'];
+$sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
+$colKeys = array_column($displayColumns ?? [], 'key');
 $totalAll = 0;
 foreach ($stats as $v) $totalAll += (int)$v;
 ?>
@@ -10,7 +13,26 @@ foreach ($stats as $v) $totalAll += (int)$v;
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Báo giá</h4>
             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
                 <a href="<?= url('quotations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo báo giá</a>
+            </div>
+        </div>
+
+        <!-- Column Options Panel -->
+        <div class="card mb-2 d-none" id="columnPanel">
+            <div class="card-body py-3">
+                <h6 class="mb-2">Cột hiển thị</h6>
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    <?php foreach ($displayColumns as $dc): ?>
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                        <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                </div>
             </div>
         </div>
 
@@ -75,24 +97,15 @@ foreach ($stats as $v) $totalAll += (int)$v;
             </div>
         </div>
 
-        <?php
-        $sc = ['draft'=>'secondary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning'];
-        $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','accepted'=>'Chấp nhận','rejected'=>'Từ chối','expired'=>'Hết hạn'];
-        ?>
-
         <div class="card">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Mã BG</th>
-                                <th>Tiêu đề</th>
-                                <th>Khách hàng</th>
-                                <th>Tổng tiền</th>
-                                <th>Hiệu lực đến</th>
-                                <th>Trạng thái</th>
-                                <th>Lượt xem</th>
+                                <?php foreach ($displayColumns as $dc): ?>
+                                <th class="<?= $dc['key'] ?>"><?= e($dc['label']) ?></th>
+                                <?php endforeach; ?>
                                 <th>PDF</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -101,21 +114,39 @@ foreach ($stats as $v) $totalAll += (int)$v;
                             <?php if (!empty($quotations['items'])): ?>
                                 <?php foreach ($quotations['items'] as $q): ?>
                                     <tr>
-                                        <td><a href="<?= url('quotations/' . $q['id']) ?>" class="fw-medium"><?= e($q['quote_number']) ?></a></td>
-                                        <td><?= e($q['title'] ?: '-') ?></td>
-                                        <td><?= e(trim(($q['contact_first_name'] ?? '') . ' ' . ($q['contact_last_name'] ?? ''))) ?: '-' ?></td>
-                                        <td class="fw-medium"><?= format_money($q['total'] ?? 0) ?></td>
-                                        <td>
-                                            <?php if ($q['valid_until']): ?>
-                                                <?php $isExpired = $q['valid_until'] < date('Y-m-d'); ?>
-                                                <span class="<?= $isExpired ? 'text-danger' : 'text-success' ?>"><?= format_date($q['valid_until']) ?></span>
-                                            <?php else: ?>
-                                                -
-                                            <?php endif; ?>
+                                        <?php foreach ($displayColumns as $dc):
+                                            $field = $dc['field'];
+                                            $key = $dc['key'];
+                                            $val = $q[$field] ?? '';
+                                        ?>
+                                        <td class="<?= $key ?>">
+                                        <?php switch ($field):
+                                            case 'quote_number': ?>
+                                                <a href="<?= url('quotations/' . $q['id']) ?>" class="fw-medium"><?= e($val) ?></a>
+                                            <?php break; case 'contact_id': ?>
+                                                <?= e(trim(($q['contact_first_name'] ?? '') . ' ' . ($q['contact_last_name'] ?? ''))) ?: '-' ?>
+                                            <?php break; case 'company_id': ?>
+                                                <?= $val ? e($q['company_name'] ?? '-') : '-' ?>
+                                            <?php break; case 'total': case 'subtotal': case 'tax_amount': case 'discount_amount': ?>
+                                                <?= ($val + 0) > 0 ? format_money($val) : '-' ?>
+                                            <?php break; case 'valid_until': ?>
+                                                <?php if ($val): $isExpired = $val < date('Y-m-d'); ?>
+                                                    <span class="<?= $isExpired ? 'text-danger' : 'text-success' ?>"><?= format_date($val) ?></span>
+                                                <?php else: echo '-'; endif; ?>
+                                            <?php break; case 'status': ?>
+                                                <span class="badge bg-<?= $sc[$val] ?? 'secondary' ?>"><?= $sl[$val] ?? $val ?></span>
+                                            <?php break; case 'view_count': ?>
+                                                <i class="ri-eye-line me-1"></i><?= (int)$val ?>
+                                            <?php break; case 'owner_id': ?>
+                                                <?= e($q['owner_name'] ?? '-') ?>
+                                            <?php break; case 'deal_id': ?>
+                                                <?= $val ? e($q['deal_title'] ?? $val) : '-' ?>
+                                            <?php break; default: ?>
+                                                <?= e($val ?: '-') ?>
+                                        <?php endswitch; ?>
                                         </td>
-                                        <td><span class="badge bg-<?= $sc[$q['status']] ?? 'secondary' ?>"><?= $sl[$q['status']] ?? '' ?></span></td>
-                                        <td><i class="ri-eye-line me-1"></i><?= (int)($q['view_count'] ?? 0) ?></td>
-                                        <td><a href="<?= url('quotations/' . $q['id'] . '/pdf') ?>" target="_blank" class="btn btn-soft-danger btn-icon" title="Xem PDF"><i class="ri-file-pdf-2-line"></i></a></td>
+                                        <?php endforeach; ?>
+                                        <td><a href="<?= url('quotations/' . $q['id'] . '/pdf') ?>" target="_blank" class="btn btn-soft-danger btn-icon" title="PDF"><i class="ri-file-pdf-2-line"></i></a></td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -149,7 +180,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-file-text-line fs-1 d-block mb-2"></i>Chưa có báo giá</td></tr>
+                                <tr><td colspan="<?= count($displayColumns) + 2 ?>" class="text-center py-4 text-muted"><i class="ri-file-text-line fs-1 d-block mb-2"></i>Chưa có báo giá</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -169,3 +200,49 @@ foreach ($stats as $v) $totalAll += (int)$v;
                 <?php endif; ?>
             </div>
         </div>
+
+<script>
+document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
+    var panel = document.getElementById('columnPanel');
+    panel.classList.toggle('d-none');
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+});
+
+(function() {
+    var STORAGE_KEY = 'torycrm_quotations_columns';
+    var allColumns = <?= json_encode($colKeys) ?>;
+    var defaultVisible = ['col-quotenumber','col-title','col-contactid','col-total','col-validuntil','col-status','col-viewcount','col-ownerid'];
+
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
+            if (cb) cb.checked = show;
+        });
+    }
+
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var visible = getVisible();
+            if (this.checked) { if (!visible.includes(this.dataset.column)) visible.push(this.dataset.column); }
+            else { visible = visible.filter(function(c) { return c !== cb.dataset.column; }); }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
+        });
+    });
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaultVisible);
+    });
+
+    applyColumns(getVisible());
+})();
+</script>

@@ -99,6 +99,7 @@ class QuotationController extends Controller
         $totalPages = ceil($total / $perPage);
 
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
+        $displayColumns = \App\Services\ColumnService::getColumns('quotations');
 
         return $this->view('quotations.index', [
             'quotations' => [
@@ -109,6 +110,7 @@ class QuotationController extends Controller
             ],
             'stats' => $stats,
             'contacts' => $contacts,
+            'displayColumns' => $displayColumns,
             'filters' => [
                 'search' => $search,
                 'status' => $status,
