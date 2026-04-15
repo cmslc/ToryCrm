@@ -52,7 +52,13 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Mã số thuế</label>
-                                    <input type="text" class="form-control" name="tax_code" value="<?= e($c['tax_code'] ?? '') ?>">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= e($c['tax_code'] ?? '') ?>" placeholder="Nhập MST rồi bấm tra cứu">
+                                        <button type="button" class="btn btn-soft-info" id="btnLookupTax">
+                                            <i class="ri-search-line me-1"></i> Tra cứu
+                                        </button>
+                                    </div>
+                                    <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Email</label>
@@ -132,3 +138,45 @@
                 </div>
             </div>
         </form>
+
+<script>
+document.getElementById('btnLookupTax')?.addEventListener('click', function() {
+    var taxCode = document.getElementById('taxCodeInput').value.trim();
+    if (!taxCode) { document.getElementById('taxCodeInput').focus(); return; }
+
+    var btn = this;
+    var status = document.getElementById('taxLookupStatus');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i> Đang tra...';
+    status.classList.add('d-none');
+
+    fetch('https://api.vietqr.io/v2/business/' + encodeURIComponent(taxCode))
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === '00' && data.data) {
+                var d = data.data;
+                var nameInput = document.querySelector('input[name="name"]');
+                var addressInput = document.querySelector('input[name="address"]');
+                if (nameInput && !nameInput.value) nameInput.value = d.name || '';
+                if (addressInput && !addressInput.value) addressInput.value = d.address || '';
+                status.textContent = '✓ Đã tìm thấy: ' + (d.name || '');
+                status.classList.remove('d-none', 'text-danger');
+                status.classList.add('text-success');
+            } else {
+                status.textContent = 'Không tìm thấy doanh nghiệp với MST này';
+                status.classList.remove('d-none', 'text-success');
+                status.classList.add('text-danger');
+            }
+        })
+        .catch(() => {
+            status.textContent = 'Lỗi kết nối, vui lòng thử lại';
+            status.classList.remove('d-none', 'text-success');
+            status.classList.add('text-danger');
+        })
+        .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="ri-search-line me-1"></i> Tra cứu'; });
+});
+
+document.getElementById('taxCodeInput')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnLookupTax').click(); }
+});
+</script>

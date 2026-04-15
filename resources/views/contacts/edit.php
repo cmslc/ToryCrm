@@ -254,7 +254,13 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Mã số thuế</label>
-                    <input type="text" class="form-control" id="qcTaxCode">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="qcTaxCode" placeholder="Nhập MST rồi bấm tra cứu">
+                        <button type="button" class="btn btn-soft-info" id="btnQcLookupTax">
+                            <i class="ri-search-line"></i>
+                        </button>
+                    </div>
+                    <div class="form-text text-success d-none" id="qcTaxLookupStatus"></div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Địa chỉ</label>
@@ -313,5 +319,46 @@ document.getElementById('btnQuickCompany')?.addEventListener('click', function()
     })
     .catch(() => alert('Có lỗi xảy ra'))
     .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="ri-save-line me-1"></i> Tạo'; });
+});
+
+// Tra cứu MST trong modal tạo nhanh doanh nghiệp
+document.getElementById('btnQcLookupTax')?.addEventListener('click', function() {
+    var taxCode = document.getElementById('qcTaxCode').value.trim();
+    if (!taxCode) { document.getElementById('qcTaxCode').focus(); return; }
+
+    var btn = this;
+    var status = document.getElementById('qcTaxLookupStatus');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i>';
+    status.classList.add('d-none');
+
+    fetch('https://api.vietqr.io/v2/business/' + encodeURIComponent(taxCode))
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === '00' && data.data) {
+                var d = data.data;
+                var nameEl = document.getElementById('qcName');
+                var addrEl = document.getElementById('qcAddress');
+                if (nameEl && !nameEl.value) nameEl.value = d.name || '';
+                if (addrEl && !addrEl.value) addrEl.value = d.address || '';
+                status.textContent = '✓ Đã tìm thấy: ' + (d.name || '');
+                status.classList.remove('d-none', 'text-danger');
+                status.classList.add('text-success');
+            } else {
+                status.textContent = 'Không tìm thấy doanh nghiệp với MST này';
+                status.classList.remove('d-none', 'text-success');
+                status.classList.add('text-danger');
+            }
+        })
+        .catch(() => {
+            status.textContent = 'Lỗi kết nối, vui lòng thử lại';
+            status.classList.remove('d-none', 'text-success');
+            status.classList.add('text-danger');
+        })
+        .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="ri-search-line"></i>'; });
+});
+
+document.getElementById('qcTaxCode')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnQcLookupTax').click(); }
 });
 </script>
