@@ -33,6 +33,7 @@
                                 <th>Kiểu dữ liệu</th>
                                 <th class="text-center">Bắt buộc</th>
                                 <th>Giá trị mặc định</th>
+                                <th class="text-center" style="width:100px">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,6 +65,22 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="text-muted fs-13"><?= $f['default'] !== null ? e($f['default']) : '-' ?></td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-ghost-primary btn-icon btn-sm edit-field-btn"
+                                        data-name="<?= e($f['name']) ?>"
+                                        data-label="<?= e($f['label']) ?>"
+                                        data-required="<?= $f['required'] ? '1' : '0' ?>"
+                                        data-custom="<?= $f['is_custom'] ? '1' : '0' ?>"
+                                        data-cfid="<?= $f['custom_field_id'] ?? '' ?>"
+                                        title="Sửa"><i class="ri-pencil-line"></i></button>
+                                    <?php if ($f['is_custom']): ?>
+                                    <form method="POST" action="<?= url('settings/data-definition/' . $module . '/delete-field') ?>" class="d-inline" data-confirm="Xóa trường <?= e($f['label']) ?>?">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="field_id" value="<?= $f['custom_field_id'] ?? '' ?>">
+                                        <button type="submit" class="btn btn-ghost-danger btn-icon btn-sm" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+                                    </form>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -143,7 +160,58 @@
     </div>
 </div>
 
+<!-- Modal sửa trường -->
+<div class="modal fade" id="editFieldModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="<?= url('settings/data-definition/' . $module . '/update-field') ?>" id="editFieldForm">
+            <?= csrf_field() ?>
+            <input type="hidden" name="field_name" id="efName">
+            <input type="hidden" name="is_custom" id="efIsCustom">
+            <input type="hidden" name="custom_field_id" id="efCfId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa thuộc tính</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã thuộc tính</label>
+                        <input type="text" class="form-control" id="efCode" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên hiển thị <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="label" id="efLabel" required>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="required" value="1" id="efRequired">
+                            <label class="form-check-label" for="efRequired">Bắt buộc</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i>Lưu</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+// Edit field modal
+document.querySelectorAll('.edit-field-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('efName').value = this.dataset.name;
+        document.getElementById('efCode').value = this.dataset.name;
+        document.getElementById('efLabel').value = this.dataset.label;
+        document.getElementById('efRequired').checked = this.dataset.required === '1';
+        document.getElementById('efIsCustom').value = this.dataset.custom;
+        document.getElementById('efCfId').value = this.dataset.cfid;
+        new bootstrap.Modal(document.getElementById('editFieldModal')).show();
+    });
+});
+
 document.getElementById('activeCount').textContent = <?= $activeCount ?>;
 document.getElementById('systemCount').textContent = <?= $systemCount ?>;
 document.getElementById('customCount').textContent = <?= $customCount ?>;

@@ -120,6 +120,16 @@ class DataDefinitionController extends Controller
             );
         } catch (\Exception $e) {}
 
+        // Load label overrides
+        $overrides = [];
+        try {
+            $ovRows = Database::fetchAll(
+                "SELECT field_name, label, is_required FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
+                [Database::tenantId(), $module]
+            );
+            foreach ($ovRows as $ov) $overrides[$ov['field_name']] = $ov;
+        } catch (\Exception $e) {}
+
         // Build field list
         $fields = [];
         $systemFields = ['id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at'];
@@ -127,13 +137,14 @@ class DataDefinitionController extends Controller
         foreach ($columns as $col) {
             $isSystem = in_array($col['Field'], $systemFields);
             $isNullable = $col['Null'] === 'YES';
+            $ov = $overrides[$col['Field']] ?? null;
             $fields[] = [
                 'name' => $col['Field'],
-                'label' => $this->fieldLabels[$col['Field']] ?? $col['Field'],
+                'label' => $ov ? $ov['label'] : ($this->fieldLabels[$col['Field']] ?? $col['Field']),
                 'type' => $this->parseColumnType($col['Type']),
                 'raw_type' => $col['Type'],
                 'nullable' => $isNullable,
-                'required' => !$isNullable && $col['Default'] === null && $col['Field'] !== 'id',
+                'required' => $ov ? (bool)$ov['is_required'] : (!$isNullable && $col['Default'] === null && $col['Field'] !== 'id'),
                 'default' => $col['Default'],
                 'is_system' => $isSystem,
                 'is_custom' => false,
@@ -164,6 +175,51 @@ class DataDefinitionController extends Controller
             'fields' => $fields,
             'modules' => $this->modules,
         ]);
+    }
+
+    public function updateField($module)
+    {
+        if (!$this->isPost()) return $this->redirect('settings/data-definition/' . $module);
+        $this->authorize('settings', 'manage');
+
+        $fieldName = $this->input('field_name');
+        $label = trim($this->input('label') ?? '');
+        $required = $this->input('required') ? 1 : 0;
+        $isCustom = $this->input('is_custom');
+        $cfId = $this->input('custom_field_id');
+
+        if ($isCustom && $cfId) {
+            // Update custom field
+            Database::update('custom_fields', [
+                'field_label' => $label,
+                'is_required' => $required,
+            ], 'id = ? AND tenant_id = ?', [$cfId, Database::tenantId()]);
+        } else {
+            // Save label override in field_labels table
+            Database::query(
+                "INSERT INTO field_label_overrides (tenant_id, table_name, field_name, label, is_required)
+                 VALUES (?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE label = VALUES(label), is_required = VALUES(is_required)",
+                [Database::tenantId(), $module, $fieldName, $label, $required]
+            );
+        }
+
+        $this->setFlash('success', 'Đã cập nhật thuộc tính.');
+        return $this->redirect('settings/data-definition/' . $module);
+    }
+
+    public function deleteField($module)
+    {
+        if (!$this->isPost()) return $this->redirect('settings/data-definition/' . $module);
+        $this->authorize('settings', 'manage');
+
+        $fieldId = (int)$this->input('field_id');
+        if ($fieldId) {
+            Database::query("DELETE FROM custom_fields WHERE id = ? AND tenant_id = ?", [$fieldId, Database::tenantId()]);
+        }
+
+        $this->setFlash('success', 'Đã xóa trường.');
+        return $this->redirect('settings/data-definition/' . $module);
     }
 
     private function parseColumnType(string $rawType): string
