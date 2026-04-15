@@ -100,6 +100,8 @@ class ContactController extends Controller
             [Database::tenantId()]
         )['count'];
 
+        $displayColumns = \App\Services\ColumnService::getColumns('contacts');
+
         return $this->view('contacts.index', [
             'contacts' => [
                 'items' => $contacts,
@@ -112,6 +114,7 @@ class ContactController extends Controller
             'statusCounts' => $statusCounts,
             'contactStatuses' => $contactStatuses,
             'todayCount' => $todayCount,
+            'displayColumns' => $displayColumns,
             'filters' => [
                 'search' => $search,
                 'status' => $status,

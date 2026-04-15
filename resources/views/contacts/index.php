@@ -18,28 +18,8 @@ if (empty($sLabels)) {
     $sLabels = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
 }
 $currentStatus = $filters['status'] ?? '';
-$columns = [
-    'col-customer' => 'Khách hàng',
-    'col-code' => 'Mã KH',
-    'col-contact' => 'Liên hệ',
-    'col-mobile' => 'Di động',
-    'col-company' => 'Công ty',
-    'col-position' => 'Chức vụ',
-    'col-source' => 'Nguồn',
-    'col-status' => 'Trạng thái',
-    'col-owner' => 'Phụ trách',
-    'col-gender' => 'Giới tính',
-    'col-address' => 'Địa chỉ',
-    'col-birthday' => 'Ngày sinh',
-    'col-group' => 'Nhóm KH',
-    'col-taxcode' => 'MST',
-    'col-website' => 'Website',
-    'col-fax' => 'Fax',
-    'col-referrer' => 'Người giới thiệu',
-    'col-tags' => 'Nhãn',
-    'col-lastcontact' => 'Liên hệ lần cuối',
-    'col-created' => 'Ngày tạo',
-];
+// Columns from ColumnService (dynamic)
+$colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
 <!-- Title Row -->
@@ -104,26 +84,23 @@ $columns = [
 })();
 </script>
 
-<!-- Column Options Panel (WordPress-style) -->
+<!-- Column Options Panel -->
 <div class="card mb-2 d-none" id="columnPanel">
     <div class="card-body py-3">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h6 class="mb-2">Cột</h6>
-                <div class="d-flex flex-wrap gap-3">
-                    <?php foreach ($columns as $colId => $colLabel): ?>
-                    <div class="form-check">
-                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <hr class="my-2">
-                <h6 class="mb-2">Chế độ xem</h6>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="split-view-check">
-                    <label class="form-check-label" for="split-view-check">Xem nhanh (bấm vào dòng để xem chi tiết bên phải)</label>
-                </div>
+        <h6 class="mb-2">Cột hiển thị</h6>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            <?php foreach ($displayColumns as $dc): ?>
+            <div class="form-check">
+                <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="split-view-check">
+                <label class="form-check-label" for="split-view-check">Xem nhanh (bấm vào dòng để xem chi tiết bên phải)</label>
             </div>
             <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
         </div>
@@ -426,7 +403,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 // Column toggle
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
-    var allColumns = ['col-customer','col-code','col-contact','col-mobile','col-company','col-position','col-source','col-status','col-owner','col-gender','col-address','col-birthday','col-group','col-taxcode','col-website','col-fax','col-referrer','col-tags','col-lastcontact','col-created'];
+    var allColumns = <?= json_encode($colKeys) ?>;
     var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-lastcontact','col-created'];
 
     function getVisible() {
