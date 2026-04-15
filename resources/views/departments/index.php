@@ -47,6 +47,11 @@ $activeView = $_GET['view'] ?? 'chart';
                     <i class="ri-list-check me-1"></i> Danh sách
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#viewSort" role="tab">
+                    <i class="ri-drag-move-line me-1"></i> Sắp xếp
+                </a>
+            </li>
         </ul>
     </div>
     <div class="card-body">
@@ -163,6 +168,38 @@ $activeView = $_GET['view'] ?? 'chart';
                 </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Sắp xếp kéo thả -->
+            <div class="tab-pane fade" id="viewSort" role="tabpanel">
+                <div class="alert alert-info mb-3">
+                    <i class="ri-information-line me-1"></i> Kéo thả để sắp xếp và thay đổi cấp phòng ban. Kéo vào phòng ban khác để đặt làm phòng con.
+                </div>
+                <div id="sortTree">
+                    <?php
+                    if (!function_exists('renderSortTree')) {
+                        function renderSortTree($nodes) { ?>
+                            <ul class="sort-list list-unstyled mb-0">
+                            <?php foreach ($nodes as $node): ?>
+                                <li class="sort-item" data-id="<?= $node['id'] ?>">
+                                    <div class="sort-handle d-flex align-items-center gap-2 border rounded px-3 py-2 mb-1 bg-white">
+                                        <i class="ri-draggable text-muted" style="cursor:grab"></i>
+                                        <span class="d-inline-block rounded-circle flex-shrink-0" style="width:10px;height:10px;background:<?= e($node['color']) ?>"></span>
+                                        <span class="fw-medium"><?= e($node['name']) ?></span>
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-auto"><?= $node['member_count'] ?></span>
+                                    </div>
+                                    <?php if (!empty($node['children'])) renderSortTree($node['children']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                            </ul>
+                        <?php }
+                    }
+                    if (!empty($tree)) renderSortTree($tree);
+                    ?>
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-primary" id="saveSortBtn"><i class="ri-save-line me-1"></i>Lưu sắp xếp</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -268,6 +305,13 @@ $activeView = $_GET['view'] ?? 'chart';
     font-size: 10px; font-weight: 600; flex-shrink: 0;
 }
 .org-card-meta { font-size: 11px; color: #888; }
+/* Sort tree */
+.sort-list { padding-left: 24px; }
+#sortTree > .sort-list { padding-left: 0; }
+.sort-item > .sort-handle { transition: background .15s; }
+.sort-item > .sort-handle:hover { background: #f3f6f9 !important; }
+.sortable-ghost > .sort-handle { background: #e8effc !important; border-color: #405189 !important; }
+.sortable-drag { opacity: 0.8; }
 </style>
 
 <script>
@@ -320,5 +364,85 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
             apply();
         }
     }, {passive: false});
+})();
+
+// Nested sortable for department tree
+(function() {
+    var sortLists = document.querySelectorAll('#sortTree .sort-list');
+    if (!sortLists.length) return;
+
+    sortLists.forEach(function(list) {
+        new Sortable(list, {
+            group: 'dept-tree',
+            animation: 150,
+            fallbackOnBody: true,
+            swapThreshold: 0.65,
+            handle: '.sort-handle',
+            draggable: '.sort-item',
+            ghostClass: 'sortable-ghost',
+        });
+    });
+
+    // Also make each sort-item a potential drop target for nesting
+    document.querySelectorAll('.sort-item').forEach(function(item) {
+        if (!item.querySelector('.sort-list')) {
+            var ul = document.createElement('ul');
+            ul.className = 'sort-list list-unstyled mb-0';
+            item.appendChild(ul);
+            new Sortable(ul, {
+                group: 'dept-tree',
+                animation: 150,
+                fallbackOnBody: true,
+                swapThreshold: 0.65,
+                handle: '.sort-handle',
+                draggable: '.sort-item',
+                ghostClass: 'sortable-ghost',
+            });
+        }
+    });
+
+    // Save button
+    document.getElementById('saveSortBtn')?.addEventListener('click', function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i>Đang lưu...';
+
+        var items = [];
+        function collectTree(parentEl, parentId) {
+            var list = parentEl.querySelector(':scope > .sort-list');
+            if (!list) return;
+            var children = list.querySelectorAll(':scope > .sort-item');
+            children.forEach(function(child, index) {
+                var id = parseInt(child.dataset.id);
+                items.push({ id: id, parent_id: parentId, sort_order: index });
+                collectTree(child, id);
+            });
+        }
+        collectTree(document.getElementById('sortTree'), null);
+
+        fetch('<?= url("departments/reorder") ?>', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
+            body: JSON.stringify({ items: items })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                btn.innerHTML = '<i class="ri-check-line me-1"></i>Đã lưu!';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-success');
+                setTimeout(function() { location.reload(); }, 1000);
+            } else {
+                alert(data.error || 'Lỗi');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ri-save-line me-1"></i>Lưu sắp xếp';
+            }
+        })
+        .catch(function() {
+            alert('Lỗi kết nối');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-save-line me-1"></i>Lưu sắp xếp';
+        });
+    });
 })();
 </script>
