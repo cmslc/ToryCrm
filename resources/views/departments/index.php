@@ -306,12 +306,15 @@ $activeView = $_GET['view'] ?? 'chart';
 }
 .org-card-meta { font-size: 11px; color: #888; }
 /* Sort tree */
-.sort-list { padding-left: 24px; }
+.sort-list { padding-left: 28px; }
 #sortTree > .sort-list { padding-left: 0; }
-.sort-item > .sort-handle { transition: background .15s; }
-.sort-item > .sort-handle:hover { background: #f3f6f9 !important; }
-.sortable-ghost > .sort-handle { background: #e8effc !important; border-color: #405189 !important; }
-.sortable-drag { opacity: 0.8; }
+.sort-item > .sort-handle { transition: all .2s ease; cursor: default; }
+.sort-item > .sort-handle .ri-draggable { cursor: grab; font-size: 18px; }
+.sort-item > .sort-handle:hover { background: #f3f6f9 !important; border-color: #c8d0da !important; }
+.sortable-ghost > .sort-handle { background: #e8effc !important; border-color: #405189 !important; border-style: dashed !important; opacity: 0.6; }
+.sortable-drag { opacity: 0.95; z-index: 9999; }
+.sortable-drag > .sort-handle { box-shadow: 0 8px 25px rgba(0,0,0,.15); transform: scale(1.02); }
+.sort-item { transition: margin .2s ease; }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -369,36 +372,43 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
 
 // Nested sortable for department tree
 (function() {
-    var sortLists = document.querySelectorAll('#sortTree .sort-list');
-    if (!sortLists.length) return;
-
-    sortLists.forEach(function(list) {
-        new Sortable(list, {
+    function initSortable(el) {
+        new Sortable(el, {
             group: 'dept-tree',
-            animation: 150,
+            animation: 200,
+            easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
             fallbackOnBody: true,
-            swapThreshold: 0.65,
-            handle: '.sort-handle',
+            swapThreshold: 0.5,
+            handle: '.ri-draggable',
             draggable: '.sort-item',
             ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            forceFallback: true,
+            fallbackTolerance: 3,
+            onEnd: function() {
+                // Ensure all items have child lists for future drops
+                document.querySelectorAll('#sortTree .sort-item').forEach(function(item) {
+                    if (!item.querySelector(':scope > .sort-list')) {
+                        var ul = document.createElement('ul');
+                        ul.className = 'sort-list list-unstyled mb-0';
+                        item.appendChild(ul);
+                        initSortable(ul);
+                    }
+                });
+            }
         });
-    });
+    }
 
-    // Also make each sort-item a potential drop target for nesting
-    document.querySelectorAll('.sort-item').forEach(function(item) {
-        if (!item.querySelector('.sort-list')) {
+    // Init all existing lists
+    document.querySelectorAll('#sortTree .sort-list').forEach(initSortable);
+
+    // Create empty child lists for leaf items
+    document.querySelectorAll('#sortTree .sort-item').forEach(function(item) {
+        if (!item.querySelector(':scope > .sort-list')) {
             var ul = document.createElement('ul');
             ul.className = 'sort-list list-unstyled mb-0';
             item.appendChild(ul);
-            new Sortable(ul, {
-                group: 'dept-tree',
-                animation: 150,
-                fallbackOnBody: true,
-                swapThreshold: 0.65,
-                handle: '.sort-handle',
-                draggable: '.sort-item',
-                ghostClass: 'sortable-ghost',
-            });
+            initSortable(ul);
         }
     });
 
