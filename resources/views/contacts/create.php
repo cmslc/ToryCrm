@@ -49,7 +49,17 @@
                             });
                             </script>
                             <div class="row">
-                                <div class="col-md-8 mb-3">
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">Danh xưng</label>
+                                    <select name="title" class="form-select">
+                                        <option value="">Chọn</option>
+                                        <option value="anh">Anh</option>
+                                        <option value="chị">Chị</option>
+                                        <option value="ông">Ông</option>
+                                        <option value="bà">Bà</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Họ tên <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" required placeholder="VD: Nguyễn Văn A">
                                 </div>
@@ -72,6 +82,10 @@
                                     <input type="text" class="form-control" name="mobile" value="<?= old('mobile') ?>">
                                 </div>
                                 <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fax</label>
+                                    <input type="text" class="form-control" name="fax" value="<?= old('fax') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Chức vụ</label>
                                     <input type="text" class="form-control" name="position" value="<?= old('position') ?>">
                                 </div>
@@ -87,6 +101,14 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Ngày sinh</label>
                                     <input type="date" class="form-control" name="date_of_birth" value="<?= old('date_of_birth') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mã số thuế</label>
+                                    <input type="text" class="form-control" name="tax_code" value="<?= old('tax_code') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Website</label>
+                                    <input type="text" class="form-control" name="website" value="<?= old('website') ?>" placeholder="https://">
                                 </div>
                             </div>
                         </div>

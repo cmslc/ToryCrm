@@ -43,7 +43,16 @@
                     });
                     </script>
                     <div class="row">
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Danh xưng</label>
+                            <select name="title" class="form-select">
+                                <option value="">Chọn</option>
+                                <?php foreach (['anh'=>'Anh','chị'=>'Chị','ông'=>'Ông','bà'=>'Bà'] as $tv=>$tl): ?>
+                                <option value="<?= $tv ?>" <?= ($c['title'] ?? '') === $tv ? 'selected' : '' ?>><?= $tl ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Họ tên <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="full_name" value="<?= e(trim($c['first_name'] . ' ' . ($c['last_name'] ?? ''))) ?>" required>
                         </div>
@@ -66,6 +75,10 @@
                             <input type="text" class="form-control" name="mobile" value="<?= e($c['mobile'] ?? '') ?>">
                         </div>
                         <div class="col-md-6 mb-3">
+                            <label class="form-label">Fax</label>
+                            <input type="text" class="form-control" name="fax" value="<?= e($c['fax'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Chức vụ</label>
                             <input type="text" class="form-control" name="position" value="<?= e($c['position'] ?? '') ?>">
                         </div>
@@ -81,6 +94,14 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Ngày sinh</label>
                             <input type="date" class="form-control" name="date_of_birth" value="<?= $c['date_of_birth'] ?? '' ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Mã số thuế</label>
+                            <input type="text" class="form-control" name="tax_code" value="<?= e($c['tax_code'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Website</label>
+                            <input type="text" class="form-control" name="website" value="<?= e($c['website'] ?? '') ?>" placeholder="https://">
                         </div>
                     </div>
                 </div>
