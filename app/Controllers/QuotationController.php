@@ -38,7 +38,7 @@ class QuotationController extends Controller
         $where = ["q.tenant_id = ?"];
         $params = [$tid];
 
-        $ownerScope = $this->ownerScope('q', 'owner_id');
+        $ownerScope = $this->ownerScope('q', 'owner_id', 'orders');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         if ($search) {

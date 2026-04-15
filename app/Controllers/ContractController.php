@@ -42,7 +42,7 @@ class ContractController extends Controller
             $params[] = $dateTo;
         }
 
-        $ownerScope = $this->ownerScope('ct', 'owner_id');
+        $ownerScope = $this->ownerScope('ct', 'owner_id', 'fund');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         $whereClause = implode(' AND ', $where);

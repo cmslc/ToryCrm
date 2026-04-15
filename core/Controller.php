@@ -147,9 +147,14 @@ class Controller
      * Staff: only own records.
      * Returns ['where' => string, 'params' => array]
      */
-    protected function ownerScope(string $alias = '', string $ownerField = 'owner_id'): array
+    protected function ownerScope(string $alias = '', string $ownerField = 'owner_id', string $module = ''): array
     {
         if ($this->isAdminOrManager()) {
+            return ['where' => '', 'params' => []];
+        }
+
+        // Check view_all permission for specific module
+        if ($module && \App\Services\PermissionService::can($module, 'view_all')) {
             return ['where' => '', 'params' => []];
         }
 

@@ -43,7 +43,7 @@ class DebtController extends Controller
             $params[] = $dateTo;
         }
 
-        $ownerScope = $this->ownerScope('d', 'created_by');
+        $ownerScope = $this->ownerScope('d', 'created_by', 'fund');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         $whereClause = implode(' AND ', $where);

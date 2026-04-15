@@ -43,7 +43,7 @@ class DealController extends Controller
         }
 
         // Owner-based data scoping: staff only sees own records
-        $ownerScope = $this->ownerScope('d', 'owner_id');
+        $ownerScope = $this->ownerScope('d', 'owner_id', 'deals');
         if ($ownerScope['where']) {
             $where[] = $ownerScope['where'];
             $params = array_merge($params, $ownerScope['params']);

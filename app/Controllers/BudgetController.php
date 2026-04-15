@@ -39,7 +39,7 @@ class BudgetController extends Controller
             $params[] = $type;
         }
 
-        $ownerScope = $this->ownerScope('b', 'created_by');
+        $ownerScope = $this->ownerScope('b', 'created_by', 'fund');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         $whereClause = implode(' AND ', $where);

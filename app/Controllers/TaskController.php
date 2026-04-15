@@ -54,7 +54,7 @@ class TaskController extends Controller
         }
 
         // Owner-based data scoping: staff only sees own tasks
-        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        $ownerScope = $this->ownerScope('t', 'assigned_to', 'tasks');
         if ($ownerScope['where']) {
             $where[] = $ownerScope['where'];
             $params = array_merge($params, $ownerScope['params']);
@@ -967,7 +967,7 @@ class TaskController extends Controller
         $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
 
-        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        $ownerScope = $this->ownerScope('t', 'assigned_to', 'tasks');
         if ($ownerScope['where']) {
             $where[] = $ownerScope['where'];
             $params = array_merge($params, $ownerScope['params']);
@@ -1009,7 +1009,7 @@ class TaskController extends Controller
 
         $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
-        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        $ownerScope = $this->ownerScope('t', 'assigned_to', 'tasks');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         $tasks = Database::fetchAll(
@@ -1167,7 +1167,7 @@ class TaskController extends Controller
     {
         $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
-        $ownerScope = $this->ownerScope('t', 'assigned_to');
+        $ownerScope = $this->ownerScope('t', 'assigned_to', 'tasks');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         $tasks = Database::fetchAll(

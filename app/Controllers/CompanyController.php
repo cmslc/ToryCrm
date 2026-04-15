@@ -34,7 +34,7 @@ class CompanyController extends Controller
         if ($ownerId) { $where[] = "c.owner_id = ?"; $params[] = $ownerId; }
 
         // Owner-based data scoping: staff only sees own records
-        $ownerScope = $this->ownerScope('c', 'owner_id');
+        $ownerScope = $this->ownerScope('c', 'owner_id', 'companies');
         if ($ownerScope['where']) {
             $where[] = $ownerScope['where'];
             $params = array_merge($params, $ownerScope['params']);

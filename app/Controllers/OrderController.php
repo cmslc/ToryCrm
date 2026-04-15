@@ -45,7 +45,7 @@ class OrderController extends Controller
         }
 
         // Owner-based data scoping: staff only sees own records
-        $ownerScope = $this->ownerScope('o', 'owner_id');
+        $ownerScope = $this->ownerScope('o', 'owner_id', 'orders');
         if ($ownerScope['where']) {
             $where[] = $ownerScope['where'];
             $params = array_merge($params, $ownerScope['params']);
