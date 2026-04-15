@@ -68,12 +68,6 @@
                                 <span class="badge bg-<?= $isExpired ? 'danger' : 'success' ?> fs-6"><?= date('d/m/Y', strtotime($quotation['valid_until'])) ?></span>
                             </div>
                         <?php endif; ?>
-                        <?php if ($quotation['title']): ?>
-                            <div class="mb-2">
-                                <span class="text-muted">Tiêu đề:</span>
-                                <span class="fw-medium"><?= e($quotation['title']) ?></span>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
 
