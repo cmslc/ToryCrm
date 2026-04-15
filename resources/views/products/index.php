@@ -83,9 +83,14 @@
                             <option value="service" <?= ($filters['type'] ?? '') === 'service' ? 'selected' : '' ?>>Dịch vụ</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 d-flex gap-2 align-items-center">
                         <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
                         <a href="<?= url('products') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
+                        <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                            <?php foreach ([10,20,50,100] as $pp): ?>
+                            <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </form>
 

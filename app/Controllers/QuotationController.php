@@ -15,10 +15,11 @@ class QuotationController extends Controller
         $search = $this->input('search');
         $status = $this->input('status');
         $contactId = $this->input('contact_id');
+        $datePeriod = $this->input('date_period');
         $dateFrom = $this->input('date_from');
         $dateTo = $this->input('date_to');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 10;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 10;
         $offset = ($page - 1) * $perPage;
 
         $tid = Database::tenantId();
@@ -57,14 +58,17 @@ class QuotationController extends Controller
             $params[] = $contactId;
         }
 
-        if ($dateFrom) {
-            $where[] = "q.created_at >= ?";
-            $params[] = $dateFrom . ' 00:00:00';
-        }
-
-        if ($dateTo) {
-            $where[] = "q.created_at <= ?";
-            $params[] = $dateTo . ' 23:59:59';
+        switch ($datePeriod) {
+            case 'today': $where[] = "DATE(q.created_at) = CURDATE()"; break;
+            case 'yesterday': $where[] = "DATE(q.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)"; break;
+            case 'this_week': $where[] = "YEARWEEK(q.created_at, 1) = YEARWEEK(CURDATE(), 1)"; break;
+            case 'this_month': $where[] = "YEAR(q.created_at) = YEAR(CURDATE()) AND MONTH(q.created_at) = MONTH(CURDATE())"; break;
+            case 'last_month': $where[] = "YEAR(q.created_at) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND MONTH(q.created_at) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))"; break;
+            case 'this_year': $where[] = "YEAR(q.created_at) = YEAR(CURDATE())"; break;
+            case 'custom':
+                if ($dateFrom) { $where[] = "DATE(q.created_at) >= ?"; $params[] = $dateFrom; }
+                if ($dateTo) { $where[] = "DATE(q.created_at) <= ?"; $params[] = $dateTo; }
+                break;
         }
 
         $whereClause = implode(' AND ', $where);
@@ -109,8 +113,10 @@ class QuotationController extends Controller
                 'search' => $search,
                 'status' => $status,
                 'contact_id' => $contactId,
+                'date_period' => $datePeriod,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
+                'per_page' => $perPage,
             ],
         ]);
     }

@@ -111,14 +111,30 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>" placeholder="Từ ngày">
+                        <?php $dp = $filters['date_period'] ?? ''; ?>
+                        <select name="date_period" class="form-select" onchange="if(this.value==='custom'){document.getElementById('qCustomDate').classList.remove('d-none')}else{this.form.submit()}">
+                            <option value="">Thời gian</option>
+                            <option value="today" <?= $dp === 'today' ? 'selected' : '' ?>>Hôm nay</option>
+                            <option value="yesterday" <?= $dp === 'yesterday' ? 'selected' : '' ?>>Hôm qua</option>
+                            <option value="this_week" <?= $dp === 'this_week' ? 'selected' : '' ?>>Tuần này</option>
+                            <option value="this_month" <?= $dp === 'this_month' ? 'selected' : '' ?>>Tháng này</option>
+                            <option value="last_month" <?= $dp === 'last_month' ? 'selected' : '' ?>>Tháng trước</option>
+                            <option value="this_year" <?= $dp === 'this_year' ? 'selected' : '' ?>>Năm nay</option>
+                            <option value="custom" <?= $dp === 'custom' ? 'selected' : '' ?>>Thời gian khác</option>
+                        </select>
                     </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" name="date_to" value="<?= e($filters['date_to'] ?? '') ?>" placeholder="Đến ngày">
-                    </div>
-                    <div class="col-md-2">
+                    <div class="col-md-4 d-flex gap-2 align-items-center">
+                        <div id="qCustomDate" class="d-flex gap-1 <?= $dp === 'custom' ? '' : 'd-none' ?>">
+                            <input type="date" name="date_from" class="form-control" style="width:auto" value="<?= e($filters['date_from'] ?? '') ?>">
+                            <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($filters['date_to'] ?? '') ?>">
+                        </div>
                         <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
                         <a href="<?= url('quotations') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
+                        <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                            <?php foreach ([10,20,50,100] as $pp): ?>
+                            <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </form>
 
