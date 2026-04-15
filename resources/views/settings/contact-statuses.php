@@ -19,14 +19,16 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
     </ol>
 </div>
 
+<?php $activeTab = $_GET['tab'] ?? 'statuses'; ?>
 <ul class="nav nav-tabs nav-tabs-custom mb-3" role="tablist">
-    <li class="nav-item"><a class="nav-link <?= ($_GET['tab'] ?? '') !== 'tags' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabStatuses"><i class="ri-shield-check-line me-1"></i> Trạng thái KH <span class="badge bg-primary-subtle text-primary ms-1"><?= count($statuses) ?></span></a></li>
-    <li class="nav-item"><a class="nav-link <?= ($_GET['tab'] ?? '') === 'tags' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabTags"><i class="ri-price-tag-3-line me-1"></i> Nhãn <span class="badge bg-info-subtle text-info ms-1"><?= count($tags) ?></span></a></li>
+    <li class="nav-item"><a class="nav-link <?= $activeTab === 'statuses' || !in_array($activeTab, ['tags','sources']) ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabStatuses"><i class="ri-shield-check-line me-1"></i> Trạng thái KH <span class="badge bg-primary-subtle text-primary ms-1"><?= count($statuses) ?></span></a></li>
+    <li class="nav-item"><a class="nav-link <?= $activeTab === 'sources' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabSources"><i class="ri-compass-line me-1"></i> Nguồn KH <span class="badge bg-success-subtle text-success ms-1"><?= count($sources ?? []) ?></span></a></li>
+    <li class="nav-item"><a class="nav-link <?= $activeTab === 'tags' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabTags"><i class="ri-price-tag-3-line me-1"></i> Nhãn <span class="badge bg-info-subtle text-info ms-1"><?= count($tags) ?></span></a></li>
 </ul>
 
 <div class="tab-content">
 <!-- ===== TRẠNG THÁI TAB ===== -->
-<div class="tab-pane <?= ($_GET['tab'] ?? '') !== 'tags' ? 'active' : '' ?>" id="tabStatuses">
+<div class="tab-pane <?= $activeTab === 'statuses' || !in_array($activeTab, ['tags','sources']) ? 'active' : '' ?>" id="tabStatuses">
 <div class="row">
     <div class="col-xl-8">
         <div class="card">
@@ -132,8 +134,66 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
 </div>
 </div>
 
+<!-- ===== NGUỒN KH TAB ===== -->
+<div class="tab-pane <?= $activeTab === 'sources' ? 'active' : '' ?>" id="tabSources">
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0">Danh sách nguồn KH</h5></div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th style="width:40px"></th><th>Nguồn</th><th>Màu</th><th>Số KH</th><th>Thao tác</th></tr>
+                        </thead>
+                        <tbody id="sortableSources">
+                            <?php foreach ($sources ?? [] as $src): ?>
+                            <tr data-id="<?= $src['id'] ?>">
+                                <td class="text-center" style="cursor:grab"><i class="ri-drag-move-line text-muted"></i></td>
+                                <td class="fw-medium"><?= e($src['name']) ?></td>
+                                <td><span class="d-inline-block rounded-circle" style="width:14px;height:14px;background:<?= e($src['color']) ?>"></span></td>
+                                <td><span class="badge bg-secondary-subtle text-secondary"><?= $src['use_count'] ?? 0 ?></span></td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-soft-primary btn-icon edit-source-btn" data-id="<?= $src['id'] ?>" data-name="<?= e($src['name']) ?>" data-color="<?= e($src['color']) ?>" title="Sửa"><i class="ri-pencil-line"></i></button>
+                                        <form method="POST" action="<?= url('settings/contact-sources/' . $src['id'] . '/delete') ?>" data-confirm="Xóa nguồn <?= e($src['name']) ?>?">
+                                            <?= csrf_field() ?>
+                                            <button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0" id="sourceFormTitle">Thêm nguồn KH</h5></div>
+            <div class="card-body">
+                <form method="POST" action="<?= url('settings/contact-sources/store') ?>" id="sourceForm">
+                    <?= csrf_field() ?>
+                    <div class="mb-3">
+                        <label class="form-label">Tên nguồn <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" id="sourceName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Màu</label>
+                        <input type="color" class="form-control form-control-color" name="color" id="sourceColor" value="#405189">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="ri-save-line me-1"></i> Lưu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
 <!-- ===== NHÃN TAB ===== -->
-<div class="tab-pane <?= ($_GET['tab'] ?? '') === 'tags' ? 'active' : '' ?>" id="tabTags">
+<div class="tab-pane <?= $activeTab === 'tags' ? 'active' : '' ?>" id="tabTags">
 <div class="row">
     <div class="col-xl-4">
         <div class="card">
@@ -289,6 +349,37 @@ document.querySelectorAll('.delete-tag-btn').forEach(function(btn) {
             tbody.querySelectorAll('tr').forEach(function(r) { if (r.dataset.id) ids.push(r.dataset.id); });
             var body = '_token=<?= csrf_token() ?>&' + ids.map(function(id, i) { return 'ids[' + i + ']=' + id; }).join('&');
             fetch('<?= url('settings/contact-statuses/reorder') ?>', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: body
+            });
+        }
+    });
+})();
+
+// === Source edit ===
+document.querySelectorAll('.edit-source-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('sourceForm').action = '<?= url('settings/contact-sources/') ?>' + this.dataset.id + '/update';
+        document.getElementById('sourceFormTitle').textContent = 'Sửa nguồn KH';
+        document.getElementById('sourceName').value = this.dataset.name;
+        document.getElementById('sourceColor').value = this.dataset.color;
+    });
+});
+
+// === Source drag reorder ===
+(function() {
+    var tbody = document.getElementById('sortableSources');
+    if (!tbody || typeof Sortable === 'undefined') return;
+    new Sortable(tbody, {
+        handle: '.ri-drag-move-line',
+        animation: 200,
+        ghostClass: 'table-active',
+        onEnd: function() {
+            var ids = [];
+            tbody.querySelectorAll('tr').forEach(function(r) { if (r.dataset.id) ids.push(r.dataset.id); });
+            var body = '_token=<?= csrf_token() ?>&' + ids.map(function(id, i) { return 'ids[' + i + ']=' + id; }).join('&');
+            fetch('<?= url('settings/contact-sources/reorder') ?>', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: body

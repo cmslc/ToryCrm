@@ -18,9 +18,15 @@ class ContactStatusController extends Controller
             [$this->tenantId()]
         );
 
+        $sources = Database::fetchAll(
+            "SELECT cs.*, (SELECT COUNT(*) FROM contacts WHERE source_id = cs.id) as use_count FROM contact_sources cs WHERE cs.tenant_id = ? ORDER BY cs.sort_order",
+            [$this->tenantId()]
+        );
+
         return $this->view('settings.contact-statuses', [
             'statuses' => $statuses,
             'tags' => $tags,
+            'sources' => $sources,
         ]);
     }
 
@@ -160,5 +166,53 @@ class ContactStatusController extends Controller
         $text = preg_replace('/[^a-z0-9\s-]/', '', $text);
         $text = preg_replace('/[\s-]+/', '_', $text);
         return trim($text, '_');
+    }
+
+    // ===== SOURCES =====
+    public function storeSource()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/contact-statuses?tab=sources');
+        $name = trim($this->input('name') ?? '');
+        if (empty($name)) { $this->setFlash('error', 'Tên nguồn không được trống.'); return $this->back(); }
+
+        $maxSort = Database::fetch("SELECT MAX(sort_order) as m FROM contact_sources WHERE tenant_id = ?", [$this->tenantId()])['m'] ?? 0;
+        Database::insert('contact_sources', [
+            'tenant_id' => $this->tenantId(),
+            'name' => $name,
+            'color' => $this->input('color') ?: '#405189',
+            'sort_order' => $maxSort + 1,
+        ]);
+        $this->setFlash('success', 'Đã thêm nguồn KH.');
+        return $this->redirect('settings/contact-statuses?tab=sources');
+    }
+
+    public function updateSource($id)
+    {
+        if (!$this->isPost()) return $this->redirect('settings/contact-statuses?tab=sources');
+        Database::update('contact_sources', [
+            'name' => trim($this->input('name') ?? ''),
+            'color' => $this->input('color') ?: '#405189',
+        ], 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        $this->setFlash('success', 'Đã cập nhật nguồn KH.');
+        return $this->redirect('settings/contact-statuses?tab=sources');
+    }
+
+    public function deleteSource($id)
+    {
+        if (!$this->isPost()) return $this->redirect('settings/contact-statuses?tab=sources');
+        Database::query("UPDATE contacts SET source_id = NULL WHERE source_id = ? AND tenant_id = ?", [(int)$id, $this->tenantId()]);
+        Database::delete('contact_sources', 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        $this->setFlash('success', 'Đã xóa nguồn KH.');
+        return $this->redirect('settings/contact-statuses?tab=sources');
+    }
+
+    public function reorderSources()
+    {
+        $ids = $this->input('ids');
+        if (!is_array($ids)) return $this->json(['error' => 'Invalid'], 400);
+        foreach ($ids as $order => $id) {
+            Database::update('contact_sources', ['sort_order' => $order + 1], 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        }
+        return $this->json(['success' => true]);
     }
 }
