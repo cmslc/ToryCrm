@@ -81,7 +81,7 @@
     <div class="header">
         <div class="header-left">
             <?php if (!empty($branding['logo_url'])): ?>
-            <img src="<?= BASE_PATH . '/public/' . $branding['logo_url'] ?>" alt="" style="max-height:50px;margin-bottom:8px">
+            <img src="<?= url($branding['logo_url']) ?>" alt="" style="max-height:50px;margin-bottom:8px">
             <?php endif; ?>
             <h2><?= e($branding['name'] ?? 'ToryCRM') ?></h2>
             <?php if (!empty($branding['address'])): ?><p>Trụ sở: <?= e($branding['address']) ?></p><?php endif; ?>
