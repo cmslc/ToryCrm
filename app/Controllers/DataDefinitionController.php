@@ -30,6 +30,8 @@ class DataDefinitionController extends Controller
         'country' => 'Quốc gia', 'description' => 'Mô tả', 'status' => 'Trạng thái',
         'customer_group' => 'Nhóm KH', 'referrer_code' => 'Người giới thiệu',
         'is_private' => 'Riêng tư', 'score' => 'Điểm', 'avatar' => 'Ảnh đại diện',
+        'tax_code' => 'Mã số thuế', 'website' => 'Website', 'fax' => 'Fax',
+        'latitude' => 'Kinh độ', 'longitude' => 'Vĩ độ',
         'company_id' => 'Công ty', 'source_id' => 'Nguồn KH', 'owner_id' => 'Người phụ trách',
         'created_by' => 'Người tạo', 'created_at' => 'Ngày tạo', 'updated_at' => 'Ngày cập nhật',
         'last_activity_at' => 'Liên hệ lần cuối', 'is_deleted' => 'Đã xóa', 'deleted_at' => 'Ngày xóa',
@@ -89,6 +91,21 @@ class DataDefinitionController extends Controller
 
         // Common
         'id' => 'ID', 'sort_order' => 'Thứ tự',
+        // Companies extra
+        'deal_code' => 'Mã cơ hội', 'task_code' => 'Mã công việc',
+        'ticket_code' => 'Mã ticket', 'contract_number' => 'Mã hợp đồng',
+        'content' => 'Nội dung', 'contact_phone' => 'SĐT liên hệ',
+        'contact_email' => 'Email liên hệ', 'campaign_id' => 'Chiến dịch',
+        'start_date' => 'Ngày bắt đầu', 'end_date' => 'Ngày kết thúc',
+    ];
+
+    // Module-specific label overrides (when same column means different things)
+    private array $moduleLabels = [
+        'contacts' => ['title' => 'Danh xưng'],
+        'deals' => ['title' => 'Tiêu đề'],
+        'tasks' => ['title' => 'Tiêu đề'],
+        'tickets' => ['title' => 'Tiêu đề'],
+        'contracts' => ['title' => 'Tiêu đề'],
     ];
 
     public function index()
@@ -173,7 +190,7 @@ class DataDefinitionController extends Controller
             $ov = $overrides[$col['Field']] ?? null;
             $fields[] = [
                 'name' => $col['Field'],
-                'label' => $ov ? $ov['label'] : ($this->fieldLabels[$col['Field']] ?? $col['Field']),
+                'label' => $ov ? $ov['label'] : ($this->moduleLabels[$module][$col['Field']] ?? $this->fieldLabels[$col['Field']] ?? $col['Field']),
                 'type' => $this->parseColumnType($col['Type']),
                 'raw_type' => $col['Type'],
                 'nullable' => $isNullable,
