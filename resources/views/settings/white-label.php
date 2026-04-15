@@ -16,12 +16,55 @@
                             <h5 class="card-title mb-0"><i class="ri-building-line me-2"></i>Thông tin công ty</h5>
                         </div>
                         <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Tên công ty / Thương hiệu</label>
-                                <input type="text" class="form-control" name="name" id="brandName"
-                                       value="<?= e($branding['name'] ?? 'ToryCRM') ?>"
-                                       placeholder="ToryCRM">
-                                <div class="form-text">Tên này sẽ hiển thị trên sidebar, tiêu đề trang và các báo cáo.</div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="name" id="brandName" value="<?= e($branding['name'] ?? 'ToryCRM') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mã số thuế</label>
+                                    <input type="text" class="form-control" name="tax_code" value="<?= e($branding['tax_code'] ?? '') ?>">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Trụ sở chính</label>
+                                    <input type="text" class="form-control" name="address" value="<?= e($branding['address'] ?? '') ?>" placeholder="VD: 352 Giải Phóng, Phương Liệt, Thanh Xuân, HN">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Chi nhánh</label>
+                                    <input type="text" class="form-control" name="branch_address" value="<?= e($branding['branch_address'] ?? '') ?>" placeholder="Địa chỉ chi nhánh (nếu có)">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" value="<?= e($branding['email'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Điện thoại / Hotline</label>
+                                    <input type="text" class="form-control" name="phone" value="<?= e($branding['phone'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fax</label>
+                                    <input type="text" class="form-control" name="fax" value="<?= e($branding['fax'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Website</label>
+                                    <input type="text" class="form-control" name="website" value="<?= e($branding['website'] ?? '') ?>" placeholder="https://">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Người đại diện</label>
+                                    <input type="text" class="form-control" name="representative" value="<?= e($branding['representative'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Chức vụ người đại diện</label>
+                                    <input type="text" class="form-control" name="representative_title" value="<?= e($branding['representative_title'] ?? '') ?>" placeholder="VD: Giám đốc">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Số tài khoản</label>
+                                    <input type="text" class="form-control" name="bank_account" value="<?= e($branding['bank_account'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngân hàng</label>
+                                    <input type="text" class="form-control" name="bank_name" value="<?= e($branding['bank_name'] ?? '') ?>">
+                                </div>
                             </div>
                         </div>
                     </div>

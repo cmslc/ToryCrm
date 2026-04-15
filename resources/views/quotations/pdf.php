@@ -81,8 +81,17 @@
     <div class="header">
         <div class="header-left">
             <h2><?= e($branding['name'] ?? 'ToryCRM') ?></h2>
-            <?php if (!empty($branding['address'])): ?><p><?= e($branding['address']) ?></p><?php endif; ?>
-            <?php if (!empty($branding['phone'])): ?><p><?= e($branding['phone']) ?><?= !empty($branding['email']) ? ' · ' . e($branding['email']) : '' ?></p><?php endif; ?>
+            <?php if (!empty($branding['address'])): ?><p>Trụ sở: <?= e($branding['address']) ?></p><?php endif; ?>
+            <?php if (!empty($branding['branch_address'])): ?><p>Chi nhánh: <?= e($branding['branch_address']) ?></p><?php endif; ?>
+            <p>
+                <?php if (!empty($branding['phone'])): ?>Hotline: <?= e($branding['phone']) ?><?php endif; ?>
+                <?php if (!empty($branding['fax'])): ?> · Fax: <?= e($branding['fax']) ?><?php endif; ?>
+            </p>
+            <p>
+                <?php if (!empty($branding['email'])): ?>Email: <?= e($branding['email']) ?><?php endif; ?>
+                <?php if (!empty($branding['website'])): ?> · <?= e($branding['website']) ?><?php endif; ?>
+            </p>
+            <?php if (!empty($branding['tax_code'])): ?><p>MST: <?= e($branding['tax_code']) ?></p><?php endif; ?>
         </div>
         <div class="header-right">
             <div class="doc-type">BÁO GIÁ</div>
@@ -92,7 +101,7 @@
 
     <!-- Meta bar -->
     <div class="meta-bar">
-        <span>Ngày tạo: <strong><?= date('d/m/Y', strtotime($quotation['created_at'])) ?></strong></span>
+        <span>Ngày: <strong><?= date('d/m/Y', strtotime($quotation['created_at'])) ?></strong></span>
         <?php if ($quotation['valid_until']): ?>
         <span>Hiệu lực đến: <strong><?= date('d/m/Y', strtotime($quotation['valid_until'])) ?></strong></span>
         <?php endif; ?>
@@ -208,15 +217,32 @@
     </div>
     <?php endif; ?>
 
+    <!-- Bank info -->
+    <?php if (!empty($branding['bank_account'])): ?>
+    <div class="notes-section">
+        <div class="note-box">
+            <div class="note-title">Thông tin thanh toán</div>
+            <p>
+                Số TK: <strong><?= e($branding['bank_account']) ?></strong><br>
+                Ngân hàng: <strong><?= e($branding['bank_name'] ?? '') ?></strong><br>
+                Chủ TK: <strong><?= e($branding['name'] ?? '') ?></strong>
+            </p>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Signatures -->
     <div class="signatures">
         <div class="sig-block">
-            <div class="sig-label">Người lập</div>
+            <div class="sig-label">Đại diện bên bán</div>
             <div class="sig-line"></div>
-            <div class="sig-name"><?= e($quotation['owner_name'] ?? '') ?></div>
+            <div class="sig-name"><?= e($branding['representative'] ?? $quotation['owner_name'] ?? '') ?></div>
+            <?php if (!empty($branding['representative_title'])): ?>
+            <div style="font-size:11px;color:#888"><?= e($branding['representative_title']) ?></div>
+            <?php endif; ?>
         </div>
         <div class="sig-block">
-            <div class="sig-label">Khách hàng xác nhận</div>
+            <div class="sig-label">Đại diện bên mua</div>
             <div class="sig-line"></div>
             <div class="sig-name"><?= e(trim(($quotation['contact_first_name'] ?? '') . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></div>
         </div>

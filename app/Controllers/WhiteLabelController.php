@@ -26,6 +26,17 @@ class WhiteLabelController extends Controller
 
         $branding = [
             'name' => trim($data['name'] ?? 'ToryCRM'),
+            'tax_code' => trim($data['tax_code'] ?? ''),
+            'address' => trim($data['address'] ?? ''),
+            'branch_address' => trim($data['branch_address'] ?? ''),
+            'email' => trim($data['email'] ?? ''),
+            'phone' => trim($data['phone'] ?? ''),
+            'fax' => trim($data['fax'] ?? ''),
+            'website' => trim($data['website'] ?? ''),
+            'representative' => trim($data['representative'] ?? ''),
+            'representative_title' => trim($data['representative_title'] ?? ''),
+            'bank_account' => trim($data['bank_account'] ?? ''),
+            'bank_name' => trim($data['bank_name'] ?? ''),
             'primary_color' => trim($data['primary_color'] ?? '#405189'),
             'sidebar_color' => trim($data['sidebar_color'] ?? ''),
             'login_bg' => trim($data['login_bg'] ?? ''),
