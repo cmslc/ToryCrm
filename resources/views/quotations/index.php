@@ -93,6 +93,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                 <th>Hiệu lực đến</th>
                                 <th>Trạng thái</th>
                                 <th>Lượt xem</th>
+                                <th>PDF</th>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -114,6 +115,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                         </td>
                                         <td><span class="badge bg-<?= $sc[$q['status']] ?? 'secondary' ?>"><?= $sl[$q['status']] ?? '' ?></span></td>
                                         <td><i class="ri-eye-line me-1"></i><?= (int)($q['view_count'] ?? 0) ?></td>
+                                        <td><a href="<?= url('quotations/' . $q['id'] . '/pdf') ?>" target="_blank" class="btn btn-soft-danger btn-icon" title="Xem PDF"><i class="ri-file-pdf-2-line"></i></a></td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -147,7 +149,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="8" class="text-center py-4 text-muted"><i class="ri-file-text-line fs-1 d-block mb-2"></i>Chưa có báo giá</td></tr>
+                                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-file-text-line fs-1 d-block mb-2"></i>Chưa có báo giá</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
