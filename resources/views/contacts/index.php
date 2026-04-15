@@ -145,6 +145,11 @@ $colKeys = array_column($displayColumns ?? [], 'key');
             <?php if (!empty(array_filter($filters ?? []))): ?>
                 <a href="<?= url('contacts') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
             <?php endif; ?>
+            <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                <?php foreach ([10,20,50,100] as $pp): ?>
+                <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                <?php endforeach; ?>
+            </select>
         </form>
     </div>
     <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
@@ -335,11 +340,6 @@ $colKeys = array_column($displayColumns ?? [], 'key');
             <div class="text-muted fs-13">
                 Hiển thị <strong><?= (($contacts['page'] - 1) * ($filters['per_page'] ?? 10)) + 1 ?> - <?= min($contacts['page'] * ($filters['per_page'] ?? 10), $contacts['total']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng
             </div>
-            <select name="per_page" class="form-select" style="width:auto" onchange="location.href='<?= url('contacts?per_page=') ?>'+this.value+'&<?= http_build_query(array_diff_key($filters ?? [], ['per_page'=>'','page'=>''])) ?>'">
-                <?php foreach ([10,20,50,100] as $pp): ?>
-                <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
-                <?php endforeach; ?>
-            </select>
             <nav>
                 <ul class="pagination mb-0">
                     <?php if ($contacts['page'] > 1): ?>

@@ -53,6 +53,11 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                     <?php if (!empty(array_filter($filters ?? []))): ?>
                         <a href="<?= url('deals') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
                     <?php endif; ?>
+                    <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                        <?php foreach ([10,20,50,100] as $pp): ?>
+                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                        <?php endforeach; ?>
+                    </select>
                 </form>
             </div>
             <div class="card-body p-0">
@@ -127,11 +132,6 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <?php if (($deals['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div class="text-muted">Hiển thị <?= count($deals['items']) ?> / <?= $deals['total'] ?></div>
-                        <select name="per_page" class="form-select" style="width:auto" onchange="location.href='<?= url('deals?per_page=') ?>'+this.value+'&<?= http_build_query(array_diff_key($filters ?? [], ['per_page'=>'','page'=>''])) ?>'">
-                            <?php foreach ([10,20,50,100] as $pp): ?>
-                            <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
-                            <?php endforeach; ?>
-                        </select>
                         <nav><ul class="pagination mb-0">
                             <?php for ($i = 1; $i <= $deals['total_pages']; $i++): ?>
                                 <li class="page-item <?= $i === $deals['page'] ? 'active' : '' ?>">
