@@ -314,6 +314,7 @@ $activeView = $_GET['view'] ?? 'chart';
 .sortable-drag { opacity: 0.8; }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.querySelectorAll('.edit-dept').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
