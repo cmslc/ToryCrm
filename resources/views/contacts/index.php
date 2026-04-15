@@ -248,7 +248,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     }
                                     echo '<div>';
                                     echo '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium text-dark">' . e($fullName ?: '-') . '</a>';
-                                    if ($addr) echo '<div class="text-muted fs-11"><i class="ri-map-pin-line me-1"></i>' . e($addr) . '</div>';
+                                    if ($addr) echo '<div class="text-muted fs-12"><i class="ri-map-pin-line me-1"></i>' . e($addr) . '</div>';
                                     echo '</div></div>';
                                     break;
                                 case 'account_code':
