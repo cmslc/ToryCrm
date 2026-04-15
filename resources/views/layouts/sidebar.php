@@ -32,8 +32,8 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
     <div class="navbar-brand-box">
         <a href="<?= url('dashboard') ?>" class="logo logo-dark">
             <?php if ($_brandLogo): ?>
-                <span class="logo-sm"><img src="<?= e($_brandLogo) ?>" alt="" height="22"></span>
-                <span class="logo-lg"><img src="<?= e($_brandLogo) ?>" alt="" height="28"></span>
+                <span class="logo-sm"><img src="<?= asset($_brandLogo) ?>" alt="" height="22"></span>
+                <span class="logo-lg"><img src="<?= asset($_brandLogo) ?>" alt="" height="28"></span>
             <?php else: ?>
                 <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color)"></i></span>
                 <span class="logo-lg"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color);margin-right:6px"></i><span style="font-size:17px;font-weight:700;color:var(--vz-vertical-menu-item-active-color)"><?= e($_brandName) ?></span></span>
@@ -41,8 +41,8 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
         </a>
         <a href="<?= url('dashboard') ?>" class="logo logo-light">
             <?php if ($_brandLogo): ?>
-                <span class="logo-sm"><img src="<?= e($_brandLogo) ?>" alt="" height="22"></span>
-                <span class="logo-lg"><img src="<?= e($_brandLogo) ?>" alt="" height="28"></span>
+                <span class="logo-sm"><img src="<?= asset($_brandLogo) ?>" alt="" height="22"></span>
+                <span class="logo-lg"><img src="<?= asset($_brandLogo) ?>" alt="" height="28"></span>
             <?php else: ?>
                 <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff"></i></span>
                 <span class="logo-lg"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff;margin-right:6px"></i><span style="font-size:17px;font-weight:700;color:#fff"><?= e($_brandName) ?></span></span>
