@@ -151,8 +151,12 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                                 <?= $val === 'service' ? '<span class="badge bg-info-subtle text-info">Dịch vụ</span>' : '<span class="badge bg-primary-subtle text-primary">Sản phẩm</span>' ?>
                                             <?php break; case 'category_id': ?>
                                                 <?= e($product['category_name'] ?? '-') ?>
-                                            <?php break; case 'price': case 'cost_price': ?>
-                                                <?= format_money($val) ?>
+                                            <?php break; case 'origin_id': ?>
+                                                <?= e($product['origin_name'] ?? '-') ?>
+                                            <?php break; case 'manufacturer_id': ?>
+                                                <?= e($product['manufacturer_name'] ?? '-') ?>
+                                            <?php break; case 'price': case 'cost_price': case 'price_wholesale': case 'price_online': case 'saleoff_price': ?>
+                                                <?= ($val + 0) > 0 ? format_money($val) : '-' ?>
                                             <?php break; case 'stock_quantity': ?>
                                                 <?php if ($product['type'] === 'product'): ?>
                                                     <?php if ($val <= ($product['min_stock'] ?? 0)): ?>
