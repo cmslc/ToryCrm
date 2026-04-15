@@ -97,7 +97,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Nhóm quyền</label>
-                                <select name="permission_groups[]" class="form-select" multiple size="4">
+                                <select name="permission_groups[]" class="form-select" multiple size="8">
                                     <?php foreach ($permGroups ?? [] as $pg): ?>
                                     <option value="<?= $pg['id'] ?>"><?= e($pg['name']) ?><?= $pg['is_system'] ? ' (Hệ thống)' : '' ?></option>
                                     <?php endforeach; ?>

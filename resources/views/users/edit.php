@@ -225,7 +225,7 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Nhóm quyền</label>
-                                    <select name="permission_groups[]" class="form-select" multiple size="4">
+                                    <select name="permission_groups[]" class="form-select" multiple size="8">
                                         <?php foreach ($permGroups ?? [] as $pg): ?>
                                         <option value="<?= $pg['id'] ?>" <?= in_array($pg['id'], $userGroupIds ?? []) ? 'selected' : '' ?>><?= e($pg['name']) ?><?= $pg['is_system'] ? ' (Hệ thống)' : '' ?></option>
                                         <?php endforeach; ?>
