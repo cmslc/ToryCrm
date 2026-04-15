@@ -32,6 +32,7 @@
                                 <th>Mã thuộc tính</th>
                                 <th>Kiểu dữ liệu</th>
                                 <th class="text-center">Bắt buộc</th>
+                                <th class="text-center">Kiểm tra trùng</th>
                                 <th>Giá trị mặc định</th>
                                 <th class="text-center" style="width:100px">Thao tác</th>
                             </tr>
@@ -64,12 +65,20 @@
                                     <span class="text-muted">Không</span>
                                     <?php endif; ?>
                                 </td>
+                                <td class="text-center">
+                                    <?php if (!empty($f['check_duplicate'])): ?>
+                                    <span class="badge bg-warning">Có</span>
+                                    <?php else: ?>
+                                    <span class="text-muted">Không</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-muted fs-13"><?= $f['default'] !== null ? e($f['default']) : '-' ?></td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-ghost-primary btn-icon btn-sm edit-field-btn"
                                         data-name="<?= e($f['name']) ?>"
                                         data-label="<?= e($f['label']) ?>"
                                         data-required="<?= $f['required'] ? '1' : '0' ?>"
+                                        data-duplicate="<?= !empty($f['check_duplicate']) ? '1' : '0' ?>"
                                         data-custom="<?= $f['is_custom'] ? '1' : '0' ?>"
                                         data-cfid="<?= $f['custom_field_id'] ?? '' ?>"
                                         title="Sửa"><i class="ri-pencil-line"></i></button>
@@ -188,6 +197,13 @@
                             <label class="form-check-label" for="efRequired">Bắt buộc</label>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="check_duplicate" value="1" id="efDuplicate">
+                            <label class="form-check-label" for="efDuplicate">Kiểm tra trùng dữ liệu</label>
+                        </div>
+                        <small class="text-muted">Cảnh báo khi giá trị đã tồn tại trong hệ thống</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -206,6 +222,7 @@ document.querySelectorAll('.edit-field-btn').forEach(function(btn) {
         document.getElementById('efCode').value = this.dataset.name;
         document.getElementById('efLabel').value = this.dataset.label;
         document.getElementById('efRequired').checked = this.dataset.required === '1';
+        document.getElementById('efDuplicate').checked = this.dataset.duplicate === '1';
         document.getElementById('efIsCustom').value = this.dataset.custom;
         document.getElementById('efCfId').value = this.dataset.cfid;
         new bootstrap.Modal(document.getElementById('editFieldModal')).show();

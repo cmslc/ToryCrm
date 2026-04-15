@@ -124,7 +124,7 @@ class DataDefinitionController extends Controller
         $overrides = [];
         try {
             $ovRows = Database::fetchAll(
-                "SELECT field_name, label, is_required FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
+                "SELECT field_name, label, is_required, check_duplicate FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
                 [Database::tenantId(), $module]
             );
             foreach ($ovRows as $ov) $overrides[$ov['field_name']] = $ov;
@@ -145,6 +145,7 @@ class DataDefinitionController extends Controller
                 'raw_type' => $col['Type'],
                 'nullable' => $isNullable,
                 'required' => $ov ? (bool)$ov['is_required'] : (!$isNullable && $col['Default'] === null && $col['Field'] !== 'id'),
+                'check_duplicate' => $ov ? (bool)($ov['check_duplicate'] ?? 0) : false,
                 'default' => $col['Default'],
                 'is_system' => $isSystem,
                 'is_custom' => false,
@@ -185,6 +186,7 @@ class DataDefinitionController extends Controller
         $fieldName = $this->input('field_name');
         $label = trim($this->input('label') ?? '');
         $required = $this->input('required') ? 1 : 0;
+        $checkDuplicate = $this->input('check_duplicate') ? 1 : 0;
         $isCustom = $this->input('is_custom');
         $cfId = $this->input('custom_field_id');
 
@@ -194,15 +196,15 @@ class DataDefinitionController extends Controller
                 'field_label' => $label,
                 'is_required' => $required,
             ], 'id = ? AND tenant_id = ?', [$cfId, Database::tenantId()]);
-        } else {
-            // Save label override in field_labels table
-            Database::query(
-                "INSERT INTO field_label_overrides (tenant_id, table_name, field_name, label, is_required)
-                 VALUES (?, ?, ?, ?, ?)
-                 ON DUPLICATE KEY UPDATE label = VALUES(label), is_required = VALUES(is_required)",
-                [Database::tenantId(), $module, $fieldName, $label, $required]
-            );
         }
+
+        // Save label override + check_duplicate
+        Database::query(
+            "INSERT INTO field_label_overrides (tenant_id, table_name, field_name, label, is_required, check_duplicate)
+             VALUES (?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE label = VALUES(label), is_required = VALUES(is_required), check_duplicate = VALUES(check_duplicate)",
+            [Database::tenantId(), $module, $fieldName, $label, $required, $checkDuplicate]
+        );
 
         $this->setFlash('success', 'Đã cập nhật thuộc tính.');
         return $this->redirect('settings/data-definition/' . $module);
