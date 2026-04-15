@@ -1,12 +1,34 @@
-<?php $pageTitle = 'Sản phẩm & Dịch vụ'; ?>
+<?php
+$pageTitle = 'Sản phẩm & Dịch vụ';
+$colKeys = array_column($displayColumns ?? [], 'key');
+?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Sản phẩm & Dịch vụ</h4>
             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
                 <a href="<?= url('products/settings') ?>" class="btn btn-soft-secondary"><i class="ri-folder-settings-line me-1"></i> Danh mục</a>
                 <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportProdModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
                 <a href="<?= url('products/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
                 <a href="<?= url('products/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm sản phẩm</a>
+            </div>
+        </div>
+
+        <!-- Column Options Panel -->
+        <div class="card mb-2 d-none" id="columnPanel">
+            <div class="card-body py-3">
+                <h6 class="mb-2">Cột hiển thị</h6>
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    <?php foreach ($displayColumns as $dc): ?>
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                        <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                </div>
             </div>
         </div>
 
@@ -97,14 +119,9 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Sản phẩm</th>
-                                <th>SKU</th>
-                                <th>Loại</th>
-                                <th>Danh mục</th>
-                                <th>Đơn giá</th>
-                                <th>Giá vốn</th>
-                                <th>Tồn kho</th>
-                                <th>Trạng thái</th>
+                                <?php foreach ($displayColumns as $dc): ?>
+                                <th class="<?= $dc['key'] ?>"><?= e($dc['label']) ?></th>
+                                <?php endforeach; ?>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -112,48 +129,43 @@
                             <?php if (!empty($products['items'])): ?>
                                 <?php foreach ($products['items'] as $product): ?>
                                     <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <?php if (!empty($product['image'])): ?>
-                                                    <img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded me-2" style="width:40px;height:40px;object-fit:cover">
-                                                <?php else: ?>
-                                                    <div class="avatar-sm me-2 flex-shrink-0"><span class="avatar-title bg-light rounded"><i class="ri-image-line text-muted"></i></span></div>
-                                                <?php endif; ?>
-                                                <a href="<?= url('products/' . $product['id']) ?>" class="fw-medium text-dark">
-                                                    <?= e($product['name']) ?>
-                                                </a>
-                                            </div>
+                                        <?php foreach ($displayColumns as $dc):
+                                            $field = $dc['field'];
+                                            $key = $dc['key'];
+                                            $val = $product[$field] ?? '';
+                                        ?>
+                                        <td class="<?= $key ?>">
+                                        <?php switch ($field):
+                                            case 'name': ?>
+                                                <div class="d-flex align-items-center">
+                                                    <?php if (!empty($product['image'])): ?>
+                                                        <img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded me-2" style="width:40px;height:40px;object-fit:cover">
+                                                    <?php else: ?>
+                                                        <div class="avatar-sm me-2 flex-shrink-0"><span class="avatar-title bg-light rounded"><i class="ri-image-line text-muted"></i></span></div>
+                                                    <?php endif; ?>
+                                                    <a href="<?= url('products/' . $product['id']) ?>" class="fw-medium text-dark"><?= e($product['name']) ?></a>
+                                                </div>
+                                            <?php break; case 'sku': ?>
+                                                <code><?= e($val ?: '-') ?></code>
+                                            <?php break; case 'type': ?>
+                                                <?= $val === 'service' ? '<span class="badge bg-info-subtle text-info">Dịch vụ</span>' : '<span class="badge bg-primary-subtle text-primary">Sản phẩm</span>' ?>
+                                            <?php break; case 'category_id': ?>
+                                                <?= e($product['category_name'] ?? '-') ?>
+                                            <?php break; case 'price': case 'cost_price': ?>
+                                                <?= format_money($val) ?>
+                                            <?php break; case 'stock_quantity': ?>
+                                                <?php if ($product['type'] === 'product'): ?>
+                                                    <?php if ($val <= ($product['min_stock'] ?? 0)): ?>
+                                                        <span class="text-danger fw-medium"><?= $val ?></span> <i class="ri-error-warning-line text-danger"></i>
+                                                    <?php else: echo $val; endif; ?>
+                                                <?php else: ?><span class="text-muted">-</span><?php endif; ?>
+                                            <?php break; case 'is_active': ?>
+                                                <?= $val ? '<span class="badge bg-success-subtle text-success">Hoạt động</span>' : '<span class="badge bg-danger-subtle text-danger">Ngừng</span>' ?>
+                                            <?php break; default: ?>
+                                                <?= e($val ?: '-') ?>
+                                        <?php endswitch; ?>
                                         </td>
-                                        <td><code><?= e($product['sku'] ?? '-') ?></code></td>
-                                        <td>
-                                            <?php if ($product['type'] === 'service'): ?>
-                                                <span class="badge bg-info-subtle text-info">Dịch vụ</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-primary-subtle text-primary">Sản phẩm</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?= e($product['category_name'] ?? '-') ?></td>
-                                        <td class="fw-medium"><?= format_money($product['price']) ?></td>
-                                        <td><?= format_money($product['cost_price']) ?></td>
-                                        <td>
-                                            <?php if ($product['type'] === 'product'): ?>
-                                                <?php if ($product['stock_quantity'] <= $product['min_stock']): ?>
-                                                    <span class="text-danger fw-medium"><?= $product['stock_quantity'] ?></span>
-                                                    <i class="ri-error-warning-line text-danger" title="Tồn kho thấp"></i>
-                                                <?php else: ?>
-                                                    <?= $product['stock_quantity'] ?>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($product['is_active']): ?>
-                                                <span class="badge bg-success-subtle text-success">Hoạt động</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger-subtle text-danger">Ngừng</span>
-                                            <?php endif; ?>
-                                        </td>
+                                        <?php endforeach; ?>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -216,3 +228,49 @@
                 <?php endif; ?>
             </div>
         </div>
+
+<script>
+document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
+    var panel = document.getElementById('columnPanel');
+    panel.classList.toggle('d-none');
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+});
+
+(function() {
+    var STORAGE_KEY = 'torycrm_products_columns';
+    var allColumns = <?= json_encode($colKeys) ?>;
+    var defaultVisible = ['col-name','col-sku','col-type','col-categoryid','col-price','col-costprice','col-stockquantity','col-isactive'];
+
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
+            if (cb) cb.checked = show;
+        });
+    }
+
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var visible = getVisible();
+            if (this.checked) { if (!visible.includes(this.dataset.column)) visible.push(this.dataset.column); }
+            else { visible = visible.filter(function(c) { return c !== cb.dataset.column; }); }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
+        });
+    });
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaultVisible);
+    });
+
+    applyColumns(getVisible());
+})();
+</script>

@@ -56,6 +56,8 @@ class ProductController extends Controller
         $categories = Database::fetchAll("SELECT * FROM product_categories ORDER BY sort_order, name");
         $totalPages = ceil($total / $perPage);
 
+        $displayColumns = \App\Services\ColumnService::getColumns('products');
+
         return $this->view('products.index', [
             'products' => [
                 'items' => $products,
@@ -64,6 +66,7 @@ class ProductController extends Controller
                 'total_pages' => $totalPages,
             ],
             'categories' => $categories,
+            'displayColumns' => $displayColumns,
             'filters' => [
                 'search' => $search,
                 'category_id' => $categoryId,
