@@ -292,7 +292,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
                 <?php endif; /* end $_isManager */ ?>
 
-                <?php $settingsOpen = isOpen(['settings','custom-fields','tags','departments','help'], $currentUrl); ?>
+                <?php $settingsOpen = isOpen(['settings','custom-fields','tags','departments','help','data-definition'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
                         <i class="ri-tools-line"></i> <span>Cài đặt</span>
@@ -309,6 +309,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">Thương hiệu</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
                             <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive(['settings/contact-statuses','tags'], $currentUrl) ?>">Nhãn & Trạng thái</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/data-definition') ?>" class="nav-link <?= isActive('settings/data-definition', $currentUrl) ?>">Định nghĩa dữ liệu</a></li>
                             <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api-keys') ?>" class="nav-link <?= isActive('settings/api-keys', $currentUrl) ?>">API Keys</a></li>
                             <li class="nav-item"><a href="<?= url('settings/audit-log') ?>" class="nav-link <?= isActive('settings/audit-log', $currentUrl) ?>">Audit Log</a></li>
