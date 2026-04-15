@@ -233,7 +233,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                 $key = $dc['key'];
                                 $val = $c[$field] ?? '';
                             ?>
-                            <td class="<?= $key ?> fs-12">
+                            <td class="<?= $key ?>">
                             <?php
                             // Custom rendering per field
                             switch ($field):
