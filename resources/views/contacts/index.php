@@ -167,13 +167,6 @@ $columns = [
 <!-- Status Bar -->
 <div class="card mb-3">
 <div class="card-body py-2 px-3 d-flex align-items-center gap-1">
-    <div class="dropdown flex-shrink-0">
-        <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-settings-3-line"></i></button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
-            <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
-        </ul>
-    </div>
     <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft"><i class="ri-arrow-left-s-line fs-18"></i></button>
     <div class="flex-grow-1 d-flex" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
     <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
@@ -198,6 +191,13 @@ $columns = [
         </div>
     </div>
     <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight"><i class="ri-arrow-right-s-line fs-18"></i></button>
+    <div class="dropdown flex-shrink-0 ms-auto">
+        <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
+            <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
+        </ul>
+    </div>
     <script>
     (function() {
         var container = document.getElementById('tabScrollContainer');
