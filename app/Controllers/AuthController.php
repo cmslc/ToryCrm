@@ -66,6 +66,14 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        // Remember me - extend session to 30 days
+        if ($this->input('remember')) {
+            $lifetime = 30 * 24 * 60 * 60; // 30 days
+            ini_set('session.gc_maxlifetime', $lifetime);
+            session_set_cookie_params($lifetime);
+            setcookie(session_name(), session_id(), time() + $lifetime, '/');
+        }
+
         // Update last login
         Database::update('users', [
             'last_login' => date('Y-m-d H:i:s'),
