@@ -15,7 +15,7 @@ class DealController extends Controller
         $status = $this->input('status');
         $ownerId = $this->input('owner_id');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 10;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 10;
         $offset = ($page - 1) * $perPage;
 
         $where = ["d.tenant_id = ?"];
@@ -91,6 +91,7 @@ class DealController extends Controller
                 'stage_id' => $stageId,
                 'status' => $status,
                 'owner_id' => $ownerId,
+                'per_page' => $perPage,
             ],
             'displayColumns' => $displayColumns,
         ]);

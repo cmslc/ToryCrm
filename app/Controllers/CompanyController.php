@@ -16,7 +16,7 @@ class CompanyController extends Controller
         $city = $this->input('city');
         $ownerId = $this->input('owner_id');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 20;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 10;
         $offset = ($page - 1) * $perPage;
 
         $where = ["c.is_deleted = 0", "c.tenant_id = ?"];
@@ -81,6 +81,7 @@ class CompanyController extends Controller
                 'company_size' => $companySize,
                 'city' => $city,
                 'owner_id' => $ownerId,
+                'per_page' => $perPage,
             ],
         ]);
     }

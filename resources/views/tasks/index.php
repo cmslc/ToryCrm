@@ -210,6 +210,11 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
         <?php if (($tasks['total_pages'] ?? 0) > 1): ?>
             <div class="d-flex justify-content-between align-items-center p-3 border-top">
                 <div class="text-muted">Hiển thị <?= count($tasks['items']) ?> / <?= $tasks['total'] ?></div>
+                <select name="per_page" class="form-select" style="width:auto" onchange="location.href='<?= url('tasks?per_page=') ?>'+this.value+'&<?= http_build_query(array_diff_key($filters ?? [], ['per_page'=>'','page'=>''])) ?>'">
+                    <?php foreach ([10,20,50,100] as $pp): ?>
+                    <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                    <?php endforeach; ?>
+                </select>
                 <nav><ul class="pagination mb-0">
                     <?php for ($i = 1; $i <= $tasks['total_pages']; $i++): ?>
                         <li class="page-item <?= $i === $tasks['page'] ? 'active' : '' ?>">

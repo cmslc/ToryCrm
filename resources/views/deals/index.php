@@ -127,6 +127,11 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <?php if (($deals['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div class="text-muted">Hiển thị <?= count($deals['items']) ?> / <?= $deals['total'] ?></div>
+                        <select name="per_page" class="form-select" style="width:auto" onchange="location.href='<?= url('deals?per_page=') ?>'+this.value+'&<?= http_build_query(array_diff_key($filters ?? [], ['per_page'=>'','page'=>''])) ?>'">
+                            <?php foreach ([10,20,50,100] as $pp): ?>
+                            <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                            <?php endforeach; ?>
+                        </select>
                         <nav><ul class="pagination mb-0">
                             <?php for ($i = 1; $i <= $deals['total_pages']; $i++): ?>
                                 <li class="page-item <?= $i === $deals['page'] ? 'active' : '' ?>">

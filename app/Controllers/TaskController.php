@@ -17,7 +17,7 @@ class TaskController extends Controller
         $dueFrom = $this->input('due_from');
         $dueTo = $this->input('due_to');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 10;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 10;
         $offset = ($page - 1) * $perPage;
 
         $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
@@ -118,6 +118,7 @@ class TaskController extends Controller
                 'assigned_to' => $assignedTo,
                 'due_from' => $dueFrom,
                 'due_to' => $dueTo,
+                'per_page' => $perPage,
             ],
             'statusCounts' => $statusCounts,
             'users' => $users,
