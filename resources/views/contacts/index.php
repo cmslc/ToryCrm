@@ -20,6 +20,7 @@ if (empty($sLabels)) {
 $currentStatus = $filters['status'] ?? '';
 $columns = [
     'col-customer' => 'Khách hàng',
+    'col-code' => 'Mã KH',
     'col-contact' => 'Liên hệ',
     'col-mobile' => 'Di động',
     'col-company' => 'Công ty',
@@ -234,6 +235,7 @@ $columns = [
                     <tr>
                         <th style="width:30px" class="ps-3"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <th class="col-customer">Khách hàng</th>
+                        <th class="col-code">Mã KH</th>
                         <th class="col-contact">Liên hệ</th>
                         <th class="col-mobile">Di động</th>
                         <th class="col-company">Công ty</th>
@@ -277,6 +279,7 @@ $columns = [
                                     </div>
                                 </div>
                             </td>
+                            <td class="col-code"><code class="fs-12"><?= e($c['account_code'] ?? '') ?: '-' ?></code></td>
                             <td class="col-contact">
                                 <?php if ($c['email']): ?><div class="fs-12"><i class="ri-mail-line me-1 text-muted"></i><?= e($c['email']) ?></div><?php endif; ?>
                                 <?php if ($c['phone']): ?><div class="fs-12"><i class="ri-phone-line me-1 text-muted"></i><?= e($c['phone']) ?></div><?php endif; ?>
@@ -423,7 +426,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 // Column toggle
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
-    var allColumns = ['col-customer','col-contact','col-mobile','col-company','col-position','col-source','col-status','col-owner','col-gender','col-address','col-birthday','col-group','col-taxcode','col-website','col-fax','col-referrer','col-tags','col-lastcontact','col-created'];
+    var allColumns = ['col-customer','col-code','col-contact','col-mobile','col-company','col-position','col-source','col-status','col-owner','col-gender','col-address','col-birthday','col-group','col-taxcode','col-website','col-fax','col-referrer','col-tags','col-lastcontact','col-created'];
     var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-lastcontact','col-created'];
 
     function getVisible() {
