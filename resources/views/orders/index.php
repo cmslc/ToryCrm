@@ -65,6 +65,11 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                         <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($filters['date_to'] ?? '') ?>" title="Đến ngày">
                     </div>
                     <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
+                    <select name="per_page" class="form-select" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                        <?php foreach ([10,20,50,100] as $pp): ?>
+                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                        <?php endforeach; ?>
+                    </select>
                     <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
                     <?php if (!empty(array_filter($filters ?? []))): ?>
                         <a href="<?= url('orders') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
