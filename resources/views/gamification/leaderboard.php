@@ -50,7 +50,7 @@ $podiumOrder = [1, 0, 2]; // Display 2nd, 1st, 3rd
                         </p>
                         <div class="d-flex justify-content-center gap-3 text-muted">
                             <small><i class="ri-hand-coin-line me-1"></i><?= (int)($entry['deals_won'] ?? 0) ?> deal</small>
-                            <small><i class="ri-star-line me-1"></i><?= (int)($entry['points'] ?? 0) ?> điểm</small>
+                            <small><i class="ri-calendar-check-line me-1"></i><?= (int)($entry['activities_count'] ?? 0) ?> hoạt động</small>
                         </div>
                     </div>
                 </div>
@@ -81,7 +81,6 @@ $podiumOrder = [1, 0, 2]; // Display 2nd, 1st, 3rd
                         <th class="text-center">Deal thắng</th>
                         <th class="text-end">Doanh thu</th>
                         <th class="text-center">Hoạt động</th>
-                        <th class="text-center">Điểm</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,9 +112,6 @@ $podiumOrder = [1, 0, 2]; // Display 2nd, 1st, 3rd
                         <td class="text-center"><span class="fw-medium"><?= (int)($entry['deals_won'] ?? 0) ?></span></td>
                         <td class="text-end fw-medium"><?= number_format((float)($entry['revenue'] ?? 0), 0, ',', '.') ?> VNĐ</td>
                         <td class="text-center"><?= (int)($entry['activities_count'] ?? 0) ?></td>
-                        <td class="text-center">
-                            <span class="badge bg-primary fs-6"><?= (int)($entry['points'] ?? 0) ?></span>
-                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

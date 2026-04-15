@@ -20,7 +20,7 @@ class GamificationController extends Controller
              FROM leaderboard_snapshots ls
              JOIN users u ON ls.user_id = u.id
              WHERE ls.tenant_id = ? AND ls.period = ?
-             ORDER BY ls.points DESC, ls.revenue DESC",
+             ORDER BY ls.revenue DESC, ls.deals_won DESC",
             [$tid, $period]
         );
 
