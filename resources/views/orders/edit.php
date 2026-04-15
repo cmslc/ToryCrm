@@ -77,6 +77,52 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                         </div>
                     </div>
 
+                    <!-- Giao hàng -->
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0">Thông tin giao hàng</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Người nhận</label>
+                                    <input type="text" class="form-control" name="shipping_contact" value="<?= e($order['shipping_contact'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">SĐT người nhận</label>
+                                    <input type="text" class="form-control" name="shipping_phone" value="<?= e($order['shipping_phone'] ?? '') ?>">
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Địa chỉ giao hàng</label>
+                                    <input type="text" class="form-control" name="shipping_address" value="<?= e($order['shipping_address'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Tỉnh/TP</label>
+                                    <input type="text" class="form-control" name="shipping_province" value="<?= e($order['shipping_province'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Quận/Huyện</label>
+                                    <input type="text" class="form-control" name="shipping_district" value="<?= e($order['shipping_district'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Mã vận đơn</label>
+                                    <input type="text" class="form-control" name="lading_code" value="<?= e($order['lading_code'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Trạng thái vận đơn</label>
+                                    <select name="lading_status" class="form-select">
+                                        <option value="">Chọn</option>
+                                        <?php foreach (['pending'=>'Chờ giao','shipping'=>'Đang giao','delivered'=>'Đã giao','returned'=>'Hoàn trả'] as $lk=>$lv): ?>
+                                        <option value="<?= $lk ?>" <?= ($order['lading_status'] ?? '') === $lk ? 'selected' : '' ?>><?= $lv ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Hoa hồng</label>
+                                    <input type="number" class="form-control" name="commission_amount" value="<?= $order['commission_amount'] ?? 0 ?>" min="0" step="1000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Order Items -->
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">

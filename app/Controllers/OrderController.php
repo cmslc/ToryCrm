@@ -169,6 +169,14 @@ class OrderController extends Controller
                 'issued_date' => !empty($data['issued_date']) ? $data['issued_date'] : date('Y-m-d'),
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
                 'created_by' => $this->userId(),
+                'shipping_address' => trim($data['shipping_address'] ?? '') ?: null,
+                'shipping_contact' => trim($data['shipping_contact'] ?? '') ?: null,
+                'shipping_phone' => trim($data['shipping_phone'] ?? '') ?: null,
+                'shipping_province' => trim($data['shipping_province'] ?? '') ?: null,
+                'shipping_district' => trim($data['shipping_district'] ?? '') ?: null,
+                'lading_code' => trim($data['lading_code'] ?? '') ?: null,
+                'lading_status' => trim($data['lading_status'] ?? '') ?: null,
+                'commission_amount' => (float)($data['commission_amount'] ?? 0),
             ]);
 
             // Add order items
@@ -406,6 +414,14 @@ class OrderController extends Controller
             'due_date' => !empty($data['due_date']) ? $data['due_date'] : null,
             'issued_date' => !empty($data['issued_date']) ? $data['issued_date'] : null,
             'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
+            'shipping_address' => trim($data['shipping_address'] ?? '') ?: null,
+            'shipping_contact' => trim($data['shipping_contact'] ?? '') ?: null,
+            'shipping_phone' => trim($data['shipping_phone'] ?? '') ?: null,
+            'shipping_province' => trim($data['shipping_province'] ?? '') ?: null,
+            'shipping_district' => trim($data['shipping_district'] ?? '') ?: null,
+            'lading_code' => trim($data['lading_code'] ?? '') ?: null,
+            'lading_status' => trim($data['lading_status'] ?? '') ?: null,
+            'commission_amount' => (float)($data['commission_amount'] ?? 0),
         ], 'id = ?', [$id]);
 
         // Update order items - delete old and re-insert
