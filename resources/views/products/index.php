@@ -63,36 +63,35 @@
 </script>
 
         <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?= url('products') ?>" class="row g-3 mb-4">
-                    <div class="col-md-3">
+            <div class="card-header p-2">
+                <form method="GET" action="<?= url('products') ?>" class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="search-box" style="min-width:200px;max-width:300px">
                         <input type="text" class="form-control" name="search" placeholder="Tìm kiếm tên, SKU..." value="<?= e($filters['search'] ?? '') ?>">
+                        <i class="ri-search-line search-icon"></i>
                     </div>
-                    <div class="col-md-2">
-                        <select name="category_id" class="form-select">
-                            <option value="">Danh mục</option>
-                            <?php foreach ($categories ?? [] as $cat): ?>
-                                <option value="<?= $cat['id'] ?>" <?= ($filters['category_id'] ?? '') == $cat['id'] ? 'selected' : '' ?>><?= e($cat['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="type" class="form-select">
-                            <option value="">Loại</option>
-                            <option value="product" <?= ($filters['type'] ?? '') === 'product' ? 'selected' : '' ?>>Sản phẩm</option>
-                            <option value="service" <?= ($filters['type'] ?? '') === 'service' ? 'selected' : '' ?>>Dịch vụ</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex gap-2 align-items-center">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
-                        <a href="<?= url('products') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
-                        <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
-                            <?php foreach ([10,20,50,100] as $pp): ?>
-                            <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <select name="category_id" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                        <option value="">Danh mục</option>
+                        <?php foreach ($categories ?? [] as $cat): ?>
+                            <option value="<?= $cat['id'] ?>" <?= ($filters['category_id'] ?? '') == $cat['id'] ? 'selected' : '' ?>><?= e($cat['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="type" class="form-select" style="width:auto;min-width:100px" onchange="this.form.submit()">
+                        <option value="">Loại</option>
+                        <option value="product" <?= ($filters['type'] ?? '') === 'product' ? 'selected' : '' ?>>Sản phẩm</option>
+                        <option value="service" <?= ($filters['type'] ?? '') === 'service' ? 'selected' : '' ?>>Dịch vụ</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+                    <?php if (!empty(array_filter($filters ?? []))): ?>
+                        <a href="<?= url('products') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                    <?php endif; ?>
+                    <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                        <?php foreach ([10,20,50,100] as $pp): ?>
+                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                        <?php endforeach; ?>
+                    </select>
                 </form>
+            </div>
+            <div class="card-body p-0">
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
