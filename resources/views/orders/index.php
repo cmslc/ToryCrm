@@ -10,7 +10,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
             <h4 class="mb-0">Đơn hàng & Báo giá</h4>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
-                <a href="<?= url('orders/create?type=quote') ?>" class="btn btn-soft-info"><i class="ri-file-text-line me-1"></i> Tạo báo giá</a>
+                <a href="<?= url('orders/export?format=csv') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Export</a>
                 <a href="<?= url('orders/create?type=order') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn hàng</a>
             </div>
         </div>

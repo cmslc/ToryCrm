@@ -14,6 +14,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
             <h4 class="mb-0">Báo giá</h4>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
+                <a href="<?= url('quotations/export?format=csv') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Export</a>
                 <a href="<?= url('quotations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo báo giá</a>
             </div>
         </div>
