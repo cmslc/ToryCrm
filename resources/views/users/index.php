@@ -83,6 +83,7 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                         <th>Nhân viên</th>
                         <th>Phòng ban</th>
                         <th>Chức vụ</th>
+                        <th>Nhóm quyền</th>
                         <th>Trạng thái</th>
                         <th>Đăng nhập cuối</th>
                         <th style="width:140px">Thao tác</th>
@@ -110,7 +111,16 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                                 </div>
                             </td>
                             <td><?= e($u['dept_name'] ?? $u['department'] ?? '-') ?></td>
-                            <td><span class="badge bg-<?= $rc[$u['role']] ?? 'secondary' ?>"><?= $rl[$u['role']] ?? '' ?></span></td>
+                            <td><?= e($u['position_name'] ?? '-') ?></td>
+                            <td>
+                                <?php if (!empty($userGroupMap[$u['id']])): ?>
+                                    <?php foreach ($userGroupMap[$u['id']] as $ug): ?>
+                                    <span class="badge rounded-pill me-1" style="background-color:<?= e($ug['color'] ?? '#405189') ?>"><?= e($ug['name']) ?></span>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <span class="text-muted fs-12">-</span>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <?= ($u['is_active'] ?? false)
                                     ? '<span class="badge bg-success-subtle text-success">Hoạt động</span>'

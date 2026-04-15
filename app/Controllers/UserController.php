@@ -36,12 +36,20 @@ class UserController extends Controller
 
         $total = Database::fetch("SELECT COUNT(*) as count FROM users u WHERE {$whereClause}", $params)['count'];
         $users = Database::fetchAll(
-            "SELECT u.*, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE {$whereClause} ORDER BY u.created_at DESC LIMIT {$perPage} OFFSET {$offset}",
+            "SELECT u.*, d.name as dept_name, p.name as position_name FROM users u LEFT JOIN departments d ON u.department_id = d.id LEFT JOIN positions p ON u.position_id = p.id WHERE {$whereClause} ORDER BY u.created_at DESC LIMIT {$perPage} OFFSET {$offset}",
             $params
         );
         $totalPages = ceil($total / $perPage);
 
         $departments = Database::fetchAll("SELECT id, name FROM departments WHERE tenant_id = ? ORDER BY name", [$tid]);
+
+        // User-group mappings
+        $userGroupMap = [];
+        $ugRows = Database::fetchAll(
+            "SELECT upg.user_id, pg.name, pg.color FROM user_permission_groups upg JOIN permission_groups pg ON upg.group_id = pg.id WHERE pg.tenant_id = ?",
+            [$tid]
+        );
+        foreach ($ugRows as $row) { $userGroupMap[$row['user_id']][] = $row; }
 
         return $this->view('users.index', [
             'users' => [
@@ -51,6 +59,7 @@ class UserController extends Controller
                 'total_pages' => $totalPages,
             ],
             'departments' => $departments,
+            'userGroupMap' => $userGroupMap,
             'filters' => [
                 'search' => $search,
                 'role' => $role,
