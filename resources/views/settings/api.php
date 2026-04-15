@@ -133,6 +133,57 @@ $userChats = \Core\Database::fetch("SELECT COUNT(DISTINCT user_id) as c FROM ai_
             </div>
         </div>
 
+        <!-- Tra cứu MST Config -->
+        <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-building-2-line me-1"></i> Tra cứu mã số thuế</h5></div>
+            <div class="card-body">
+                <div class="alert alert-info mb-3">
+                    <i class="ri-information-line me-1"></i> Hệ thống tự động tra cứu thông tin doanh nghiệp khi nhập MST. Kết quả được cache 24 giờ.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Nguồn dữ liệu</th><th>URL</th><th>Ưu tiên</th><th>Trạng thái</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="fw-medium">VietQR API</span>
+                                    <div class="text-muted fs-12">Miễn phí, không cần API key</div>
+                                </td>
+                                <td><code class="fs-12">api.vietqr.io/v2/business/{mst}</code></td>
+                                <td><span class="badge bg-primary">Ưu tiên 1</span></td>
+                                <td><span class="badge bg-success-subtle text-success">Hoạt động</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="fw-medium">OpenAPI.vn</span>
+                                    <div class="text-muted fs-12">Fallback khi VietQR lỗi</div>
+                                </td>
+                                <td><code class="fs-12">api.openapi.vn/company/{mst}</code></td>
+                                <td><span class="badge bg-secondary">Ưu tiên 2</span></td>
+                                <td><span class="badge bg-success-subtle text-success">Hoạt động</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <h6 class="mb-2">Thống kê cache</h6>
+                    <?php
+                    $cacheCount = 0;
+                    try { $cacheCount = (int)(\Core\Database::fetch("SELECT COUNT(*) as c FROM tax_lookup_cache")['c'] ?? 0); } catch (\Exception $e) {}
+                    ?>
+                    <div class="d-flex gap-3">
+                        <div class="text-muted">Đã cache: <strong><?= number_format($cacheCount) ?></strong> doanh nghiệp</div>
+                        <form method="POST" action="<?= url('settings/api/clear-tax-cache') ?>" class="d-inline" data-confirm="Xóa toàn bộ cache tra cứu MST?">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-soft-danger py-0 px-2 fs-12"><i class="ri-delete-bin-line me-1"></i>Xóa cache</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- AI Behavior Config -->
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0">Cấu hình hành vi AI</h5></div>

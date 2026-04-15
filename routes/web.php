@@ -691,6 +691,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/api', 'SettingController@ai');
     Router::post('settings/api/save', 'SettingController@saveAi');
     Router::post('settings/api/behavior', 'SettingController@saveAiBehavior');
+    Router::post('settings/api/clear-tax-cache', 'SettingController@clearTaxCache');
     Router::get('settings/api-keys', 'SettingController@apiKeys');
     Router::post('settings/api-keys/create', 'SettingController@createApiKey');
     Router::post('settings/api-keys/{id}/delete', 'SettingController@deleteApiKey');

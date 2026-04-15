@@ -369,4 +369,12 @@ class SettingController extends Controller
         $this->setFlash('success', 'Đã lưu cấu hình hành vi AI.');
         return $this->redirect('settings/api');
     }
+
+    public function clearTaxCache()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/api');
+        Database::query("DELETE FROM tax_lookup_cache");
+        $this->setFlash('success', 'Đã xóa cache tra cứu MST.');
+        return $this->redirect('settings/api');
+    }
 }
