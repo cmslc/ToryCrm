@@ -214,6 +214,7 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 // === Status edit ===
 document.querySelectorAll('.edit-status-btn').forEach(function(btn) {
@@ -277,25 +278,20 @@ document.querySelectorAll('.delete-tag-btn').forEach(function(btn) {
 // === Status drag reorder ===
 (function() {
     var tbody = document.getElementById('sortableStatuses');
-    if (!tbody) return;
-    var dragEl = null;
-    tbody.querySelectorAll('tr').forEach(function(row) {
-        var handle = row.querySelector('.ri-drag-move-line');
-        if (!handle) return;
-        handle.closest('td').addEventListener('mousedown', function() { dragEl = row; row.style.opacity = '0.5'; });
-    });
-    tbody.addEventListener('dragover', function(e) { e.preventDefault(); });
-    document.addEventListener('mouseup', function() {
-        if (dragEl) {
-            dragEl.style.opacity = '';
+    if (!tbody || typeof Sortable === 'undefined') return;
+
+    new Sortable(tbody, {
+        handle: '.ri-drag-move-line',
+        animation: 200,
+        ghostClass: 'table-active',
+        onEnd: function() {
             var ids = [];
-            tbody.querySelectorAll('tr').forEach(function(r) { ids.push(r.dataset.id); });
+            tbody.querySelectorAll('tr').forEach(function(r) { if (r.dataset.id) ids.push(r.dataset.id); });
             fetch('<?= url('settings/contact-statuses/reorder') ?>', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: '_token=<?= csrf_token() ?>&' + ids.map(function(id, i) { return 'ids[' + i + ']=' + id; }).join('&')
+                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
+                body: JSON.stringify({ids: ids})
             });
-            dragEl = null;
         }
     });
 })();
