@@ -287,10 +287,11 @@ document.querySelectorAll('.delete-tag-btn').forEach(function(btn) {
         onEnd: function() {
             var ids = [];
             tbody.querySelectorAll('tr').forEach(function(r) { if (r.dataset.id) ids.push(r.dataset.id); });
+            var body = '_token=<?= csrf_token() ?>&' + ids.map(function(id, i) { return 'ids[' + i + ']=' + id; }).join('&');
             fetch('<?= url('settings/contact-statuses/reorder') ?>', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
-                body: JSON.stringify({ids: ids})
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: body
             });
         }
     });
