@@ -1,7 +1,7 @@
 <?php
 $pageTitle = ($order['type'] === 'quote' ? 'Báo giá' : 'Đơn hàng') . ' ' . $order['order_number'];
-$sc = ['draft'=>'secondary','sent'=>'info','confirmed'=>'primary','processing'=>'warning','completed'=>'success','cancelled'=>'danger'];
-$sl = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Đã xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
+$sc = ['pending'=>'warning','approved'=>'primary','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'dark','collected'=>'secondary'];
+$sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ'];
 $pc = ['unpaid'=>'danger','partial'=>'warning','paid'=>'success'];
 $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid'=>'Đã thanh toán'];
 ?>
@@ -30,7 +30,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         <div class="d-flex gap-1 flex-wrap">
                             <a href="<?= url('orders/' . $order['id'] . '/edit') ?>" class="btn btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
                             <a href="<?= url('orders/pdf/' . $order['id']) ?>" class="btn btn btn-soft-info" target="_blank"><i class="ri-printer-line me-1"></i>In</a>
-                            <?php if (in_array($order['status'], ['draft', 'sent'])): ?>
+                            <?php if (in_array($order['status'], ['pending'])): ?>
                                 <form method="POST" action="<?= url('orders/' . $order['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt đơn hàng này?">
                                     <?= csrf_field() ?><button class="btn btn btn-soft-success"><i class="ri-check-line me-1"></i>Duyệt</button>
                                 </form>

@@ -144,9 +144,13 @@ $pageTitle = $isQuote ? 'Tạo báo giá' : 'Tạo đơn hàng';
                             <div class="mb-3">
                                 <label class="form-label">Trạng thái</label>
                                 <select name="status" class="form-select">
-                                    <option value="draft">Nháp</option>
-                                    <option value="sent">Đã gửi</option>
-                                    <option value="confirmed">Đã xác nhận</option>
+                                    <option value="pending">Chờ duyệt</option>
+                                    <option value="approved">Đã duyệt</option>
+                                    <option value="unpaid">Chưa thanh toán</option>
+                                    <option value="paid">Đã thanh toán</option>
+                                    <option value="completed">Đã hoàn thành</option>
+                                    <option value="collected">Đã thu trong kỳ</option>
+                                    <option value="cancelled">Đã hủy</option>
                                 </select>
                             </div>
                             <?php

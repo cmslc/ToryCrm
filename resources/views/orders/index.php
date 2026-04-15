@@ -1,8 +1,8 @@
 <?php
 $pageTitle = 'Đơn hàng & Báo giá';
 $currentStatus = $filters['status'] ?? '';
-$sc = ['draft'=>'secondary','sent'=>'info','confirmed'=>'primary','processing'=>'warning','completed'=>'success','cancelled'=>'danger'];
-$sl = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
+$sc = ['pending'=>'warning','approved'=>'primary','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'dark','collected'=>'secondary'];
+$sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ'];
 ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">

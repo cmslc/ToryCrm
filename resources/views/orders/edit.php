@@ -141,7 +141,7 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                             <div class="mb-3">
                                 <label class="form-label">Trạng thái</label>
                                 <select name="status" class="form-select">
-                                    <?php $statuses = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Đã xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy']; ?>
+                                    <?php $statuses = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ']; ?>
                                     <?php foreach ($statuses as $k => $v): ?>
                                         <option value="<?= $k ?>" <?= ($order['status'] ?? '') === $k ? 'selected' : '' ?>><?= $v ?></option>
                                     <?php endforeach; ?>
