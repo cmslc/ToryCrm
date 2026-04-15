@@ -81,7 +81,7 @@
                                         <label class="form-label">Logo (Sidebar & Trang đăng nhập)</label>
                                         <?php if (!empty($branding['logo_url'])): ?>
                                             <div class="mb-2">
-                                                <img src="<?= e($branding['logo_url']) ?>" alt="Logo" class="img-thumbnail" style="max-height:60px">
+                                                <img src="<?= asset($branding['logo_url']) ?>" alt="Logo" class="img-thumbnail" style="max-height:60px">
                                             </div>
                                         <?php endif; ?>
                                         <input type="file" class="form-control" name="logo" accept="image/*">
