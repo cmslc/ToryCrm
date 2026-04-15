@@ -6,136 +6,229 @@
     <title>Báo giá <?= e($quotation['quote_number']) ?></title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 13px; color: #333; padding: 30px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #405189; padding-bottom: 15px; margin-bottom: 20px; }
-        .header-left h2 { color: #405189; margin-bottom: 5px; }
+        body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 13px; color: #2d3436; line-height: 1.6; }
+
+        .page { padding: 0; }
+
+        /* Header */
+        .header { background: linear-gradient(135deg, #405189 0%, #2d3a6e 100%); color: #fff; padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header-left h2 { font-size: 22px; margin-bottom: 4px; }
+        .header-left p { opacity: 0.8; font-size: 12px; }
         .header-right { text-align: right; }
-        .header-right h1 { color: #405189; font-size: 28px; }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .info-block h4 { color: #666; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background: #f3f3f9; padding: 10px 8px; text-align: left; font-size: 12px; border-bottom: 2px solid #ddd; }
-        td { padding: 8px; border-bottom: 1px solid #eee; }
+        .header-right .doc-type { font-size: 28px; font-weight: 700; letter-spacing: 2px; }
+        .header-right .doc-number { font-size: 14px; opacity: 0.9; margin-top: 4px; }
+
+        /* Meta info */
+        .meta-bar { background: #f8f9fa; padding: 12px 40px; display: flex; justify-content: space-between; border-bottom: 1px solid #e9ecef; font-size: 12px; }
+        .meta-bar span { color: #666; }
+        .meta-bar strong { color: #333; }
+
+        /* Info blocks */
+        .info-section { padding: 25px 40px; display: flex; justify-content: space-between; gap: 40px; }
+        .info-block { flex: 1; }
+        .info-block .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #999; font-weight: 600; margin-bottom: 8px; }
+        .info-block .name { font-size: 16px; font-weight: 700; color: #2d3436; margin-bottom: 4px; }
+        .info-block .detail { font-size: 12px; color: #636e72; line-height: 1.8; }
+
+        /* Title */
+        .title-bar { padding: 0 40px 15px; }
+        .title-bar h3 { font-size: 15px; color: #405189; border-left: 3px solid #405189; padding-left: 10px; }
+
+        /* Table */
+        .items-table { padding: 0 40px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #405189; color: #fff; }
+        th { padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+        tbody tr:nth-child(even) { background: #fafbfc; }
+        tbody tr:hover { background: #f0f4ff; }
         .text-end { text-align: right; }
-        .text-bold { font-weight: bold; }
-        .total-row { font-size: 16px; color: #405189; }
-        .notes { background: #f9f9f9; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
-        .notes h4 { font-size: 12px; color: #666; margin-bottom: 5px; }
-        .footer { text-align: center; color: #999; font-size: 11px; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; }
+        .text-center { text-align: center; }
+
+        /* Totals */
+        .totals { padding: 15px 40px; display: flex; justify-content: flex-end; }
+        .totals-box { width: 300px; }
+        .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+        .totals-row.discount { color: #e17055; }
+        .totals-row.grand { background: #405189; color: #fff; padding: 12px 16px; margin-top: 8px; font-size: 16px; font-weight: 700; border-radius: 6px; }
+
+        /* Notes */
+        .notes-section { padding: 20px 40px; }
+        .note-box { background: #f8f9fa; border-left: 3px solid #405189; padding: 12px 16px; margin-bottom: 12px; border-radius: 0 6px 6px 0; }
+        .note-box .note-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #999; font-weight: 600; margin-bottom: 4px; }
+        .note-box p { font-size: 12px; color: #555; }
+
+        /* Signatures */
+        .signatures { padding: 40px 40px 20px; display: flex; justify-content: space-between; }
+        .sig-block { text-align: center; width: 200px; }
+        .sig-block .sig-label { font-size: 11px; text-transform: uppercase; color: #999; font-weight: 600; }
+        .sig-block .sig-line { border-bottom: 1px solid #ccc; height: 60px; margin: 10px 0; }
+        .sig-block .sig-name { font-size: 12px; font-weight: 600; color: #333; }
+
+        /* Footer */
+        .footer { text-align: center; padding: 15px 40px; border-top: 1px solid #eee; color: #aaa; font-size: 10px; }
+
         @media print {
-            body { padding: 15px; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .page { page-break-after: avoid; }
         }
     </style>
 </head>
 <body>
+<div class="page">
+
+    <!-- Header -->
     <div class="header">
         <div class="header-left">
             <h2><?= e($branding['name'] ?? 'ToryCRM') ?></h2>
+            <?php if (!empty($branding['address'])): ?><p><?= e($branding['address']) ?></p><?php endif; ?>
+            <?php if (!empty($branding['phone'])): ?><p><?= e($branding['phone']) ?><?= !empty($branding['email']) ? ' · ' . e($branding['email']) : '' ?></p><?php endif; ?>
         </div>
         <div class="header-right">
-            <h1>BÁO GIÁ</h1>
-            <p style="color:#666"><?= e($quotation['quote_number']) ?></p>
-            <p>Ngày: <?= date('d/m/Y', strtotime($quotation['created_at'])) ?></p>
-            <?php if ($quotation['valid_until']): ?>
-                <p>Hiệu lực đến: <?= date('d/m/Y', strtotime($quotation['valid_until'])) ?></p>
-            <?php endif; ?>
+            <div class="doc-type">BÁO GIÁ</div>
+            <div class="doc-number"><?= e($quotation['quote_number']) ?></div>
         </div>
     </div>
 
-    <div class="info-row">
+    <!-- Meta bar -->
+    <div class="meta-bar">
+        <span>Ngày tạo: <strong><?= date('d/m/Y', strtotime($quotation['created_at'])) ?></strong></span>
+        <?php if ($quotation['valid_until']): ?>
+        <span>Hiệu lực đến: <strong><?= date('d/m/Y', strtotime($quotation['valid_until'])) ?></strong></span>
+        <?php endif; ?>
+        <span>Người phụ trách: <strong><?= e($quotation['owner_name'] ?? '-') ?></strong></span>
+    </div>
+
+    <!-- Info -->
+    <div class="info-section">
         <div class="info-block">
-            <h4>Gửi đến</h4>
+            <div class="label">Khách hàng</div>
             <?php if ($quotation['contact_first_name']): ?>
-                <p class="text-bold"><?= e(trim($quotation['contact_first_name'] . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></p>
+            <div class="name"><?= e(trim($quotation['contact_first_name'] . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></div>
             <?php endif; ?>
-            <?php if ($quotation['company_name']): ?>
-                <p><?= e($quotation['company_name']) ?></p>
-            <?php endif; ?>
-            <?php if ($quotation['company_address']): ?>
-                <p><?= e($quotation['company_address']) ?></p>
-            <?php endif; ?>
-            <?php if ($quotation['contact_email']): ?>
-                <p><?= e($quotation['contact_email']) ?></p>
-            <?php endif; ?>
-            <?php if ($quotation['contact_phone']): ?>
-                <p><?= e($quotation['contact_phone']) ?></p>
-            <?php endif; ?>
+            <div class="detail">
+                <?php if ($quotation['company_name']): ?><?= e($quotation['company_name']) ?><br><?php endif; ?>
+                <?php if ($quotation['company_address']): ?><?= e($quotation['company_address']) ?><br><?php endif; ?>
+                <?php if ($quotation['contact_phone']): ?>ĐT: <?= e($quotation['contact_phone']) ?><br><?php endif; ?>
+                <?php if ($quotation['contact_email']): ?>Email: <?= e($quotation['contact_email']) ?><?php endif; ?>
+            </div>
         </div>
         <div class="info-block" style="text-align:right">
-            <h4>Người phụ trách</h4>
-            <p><?= e($quotation['owner_name'] ?? '-') ?></p>
+            <div class="label">Từ</div>
+            <div class="name"><?= e($branding['name'] ?? 'ToryCRM') ?></div>
+            <div class="detail">
+                <?php if (!empty($branding['address'])): ?><?= e($branding['address']) ?><br><?php endif; ?>
+                <?php if (!empty($branding['phone'])): ?>ĐT: <?= e($branding['phone']) ?><br><?php endif; ?>
+                <?php if (!empty($branding['email'])): ?>Email: <?= e($branding['email']) ?><?php endif; ?>
+            </div>
         </div>
     </div>
 
+    <!-- Title -->
     <?php if ($quotation['title']): ?>
-        <p style="margin-bottom:15px"><strong>Tiêu đề:</strong> <?= e($quotation['title']) ?></p>
+    <div class="title-bar">
+        <h3><?= e($quotation['title']) ?></h3>
+    </div>
     <?php endif; ?>
 
-    <table>
-        <thead>
-            <tr>
-                <th width="5%">#</th>
-                <th width="35%">Sản phẩm / Dịch vụ</th>
-                <th class="text-end" width="10%">SL</th>
-                <th width="8%">ĐVT</th>
-                <th class="text-end" width="15%">Đơn giá</th>
-                <th class="text-end" width="8%">Thuế</th>
-                <th class="text-end" width="17%">Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($items as $i => $item): ?>
-            <tr>
-                <td><?= $i + 1 ?></td>
-                <td><?= e($item['product_name']) ?></td>
-                <td class="text-end"><?= $item['quantity'] ?></td>
-                <td><?= e($item['unit']) ?></td>
-                <td class="text-end"><?= number_format($item['unit_price'], 0, ',', '.') ?> ₫</td>
-                <td class="text-end"><?= $item['tax_rate'] ?>%</td>
-                <td class="text-end"><?= number_format($item['total'], 0, ',', '.') ?> ₫</td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="6" class="text-end">Tạm tính:</td>
-                <td class="text-end text-bold"><?= number_format($quotation['subtotal'] ?? 0, 0, ',', '.') ?> ₫</td>
-            </tr>
-            <tr>
-                <td colspan="6" class="text-end">Thuế:</td>
-                <td class="text-end"><?= number_format($quotation['tax_amount'] ?? 0, 0, ',', '.') ?> ₫</td>
-            </tr>
+    <!-- Items -->
+    <div class="items-table">
+        <table>
+            <thead>
+                <tr>
+                    <th width="5%" class="text-center">#</th>
+                    <th width="35%">Sản phẩm / Dịch vụ</th>
+                    <th width="8%" class="text-center">SL</th>
+                    <th width="8%">ĐVT</th>
+                    <th width="15%" class="text-end">Đơn giá</th>
+                    <th width="8%" class="text-center">VAT</th>
+                    <th width="17%" class="text-end">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items as $i => $item): ?>
+                <tr>
+                    <td class="text-center"><?= $i + 1 ?></td>
+                    <td>
+                        <strong><?= e($item['product_name']) ?></strong>
+                        <?php if (!empty($item['description'])): ?>
+                        <br><span style="color:#888;font-size:11px"><?= e($item['description']) ?></span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-center"><?= $item['quantity'] ?></td>
+                    <td><?= e($item['unit'] ?? 'Cái') ?></td>
+                    <td class="text-end"><?= number_format($item['unit_price'], 0, ',', '.') ?></td>
+                    <td class="text-center"><?= $item['tax_rate'] ?>%</td>
+                    <td class="text-end"><strong><?= number_format($item['total'], 0, ',', '.') ?></strong></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="totals">
+        <div class="totals-box">
+            <div class="totals-row">
+                <span>Tạm tính:</span>
+                <strong><?= number_format($quotation['subtotal'] ?? 0, 0, ',', '.') ?> ₫</strong>
+            </div>
+            <div class="totals-row">
+                <span>Thuế VAT:</span>
+                <span><?= number_format($quotation['tax_amount'] ?? 0, 0, ',', '.') ?> ₫</span>
+            </div>
             <?php if (($quotation['discount_amount'] ?? 0) > 0): ?>
-            <tr>
-                <td colspan="6" class="text-end">Giảm giá:</td>
-                <td class="text-end" style="color:red">-<?= number_format($quotation['discount_amount'], 0, ',', '.') ?> ₫</td>
-            </tr>
+            <div class="totals-row discount">
+                <span>Chiết khấu:</span>
+                <span>-<?= number_format($quotation['discount_amount'], 0, ',', '.') ?> ₫</span>
+            </div>
             <?php endif; ?>
-            <tr class="total-row">
-                <td colspan="6" class="text-end text-bold" style="font-size:16px">TỔNG CỘNG:</td>
-                <td class="text-end text-bold" style="font-size:16px"><?= number_format($quotation['total'] ?? 0, 0, ',', '.') ?> ₫</td>
-            </tr>
-        </tfoot>
-    </table>
+            <div class="totals-row grand">
+                <span>TỔNG CỘNG</span>
+                <span><?= number_format($quotation['total'] ?? 0, 0, ',', '.') ?> ₫</span>
+            </div>
+        </div>
+    </div>
 
-    <?php if ($quotation['notes']): ?>
-    <div class="notes">
-        <h4>Ghi chú</h4>
-        <p><?= nl2br(e($quotation['notes'])) ?></p>
+    <!-- Notes & Terms -->
+    <?php if ($quotation['notes'] || $quotation['terms']): ?>
+    <div class="notes-section">
+        <?php if ($quotation['notes']): ?>
+        <div class="note-box">
+            <div class="note-title">Ghi chú</div>
+            <p><?= nl2br(e($quotation['notes'])) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if ($quotation['terms']): ?>
+        <div class="note-box">
+            <div class="note-title">Điều khoản & Điều kiện</div>
+            <p><?= nl2br(e($quotation['terms'])) ?></p>
+        </div>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 
-    <?php if ($quotation['terms']): ?>
-    <div class="notes">
-        <h4>Điều khoản</h4>
-        <p><?= nl2br(e($quotation['terms'])) ?></p>
+    <!-- Signatures -->
+    <div class="signatures">
+        <div class="sig-block">
+            <div class="sig-label">Người lập</div>
+            <div class="sig-line"></div>
+            <div class="sig-name"><?= e($quotation['owner_name'] ?? '') ?></div>
+        </div>
+        <div class="sig-block">
+            <div class="sig-label">Khách hàng xác nhận</div>
+            <div class="sig-line"></div>
+            <div class="sig-name"><?= e(trim(($quotation['contact_first_name'] ?? '') . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></div>
+        </div>
     </div>
-    <?php endif; ?>
 
+    <!-- Footer -->
     <div class="footer">
-        <p>Tạo bởi <?= e($branding['name'] ?? 'ToryCRM') ?></p>
+        <?= e($branding['name'] ?? 'ToryCRM') ?> · Báo giá <?= e($quotation['quote_number']) ?> · Tạo ngày <?= date('d/m/Y H:i', strtotime($quotation['created_at'])) ?>
     </div>
 
-    <script>window.onload = function() { window.print(); }</script>
+</div>
+
+<script>window.onload = function() { window.print(); }</script>
 </body>
 </html>
