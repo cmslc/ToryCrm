@@ -171,7 +171,6 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                         </form>
                                                     </li>
                                                     <?php endif; ?>
-                                                    <li><a class="dropdown-item" href="<?= url('quotations/' . $q['id'] . '/pdf') ?>" target="_blank"><i class="ri-printer-line me-2"></i>PDF</a></li>
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <form method="POST" action="<?= url('quotations/' . $q['id'] . '/delete') ?>" data-confirm="Xác nhận xóa báo giá?">
