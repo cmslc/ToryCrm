@@ -44,6 +44,35 @@ class OrderController extends Controller
             $params[] = $paymentStatus;
         }
 
+        // Date period filter
+        $datePeriod = $this->input('date_period');
+        $dateFrom = $this->input('date_from');
+        $dateTo = $this->input('date_to');
+        switch ($datePeriod) {
+            case 'today':
+                $where[] = "DATE(o.created_at) = CURDATE()";
+                break;
+            case 'yesterday':
+                $where[] = "DATE(o.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
+                break;
+            case 'this_week':
+                $where[] = "YEARWEEK(o.created_at, 1) = YEARWEEK(CURDATE(), 1)";
+                break;
+            case 'this_month':
+                $where[] = "YEAR(o.created_at) = YEAR(CURDATE()) AND MONTH(o.created_at) = MONTH(CURDATE())";
+                break;
+            case 'last_month':
+                $where[] = "YEAR(o.created_at) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND MONTH(o.created_at) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))";
+                break;
+            case 'this_year':
+                $where[] = "YEAR(o.created_at) = YEAR(CURDATE())";
+                break;
+            case 'custom':
+                if ($dateFrom) { $where[] = "DATE(o.created_at) >= ?"; $params[] = $dateFrom; }
+                if ($dateTo) { $where[] = "DATE(o.created_at) <= ?"; $params[] = $dateTo; }
+                break;
+        }
+
         // Owner-based data scoping: staff only sees own records
         $ownerScope = $this->ownerScope('o', 'owner_id', 'orders');
         if ($ownerScope['where']) {
@@ -105,6 +134,9 @@ class OrderController extends Controller
                 'type' => $type,
                 'status' => $status,
                 'payment_status' => $paymentStatus,
+                'date_period' => $datePeriod,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
             ],
             'displayColumns' => $displayColumns,
         ]);

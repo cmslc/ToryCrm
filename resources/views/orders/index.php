@@ -49,6 +49,21 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                         <option value="partial" <?= ($filters['payment_status'] ?? '') === 'partial' ? 'selected' : '' ?>>Một phần</option>
                         <option value="paid" <?= ($filters['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Đã TT</option>
                     </select>
+                    <?php $dp = $filters['date_period'] ?? ''; ?>
+                    <select name="date_period" class="form-select" style="width:auto;min-width:140px" onchange="if(this.value==='custom'){document.getElementById('customDateRange').classList.remove('d-none')}else{this.form.submit()}">
+                        <option value="">Thời gian</option>
+                        <option value="today" <?= $dp === 'today' ? 'selected' : '' ?>>Hôm nay</option>
+                        <option value="yesterday" <?= $dp === 'yesterday' ? 'selected' : '' ?>>Hôm qua</option>
+                        <option value="this_week" <?= $dp === 'this_week' ? 'selected' : '' ?>>Tuần này</option>
+                        <option value="this_month" <?= $dp === 'this_month' ? 'selected' : '' ?>>Tháng này</option>
+                        <option value="last_month" <?= $dp === 'last_month' ? 'selected' : '' ?>>Tháng trước</option>
+                        <option value="this_year" <?= $dp === 'this_year' ? 'selected' : '' ?>>Năm nay</option>
+                        <option value="custom" <?= $dp === 'custom' ? 'selected' : '' ?>>Thời gian khác</option>
+                    </select>
+                    <div id="customDateRange" class="d-flex gap-1 <?= $dp === 'custom' ? '' : 'd-none' ?>">
+                        <input type="date" name="date_from" class="form-control" style="width:auto" value="<?= e($filters['date_from'] ?? '') ?>" title="Từ ngày">
+                        <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($filters['date_to'] ?? '') ?>" title="Đến ngày">
+                    </div>
                     <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
                     <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
                     <?php if (!empty(array_filter($filters ?? []))): ?>
