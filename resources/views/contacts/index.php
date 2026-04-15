@@ -122,8 +122,8 @@ $columns = [
     </div>
 </div>
 
-<!-- Filter Row -->
-<div class="card mb-2">
+<!-- Filter + Status -->
+<div class="card mb-3">
     <div class="card-header p-2">
         <form method="GET" action="<?= url('contacts') ?>" class="d-flex align-items-center gap-2 flex-wrap" id="filterForm">
             <div class="search-box" style="min-width:200px;max-width:300px">
@@ -162,11 +162,7 @@ $columns = [
             <?php endif; ?>
         </form>
     </div>
-</div>
-
-<!-- Status Bar -->
-<div class="card mb-3">
-<div class="card-body py-2 px-3 d-flex align-items-center gap-1">
+    <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
     <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft"><i class="ri-arrow-left-s-line fs-18"></i></button>
     <div class="flex-grow-1 d-flex" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
     <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
@@ -219,7 +215,7 @@ $columns = [
         setTimeout(update, 100);
     })();
     </script>
-</div>
+    </div>
 </div>
 
 <!-- Table -->
