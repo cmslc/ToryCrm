@@ -455,6 +455,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('users/{id}/quick-view', 'UserController@quickView');
     Router::post('users/{id}/update', 'UserController@update');
     Router::post('users/{id}/toggle-active', 'UserController@toggleActive');
+    Router::post('users/{id}/delete', 'UserController@delete');
     Router::post('users/{id}/reset-password', 'UserController@resetPassword');
 
     // Webhooks

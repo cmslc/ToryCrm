@@ -290,6 +290,31 @@ class UserController extends Controller
         return $this->redirect('users');
     }
 
+    public function delete($id)
+    {
+        if (!$this->isPost()) return $this->redirect('users');
+        $this->authorize('users', 'delete');
+
+        if ((int)$id === $this->userId()) {
+            $this->setFlash('error', 'Không thể xóa tài khoản của bạn.');
+            return $this->redirect('users');
+        }
+
+        $user = Database::fetch("SELECT * FROM users WHERE id = ?", [$id]);
+        if (!$user) {
+            $this->setFlash('error', 'Người dùng không tồn tại.');
+            return $this->redirect('users');
+        }
+
+        // Remove from permission groups
+        Database::query("DELETE FROM user_permission_groups WHERE user_id = ?", [$id]);
+        // Delete user
+        Database::query("DELETE FROM users WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+
+        $this->setFlash('success', "Đã xóa người dùng {$user['name']}.");
+        return $this->redirect('users');
+    }
+
     public function quickView($id)
     {
         $user = Database::fetch(

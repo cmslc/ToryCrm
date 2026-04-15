@@ -139,6 +139,12 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                                         <?= csrf_field() ?>
                                         <button class="btn btn-soft-<?= $u['is_active'] ? 'danger' : 'success' ?> btn-icon" title="<?= $u['is_active'] ? 'Khóa' : 'Mở khóa' ?>"><i class="ri-<?= $u['is_active'] ? 'lock-line' : 'lock-unlock-line' ?>"></i></button>
                                     </form>
+                                    <?php if ($u['id'] != ($_SESSION['user']['id'] ?? 0)): ?>
+                                    <form method="POST" action="<?= url('users/' . $u['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa người dùng <?= e($u['name']) ?>? Hành động này không thể hoàn tác.">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-soft-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+                                    </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
