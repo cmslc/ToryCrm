@@ -34,6 +34,12 @@ class TaxLookupController extends Controller
             $result = $this->tryOpenAPI($taxCode);
         }
 
+        // Try API 3: WifiCity
+        if (!$result) {
+            $result = $this->tryWifiCity($taxCode);
+        }
+
+
         if ($result) {
             // Cache result
             try {
@@ -81,4 +87,21 @@ class TaxLookupController extends Controller
         }
         return null;
     }
+
+    private function tryWifiCity(string $taxCode): ?array
+    {
+        $ctx = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
+        $response = @file_get_contents("https://thongtindoanhnghiep.co/api/company/{$taxCode}", false, $ctx);
+        if (!$response) return null;
+
+        $data = json_decode($response, true);
+        if (!empty($data['Title'])) {
+            return [
+                'name' => $data['Title'] ?? '',
+                'address' => $data['DiaChi'] ?? '',
+            ];
+        }
+        return null;
+    }
+
 }

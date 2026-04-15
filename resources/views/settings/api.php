@@ -177,6 +177,12 @@ $activeTab = $_GET['tab'] ?? 'keys';
                                 <td><span class="badge bg-secondary">2</span></td>
                                 <td><span class="badge bg-success-subtle text-success">Miễn phí</span></td>
                             </tr>
+                            <tr>
+                                <td><span class="fw-medium">WifiCity</span></td>
+                                <td><code class="fs-12">thongtindoanhnghiep.co/api/company/{mst}</code></td>
+                                <td><span class="badge bg-secondary">3</span></td>
+                                <td><span class="badge bg-success-subtle text-success">Miễn phí</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
