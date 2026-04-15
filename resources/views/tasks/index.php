@@ -16,10 +16,29 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Công việc</h4>
     <div class="d-flex gap-2">
+        <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
         <a href="<?= url('tasks/kanban') ?>" class="btn btn-soft-info"><i class="ri-layout-masonry-line me-1"></i> Kanban</a>
         <a href="<?= url('tasks/calendar') ?>" class="btn btn-soft-warning"><i class="ri-calendar-line me-1"></i> Lịch</a>
         <a href="<?= url('tasks/gantt') ?>" class="btn btn-soft-secondary"><i class="ri-bar-chart-horizontal-line me-1"></i> Gantt</a>
         <a href="<?= url('tasks/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm công việc</a>
+    </div>
+</div>
+
+<!-- Column Options Panel -->
+<div class="card mb-2 d-none" id="columnPanel">
+    <div class="card-body py-3">
+        <h6 class="mb-2">Cột hiển thị</h6>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            <?php foreach ($displayColumns ?? [] as $dc): ?>
+            <div class="form-check">
+                <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+        </div>
     </div>
 </div>
 
@@ -83,22 +102,6 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
                 <?php endforeach; ?>
             </ul>
             <div class="d-flex align-items-center gap-2 ms-auto">
-                <div class="dropdown">
-                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
-                        <i class="ri-layout-column-line me-1"></i> Cột
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
-                        <h6 class="dropdown-header px-0">Hiển thị cột</h6>
-                        <?php foreach ($displayColumns ?? [] as $col): ?>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $col['key'] ?>" data-column="<?= $col['key'] ?>" checked>
-                            <label class="form-check-label" for="<?= $col['key'] ?>"><?= e($col['label']) ?></label>
-                        </div>
-                        <?php endforeach; ?>
-                        <hr class="my-2">
-                        <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
-                    </div>
-                </div>
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
                         <i class="ri-more-fill"></i>
@@ -220,37 +223,52 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
 </div>
 
 <script>
-(function() {
-    var storageKey = 'task_columns';
-    var defaultVisible = <?= json_encode($defaultVisible) ?>;
-    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+// Toggle column panel
+document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
+    var panel = document.getElementById('columnPanel');
+    panel.classList.toggle('d-none');
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+});
 
-    function applyColumns() {
-        document.querySelectorAll('.column-toggle').forEach(function(cb) {
-            var col = cb.dataset.column;
-            var visible = saved.hasOwnProperty(col) ? saved[col] : defaultVisible.indexOf(col) !== -1;
-            cb.checked = visible;
-            document.querySelectorAll('.' + col).forEach(function(el) {
-                el.style.display = visible ? '' : 'none';
-            });
+(function() {
+    var STORAGE_KEY = 'torycrm_tasks_columns';
+    var allColumns = <?= json_encode(array_column($displayColumns ?? [], 'key')) ?>;
+    var defaultVisible = ['col-title','col-status','col-priority','col-assignedto','col-duedate','col-contactid','col-dealid'];
+
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
+            if (cb) cb.checked = show;
         });
     }
 
     document.querySelectorAll('.column-toggle').forEach(function(cb) {
         cb.addEventListener('change', function() {
-            saved[this.dataset.column] = this.checked;
-            localStorage.setItem(storageKey, JSON.stringify(saved));
-            applyColumns();
+            var visible = getVisible();
+            if (this.checked) {
+                if (!visible.includes(this.dataset.column)) visible.push(this.dataset.column);
+            } else {
+                visible = visible.filter(function(c) { return c !== cb.dataset.column; });
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
         });
     });
 
     document.getElementById('resetColumns')?.addEventListener('click', function() {
-        saved = {};
-        localStorage.removeItem(storageKey);
-        applyColumns();
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaultVisible);
     });
 
-    applyColumns();
+    applyColumns(getVisible());
 })();
 
 // Bulk actions

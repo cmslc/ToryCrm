@@ -18,18 +18,16 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 <!-- Column Options Panel -->
 <div class="card mb-2 d-none" id="columnPanel">
     <div class="card-body py-3">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h6 class="mb-2">Cột hiển thị</h6>
-                <div class="d-flex flex-wrap gap-3">
-                    <?php foreach ($displayColumns as $dc): ?>
-                    <div class="form-check">
-                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
-                        <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
+        <h6 class="mb-2">Cột hiển thị</h6>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            <?php foreach ($displayColumns as $dc): ?>
+            <div class="form-check">
+                <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
             </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="d-flex justify-content-end">
             <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
         </div>
     </div>
