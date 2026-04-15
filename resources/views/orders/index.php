@@ -41,8 +41,8 @@ $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã 
             <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
                 <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
                     <div class="d-flex gap-1 flex-nowrap">
-                        <a href="<?= url('orders?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-outline-dark' ?> rounded-pill text-nowrap">
-                            Tất cả <span class="badge <?= !$currentStatus ? 'bg-white text-dark' : 'bg-dark text-white' ?> rounded-pill ms-1"><?= number_format($totalAll) ?></span>
+                        <a href="<?= url('orders?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> btn-label right rounded-pill text-nowrap waves-effect">
+                            Tất cả <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($totalAll) ?></span>
                         </a>
                         <?php foreach ($sl as $key => $label):
                             $count = 0;
@@ -51,8 +51,8 @@ $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã 
                             $isActive = $currentStatus === $key;
                         ?>
                         <a href="<?= url('orders?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
-                           class="btn <?= $isActive ? "btn-{$color}" : "btn-outline-{$color}" ?> rounded-pill text-nowrap">
-                            <?= $label ?> <span class="badge <?= $isActive ? 'bg-white text-' . $color : "bg-{$color} text-white" ?> rounded-pill ms-1"><?= number_format($count) ?></span>
+                           class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> btn-label right rounded-pill text-nowrap waves-effect">
+                            <?= $label ?> <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($count) ?></span>
                         </a>
                         <?php endforeach; ?>
                     </div>
