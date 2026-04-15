@@ -167,10 +167,10 @@ $columns = [
 <!-- Tabs Row -->
 <div class="card mb-3">
     <div class="card-header p-2">
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center" style="overflow:hidden">
             <!-- Status Tabs with scroll -->
             <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
-            <div class="overflow-auto flex-grow-1" id="tabScrollContainer" style="scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
+            <div class="flex-grow-1" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
             <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
                 <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
                     <li class="nav-item">
