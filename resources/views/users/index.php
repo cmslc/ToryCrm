@@ -131,7 +131,7 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                                 <div class="d-flex gap-1">
                                     <button class="btn btn-soft-info btn-icon quick-view-btn" data-id="<?= $u['id'] ?>" title="Xem nhanh"><i class="ri-eye-line"></i></button>
                                     <a href="<?= url('users/' . $u['id'] . '/edit') ?>" class="btn btn-soft-primary btn-icon" title="Sửa"><i class="ri-pencil-line"></i></a>
-                                    <form method="POST" action="<?= url('users/' . $u['id'] . '/reset-password') ?>" onsubmit="return confirm('Reset mật khẩu về mặc định (123456)?')">
+                                    <form method="POST" action="<?= url('users/' . $u['id'] . '/reset-password') ?>" data-confirm="Reset mật khẩu của <?= e($u['name']) ?> về mặc định (123456)?">
                                         <?= csrf_field() ?>
                                         <button class="btn btn-soft-warning btn-icon" title="Reset MK"><i class="ri-key-line"></i></button>
                                     </form>
