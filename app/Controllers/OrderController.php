@@ -79,6 +79,16 @@ class OrderController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
+        // Status counts for pills
+        $scopeWhere = ["o.is_deleted = 0", "o.tenant_id = ?"];
+        $scopeParams = [Database::tenantId()];
+        $os = $this->ownerScope('o', 'owner_id', 'orders');
+        if ($os['where']) { $scopeWhere[] = $os['where']; $scopeParams = array_merge($scopeParams, $os['params']); }
+        $scopeClause = implode(' AND ', $scopeWhere);
+        $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM orders o WHERE {$scopeClause} GROUP BY status", $scopeParams);
+        $totalAll = 0;
+        foreach ($statusCounts as $sc) $totalAll += $sc['count'];
+
         return $this->view('orders.index', [
             'orders' => [
                 'items' => $orders,
@@ -86,6 +96,8 @@ class OrderController extends Controller
                 'page' => $page,
                 'total_pages' => $totalPages,
             ],
+            'statusCounts' => $statusCounts,
+            'totalAll' => $totalAll,
             'filters' => [
                 'search' => $search,
                 'type' => $type,

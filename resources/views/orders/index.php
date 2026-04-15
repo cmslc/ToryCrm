@@ -1,51 +1,73 @@
-<?php $pageTitle = 'Đơn hàng & Báo giá'; ?>
+<?php
+$pageTitle = 'Đơn hàng & Báo giá';
+$currentStatus = $filters['status'] ?? '';
+$sc = ['draft'=>'secondary','sent'=>'info','confirmed'=>'primary','processing'=>'warning','completed'=>'success','cancelled'=>'danger'];
+$sl = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
+?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Đơn hàng & Báo giá</h4>
             <div class="d-flex gap-2">
-                <a href="<?= url('orders/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
                 <a href="<?= url('orders/create?type=quote') ?>" class="btn btn-soft-info"><i class="ri-file-text-line me-1"></i> Tạo báo giá</a>
                 <a href="<?= url('orders/create?type=order') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn hàng</a>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?= url('orders') ?>" class="row g-3 mb-4">
-                    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-header p-2">
+                <form method="GET" action="<?= url('orders') ?>" class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="search-box" style="min-width:200px;max-width:300px">
                         <input type="text" class="form-control" name="search" placeholder="Tìm mã đơn, khách hàng..." value="<?= e($filters['search'] ?? '') ?>">
+                        <i class="ri-search-line search-icon"></i>
                     </div>
-                    <div class="col-md-2">
-                        <select name="type" class="form-select">
-                            <option value="">Tất cả loại</option>
-                            <option value="order" <?= ($filters['type'] ?? '') === 'order' ? 'selected' : '' ?>>Đơn hàng</option>
-                            <option value="quote" <?= ($filters['type'] ?? '') === 'quote' ? 'selected' : '' ?>>Báo giá</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="status" class="form-select">
-                            <option value="">Trạng thái</option>
-                            <option value="draft" <?= ($filters['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Nháp</option>
-                            <option value="sent" <?= ($filters['status'] ?? '') === 'sent' ? 'selected' : '' ?>>Đã gửi</option>
-                            <option value="confirmed" <?= ($filters['status'] ?? '') === 'confirmed' ? 'selected' : '' ?>>Đã xác nhận</option>
-                            <option value="processing" <?= ($filters['status'] ?? '') === 'processing' ? 'selected' : '' ?>>Đang xử lý</option>
-                            <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Hoàn thành</option>
-                            <option value="cancelled" <?= ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="payment_status" class="form-select">
-                            <option value="">Thanh toán</option>
-                            <option value="unpaid" <?= ($filters['payment_status'] ?? '') === 'unpaid' ? 'selected' : '' ?>>Chưa TT</option>
-                            <option value="partial" <?= ($filters['payment_status'] ?? '') === 'partial' ? 'selected' : '' ?>>Một phần</option>
-                            <option value="paid" <?= ($filters['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Đã TT</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
-                        <a href="<?= url('orders') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
-                    </div>
+                    <select name="type" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                        <option value="">Tất cả loại</option>
+                        <option value="order" <?= ($filters['type'] ?? '') === 'order' ? 'selected' : '' ?>>Đơn hàng</option>
+                        <option value="quote" <?= ($filters['type'] ?? '') === 'quote' ? 'selected' : '' ?>>Báo giá</option>
+                    </select>
+                    <select name="payment_status" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                        <option value="">Thanh toán</option>
+                        <option value="unpaid" <?= ($filters['payment_status'] ?? '') === 'unpaid' ? 'selected' : '' ?>>Chưa TT</option>
+                        <option value="partial" <?= ($filters['payment_status'] ?? '') === 'partial' ? 'selected' : '' ?>>Một phần</option>
+                        <option value="paid" <?= ($filters['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Đã TT</option>
+                    </select>
+                    <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
+                    <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+                    <?php if (!empty(array_filter($filters ?? []))): ?>
+                        <a href="<?= url('orders') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                    <?php endif; ?>
                 </form>
+            </div>
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
+                <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+                    <div class="d-flex gap-1 flex-nowrap">
+                        <a href="<?= url('orders?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-outline-dark' ?> rounded-pill text-nowrap">
+                            Tất cả <span class="badge <?= !$currentStatus ? 'bg-white text-dark' : 'bg-dark text-white' ?> rounded-pill ms-1"><?= number_format($totalAll) ?></span>
+                        </a>
+                        <?php foreach ($sl as $key => $label):
+                            $count = 0;
+                            foreach ($statusCounts ?? [] as $stc) { if ($stc['status'] === $key) $count = $stc['count']; }
+                            $color = $sc[$key] ?? 'secondary';
+                            $isActive = $currentStatus === $key;
+                        ?>
+                        <a href="<?= url('orders?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
+                           class="btn <?= $isActive ? "btn-{$color}" : "btn-outline-{$color}" ?> rounded-pill text-nowrap">
+                            <?= $label ?> <span class="badge <?= $isActive ? 'bg-white text-' . $color : "bg-{$color} text-white" ?> rounded-pill ms-1"><?= number_format($count) ?></span>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="dropdown flex-shrink-0 ms-auto">
+                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="<?= url('orders/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Đã xóa</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -65,8 +87,6 @@
                         <tbody>
                             <?php if (!empty($orders['items'])): ?>
                                 <?php
-                                $sc = ['draft'=>'secondary','sent'=>'info','confirmed'=>'primary','processing'=>'warning','completed'=>'success','cancelled'=>'danger'];
-                                $sl = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
                                 $pc = ['unpaid'=>'danger','partial'=>'warning','paid'=>'success'];
                                 $pl = ['unpaid'=>'Chưa TT','partial'=>'Một phần','paid'=>'Đã TT'];
                                 ?>
