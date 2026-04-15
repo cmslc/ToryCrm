@@ -223,6 +223,15 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                                     <label class="form-label">Phòng ban</label>
                                     <input type="text" class="form-control" name="department" value="<?= e($u['department'] ?? '') ?>" placeholder="Nhập phòng ban">
                                 </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nhóm quyền</label>
+                                    <select name="permission_groups[]" class="form-select" multiple size="4">
+                                        <?php foreach ($permGroups ?? [] as $pg): ?>
+                                        <option value="<?= $pg['id'] ?>" <?= in_array($pg['id'], $userGroupIds ?? []) ? 'selected' : '' ?>><?= e($pg['name']) ?><?= $pg['is_system'] ? ' (Hệ thống)' : '' ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">Giữ Ctrl để chọn nhiều nhóm</small>
+                                </div>
                                 <div class="col-12 mb-3">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" <?= ($u['is_active'] ?? false) ? 'checked' : '' ?>>

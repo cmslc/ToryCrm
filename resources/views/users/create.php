@@ -90,6 +90,15 @@
                                 <input type="text" class="form-control" name="department" value="<?= e($old['department'] ?? '') ?>" placeholder="Nhập phòng ban">
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Nhóm quyền</label>
+                                <select name="permission_groups[]" class="form-select" multiple size="4">
+                                    <?php foreach ($permGroups ?? [] as $pg): ?>
+                                    <option value="<?= $pg['id'] ?>"><?= e($pg['name']) ?><?= $pg['is_system'] ? ' (Hệ thống)' : '' ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="text-muted">Giữ Ctrl để chọn nhiều nhóm</small>
+                            </div>
+                            <div class="mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" <?= ($old['is_active'] ?? true) ? 'checked' : '' ?>>
                                     <label class="form-check-label" for="isActive">Kích hoạt tài khoản</label>

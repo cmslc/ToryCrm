@@ -63,7 +63,8 @@ class UserController extends Controller
     public function create()
     {
         $this->authorize('users', 'create');
-        return $this->view('users.create');
+        $permGroups = Database::fetchAll("SELECT * FROM permission_groups WHERE tenant_id = ? ORDER BY sort_order, name", [Database::tenantId()]);
+        return $this->view('users.create', ['permGroups' => $permGroups]);
     }
 
     public function store()
@@ -117,6 +118,14 @@ class UserController extends Controller
             }
         }
 
+        // Assign permission groups
+        $groupIds = $data['permission_groups'] ?? [];
+        if (is_array($groupIds)) {
+            foreach ($groupIds as $gid) {
+                Database::query("INSERT IGNORE INTO user_permission_groups (user_id, group_id) VALUES (?, ?)", [$userId, (int)$gid]);
+            }
+        }
+
         $this->setFlash('success', 'Tạo người dùng thành công.');
         return $this->redirect('users');
     }
@@ -130,7 +139,10 @@ class UserController extends Controller
             return $this->redirect('users');
         }
 
-        return $this->view('users.edit', ['editUser' => $user]);
+        $permGroups = Database::fetchAll("SELECT * FROM permission_groups WHERE tenant_id = ? ORDER BY sort_order, name", [Database::tenantId()]);
+        $userGroupIds = array_column(Database::fetchAll("SELECT group_id FROM user_permission_groups WHERE user_id = ?", [$id]), 'group_id');
+
+        return $this->view('users.edit', ['editUser' => $user, 'permGroups' => $permGroups, 'userGroupIds' => $userGroupIds]);
     }
 
     public function update($id)
@@ -221,6 +233,16 @@ class UserController extends Controller
         }
 
         Database::update('users', $updateData, 'id = ?', [$id]);
+
+        // Update permission groups
+        $groupIds = $data['permission_groups'] ?? [];
+        if (is_array($groupIds)) {
+            Database::query("DELETE FROM user_permission_groups WHERE user_id = ?", [$id]);
+            foreach ($groupIds as $gid) {
+                Database::query("INSERT IGNORE INTO user_permission_groups (user_id, group_id) VALUES (?, ?)", [$id, (int)$gid]);
+            }
+            \App\Services\PermissionService::clearCache();
+        }
 
         $this->setFlash('success', 'Cập nhật người dùng thành công.');
         return $this->redirect('users');
