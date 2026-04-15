@@ -110,45 +110,29 @@
                             <h5 class="card-title mb-0"><i class="ri-palette-line me-2"></i>Màu sắc</h5>
                         </div>
                         <div class="card-body">
+                            <?php
+                            $colorFields = [
+                                ['name'=>'primary_color', 'label'=>'Màu chính (Primary)', 'value'=>$branding['primary_color'] ?? '#405189', 'hint'=>'CSS variable --vz-primary'],
+                                ['name'=>'sidebar_color', 'label'=>'Màu sidebar', 'value'=>$branding['sidebar_color'] ?? '', 'hint'=>'Để trống = mặc định'],
+                                ['name'=>'login_bg', 'label'=>'Nền trang đăng nhập', 'value'=>$branding['login_bg'] ?? '', 'hint'=>''],
+                            ];
+                            ?>
                             <div class="row">
+                                <?php foreach ($colorFields as $cf): ?>
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label class="form-label">Màu chính (Primary)</label>
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <input type="color" class="form-control form-control-color" name="primary_color" id="primaryColor"
-                                                   value="<?= e($branding['primary_color'] ?? '#405189') ?>">
-                                            <input type="text" class="form-control" id="primaryColorText"
-                                                   value="<?= e($branding['primary_color'] ?? '#405189') ?>"
-                                                   style="max-width:120px" readonly>
+                                        <label class="form-label"><?= $cf['label'] ?></label>
+                                        <div class="input-group">
+                                            <input type="color" class="form-control form-control-color" value="<?= e($cf['value'] ?: '#405189') ?>"
+                                                   onchange="this.nextElementSibling.value=this.value">
+                                            <input type="text" class="form-control" name="<?= $cf['name'] ?>" value="<?= e($cf['value']) ?>"
+                                                   placeholder="#405189" maxlength="7"
+                                                   oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))this.previousElementSibling.value=this.value">
                                         </div>
-                                        <div class="form-text">Thay đổi CSS variable --vz-primary</div>
+                                        <?php if ($cf['hint']): ?><div class="form-text"><?= $cf['hint'] ?></div><?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Màu sidebar</label>
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <input type="color" class="form-control form-control-color" name="sidebar_color" id="sidebarColor"
-                                                   value="<?= e($branding['sidebar_color'] ?: '#405189') ?>">
-                                            <input type="text" class="form-control" id="sidebarColorText"
-                                                   value="<?= e($branding['sidebar_color'] ?? '') ?>"
-                                                   style="max-width:120px" readonly>
-                                        </div>
-                                        <div class="form-text">Để trống để dùng mặc định</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Nền trang đăng nhập</label>
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <input type="color" class="form-control form-control-color" name="login_bg" id="loginBgColor"
-                                                   value="<?= e($branding['login_bg'] ?: '#405189') ?>">
-                                            <input type="text" class="form-control" id="loginBgText"
-                                                   value="<?= e($branding['login_bg'] ?? '') ?>"
-                                                   style="max-width:120px" readonly>
-                                        </div>
-                                    </div>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
