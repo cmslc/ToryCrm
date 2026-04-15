@@ -45,20 +45,24 @@ class WhiteLabelController extends Controller
 
         // Handle logo upload
         $current = BrandingService::get();
-        $branding['logo_url'] = $current['logo_url'] ?? '';
-        $branding['favicon_url'] = $current['favicon_url'] ?? '';
+        $currentLogo = $current['logo_url'] ?? '';
+        if (is_array($currentLogo)) $currentLogo = $currentLogo['file_path'] ?? '';
+        $branding['logo_url'] = $currentLogo;
+        $currentFav = $current['favicon_url'] ?? '';
+        if (is_array($currentFav)) $currentFav = $currentFav['file_path'] ?? '';
+        $branding['favicon_url'] = $currentFav;
 
         if (!empty($_FILES['logo']['tmp_name'])) {
             $uploaded = FileUploadService::upload($_FILES['logo'], 'branding');
             if ($uploaded) {
-                $branding['logo_url'] = $uploaded;
+                $branding['logo_url'] = is_array($uploaded) ? ($uploaded['file_path'] ?? $uploaded) : $uploaded;
             }
         }
 
         if (!empty($_FILES['favicon']['tmp_name'])) {
             $uploaded = FileUploadService::upload($_FILES['favicon'], 'branding');
             if ($uploaded) {
-                $branding['favicon_url'] = $uploaded;
+                $branding['favicon_url'] = is_array($uploaded) ? ($uploaded['file_path'] ?? $uploaded) : $uploaded;
             }
         }
 
