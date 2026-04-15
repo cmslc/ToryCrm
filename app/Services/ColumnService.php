@@ -107,8 +107,6 @@ class ColumnService
         'portal_password' => 'Mật khẩu portal',
         'portal_active' => 'Portal hoạt động',
         'total_revenue' => 'Tổng doanh thu',
-        'bonus_points' => 'Điểm thưởng',
-        'score' => 'Điểm',
         'relation_id' => 'Mối quan hệ',
         'industry_id' => 'Ngành nghề',
         'referrer_type' => 'Loại giới thiệu',

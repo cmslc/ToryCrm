@@ -29,7 +29,7 @@ class DataDefinitionController extends Controller
         'province' => 'Tỉnh/TP', 'district' => 'Quận/Huyện', 'ward' => 'Phường/Xã',
         'country' => 'Quốc gia', 'description' => 'Mô tả', 'status' => 'Trạng thái',
         'customer_group' => 'Nhóm KH', 'referrer_code' => 'Người giới thiệu',
-        'is_private' => 'Riêng tư', 'score' => 'Điểm', 'avatar' => 'Ảnh đại diện',
+        'is_private' => 'Riêng tư', 'avatar' => 'Ảnh đại diện',
         'tax_code' => 'Mã số thuế', 'website' => 'Website', 'fax' => 'Fax',
         'latitude' => 'Kinh độ', 'longitude' => 'Vĩ độ',
         'company_id' => 'Công ty', 'source_id' => 'Nguồn KH', 'owner_id' => 'Người phụ trách',
