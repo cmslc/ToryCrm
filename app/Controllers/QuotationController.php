@@ -431,6 +431,43 @@ class QuotationController extends Controller
     /**
      * Mark quotation as sent
      */
+    public function submitForApproval($id)
+    {
+        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $q = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$q) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('quotations'); }
+
+        Database::update('quotations', ['status' => 'pending'], 'id = ?', [$id]);
+        $this->setFlash('success', 'Đã gửi duyệt báo giá.');
+        return $this->redirect('quotations/' . $id);
+    }
+
+    public function approve($id)
+    {
+        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $q = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$q) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('quotations'); }
+
+        Database::update('quotations', ['status' => 'approved'], 'id = ?', [$id]);
+        $this->setFlash('success', 'Đã duyệt báo giá.');
+        return $this->redirect('quotations/' . $id);
+    }
+
+    public function rejectApproval($id)
+    {
+        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $q = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$q) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('quotations'); }
+
+        Database::update('quotations', [
+            'status' => 'rejected',
+            'rejection_reason' => trim($this->input('reason') ?? ''),
+            'rejected_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$id]);
+        $this->setFlash('success', 'Đã từ chối duyệt báo giá.');
+        return $this->redirect('quotations/' . $id);
+    }
+
     public function send($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);

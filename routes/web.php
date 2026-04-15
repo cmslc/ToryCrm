@@ -300,6 +300,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('quotations/{id}', 'QuotationController@show');
     Router::get('quotations/{id}/edit', 'QuotationController@edit');
     Router::post('quotations/{id}/update', 'QuotationController@update');
+    Router::post('quotations/{id}/submit', 'QuotationController@submitForApproval');
+    Router::post('quotations/{id}/approve', 'QuotationController@approve');
+    Router::post('quotations/{id}/reject-approval', 'QuotationController@rejectApproval');
     Router::post('quotations/{id}/send', 'QuotationController@send');
     Router::post('quotations/{id}/convert', 'QuotationController@convertToOrder');
     Router::post('quotations/{id}/delete', 'QuotationController@delete');
