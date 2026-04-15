@@ -63,7 +63,10 @@ class CompanyController extends Controller
         $cities = Database::fetchAll("SELECT DISTINCT city FROM companies WHERE tenant_id = ? AND city IS NOT NULL AND city != '' ORDER BY city", [Database::tenantId()]);
         $totalPages = ceil($total / $perPage);
 
+        $displayColumns = \App\Services\ColumnService::getColumns('companies');
+
         return $this->view('companies.index', [
+            'displayColumns' => $displayColumns,
             'companies' => [
                 'items' => $companies,
                 'total' => $total,

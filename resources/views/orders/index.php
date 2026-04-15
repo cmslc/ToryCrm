@@ -3,20 +3,7 @@ $pageTitle = 'Đơn hàng & Báo giá';
 $currentStatus = $filters['status'] ?? '';
 $sc = ['pending'=>'warning','approved'=>'primary','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'dark','collected'=>'secondary'];
 $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ'];
-$orderColumns = [
-    'col-code' => 'Mã',
-    'col-type' => 'Loại',
-    'col-customer' => 'Khách hàng',
-    'col-company' => 'Công ty',
-    'col-total' => 'Tổng tiền',
-    'col-status' => 'Trạng thái',
-    'col-payment' => 'Thanh toán',
-    'col-owner' => 'Phụ trách',
-    'col-shipping' => 'Giao hàng',
-    'col-lading' => 'Vận đơn',
-    'col-commission' => 'Hoa hồng',
-    'col-created' => 'Ngày tạo',
-];
+$colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -31,20 +18,16 @@ $orderColumns = [
         <!-- Column Options Panel -->
         <div class="card mb-2 d-none" id="columnPanel">
             <div class="card-body py-3">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h6 class="mb-2">Cột</h6>
-                        <div class="d-flex flex-wrap gap-3">
-                            <?php foreach ($orderColumns as $colId => $colLabel): ?>
-                            <div class="form-check">
-                                <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                                <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
+                <h6 class="mb-2">Cột hiển thị</h6>
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    <?php foreach ($displayColumns as $dc): ?>
+                    <div class="form-check">
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                        <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
                     </div>
-                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                    <?php endforeach; ?>
                 </div>
+                <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
             </div>
         </div>
 
@@ -106,21 +89,12 @@ $orderColumns = [
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead class="text-muted table-light">
                             <tr>
-                                <th class="col-code">Mã</th>
-                                <th class="col-type">Loại</th>
-                                <th class="col-customer">Khách hàng</th>
-                                <th class="col-company">Công ty</th>
-                                <th class="col-total">Tổng tiền</th>
-                                <th class="col-status">Trạng thái</th>
-                                <th class="col-payment">Thanh toán</th>
-                                <th class="col-owner">Phụ trách</th>
-                                <th class="col-shipping">Giao hàng</th>
-                                <th class="col-lading">Vận đơn</th>
-                                <th class="col-commission">Hoa hồng</th>
-                                <th class="col-created">Ngày tạo</th>
-                                <th>Thao tác</th>
+                                <?php foreach ($displayColumns as $dc): ?>
+                                <th class="<?= $dc['key'] ?>"><?= e($dc['label']) ?></th>
+                                <?php endforeach; ?>
+                                <th style="width:50px"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,26 +105,69 @@ $orderColumns = [
                                 ?>
                                 <?php foreach ($orders['items'] as $order): ?>
                                     <tr>
-                                        <td class="col-code"><a href="<?= url('orders/' . $order['id']) ?>" class="fw-medium"><?= e($order['order_number']) ?></a></td>
-                                        <td class="col-type">
-                                            <?= $order['type'] === 'quote'
-                                                ? '<span class="badge bg-info-subtle text-info">Báo giá</span>'
-                                                : '<span class="badge bg-primary-subtle text-primary">Đơn hàng</span>' ?>
+                                        <?php foreach ($displayColumns as $dc):
+                                            $field = $dc['field'];
+                                            $key = $dc['key'];
+                                            $val = $order[$field] ?? '';
+                                        ?>
+                                        <td class="<?= $key ?>">
+                                        <?php
+                                        switch ($field):
+                                            case 'order_number':
+                                                echo '<a href="' . url('orders/' . $order['id']) . '" class="fw-medium">' . e($val) . '</a>';
+                                                break;
+                                            case 'type':
+                                                echo $val === 'quote'
+                                                    ? '<span class="badge bg-info-subtle text-info">Báo giá</span>'
+                                                    : '<span class="badge bg-primary-subtle text-primary">Đơn hàng</span>';
+                                                break;
+                                            case 'contact_id':
+                                                $contactName = trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? ''));
+                                                echo $val ? '<a href="' . url('contacts/' . $val) . '">' . e($contactName ?: '-') . '</a>' : '-';
+                                                break;
+                                            case 'company_id':
+                                                echo $val ? '<a href="' . url('companies/' . $val) . '">' . e($order['company_name'] ?? '-') . '</a>' : '-';
+                                                break;
+                                            case 'deal_id':
+                                                echo $val ? '<a href="' . url('deals/' . $val) . '">' . e($order['deal_title'] ?? $val) . '</a>' : '-';
+                                                break;
+                                            case 'total': case 'subtotal': case 'tax_amount': case 'discount_amount':
+                                            case 'transport_amount': case 'installation_amount': case 'paid_amount':
+                                            case 'commission_amount':
+                                                echo ($val + 0) > 0 ? format_money($val) : '-';
+                                                break;
+                                            case 'status':
+                                                echo '<span class="badge bg-' . ($sc[$val] ?? 'secondary') . '">' . ($sl[$val] ?? $val) . '</span>';
+                                                break;
+                                            case 'payment_status':
+                                                echo '<span class="badge bg-' . ($pc[$val] ?? 'secondary') . '-subtle text-' . ($pc[$val] ?? 'secondary') . '">' . ($pl[$val] ?? $val) . '</span>';
+                                                break;
+                                            case 'owner_id':
+                                                echo user_avatar($order['owner_name'] ?? null, 'primary', $order['owner_avatar'] ?? null);
+                                                break;
+                                            case 'shipping_contact':
+                                                echo $val ? e($val) . ($order['shipping_phone'] ? ' - ' . e($order['shipping_phone']) : '') : '-';
+                                                break;
+                                            case 'lading_code':
+                                                echo $val ? '<code>' . e($val) . '</code>' : '-';
+                                                break;
+                                            case 'lading_status':
+                                                echo $val ? e($val) : '-';
+                                                break;
+                                            case 'created_at': case 'updated_at': case 'issued_date': case 'due_date':
+                                            case 'payment_date': case 'approved_at': case 'cancelled_at':
+                                                echo $val ? '<span class="text-muted">' . time_ago($val) . '</span>' : '-';
+                                                break;
+                                            default:
+                                                echo e($val ?: '-');
+                                        endswitch;
+                                        ?>
                                         </td>
-                                        <td class="col-customer"><?= e(trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? ''))) ?: '-' ?></td>
-                                        <td class="col-company"><?= e($order['company_name'] ?? '-') ?></td>
-                                        <td class="col-total fw-medium"><?= format_money($order['total']) ?></td>
-                                        <td class="col-status"><span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?>"><?= $sl[$order['status']] ?? '' ?></span></td>
-                                        <td class="col-payment"><span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>-subtle text-<?= $pc[$order['payment_status']] ?? 'secondary' ?>"><?= $pl[$order['payment_status']] ?? '' ?></span></td>
-                                        <td class="col-owner"><?= e($order['owner_name'] ?? '-') ?></td>
-                                        <td class="col-shipping fs-12 text-muted"><?= e($order['shipping_contact'] ?? '') ? e($order['shipping_contact']) . ' - ' . e($order['shipping_phone'] ?? '') : '-' ?></td>
-                                        <td class="col-lading fs-12"><?= e($order['lading_code'] ?? '') ?: '-' ?></td>
-                                        <td class="col-commission"><?= ($order['commission_amount'] ?? 0) > 0 ? format_money($order['commission_amount']) : '-' ?></td>
-                                        <td class="col-created"><?= format_date($order['created_at']) ?></td>
+                                        <?php endforeach; ?>
                                         <td>
                                             <div class="dropdown">
-                                                <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
-                                                <ul class="dropdown-menu">
+                                                <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
                                                     <li><a class="dropdown-item" href="<?= url('orders/' . $order['id']) ?>"><i class="ri-eye-line me-2"></i>Xem</a></li>
                                                     <li><a class="dropdown-item" href="<?= url('orders/' . $order['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
                                                     <li><hr class="dropdown-divider"></li>
@@ -165,7 +182,7 @@ $orderColumns = [
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-file-list-3-line fs-1 d-block mb-2"></i>Chưa có đơn hàng</td></tr>
+                                <tr><td colspan="<?= count($displayColumns) + 1 ?>" class="text-center py-4 text-muted"><i class="ri-file-list-3-line fs-1 d-block mb-2"></i>Chưa có đơn hàng</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -197,28 +214,39 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 
 // Column toggle
 (function() {
-    var storageKey = 'order_columns';
-    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-    function applyColumns() {
-        document.querySelectorAll('.column-toggle').forEach(function(cb) {
-            var col = cb.dataset.column;
-            var visible = saved[col] !== false;
-            cb.checked = visible;
-            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = visible ? '' : 'none'; });
+    var STORAGE_KEY = 'torycrm_orders_columns';
+    var allColumns = <?= json_encode(array_column($displayColumns, 'key')) ?>;
+    var defaultVisible = ['col-ordernumber','col-type','col-contactid','col-companyid','col-total','col-status','col-paymentstatus','col-ownerid','col-createdat'];
+
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
+            if (cb) cb.checked = show;
         });
     }
+
+    applyColumns(getVisible());
+
     document.querySelectorAll('.column-toggle').forEach(function(cb) {
         cb.addEventListener('change', function() {
-            saved[this.dataset.column] = this.checked;
-            localStorage.setItem(storageKey, JSON.stringify(saved));
-            applyColumns();
+            var visible = [];
+            document.querySelectorAll('.column-toggle:checked').forEach(function(c) { visible.push(c.dataset.column); });
+            if (visible.length === 0) { this.checked = true; return; }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
         });
     });
+
     document.getElementById('resetColumns')?.addEventListener('click', function() {
-        saved = {};
-        localStorage.removeItem(storageKey);
-        applyColumns();
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaultVisible);
     });
-    applyColumns();
 })();
 </script>

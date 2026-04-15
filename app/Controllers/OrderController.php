@@ -89,6 +89,8 @@ class OrderController extends Controller
         $totalAll = 0;
         foreach ($statusCounts as $sc) $totalAll += $sc['count'];
 
+        $displayColumns = \App\Services\ColumnService::getColumns('orders');
+
         return $this->view('orders.index', [
             'orders' => [
                 'items' => $orders,
@@ -104,6 +106,7 @@ class OrderController extends Controller
                 'status' => $status,
                 'payment_status' => $paymentStatus,
             ],
+            'displayColumns' => $displayColumns,
         ]);
     }
 

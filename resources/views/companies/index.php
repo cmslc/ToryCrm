@@ -2,17 +2,7 @@
 $pageTitle = 'Doanh nghiệp';
 $industries = ['Công nghệ', 'Tài chính', 'Bất động sản', 'Sản xuất', 'Thương mại', 'Y tế', 'Giáo dục', 'Truyền thông', 'Vận tải', 'F&B', 'Du lịch', 'Nông nghiệp', 'Khác'];
 $sizes = ['1-10', '10-20', '20-50', '50-100', '100-500', '200-500', '500+'];
-$columns = [
-    'col-company' => 'Doanh nghiệp',
-    'col-contact' => 'Liên hệ',
-    'col-industry' => 'Ngành nghề',
-    'col-size' => 'Quy mô',
-    'col-customers' => 'KH',
-    'col-deals' => 'Cơ hội',
-    'col-revenue' => 'Doanh thu',
-    'col-owner' => 'Phụ trách',
-    'col-lastact' => 'Liên hệ cuối',
-];
+$colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
 <!-- Title Row -->
@@ -30,12 +20,12 @@ $columns = [
     <div class="card-body py-3">
         <div class="d-flex justify-content-between align-items-start">
             <div>
-                <h6 class="mb-2">Cột</h6>
+                <h6 class="mb-2">Cột hiển thị</h6>
                 <div class="d-flex flex-wrap gap-3">
-                    <?php foreach ($columns as $colId => $colLabel): ?>
+                    <?php foreach ($displayColumns as $dc): ?>
                     <div class="form-check">
-                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                        <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                        <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                        <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -223,34 +213,42 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 
 // Column toggle
 (function() {
-    var storageKey = 'company_columns';
-    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    var STORAGE_KEY = 'torycrm_companies_columns';
+    var allColumns = <?= json_encode($colKeys) ?>;
+    var defaultVisible = ['col-name','col-email','col-phone','col-industry','col-companysize','col-city','col-ownerid'];
 
-    function applyColumns() {
-        document.querySelectorAll('.column-toggle').forEach(function(cb) {
-            var col = cb.dataset.column;
-            var visible = saved[col] !== false;
-            cb.checked = visible;
-            document.querySelectorAll('.' + col).forEach(function(el) {
-                el.style.display = visible ? '' : 'none';
-            });
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
+            if (cb) cb.checked = show;
         });
     }
 
     document.querySelectorAll('.column-toggle').forEach(function(cb) {
         cb.addEventListener('change', function() {
-            saved[this.dataset.column] = this.checked;
-            localStorage.setItem(storageKey, JSON.stringify(saved));
-            applyColumns();
+            var visible = getVisible();
+            if (this.checked) {
+                if (!visible.includes(this.dataset.column)) visible.push(this.dataset.column);
+            } else {
+                visible = visible.filter(function(c) { return c !== cb.dataset.column; });
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
         });
     });
 
     document.getElementById('resetColumns')?.addEventListener('click', function() {
-        saved = {};
-        localStorage.removeItem(storageKey);
-        applyColumns();
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaultVisible);
     });
 
-    applyColumns();
+    applyColumns(getVisible());
 })();
 </script>
