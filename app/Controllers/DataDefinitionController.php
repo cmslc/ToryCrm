@@ -134,9 +134,17 @@ class DataDefinitionController extends Controller
         $fields = [];
         $systemFields = [
             'id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at',
+            'created_by', 'owner_id', 'last_activity_at',
+            // Orders
             'approved_by', 'approved_at', 'cancelled_at', 'cancelled_reason',
-            'is_auto_approve', 'created_by', 'password', 'login_attempts', 'locked_until',
-            'password_changed_at', 'last_login', 'sort_order', 'tracking_url',
+            'is_auto_approve', 'tracking_url', 'sort_order',
+            // Users
+            'password', 'login_attempts', 'locked_until', 'password_changed_at', 'last_login',
+            // Contacts
+            'portal_token', 'portal_password', 'portal_active',
+            'total_revenue', 'bonus_points', 'relation_id', 'industry_id', 'referrer_type',
+            // Common
+            'avatar', 'logo', 'image', 'currency',
         ];
 
         foreach ($columns as $col) {
