@@ -206,7 +206,7 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                         <div class="tab-pane" id="tabAccess">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Vai trò <span class="text-danger">*</span></label>
+                                    <label class="form-label">Chức vụ <span class="text-danger">*</span></label>
                                     <select name="role" class="form-select" required>
                                         <option value="">Chọn vai trò</option>
                                         <option value="admin" <?= ($u['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>

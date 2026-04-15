@@ -77,7 +77,7 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label">Vai trò <span class="text-danger">*</span></label>
+                                <label class="form-label">Chức vụ <span class="text-danger">*</span></label>
                                 <select name="role" class="form-select" required>
                                     <option value="">Chọn vai trò</option>
                                     <option value="admin" <?= ($old['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>

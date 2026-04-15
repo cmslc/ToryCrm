@@ -22,7 +22,7 @@
                                 <th>Nhân viên</th>
                                 <th>Email</th>
                                 <th>Điện thoại</th>
-                                <th>Vai trò</th>
+                                <th>Chức vụ</th>
                                 <th>Đăng nhập cuối</th>
                                 <th>Thao tác</th>
                             </tr>

@@ -82,7 +82,7 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                         <th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <th>Nhân viên</th>
                         <th>Phòng ban</th>
-                        <th>Vai trò</th>
+                        <th>Chức vụ</th>
                         <th>Trạng thái</th>
                         <th>Đăng nhập cuối</th>
                         <th style="width:140px">Thao tác</th>
