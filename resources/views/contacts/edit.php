@@ -111,23 +111,23 @@
                 <div class="card-header"><h5 class="card-title mb-0">Địa chỉ</h5></div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-12 mb-3">
                             <label class="form-label">Địa chỉ</label>
                             <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Tỉnh/Thành phố</label>
                             <input type="text" class="form-control" name="province" value="<?= e($c['province'] ?? '') ?>">
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Quận/Huyện</label>
                             <input type="text" class="form-control" name="district" value="<?= e($c['district'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Phường/Xã</label>
                             <input type="text" class="form-control" name="ward" value="<?= e($c['ward'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Quốc gia</label>
                             <input type="text" class="form-control" name="country" value="<?= e($c['country'] ?? 'Việt Nam') ?>">
                         </div>

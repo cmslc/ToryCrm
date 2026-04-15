@@ -120,23 +120,23 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-12 mb-3">
                                     <label class="form-label">Địa chỉ</label>
                                     <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
                                 </div>
-                                <div class="col-md-3 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">Tỉnh/Thành phố</label>
-                                    <input type="text" class="form-control" name="province" value="<?= old('province') ?>" placeholder="VD: TP.HCM">
+                                    <input type="text" class="form-control" name="province" value="<?= old('province') ?>">
                                 </div>
-                                <div class="col-md-3 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">Quận/Huyện</label>
                                     <input type="text" class="form-control" name="district" value="<?= old('district') ?>">
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">Phường/Xã</label>
                                     <input type="text" class="form-control" name="ward" value="<?= old('ward') ?>">
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="form-label">Quốc gia</label>
                                     <input type="text" class="form-control" name="country" value="<?= old('country') ?: 'Việt Nam' ?>">
                                 </div>
