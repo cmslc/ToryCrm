@@ -28,6 +28,8 @@ $columns = [
     'col-address' => 'Địa chỉ',
     'col-birthday' => 'Ngày sinh',
     'col-group' => 'Nhóm KH',
+    'col-taxcode' => 'MST',
+    'col-website' => 'Website',
     'col-tags' => 'Nhãn',
     'col-lastcontact' => 'Liên hệ lần cuối',
     'col-created' => 'Ngày tạo',
@@ -235,6 +237,8 @@ $columns = [
                         <th class="col-address">Địa chỉ</th>
                         <th class="col-birthday">Ngày sinh</th>
                         <th class="col-group">Nhóm KH</th>
+                        <th class="col-taxcode">MST</th>
+                        <th class="col-website">Website</th>
                         <th class="col-tags">Nhãn</th>
                         <th class="col-lastcontact">Liên hệ lần cuối</th>
                         <th class="col-created">Ngày tạo</th>
@@ -309,6 +313,8 @@ $columns = [
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
+                            <td class="col-taxcode fs-12 text-muted"><?= e($c['tax_code'] ?? '-') ?></td>
+                            <td class="col-website fs-12"><?= !empty($c['website']) ? '<a href="' . e($c['website']) . '" target="_blank" class="text-truncate d-inline-block" style="max-width:120px">' . e($c['website']) . '</a>' : '-' ?></td>
                             <td class="col-tags">
                                 <?php
                                 $cTags = \Core\Database::fetchAll(
@@ -346,7 +352,7 @@ $columns = [
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="13" class="text-center py-5">
+                            <td colspan="15" class="text-center py-5">
                                 <div class="avatar-md mx-auto mb-3">
                                     <span class="avatar-title bg-primary-subtle rounded-circle">
                                         <i class="ri-contacts-line text-primary fs-24"></i>
@@ -402,7 +408,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 // Column toggle
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
-    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-group','col-tags','col-lastcontact','col-created'];
+    var allColumns = ['col-customer','col-contact','col-company','col-source','col-status','col-owner','col-address','col-birthday','col-group','col-taxcode','col-website','col-tags','col-lastcontact','col-created'];
     var defaultVisible = ['col-customer','col-contact','col-company','col-status','col-owner','col-lastcontact','col-created'];
 
     function getVisible() {
