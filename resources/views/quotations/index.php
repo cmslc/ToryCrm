@@ -1,142 +1,79 @@
-<?php $pageTitle = 'Báo giá'; ?>
+<?php
+$pageTitle = 'Báo giá';
+$currentStatus = $filters['status'] ?? '';
+$qsc = ['pending'=>'warning','approved'=>'primary','has_order'=>'success','no_order'=>'info','deleted'=>'danger'];
+$qsl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','has_order'=>'Đã tạo ĐH','no_order'=>'Chưa tạo ĐH','deleted'=>'Đã xóa'];
+$totalAll = 0;
+foreach ($stats as $v) $totalAll += (int)$v;
+?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Báo giá</h4>
-            <div>
+            <div class="d-flex gap-2">
                 <a href="<?= url('quotations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo báo giá</a>
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="row mb-4">
-            <div class="col">
-                <div class="card border-secondary">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-secondary-subtle rounded me-3 d-flex align-items-center justify-content-center">
-                                <i class="ri-draft-line text-secondary fs-4"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-1">Nháp</p>
-                                <h4 class="mb-0"><?= (int)($stats['draft'] ?? 0) ?></h4>
-                            </div>
-                        </div>
+        <div class="card mb-3">
+            <div class="card-header p-2">
+                <form method="GET" action="<?= url('quotations') ?>" class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="search-box" style="min-width:200px;max-width:300px">
+                        <input type="text" class="form-control" name="search" placeholder="Tìm mã BG, tiêu đề..." value="<?= e($filters['search'] ?? '') ?>">
+                        <i class="ri-search-line search-icon"></i>
                     </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-info">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-info-subtle rounded me-3 d-flex align-items-center justify-content-center">
-                                <i class="ri-send-plane-line text-info fs-4"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-1">Đã gửi</p>
-                                <h4 class="mb-0"><?= (int)($stats['sent'] ?? 0) ?></h4>
-                            </div>
-                        </div>
+                    <select name="contact_id" class="form-select searchable-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                        <option value="">Khách hàng</option>
+                        <?php foreach ($contacts ?? [] as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php $dp = $filters['date_period'] ?? ''; ?>
+                    <select name="date_period" class="form-select" style="width:auto;min-width:140px" onchange="if(this.value==='custom'){document.getElementById('qCustomDate').classList.remove('d-none')}else{this.form.submit()}">
+                        <option value="">Thời gian</option>
+                        <option value="today" <?= $dp === 'today' ? 'selected' : '' ?>>Hôm nay</option>
+                        <option value="yesterday" <?= $dp === 'yesterday' ? 'selected' : '' ?>>Hôm qua</option>
+                        <option value="this_week" <?= $dp === 'this_week' ? 'selected' : '' ?>>Tuần này</option>
+                        <option value="this_month" <?= $dp === 'this_month' ? 'selected' : '' ?>>Tháng này</option>
+                        <option value="last_month" <?= $dp === 'last_month' ? 'selected' : '' ?>>Tháng trước</option>
+                        <option value="this_year" <?= $dp === 'this_year' ? 'selected' : '' ?>>Năm nay</option>
+                        <option value="custom" <?= $dp === 'custom' ? 'selected' : '' ?>>Thời gian khác</option>
+                    </select>
+                    <div id="qCustomDate" class="d-flex gap-1 <?= $dp === 'custom' ? '' : 'd-none' ?>">
+                        <input type="date" name="date_from" class="form-control" style="width:auto" value="<?= e($filters['date_from'] ?? '') ?>">
+                        <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($filters['date_to'] ?? '') ?>">
                     </div>
-                </div>
+                    <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
+                    <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+                    <?php if (!empty(array_filter($filters ?? []))): ?>
+                        <a href="<?= url('quotations') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                    <?php endif; ?>
+                    <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
+                        <?php foreach ([10,20,50,100] as $pp): ?>
+                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
             </div>
-            <div class="col">
-                <div class="card border-success">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-success-subtle rounded me-3 d-flex align-items-center justify-content-center">
-                                <i class="ri-check-double-line text-success fs-4"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-1">Chấp nhận</p>
-                                <h4 class="mb-0"><?= (int)($stats['accepted'] ?? 0) ?></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-danger">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-danger-subtle rounded me-3 d-flex align-items-center justify-content-center">
-                                <i class="ri-close-circle-line text-danger fs-4"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-1">Từ chối</p>
-                                <h4 class="mb-0"><?= (int)($stats['rejected'] ?? 0) ?></h4>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card border-warning">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-sm bg-warning-subtle rounded me-3 d-flex align-items-center justify-content-center">
-                                <i class="ri-time-line text-warning fs-4"></i>
-                            </div>
-                            <div>
-                                <p class="text-muted mb-1">Hết hạn</p>
-                                <h4 class="mb-0"><?= (int)($stats['expired'] ?? 0) ?></h4>
-                            </div>
-                        </div>
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
+                <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+                    <div class="d-flex gap-1 flex-nowrap">
+                        <a href="<?= url('quotations?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> btn-label right rounded-pill text-nowrap waves-effect">
+                            Tất cả <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($totalAll) ?></span>
+                        </a>
+                        <?php foreach ($qsl as $key => $label):
+                            $count = (int)($stats[$key] ?? 0);
+                            $color = $qsc[$key] ?? 'secondary';
+                            $isActive = $currentStatus === $key;
+                        ?>
+                        <a href="<?= url('quotations?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
+                           class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> btn-label right rounded-pill text-nowrap waves-effect">
+                            <?= $label ?> <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($count) ?></span>
+                        </a>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?= url('quotations') ?>" class="row g-3 mb-4">
-                    <div class="col-md-2">
-                        <input type="text" class="form-control" name="search" placeholder="Tìm mã BG, tiêu đề..." value="<?= e($filters['search'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-2">
-                        <select name="status" class="form-select">
-                            <option value="">Trạng thái</option>
-                            <option value="draft" <?= ($filters['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Nháp</option>
-                            <option value="sent" <?= ($filters['status'] ?? '') === 'sent' ? 'selected' : '' ?>>Đã gửi</option>
-                            <option value="accepted" <?= ($filters['status'] ?? '') === 'accepted' ? 'selected' : '' ?>>Chấp nhận</option>
-                            <option value="rejected" <?= ($filters['status'] ?? '') === 'rejected' ? 'selected' : '' ?>>Từ chối</option>
-                            <option value="expired" <?= ($filters['status'] ?? '') === 'expired' ? 'selected' : '' ?>>Hết hạn</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="contact_id" class="form-select searchable-select">
-                            <option value="">Khách hàng</option>
-                            <?php foreach ($contacts ?? [] as $c): ?>
-                                <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <?php $dp = $filters['date_period'] ?? ''; ?>
-                        <select name="date_period" class="form-select" onchange="if(this.value==='custom'){document.getElementById('qCustomDate').classList.remove('d-none')}else{this.form.submit()}">
-                            <option value="">Thời gian</option>
-                            <option value="today" <?= $dp === 'today' ? 'selected' : '' ?>>Hôm nay</option>
-                            <option value="yesterday" <?= $dp === 'yesterday' ? 'selected' : '' ?>>Hôm qua</option>
-                            <option value="this_week" <?= $dp === 'this_week' ? 'selected' : '' ?>>Tuần này</option>
-                            <option value="this_month" <?= $dp === 'this_month' ? 'selected' : '' ?>>Tháng này</option>
-                            <option value="last_month" <?= $dp === 'last_month' ? 'selected' : '' ?>>Tháng trước</option>
-                            <option value="this_year" <?= $dp === 'this_year' ? 'selected' : '' ?>>Năm nay</option>
-                            <option value="custom" <?= $dp === 'custom' ? 'selected' : '' ?>>Thời gian khác</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 d-flex gap-2 align-items-center">
-                        <div id="qCustomDate" class="d-flex gap-1 <?= $dp === 'custom' ? '' : 'd-none' ?>">
-                            <input type="date" name="date_from" class="form-control" style="width:auto" value="<?= e($filters['date_from'] ?? '') ?>">
-                            <input type="date" name="date_to" class="form-control" style="width:auto" value="<?= e($filters['date_to'] ?? '') ?>">
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
-                        <a href="<?= url('quotations') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
-                        <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
-                            <?php foreach ([10,20,50,100] as $pp): ?>
-                            <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                </form>
 
                 <?php
                 $sc = ['draft'=>'secondary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning'];
