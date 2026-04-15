@@ -164,71 +164,60 @@ $columns = [
     </div>
 </div>
 
-<!-- Tabs Row -->
-<div class="card mb-3">
-    <div class="card-header p-2">
-        <div class="d-flex align-items-center" style="overflow:hidden">
-            <!-- Status Tabs with scroll -->
-            <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollLeft" style="font-size:18px;line-height:1"><i class="ri-arrow-left-s-line"></i></button>
-            <div class="flex-grow-1" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
-            <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
-                <ul class="nav nav-custom nav-custom-light mb-0 flex-nowrap" id="tabScrollInner">
-                    <li class="nav-item">
-                        <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('contacts') ?>">
-                            Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link py-2 <?= $currentStatus === 'today' ? 'active' : '' ?>" href="<?= url('contacts?status=today') ?>">
-                            <i class="ri-time-line me-1"></i>Mới cập nhật <span class="badge bg-success-subtle text-success rounded-pill ms-1"><?= $todayCount ?? 0 ?></span>
-                        </a>
-                    </li>
-                    <?php
-                    foreach ($sLabels as $key => $label):
-                        $count = 0;
-                        foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
-                    ?>
-                    <li class="nav-item">
-                        <a class="nav-link py-2 <?= $currentStatus === $key ? 'active' : '' ?>" href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>">
-                            <?php if (!empty($sIcons[$key])): ?><i class="<?= $sIcons[$key] ?> me-1"></i><?php endif; ?><?= $label ?> <span class="badge bg-<?= $sColors[$key] ?>-subtle text-<?= $sColors[$key] ?> rounded-pill ms-1"><?= $count ?></span>
-                        </a>
-                    </li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-            <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollRight" style="font-size:18px;line-height:1"><i class="ri-arrow-right-s-line"></i></button>
-            <div class="dropdown flex-shrink-0 ms-1">
-                <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
-                    <i class="ri-more-fill"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
-                    <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
-                </ul>
-            </div>
-            <script>
-            (function() {
-                var container = document.getElementById('tabScrollContainer');
-                var inner = document.getElementById('tabScrollInner');
-                var btnL = document.getElementById('tabScrollLeft');
-                var btnR = document.getElementById('tabScrollRight');
-                var step = 200;
-
-                function update() {
-                    var overflow = inner.scrollWidth > container.clientWidth + 2;
-                    btnL.classList.toggle('d-none', !overflow || container.scrollLeft <= 0);
-                    btnR.classList.toggle('d-none', !overflow || container.scrollLeft + container.clientWidth >= inner.scrollWidth - 2);
-                }
-
-                btnL.addEventListener('click', function() { container.scrollLeft -= step; setTimeout(update, 300); });
-                btnR.addEventListener('click', function() { container.scrollLeft += step; setTimeout(update, 300); });
-                container.addEventListener('scroll', update);
-                window.addEventListener('resize', update);
-                setTimeout(update, 100);
-            })();
-            </script>
+<!-- Status Bar -->
+<div class="d-flex align-items-center mb-3 gap-1">
+    <div class="dropdown flex-shrink-0">
+        <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-settings-3-line"></i></button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
+            <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
+        </ul>
+    </div>
+    <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft"><i class="ri-arrow-left-s-line fs-18"></i></button>
+    <div class="flex-grow-1 d-flex" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
+    <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
+        <div class="d-flex gap-1 flex-nowrap" id="tabScrollInner">
+            <a href="<?= url('contacts') ?>" class="btn btn-sm <?= !$currentStatus ? 'btn-dark' : 'btn-soft-secondary' ?> rounded-pill text-nowrap">
+                Tất cả <span class="badge bg-white text-dark ms-1"><?= number_format($totalAll) ?></span>
+            </a>
+            <a href="<?= url('contacts?status=today') ?>" class="btn btn-sm <?= $currentStatus === 'today' ? 'btn-success' : 'btn-soft-success' ?> rounded-pill text-nowrap">
+                Mới cập nhật <span class="badge <?= $currentStatus === 'today' ? 'bg-white text-success' : 'bg-success-subtle text-success' ?> ms-1"><?= $todayCount ?? 0 ?></span>
+            </a>
+            <?php foreach ($sLabels as $key => $label):
+                $count = 0;
+                foreach ($statusCounts ?? [] as $sc) { if ($sc['status'] === $key) $count = $sc['count']; }
+                $color = $sColors[$key] ?? 'secondary';
+                $isActive = $currentStatus === $key;
+            ?>
+            <a href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
+               class="btn btn-sm <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> rounded-pill text-nowrap">
+                <?= $label ?> <span class="badge <?= $isActive ? 'bg-white text-' . $color : "bg-{$color}-subtle text-{$color}" ?> ms-1"><?= number_format($count) ?></span>
+            </a>
+            <?php endforeach; ?>
         </div>
     </div>
+    <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight"><i class="ri-arrow-right-s-line fs-18"></i></button>
+    <script>
+    (function() {
+        var container = document.getElementById('tabScrollContainer');
+        var inner = document.getElementById('tabScrollInner');
+        var btnL = document.getElementById('tabScrollLeft');
+        var btnR = document.getElementById('tabScrollRight');
+        var step = 250;
+
+        function update() {
+            var overflow = inner.scrollWidth > container.clientWidth + 2;
+            btnL.classList.toggle('d-none', !overflow || container.scrollLeft <= 0);
+            btnR.classList.toggle('d-none', !overflow || container.scrollLeft + container.clientWidth >= inner.scrollWidth - 2);
+        }
+
+        btnL.addEventListener('click', function() { container.scrollLeft -= step; setTimeout(update, 300); });
+        btnR.addEventListener('click', function() { container.scrollLeft += step; setTimeout(update, 300); });
+        container.addEventListener('scroll', update);
+        window.addEventListener('resize', update);
+        setTimeout(update, 100);
+    })();
+    </script>
 </div>
 
 <!-- Table -->
