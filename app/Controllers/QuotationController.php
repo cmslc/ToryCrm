@@ -575,7 +575,7 @@ class QuotationController extends Controller
             "SELECT q.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
                     comp.name as company_name, comp.address as company_address, comp.tax_code as company_tax_code,
-                    u.name as owner_name
+                    u.name as owner_name, u.email as owner_email, u.phone as owner_phone
              FROM quotations q
              LEFT JOIN contacts c ON q.contact_id = c.id
              LEFT JOIN companies comp ON q.company_id = comp.id

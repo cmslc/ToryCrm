@@ -126,12 +126,11 @@
             </div>
         </div>
         <div class="info-block" style="text-align:right">
-            <div class="label">Từ</div>
-            <div class="name"><?= e($branding['name'] ?? 'ToryCRM') ?></div>
+            <div class="label">Người tạo báo giá</div>
+            <div class="name"><?= e($quotation['owner_name'] ?? '-') ?></div>
             <div class="detail">
-                <?php if (!empty($branding['address'])): ?><?= e($branding['address']) ?><br><?php endif; ?>
-                <?php if (!empty($branding['phone'])): ?>ĐT: <?= e($branding['phone']) ?><br><?php endif; ?>
-                <?php if (!empty($branding['email'])): ?>Email: <?= e($branding['email']) ?><?php endif; ?>
+                <?php if (!empty($quotation['owner_email'])): ?>Email: <?= e($quotation['owner_email']) ?><br><?php endif; ?>
+                <?php if (!empty($quotation['owner_phone'])): ?>ĐT: <?= e($quotation['owner_phone']) ?><br><?php endif; ?>
             </div>
         </div>
     </div>
