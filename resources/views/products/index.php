@@ -179,8 +179,8 @@
                 </div>
 
                 <?php if (($products['total_pages'] ?? 0) > 1): ?>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted">Hiển thị <?= count($products['items']) ?> / <?= $products['total'] ?></div>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
+                        <div class="text-muted fs-13">Hiển thị <strong><?= (($products['page'] - 1) * ($filters['per_page'] ?? 10)) + 1 ?> - <?= min($products['page'] * ($filters['per_page'] ?? 10), $products['total']) ?></strong> / <strong><?= number_format($products['total']) ?></strong></div>
                         <nav><ul class="pagination mb-0">
                             <?php
                             $curPage = $products['page'];
