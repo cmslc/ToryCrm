@@ -216,7 +216,12 @@ $initials = strtoupper(mb_substr($u['name'], 0, 1));
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Phòng ban</label>
-                                    <input type="text" class="form-control" name="department" value="<?= e($u['department'] ?? '') ?>" placeholder="Nhập phòng ban">
+                                    <select name="department_id" class="form-select">
+                                        <option value="">Chọn phòng ban</option>
+                                        <?php foreach ($departments ?? [] as $dept): ?>
+                                        <option value="<?= $dept['id'] ?>" <?= ($u['department_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>><?= e($dept['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Nhóm quyền</label>

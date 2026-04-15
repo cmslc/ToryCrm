@@ -88,7 +88,12 @@
                             <input type="hidden" name="role" value="staff">
                             <div class="mb-3">
                                 <label class="form-label">Phòng ban</label>
-                                <input type="text" class="form-control" name="department" value="<?= e($old['department'] ?? '') ?>" placeholder="Nhập phòng ban">
+                                <select name="department_id" class="form-select">
+                                    <option value="">Chọn phòng ban</option>
+                                    <?php foreach ($departments ?? [] as $dept): ?>
+                                    <option value="<?= $dept['id'] ?>"><?= e($dept['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Nhóm quyền</label>
