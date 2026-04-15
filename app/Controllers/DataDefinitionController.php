@@ -90,6 +90,13 @@ class DataDefinitionController extends Controller
         'password' => 'Mật khẩu', 'last_login' => 'Đăng nhập cuối',
         'tenant_id' => 'Tenant',
 
+        // Quotations
+        'quote_number' => 'Mã BG', 'valid_until' => 'Hiệu lực đến',
+        'view_count' => 'Lượt xem', 'last_viewed_at' => 'Xem lần cuối',
+        'client_note' => 'Ghi chú KH', 'accepted_at' => 'Ngày chấp nhận',
+        'rejected_at' => 'Ngày từ chối', 'rejection_reason' => 'Lý do từ chối',
+        'portal_token' => 'Token portal',
+
         // Common
         'id' => 'ID', 'sort_order' => 'Thứ tự',
         // Companies extra
