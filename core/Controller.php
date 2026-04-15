@@ -87,6 +87,12 @@ class Controller
      */
     protected function isAdminOrManager(): bool
     {
+        $userId = $_SESSION['user']['id'] ?? 0;
+        // New group-based: check if in system group
+        if (\App\Services\PermissionService::isInSystemGroup($userId)) {
+            return true;
+        }
+        // Fallback to role
         $role = $_SESSION['user']['role'] ?? 'staff';
         return in_array($role, ['admin', 'manager']);
     }

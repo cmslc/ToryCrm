@@ -5,6 +5,8 @@ $_branding = \App\Services\BrandingService::get();
 $_brandName = $_branding['name'] ?? 'ToryCRM';
 $_brandLogo = $_branding['logo_url'] ?? '';
 $_role = $user['role'] ?? 'staff';
+$_isAdmin = \App\Services\PermissionService::isInSystemGroup($user['id'] ?? 0);
+$_isManager = $_isAdmin || canSee('settings', 'manage');
 
 function isActive(string|array $path, string $cur): string {
     $paths = is_array($path) ? $path : [$path];
@@ -207,7 +209,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('email') ?>" class="nav-link <?= $currentUrl === 'email' || str_starts_with($currentUrl, 'email?') ? 'active' : '' ?>">Hộp thư<?php if ($__unread > 0): ?> <span class="badge bg-danger ms-1"><?= $__unread ?></span><?php endif; ?></a></li>
                             <li class="nav-item"><a href="<?= url('email/templates') ?>" class="nav-link <?= isActive('email/templates', $currentUrl) ?>">Mẫu email</a></li>
-                            <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('email/settings') ?>" class="nav-link <?= isActive('email/settings', $currentUrl) ?>">Cài đặt</a></li><?php endif; ?>
+                            <?php if ($_isManager): ?><li class="nav-item"><a href="<?= url('email/settings') ?>" class="nav-link <?= isActive('email/settings', $currentUrl) ?>">Cài đặt</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -246,7 +248,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('reports/tasks') ?>" class="nav-link <?= isActive('reports/tasks', $currentUrl) ?>">Công việc</a></li>
                             <li class="nav-item"><a href="<?= url('reports/staff') ?>" class="nav-link <?= isActive('reports/staff', $currentUrl) ?>">Nhân viên</a></li>
                             <?php if (plugin_active('gamification')): ?><li class="nav-item"><a href="<?= url('leaderboard') ?>" class="nav-link <?= isActive('leaderboard', $currentUrl) ?>">Bảng xếp hạng</a></li><?php endif; ?>
-                            <?php if ($_role !== 'staff'): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Tài chính</a></li><?php endif; ?>
+                            <?php if ($_isManager): ?><li class="nav-item"><a href="<?= url('finance-reports') ?>" class="nav-link <?= isActive('finance-reports', $currentUrl) ?>">Tài chính</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -270,7 +272,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
-                <?php if ($_role !== 'staff'): ?>
+                <?php if ($_isManager): ?>
 
                 <?php if (canSee('reports') || canSee('users') || canSee('automation') || canSee('webhooks')): ?>
                 <?php $sysOpen = isOpen(['plugins','integrations','duplicates','billing'], $currentUrl); ?>
@@ -288,7 +290,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </div>
                 </li>
                 <?php endif; ?>
-                <?php endif; /* end $_role !== 'staff' */ ?>
+                <?php endif; /* end $_isManager */ ?>
 
                 <?php $settingsOpen = isOpen(['settings','custom-fields','tags','departments','help'], $currentUrl); ?>
                 <li class="nav-item">
@@ -297,11 +299,11 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                     <div class="collapse menu-dropdown <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
                         <ul class="nav nav-sm flex-column">
-                            <?php if ($_role !== 'staff'): ?>
+                            <?php if ($_isManager): ?>
                             <li class="nav-item"><a href="<?= url('departments') ?>" class="nav-link <?= isActive('departments', $currentUrl) ?>">Phòng ban</a></li>
                             <li class="nav-item"><a href="<?= url('settings/widgets') ?>" class="nav-link <?= isActive('settings/widgets', $currentUrl) ?>">Dashboard</a></li>
                             <?php endif; ?>
-                            <?php if ($_role === 'admin'): ?>
+                            <?php if ($_isAdmin): ?>
                             <li class="nav-item"><a href="<?= url('settings/permissions') ?>" class="nav-link <?= isActive('settings/permissions', $currentUrl) ?>">Phân quyền</a></li>
                             <li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">Thương hiệu</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
