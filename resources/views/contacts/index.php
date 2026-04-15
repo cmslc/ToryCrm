@@ -196,57 +196,38 @@ $columns = [
                     <?php endforeach; ?>
                 </ul>
                 </div>
+            </div>
             <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none d-md-flex" id="tabScrollRight" style="font-size:18px;line-height:1"><i class="ri-arrow-right-s-line"></i></button>
-                <script>
-                (function() {
-                    var container = document.getElementById('tabScrollContainer');
-                    var inner = document.getElementById('tabScrollInner');
-                    var btnL = document.getElementById('tabScrollLeft');
-                    var btnR = document.getElementById('tabScrollRight');
-                    var step = 200;
-
-                    function update() {
-                        var overflow = inner.scrollWidth > container.clientWidth + 2;
-                        btnL.classList.toggle('d-none', !overflow || container.scrollLeft <= 0);
-                        btnR.classList.toggle('d-none', !overflow || container.scrollLeft + container.clientWidth >= inner.scrollWidth - 2);
-                    }
-
-                    btnL.addEventListener('click', function() { container.scrollLeft -= step; setTimeout(update, 300); });
-                    btnR.addEventListener('click', function() { container.scrollLeft += step; setTimeout(update, 300); });
-                    container.addEventListener('scroll', update);
-                    window.addEventListener('resize', update);
-                    setTimeout(update, 100);
-                })();
-                </script>
-
-                <!-- Saved Views as tabs -->
-                <?php
-                try {
-                    $savedViews = \Core\Database::fetchAll("SELECT * FROM saved_views WHERE module = 'contacts' AND (user_id = ? OR is_shared = 1) ORDER BY name", [$_SESSION['user']['id'] ?? 0]);
-                } catch (\Exception $e) { $savedViews = []; }
-                ?>
-                <?php foreach ($savedViews as $sv): ?>
-                    <?php $svFilters = json_decode($sv['filters'], true) ?: []; ?>
-                    <span class="nav-item ms-1">
-                        <a class="nav-link py-2 border-start" href="<?= url('contacts?' . http_build_query($svFilters)) ?>" title="<?= e($sv['name']) ?>">
-                            <?= e($sv['name']) ?>
-                        </a>
-                    </span>
-                <?php endforeach; ?>
+            <div class="dropdown flex-shrink-0 ms-1">
+                <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
+                    <i class="ri-more-fill"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
+                    <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
+                </ul>
             </div>
+            <script>
+            (function() {
+                var container = document.getElementById('tabScrollContainer');
+                var inner = document.getElementById('tabScrollInner');
+                var btnL = document.getElementById('tabScrollLeft');
+                var btnR = document.getElementById('tabScrollRight');
+                var step = 200;
 
-            <!-- Right: Column Toggle + More -->
-            <div class="d-flex align-items-center gap-2 ms-auto page-title-right" style="white-space:nowrap">
-                <div class="dropdown">
-                    <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
-                        <i class="ri-more-fill"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
-                        <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
-                    </ul>
-                </div>
-            </div>
+                function update() {
+                    var overflow = inner.scrollWidth > container.clientWidth + 2;
+                    btnL.classList.toggle('d-none', !overflow || container.scrollLeft <= 0);
+                    btnR.classList.toggle('d-none', !overflow || container.scrollLeft + container.clientWidth >= inner.scrollWidth - 2);
+                }
+
+                btnL.addEventListener('click', function() { container.scrollLeft -= step; setTimeout(update, 300); });
+                btnR.addEventListener('click', function() { container.scrollLeft += step; setTimeout(update, 300); });
+                container.addEventListener('scroll', update);
+                window.addEventListener('resize', update);
+                setTimeout(update, 100);
+            })();
+            </script>
         </div>
     </div>
 </div>
