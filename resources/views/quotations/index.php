@@ -21,7 +21,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                         <input type="text" class="form-control" name="search" placeholder="Tìm mã BG, tiêu đề..." value="<?= e($filters['search'] ?? '') ?>">
                         <i class="ri-search-line search-icon"></i>
                     </div>
-                    <select name="contact_id" class="form-select searchable-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
+                    <select name="contact_id" class="form-select searchable-select" style="width:auto;min-width:140px;max-width:200px" onchange="this.form.submit()">
                         <option value="">Khách hàng</option>
                         <?php foreach ($contacts ?? [] as $c): ?>
                             <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
