@@ -211,122 +211,83 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <thead class="text-muted table-light">
                     <tr>
                         <th style="width:30px" class="ps-3"><input type="checkbox" class="form-check-input" id="checkAll"></th>
-                        <th class="col-customer">Khách hàng</th>
-                        <th class="col-code">Mã KH</th>
-                        <th class="col-contact">Liên hệ</th>
-                        <th class="col-mobile">Di động</th>
-                        <th class="col-company">Công ty</th>
-                        <th class="col-position">Chức vụ</th>
-                        <th class="col-source">Nguồn</th>
-                        <th class="col-status">Trạng thái</th>
-                        <th class="col-owner">Người phụ trách</th>
-                        <th class="col-gender">Giới tính</th>
-                        <th class="col-address">Địa chỉ</th>
-                        <th class="col-birthday">Ngày sinh</th>
-                        <th class="col-group">Nhóm KH</th>
-                        <th class="col-taxcode">MST</th>
-                        <th class="col-website">Website</th>
-                        <th class="col-fax">Fax</th>
-                        <th class="col-referrer">Người GT</th>
-                        <th class="col-tags">Nhãn</th>
-                        <th class="col-lastcontact">Liên hệ lần cuối</th>
-                        <th class="col-created">Ngày tạo</th>
+                        <?php foreach ($displayColumns as $dc): ?>
+                        <th class="<?= $dc['key'] ?>"><?= e($dc['label']) ?></th>
+                        <?php endforeach; ?>
                         <th style="width:50px"></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!empty($contacts['items'])): ?>
                         <?php foreach ($contacts['items'] as $c): ?>
+                        <?php
+                        // Special renderers for known fields
+                        $groupLabels = ['du_an'=>'Khách dự án','le'=>'Khách lẻ','dai_ly'=>'Khách đại lý','doanh_nghiep'=>'Doanh nghiệp','vip'=>'VIP'];
+                        $groupColors = ['du_an'=>'info','le'=>'secondary','dai_ly'=>'warning','doanh_nghiep'=>'primary','vip'=>'danger'];
+                        $genderLabels = ['male'=>'Nam','female'=>'Nữ','other'=>'Khác'];
+                        ?>
                         <tr data-id="<?= $c['id'] ?>">
                             <td class="ps-3"><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
-                            <td class="col-customer">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-xs flex-shrink-0 me-2">
-                                        <?php if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])): ?>
-                                            <img src="<?= url('uploads/avatars/' . $c['avatar']) ?>" class="rounded-circle object-fit-cover" style="width:100%;height:100%">
-                                        <?php else: ?>
-                                            <span class="avatar-title bg-primary-subtle text-primary rounded-circle fs-13"><?= strtoupper(substr($c['first_name'], 0, 1)) ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div>
-                                        <a href="<?= url('contacts/' . $c['id']) ?>" class="fw-medium text-dark"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></a>
-                                        <?php if ($c['position']): ?>
-                                            <div class="text-muted fs-12"><?= e($c['position']) ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
+                            <?php foreach ($displayColumns as $dc):
+                                $field = $dc['field'];
+                                $key = $dc['key'];
+                                $val = $c[$field] ?? '';
+                            ?>
+                            <td class="<?= $key ?> fs-12">
+                            <?php
+                            // Custom rendering per field
+                            switch ($field):
+                                case 'first_name':
+                                case 'last_name':
+                                    // Skip - handled by account_code or shown raw
+                                    echo e($val ?: '-');
+                                    break;
+                                case 'account_code':
+                                    echo '<code>' . e($val ?: '-') . '</code>';
+                                    break;
+                                case 'email':
+                                    echo $val ? '<i class="ri-mail-line me-1 text-muted"></i>' . e($val) : '-';
+                                    break;
+                                case 'phone': case 'mobile': case 'fax': case 'shipping_phone':
+                                    echo $val ? '<i class="ri-phone-line me-1 text-muted"></i>' . e($val) : '-';
+                                    break;
+                                case 'company_id':
+                                    echo $c['company_id'] ? '<a href="' . url('companies/' . $c['company_id']) . '">' . e($c['company_name'] ?? '') . '</a>' : '<span class="text-muted">-</span>';
+                                    break;
+                                case 'source_id':
+                                    echo !empty($c['source_name']) ? '<span class="badge bg-secondary-subtle text-secondary">' . e($c['source_name']) . '</span>' : '<span class="text-muted">-</span>';
+                                    break;
+                                case 'status':
+                                    $stColor = $sColors[$val] ?? 'secondary';
+                                    echo '<span class="badge bg-' . $stColor . '-subtle text-' . $stColor . '">' . ($sLabels[$val] ?? $val) . '</span>';
+                                    break;
+                                case 'owner_id':
+                                    echo user_avatar($c['owner_name'] ?? null, 'primary', $c['owner_avatar'] ?? null);
+                                    break;
+                                case 'gender':
+                                    echo $genderLabels[$val] ?? '-';
+                                    break;
+                                case 'date_of_birth':
+                                    echo $val ? date('d/m/Y', strtotime($val)) : '-';
+                                    break;
+                                case 'customer_group':
+                                    echo ($val && isset($groupLabels[$val])) ? '<span class="badge bg-' . ($groupColors[$val] ?? 'secondary') . '-subtle text-' . ($groupColors[$val] ?? 'secondary') . '">' . $groupLabels[$val] . '</span>' : '<span class="text-muted">-</span>';
+                                    break;
+                                case 'website':
+                                    echo $val ? '<a href="' . e($val) . '" target="_blank" class="text-truncate d-inline-block" style="max-width:120px">' . e($val) . '</a>' : '-';
+                                    break;
+                                case 'is_private':
+                                    echo $val ? '<span class="badge bg-warning">Có</span>' : '-';
+                                    break;
+                                case 'created_at': case 'updated_at': case 'last_activity_at':
+                                    echo $val ? '<span class="text-muted">' . time_ago($val) . '</span>' : '-';
+                                    break;
+                                default:
+                                    echo e($val ?: '-');
+                            endswitch;
+                            ?>
                             </td>
-                            <td class="col-code"><code class="fs-12"><?= e($c['account_code'] ?? '') ?: '-' ?></code></td>
-                            <td class="col-contact">
-                                <?php if ($c['email']): ?><div class="fs-12"><i class="ri-mail-line me-1 text-muted"></i><?= e($c['email']) ?></div><?php endif; ?>
-                                <?php if ($c['phone']): ?><div class="fs-12"><i class="ri-phone-line me-1 text-muted"></i><?= e($c['phone']) ?></div><?php endif; ?>
-                            </td>
-                            <td class="col-mobile fs-12"><?= e($c['mobile'] ?? '') ?: '-' ?></td>
-                            <td class="col-company">
-                                <?php if ($c['company_id']): ?>
-                                    <a href="<?= url('companies/' . $c['company_id']) ?>" class="text-body"><?= e($c['company_name']) ?></a>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="col-position fs-12 text-muted"><?= e($c['position'] ?? '') ?: '-' ?></td>
-                            <td class="col-source">
-                                <?php if (!empty($c['source_name'])): ?>
-                                    <span class="badge bg-secondary-subtle text-secondary"><?= e($c['source_name']) ?></span>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="col-status">
-                                <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="status" data-type="select"
-                                      data-options='<?= json_encode($sLabels) ?>' data-value="<?= e($c['status']) ?>">
-                                    <span class="badge bg-<?= $sColors[$c['status']] ?? 'secondary' ?>-subtle text-<?= $sColors[$c['status']] ?? 'secondary' ?>">
-                                        <?= $sLabels[$c['status']] ?? $c['status'] ?>
-                                    </span>
-                                </span>
-                            </td>
-                            <td class="col-owner">
-                                <span data-inline-edit data-url="<?= url('contacts/' . $c['id'] . '/quick-update') ?>" data-field="owner_id" data-type="user"
-                                      data-value="<?= e($c['owner_id'] ?? '') ?>">
-                                    <?= user_avatar($c['owner_name'] ?? null, 'primary', $c['owner_avatar'] ?? null) ?>
-                                </span>
-                            </td>
-                            <td class="col-gender fs-12"><?php $gl=['male'=>'Nam','female'=>'Nữ','other'=>'Khác']; echo $gl[$c['gender'] ?? ''] ?? '-'; ?></td>
-                            <td class="col-address fs-12 text-muted"><?= e($c['address'] ?? '-') ?></td>
-                            <td class="col-birthday fs-12"><?= !empty($c['date_of_birth']) ? date('d/m/Y', strtotime($c['date_of_birth'])) : '-' ?></td>
-                            <td class="col-group">
-                                <?php
-                                $groupLabels = ['du_an'=>'Khách dự án','le'=>'Khách lẻ','dai_ly'=>'Khách đại lý','doanh_nghiep'=>'Doanh nghiệp','vip'=>'VIP'];
-                                $groupColors = ['du_an'=>'info','le'=>'secondary','dai_ly'=>'warning','doanh_nghiep'=>'primary','vip'=>'danger'];
-                                $grp = $c['customer_group'] ?? '';
-                                ?>
-                                <?php if ($grp && isset($groupLabels[$grp])): ?>
-                                    <span class="badge bg-<?= $groupColors[$grp] ?>-subtle text-<?= $groupColors[$grp] ?>"><?= $groupLabels[$grp] ?></span>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="col-taxcode fs-12 text-muted"><?= e($c['tax_code'] ?? '-') ?></td>
-                            <td class="col-website fs-12"><?= !empty($c['website']) ? '<a href="' . e($c['website']) . '" target="_blank" class="text-truncate d-inline-block" style="max-width:120px">' . e($c['website']) . '</a>' : '-' ?></td>
-                            <td class="col-fax fs-12 text-muted"><?= e($c['fax'] ?? '') ?: '-' ?></td>
-                            <td class="col-referrer fs-12 text-muted"><?= e($c['referrer_code'] ?? '') ?: '-' ?></td>
-                            <td class="col-tags">
-                                <?php
-                                $cTags = \Core\Database::fetchAll(
-                                    "SELECT t.name, t.color FROM taggables tg JOIN tags t ON tg.tag_id = t.id WHERE tg.entity_type = 'contact' AND tg.entity_id = ?",
-                                    [$c['id']]
-                                );
-                                ?>
-                                <?php if (!empty($cTags)): ?>
-                                    <?php foreach ($cTags as $cTag): ?>
-                                        <span class="badge me-1" style="background-color:<?= e($cTag['color']) ?>"><?= e($cTag['name']) ?></span>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <span class="text-muted">-</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="col-lastcontact text-muted fs-12"><?= !empty($c['last_activity_at']) ? time_ago($c['last_activity_at']) : '-' ?></td>
-                            <td class="col-created text-muted fs-12"><?= time_ago($c['created_at']) ?></td>
+                            <?php endforeach; ?>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
