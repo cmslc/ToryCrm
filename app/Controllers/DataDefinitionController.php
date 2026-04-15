@@ -133,18 +133,38 @@ class DataDefinitionController extends Controller
         // Build field list
         $fields = [];
         $systemFields = [
+            // Common
             'id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at',
-            'created_by', 'owner_id', 'last_activity_at',
-            // Orders
-            'approved_by', 'approved_at', 'cancelled_at', 'cancelled_reason',
-            'is_auto_approve', 'tracking_url', 'sort_order',
-            // Users
-            'password', 'login_attempts', 'locked_until', 'password_changed_at', 'last_login',
+            'created_by', 'owner_id', 'last_activity_at', 'sort_order',
+            'avatar', 'logo', 'image', 'featured_image', 'currency',
             // Contacts
             'portal_token', 'portal_password', 'portal_active',
             'total_revenue', 'bonus_points', 'relation_id', 'industry_id', 'referrer_type',
-            // Common
-            'avatar', 'logo', 'image', 'currency',
+            // Orders
+            'approved_by', 'approved_at', 'cancelled_at', 'cancelled_reason',
+            'is_auto_approve', 'tracking_url',
+            // Deals
+            'opportunity_status_id', 'close_reason', 'competitor', 'probability',
+            'receipt_date', 'lost_reason',
+            // Tasks
+            'cancelled_at', 'recurring_id', 'task_type_id', 'project_id', 'parent_id',
+            'progress', 'estimated_hours', 'color', 'is_important',
+            // Products
+            'barcode', 'origin_id', 'manufacturer_id', 'featured_image',
+            'price_wholesale', 'price_online', 'discount_percent', 'saleoff_price', 'weight',
+            'short_description',
+            // Contracts
+            'parent_contract_id', 'signed_date',
+            // Tickets
+            'sla_policy_id', 'first_response_at', 'sla_first_response_due',
+            'sla_resolution_due', 'sla_breached', 'status_id', 'expected_at',
+            'resolved_at', 'closed_at',
+            // Users
+            'password', 'two_factor_secret', 'two_factor_enabled',
+            'login_attempts', 'locked_until', 'password_changed_at', 'last_login', 'theme',
+            'department', 'base_salary', 'leave_balance',
+            'allowance_lunch', 'allowance_transport', 'allowance_phone', 'allowance_other',
+            'dependents',
         ];
 
         foreach ($columns as $col) {
