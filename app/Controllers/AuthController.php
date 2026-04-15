@@ -38,22 +38,7 @@ class AuthController extends Controller
 
         $user = Database::fetch("SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1", [$email]);
 
-        // Check account locked
-        if ($user && $user['locked_until'] && strtotime($user['locked_until']) > time()) {
-            $this->setFlash('error', 'Tài khoản đã bị khóa tạm thời. Thử lại sau.');
-            return $this->back();
-        }
-
         if (!$user || !Auth::verifyPassword($password, $user['password'])) {
-            // Increment login attempts
-            if ($user) {
-                $attempts = ($user['login_attempts'] ?? 0) + 1;
-                $updateData = ['login_attempts' => $attempts];
-                if ($attempts >= 5) {
-                    $updateData['locked_until'] = date('Y-m-d H:i:s', strtotime('+30 minutes'));
-                }
-                Database::update('users', $updateData, 'id = ?', [$user['id']]);
-            }
             $this->setFlash('error', 'Email hoặc mật khẩu không đúng.');
             return $this->back();
         }
@@ -77,8 +62,6 @@ class AuthController extends Controller
         // Update last login
         Database::update('users', [
             'last_login' => date('Y-m-d H:i:s'),
-            'login_attempts' => 0,
-            'locked_until' => null,
         ], 'id = ?', [$user['id']]);
 
         // Check password expiry
