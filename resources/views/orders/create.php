@@ -246,7 +246,7 @@ $pageTitle = $isQuote ? 'Tạo báo giá' : 'Tạo đơn hàng';
 
             tr.innerHTML = `
                 <td>
-                    <select class="form-select form-select product-select" onchange="selectProduct(this, ${idx})">
+                    <select class="form-select product-select searchable-select" onchange="selectProduct(this, ${idx})">
                         ${productOptions}
                     </select>
                     <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}">
@@ -260,6 +260,7 @@ $pageTitle = $isQuote ? 'Tạo báo giá' : 'Tạo đơn hàng';
                 <td><button type="button" class="btn btn btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
             `;
             tbody.appendChild(tr);
+            if (typeof window._initSearchableSelect === 'function') window._initSearchableSelect();
         }
 
         function selectProduct(select, idx) {

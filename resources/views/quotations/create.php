@@ -186,8 +186,8 @@
             });
 
             tr.innerHTML = `
-                <td>
-                    <select class="form-select product-select" onchange="selectProduct(this, ${idx})">
+                <td style="min-width:250px">
+                    <select class="form-select product-select searchable-select" onchange="selectProduct(this, ${idx})">
                         ${productOptions}
                     </select>
                     <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data?.product_id || ''}">
@@ -202,6 +202,8 @@
                 <td><button type="button" class="btn btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
             `;
             tbody.appendChild(tr);
+            // Init searchable select for the new row
+            if (typeof window._initSearchableSelect === 'function') window._initSearchableSelect();
             if (data) calculateRow(idx);
         }
 
