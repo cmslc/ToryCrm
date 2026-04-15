@@ -165,7 +165,8 @@ $columns = [
 </div>
 
 <!-- Status Bar -->
-<div class="d-flex align-items-center mb-3 gap-1">
+<div class="card mb-3">
+<div class="card-body py-2 px-3 d-flex align-items-center gap-1">
     <div class="dropdown flex-shrink-0">
         <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-settings-3-line"></i></button>
         <ul class="dropdown-menu">
@@ -218,6 +219,7 @@ $columns = [
         setTimeout(update, 100);
     })();
     </script>
+</div>
 </div>
 
 <!-- Table -->
