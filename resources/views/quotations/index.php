@@ -141,6 +141,10 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                 <?= e($q['owner_name'] ?? '-') ?>
                                             <?php break; case 'deal_id': ?>
                                                 <?= $val ? e($q['deal_title'] ?? $val) : '-' ?>
+                                            <?php break; case 'created_by': ?>
+                                                <?= e($q['creator_name'] ?? '-') ?>
+                                            <?php break; case 'created_at': case 'updated_at': case 'accepted_at': case 'rejected_at': case 'last_viewed_at': ?>
+                                                <?= $val ? time_ago($val) : '-' ?>
                                             <?php break; default: ?>
                                                 <?= e($val ?: '-') ?>
                                         <?php endswitch; ?>
