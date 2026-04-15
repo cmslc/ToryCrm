@@ -216,7 +216,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 (function() {
     var STORAGE_KEY = 'torycrm_quotations_columns';
     var allColumns = <?= json_encode($colKeys) ?>;
-    var defaultVisible = ['col-quotenumber','col-contactid','col-companyid','col-total','col-validuntil','col-status','col-viewcount'];
+    var defaultVisible = ['col-quotenumber','col-contactid','col-companyid','col-total','col-validuntil','col-status','col-viewcount','col-createdby'];
 
     function getVisible() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
