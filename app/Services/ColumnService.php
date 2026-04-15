@@ -86,6 +86,28 @@ class ColumnService
             'description' => 'Mô tả',
             'owner_id' => 'Phụ trách',
         ],
+        'deals' => [
+            'deal_code' => 'Mã CH',
+            'title' => 'Tên cơ hội',
+            'value' => 'Giá trị',
+            'stage_id' => 'Giai đoạn',
+            'contact_id' => 'Khách hàng',
+            'company_id' => 'Công ty',
+            'status' => 'Trạng thái',
+            'priority' => 'Ưu tiên',
+            'expected_close_date' => 'Dự kiến đóng',
+            'owner_id' => 'Phụ trách',
+        ],
+        'tasks' => [
+            'task_code' => 'Mã CV',
+            'title' => 'Công việc',
+            'status' => 'Trạng thái',
+            'priority' => 'Ưu tiên',
+            'assigned_to' => 'Phụ trách',
+            'due_date' => 'Hạn',
+            'contact_id' => 'Khách hàng',
+            'deal_id' => 'Cơ hội',
+        ],
     ];
 
     // Labels for ALL possible columns across all modules
@@ -165,6 +187,11 @@ class ColumnService
         'last_name' => 'Tên',
         'industry' => 'Ngành nghề',
         'company_size' => 'Quy mô',
+        'value' => 'Giá trị',
+        'deal_code' => 'Mã CH',
+        'task_code' => 'Mã CV',
+        'expected_close_date' => 'Dự kiến đóng',
+        'stage_id' => 'Giai đoạn',
     ];
 
     private static array $systemFields = [

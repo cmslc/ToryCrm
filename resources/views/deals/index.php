@@ -1,9 +1,28 @@
-<?php $pageTitle = 'Cơ hội kinh doanh'; ?>
+<?php
+$pageTitle = 'Cơ hội kinh doanh';
+$defaultVisible = ['col-title', 'col-value', 'col-stageid', 'col-contactid', 'col-companyid', 'col-priority', 'col-expectedclosedate', 'col-ownerid'];
+?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Cơ hội kinh doanh</h4>
-            <div>
-                <a href="<?= url('deals/pipeline') ?>" class="btn btn-soft-info me-1"><i class="ri-git-branch-line me-1"></i> Pipeline</a>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-soft-secondary" data-bs-toggle="dropdown" data-bs-auto-close="outside" title="Hiển thị cột">
+                        <i class="ri-layout-column-line me-1"></i> Cột
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
+                        <h6 class="dropdown-header px-0">Hiển thị cột</h6>
+                        <?php foreach ($displayColumns ?? [] as $col): ?>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $col['key'] ?>" data-column="<?= $col['key'] ?>" checked>
+                            <label class="form-check-label" for="<?= $col['key'] ?>"><?= e($col['label']) ?></label>
+                        </div>
+                        <?php endforeach; ?>
+                        <hr class="my-2">
+                        <button type="button" class="btn btn-soft-primary w-100" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                    </div>
+                </div>
+                <a href="<?= url('deals/pipeline') ?>" class="btn btn-soft-info"><i class="ri-git-branch-line me-1"></i> Pipeline</a>
                 <a href="<?= url('deals/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm cơ hội</a>
             </div>
         </div>
@@ -40,14 +59,9 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Tên cơ hội</th>
-                                <th>Giá trị</th>
-                                <th>Giai đoạn</th>
-                                <th>Khách hàng</th>
-                                <th>Công ty</th>
-                                <th>Ưu tiên</th>
-                                <th>Dự kiến</th>
-                                <th>Phụ trách</th>
+                                <?php foreach ($displayColumns ?? [] as $col): ?>
+                                <th class="<?= $col['key'] ?>"><?= e($col['label']) ?></th>
+                                <?php endforeach; ?>
                                 <th>Thao tác</th>
                             </tr>
                         </thead>
@@ -55,17 +69,35 @@
                             <?php if (!empty($deals['items'])): ?>
                                 <?php foreach ($deals['items'] as $deal): ?>
                                     <tr>
-                                        <td><a href="<?= url('deals/' . $deal['id']) ?>" class="fw-medium text-dark"><?= e($deal['title']) ?></a></td>
-                                        <td class="fw-medium"><?= format_money($deal['value']) ?></td>
-                                        <td><span class="badge" style="background-color:<?= safe_color($deal['stage_color'] ?? null) ?>"><?= e($deal['stage_name'] ?? '') ?></span></td>
-                                        <td><?= e(($deal['contact_first_name'] ?? '') . ' ' . ($deal['contact_last_name'] ?? '')) ?: '-' ?></td>
-                                        <td><?= e($deal['company_name'] ?? '-') ?></td>
-                                        <td>
-                                            <?php $pc = ['low'=>'info','medium'=>'warning','high'=>'danger','urgent'=>'danger']; $pl = ['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn']; ?>
-                                            <span class="badge bg-<?= $pc[$deal['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$deal['priority']] ?? 'secondary' ?>"><?= $pl[$deal['priority']] ?? '' ?></span>
+                                        <?php foreach ($displayColumns ?? [] as $col):
+                                            $field = $col['field'];
+                                        ?>
+                                        <td class="<?= $col['key'] ?>">
+                                            <?php if ($field === 'title'): ?>
+                                                <a href="<?= url('deals/' . $deal['id']) ?>" class="fw-medium text-dark"><?= e($deal['title']) ?></a>
+                                            <?php elseif ($field === 'value'): ?>
+                                                <span class="fw-medium"><?= format_money($deal['value']) ?></span>
+                                            <?php elseif ($field === 'stage_id'): ?>
+                                                <span class="badge" style="background-color:<?= safe_color($deal['stage_color'] ?? null) ?>"><?= e($deal['stage_name'] ?? '') ?></span>
+                                            <?php elseif ($field === 'contact_id'): ?>
+                                                <?= e(($deal['contact_first_name'] ?? '') . ' ' . ($deal['contact_last_name'] ?? '')) ?: '-' ?>
+                                            <?php elseif ($field === 'company_id'): ?>
+                                                <?= e($deal['company_name'] ?? '-') ?>
+                                            <?php elseif ($field === 'status'): ?>
+                                                <?php $stl = ['open'=>'Đang mở','won'=>'Thắng','lost'=>'Thua']; $stc = ['open'=>'primary','won'=>'success','lost'=>'danger']; ?>
+                                                <span class="badge bg-<?= $stc[$deal['status']] ?? 'secondary' ?>-subtle text-<?= $stc[$deal['status']] ?? 'secondary' ?>"><?= $stl[$deal['status']] ?? $deal['status'] ?></span>
+                                            <?php elseif ($field === 'priority'): ?>
+                                                <?php $pc = ['low'=>'info','medium'=>'warning','high'=>'danger','urgent'=>'danger']; $pl = ['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn']; ?>
+                                                <span class="badge bg-<?= $pc[$deal['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$deal['priority']] ?? 'secondary' ?>"><?= $pl[$deal['priority']] ?? '' ?></span>
+                                            <?php elseif ($field === 'expected_close_date'): ?>
+                                                <?= $deal['expected_close_date'] ? format_date($deal['expected_close_date']) : '-' ?>
+                                            <?php elseif ($field === 'owner_id'): ?>
+                                                <?= user_avatar($deal['owner_name'] ?? null) ?>
+                                            <?php else: ?>
+                                                <?= e($deal[$field] ?? '-') ?>
+                                            <?php endif; ?>
                                         </td>
-                                        <td><?= $deal['expected_close_date'] ? format_date($deal['expected_close_date']) : '-' ?></td>
-                                        <td><?= user_avatar($deal['owner_name'] ?? null) ?></td>
+                                        <?php endforeach; ?>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -84,7 +116,7 @@
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="9" class="text-center py-4 text-muted"><i class="ri-hand-coin-line fs-1 d-block mb-2"></i>Chưa có cơ hội</td></tr>
+                                <tr><td colspan="<?= count($displayColumns ?? []) + 1 ?>" class="text-center py-4 text-muted"><i class="ri-hand-coin-line fs-1 d-block mb-2"></i>Chưa có cơ hội</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -104,3 +136,38 @@
                 <?php endif; ?>
             </div>
         </div>
+
+<script>
+(function() {
+    var storageKey = 'deal_columns';
+    var defaultVisible = <?= json_encode($defaultVisible) ?>;
+    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+
+    function applyColumns() {
+        document.querySelectorAll('.column-toggle').forEach(function(cb) {
+            var col = cb.dataset.column;
+            var visible = saved.hasOwnProperty(col) ? saved[col] : defaultVisible.indexOf(col) !== -1;
+            cb.checked = visible;
+            document.querySelectorAll('.' + col).forEach(function(el) {
+                el.style.display = visible ? '' : 'none';
+            });
+        });
+    }
+
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            saved[this.dataset.column] = this.checked;
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+            applyColumns();
+        });
+    });
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        saved = {};
+        localStorage.removeItem(storageKey);
+        applyColumns();
+    });
+
+    applyColumns();
+})();
+</script>

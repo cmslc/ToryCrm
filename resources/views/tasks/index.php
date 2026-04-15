@@ -9,6 +9,7 @@ $currentPriority = $filters['priority'] ?? '';
 $totalAll = 0;
 $countMap = [];
 foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $totalAll += $s['count']; }
+$defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 'col-duedate', 'col-contactid', 'col-dealid'];
 ?>
 
 <!-- Title Row -->
@@ -88,21 +89,10 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                     </button>
                     <div class="dropdown-menu dropdown-menu-end p-3" style="min-width:200px">
                         <h6 class="dropdown-header px-0">Hiển thị cột</h6>
-                        <?php
-                        $columns = [
-                            'col-task' => 'Công việc',
-                            'col-status' => 'Trạng thái',
-                            'col-priority' => 'Ưu tiên',
-                            'col-assigned' => 'Phụ trách',
-                            'col-followers' => 'Theo dõi',
-                            'col-created' => 'Ngày tạo',
-                            'col-due' => 'Hạn',
-                            'col-related' => 'Liên quan',
-                        ];
-                        foreach ($columns as $colId => $colLabel): ?>
+                        <?php foreach ($displayColumns ?? [] as $col): ?>
                         <div class="form-check mb-2">
-                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $colId ?>" data-column="<?= $colId ?>" checked>
-                            <label class="form-check-label" for="<?= $colId ?>"><?= $colLabel ?></label>
+                            <input class="form-check-input column-toggle" type="checkbox" id="<?= $col['key'] ?>" data-column="<?= $col['key'] ?>" checked>
+                            <label class="form-check-label" for="<?= $col['key'] ?>"><?= e($col['label']) ?></label>
                         </div>
                         <?php endforeach; ?>
                         <hr class="my-2">
@@ -157,14 +147,9 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                 <thead class="text-muted table-light">
                     <tr>
                         <th style="width:40px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
-                        <th class="col-task">Công việc</th>
-                        <th class="col-status">Trạng thái</th>
-                        <th class="col-priority">Ưu tiên</th>
-                        <th class="col-assigned">Phụ trách</th>
-                        <th class="col-followers">Theo dõi</th>
-                        <th class="col-created">Ngày tạo</th>
-                        <th class="col-due">Hạn</th>
-                        <th class="col-related">Liên quan</th>
+                        <?php foreach ($displayColumns ?? [] as $col): ?>
+                        <th class="<?= $col['key'] ?>"><?= e($col['label']) ?></th>
+                        <?php endforeach; ?>
                         <th style="width:60px">Thao tác</th>
                     </tr>
                 </thead>
@@ -172,33 +157,36 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                     <?php if (!empty($tasks['items'])): foreach ($tasks['items'] as $task): ?>
                         <tr>
                             <td><input type="checkbox" class="form-check-input row-check" value="<?= $task['id'] ?>"></td>
-                            <td class="col-task">
-                                <a href="<?= url('tasks/' . $task['id']) ?>" class="fw-medium text-dark"><?= e($task['title']) ?></a>
-                                <?php if (!empty($task['description'])): ?>
-                                    <div class="text-muted fs-12 text-truncate" style="max-width:300px"><?= e(mb_substr($task['description'], 0, 60)) ?></div>
+                            <?php foreach ($displayColumns ?? [] as $col):
+                                $field = $col['field'];
+                            ?>
+                            <td class="<?= $col['key'] ?>">
+                                <?php if ($field === 'title'): ?>
+                                    <a href="<?= url('tasks/' . $task['id']) ?>" class="fw-medium text-dark"><?= e($task['title']) ?></a>
+                                    <?php if (!empty($task['description'])): ?>
+                                        <div class="text-muted fs-12 text-truncate" style="max-width:300px"><?= e(mb_substr($task['description'], 0, 60)) ?></div>
+                                    <?php endif; ?>
+                                <?php elseif ($field === 'status'): ?>
+                                    <span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span>
+                                <?php elseif ($field === 'priority'): ?>
+                                    <span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span>
+                                <?php elseif ($field === 'assigned_to'): ?>
+                                    <?= user_avatar($task['assigned_name'] ?? null) ?>
+                                <?php elseif ($field === 'due_date'): ?>
+                                    <?= due_label($task['due_date'] ?? null, $task['status']) ?>
+                                <?php elseif ($field === 'contact_id'): ?>
+                                    <?php if ($task['contact_first_name']): ?>
+                                        <span><?= e($task['contact_first_name'] . ' ' . ($task['contact_last_name'] ?? '')) ?></span>
+                                    <?php else: ?>-<?php endif; ?>
+                                <?php elseif ($field === 'deal_id'): ?>
+                                    <?php if ($task['deal_title']): ?>
+                                        <span class="text-muted"><?= e($task['deal_title']) ?></span>
+                                    <?php else: ?>-<?php endif; ?>
+                                <?php else: ?>
+                                    <?= e($task[$field] ?? '-') ?>
                                 <?php endif; ?>
                             </td>
-                            <td class="col-status"><span class="badge bg-<?= $sc[$task['status']] ?? 'secondary' ?>"><?= $sl[$task['status']] ?? '' ?></span></td>
-                            <td class="col-priority"><span class="badge bg-<?= $pc[$task['priority']] ?? 'secondary' ?>-subtle text-<?= $pc[$task['priority']] ?? 'secondary' ?>"><?= $pl[$task['priority']] ?? '' ?></span></td>
-                            <td class="col-assigned"><?= user_avatar($task['assigned_name'] ?? null) ?></td>
-                            <td class="col-followers">
-                                <?php
-                                $taskFollowers = \Core\Database::fetchAll("SELECT u.name FROM task_followers tf JOIN users u ON tf.user_id = u.id WHERE tf.task_id = ? ORDER BY u.name", [$task['id']]);
-                                if (!empty($taskFollowers)):
-                                    foreach ($taskFollowers as $tf): ?>
-                                    <span class="badge bg-light text-body"><?= e($tf['name']) ?></span>
-                                <?php endforeach; else: ?>-<?php endif; ?>
-                            </td>
-                            <td class="col-created"><span class="text-muted" title="<?= $task['created_at'] ? date('d/m/Y H:i', strtotime($task['created_at'])) : '' ?>"><?= created_ago($task['created_at'] ?? null) ?></span></td>
-                            <td class="col-due"><?= due_label($task['due_date'] ?? null, $task['status']) ?></td>
-                            <td class="col-related">
-                                <?php if ($task['contact_first_name']): ?>
-                                    <span><?= e($task['contact_first_name']) ?></span>
-                                <?php endif; ?>
-                                <?php if ($task['deal_title']): ?>
-                                    <div class="text-muted fs-12"><?= e($task['deal_title']) ?></div>
-                                <?php endif; ?>
-                            </td>
+                            <?php endforeach; ?>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -210,7 +198,7 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
                             </td>
                         </tr>
                     <?php endforeach; else: ?>
-                        <tr><td colspan="10" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
+                        <tr><td colspan="<?= count($displayColumns ?? []) + 2 ?>" class="text-center py-4 text-muted"><i class="ri-task-line fs-1 d-block mb-2"></i>Chưa có công việc</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -234,12 +222,13 @@ foreach ($statusCounts ?? [] as $s) { $countMap[$s['status']] = $s['count']; $to
 <script>
 (function() {
     var storageKey = 'task_columns';
+    var defaultVisible = <?= json_encode($defaultVisible) ?>;
     var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
 
     function applyColumns() {
         document.querySelectorAll('.column-toggle').forEach(function(cb) {
             var col = cb.dataset.column;
-            var visible = saved[col] !== false;
+            var visible = saved.hasOwnProperty(col) ? saved[col] : defaultVisible.indexOf(col) !== -1;
             cb.checked = visible;
             document.querySelectorAll('.' + col).forEach(function(el) {
                 el.style.display = visible ? '' : 'none';

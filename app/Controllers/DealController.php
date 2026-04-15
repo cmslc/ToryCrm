@@ -76,6 +76,7 @@ class DealController extends Controller
 
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
         $totalPages = ceil($total / $perPage);
+        $displayColumns = \App\Services\ColumnService::getColumns('deals');
 
         return $this->view('deals.index', [
             'deals' => [
@@ -91,6 +92,7 @@ class DealController extends Controller
                 'status' => $status,
                 'owner_id' => $ownerId,
             ],
+            'displayColumns' => $displayColumns,
         ]);
     }
 

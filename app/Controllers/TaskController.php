@@ -102,6 +102,8 @@ class TaskController extends Controller
             [Database::tenantId()]
         );
 
+        $displayColumns = \App\Services\ColumnService::getColumns('tasks');
+
         return $this->view('tasks.index', [
             'tasks' => [
                 'items' => $tasks,
@@ -119,6 +121,7 @@ class TaskController extends Controller
             ],
             'statusCounts' => $statusCounts,
             'users' => $users,
+            'displayColumns' => $displayColumns,
         ]);
     }
 
