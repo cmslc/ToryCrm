@@ -724,6 +724,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/contact-statuses/{id}/update', 'ContactStatusController@update');
     Router::post('settings/contact-statuses/{id}/delete', 'ContactStatusController@delete');
     Router::post('settings/contact-statuses/{id}/default', 'ContactStatusController@setDefault');
+    Router::get('api/tax-lookup', 'TaxLookupController@lookup');
     Router::post('settings/contact-sources/store', 'ContactStatusController@storeSource');
     Router::post('settings/contact-sources/reorder', 'ContactStatusController@reorderSources');
     Router::post('settings/contact-sources/{id}/update', 'ContactStatusController@updateSource');

@@ -147,10 +147,10 @@ document.getElementById('btnLookupTax')?.addEventListener('click', function() {
     btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i> Đang tra...';
     status.classList.add('d-none');
 
-    fetch('https://api.vietqr.io/v2/business/' + encodeURIComponent(taxCode))
+    fetch('<?= url("api/tax-lookup") ?>?tax_code=' + encodeURIComponent(taxCode))
         .then(r => r.json())
         .then(data => {
-            if (data.code === '00' && data.data) {
+            if (data.success && data.data) {
                 var d = data.data;
                 var nameInput = document.querySelector('input[name="name"]');
                 var addressInput = document.querySelector('input[name="address"]');
