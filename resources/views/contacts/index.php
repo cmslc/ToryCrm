@@ -170,8 +170,8 @@ $columns = [
             <a href="<?= url('contacts') ?>" class="btn btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-secondary' ?> rounded-pill text-nowrap">
                 Tất cả <span class="badge bg-white text-dark ms-1"><?= number_format($totalAll) ?></span>
             </a>
-            <a href="<?= url('contacts?status=today') ?>" class="btn btn <?= $currentStatus === 'today' ? 'btn-success' : 'btn-soft-success' ?> rounded-pill text-nowrap">
-                Mới cập nhật <span class="badge <?= $currentStatus === 'today' ? 'bg-white text-success' : 'bg-success-subtle text-success' ?> ms-1"><?= $todayCount ?? 0 ?></span>
+            <a href="<?= url('contacts?status=today') ?>" class="btn btn <?= $currentStatus === 'today' ? 'btn-success' : 'btn-outline-success' ?> rounded-pill text-nowrap">
+                Mới cập nhật <span class="badge <?= $currentStatus === 'today' ? 'bg-white text-success' : 'bg-success text-white' ?> rounded-pill ms-1"><?= $todayCount ?? 0 ?></span>
             </a>
             <?php foreach ($sLabels as $key => $label):
                 $count = 0;
@@ -180,8 +180,8 @@ $columns = [
                 $isActive = $currentStatus === $key;
             ?>
             <a href="<?= url('contacts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
-               class="btn btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> rounded-pill text-nowrap">
-                <?= $label ?> <span class="badge <?= $isActive ? 'bg-white text-' . $color : "bg-{$color}-subtle text-{$color}" ?> ms-1"><?= number_format($count) ?></span>
+               class="btn btn <?= $isActive ? "btn-{$color}" : "btn-outline-{$color}" ?> rounded-pill text-nowrap">
+                <?= $label ?> <span class="badge <?= $isActive ? 'bg-white text-' . $color : "bg-{$color} text-white" ?> rounded-pill ms-1"><?= number_format($count) ?></span>
             </a>
             <?php endforeach; ?>
         </div>
