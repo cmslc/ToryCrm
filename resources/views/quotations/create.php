@@ -118,13 +118,13 @@
                             <div class="row align-items-end mb-3">
                                 <div class="col-md-2"><label class="form-label mb-0 fw-medium">Phí vận chuyển</label></div>
                                 <div class="col-md-2">
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group input-group">
                                         <input type="number" class="form-control" name="shipping_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'shipping')">
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control form-control-sm" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
+                                    <input type="number" class="form-control form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
                                 </div>
                                 <div class="col-md-3"></div>
                                 <div class="col-md-2">
@@ -137,13 +137,13 @@
                             <div class="row align-items-end mb-3">
                                 <div class="col-md-2"><label class="form-label mb-0 fw-medium">Chiết khấu</label></div>
                                 <div class="col-md-2">
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group input-group">
                                         <input type="number" class="form-control" name="discount_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'discount')">
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control form-control-sm" name="discount_amount" value="0" min="0" onchange="calculateTotal()">
+                                    <input type="number" class="form-control form-control" name="discount_amount" value="0" min="0" onchange="calculateTotal()">
                                 </div>
                                 <div class="col-md-3"></div>
                                 <div class="col-md-2">
@@ -156,25 +156,25 @@
                             <div class="row align-items-end mb-3">
                                 <div class="col-md-2"><label class="form-label mb-0 fw-medium">Thuế VAT</label></div>
                                 <div class="col-md-2">
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group input-group">
                                         <input type="number" class="form-control" name="tax_rate" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'tax')">
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control form-control-sm" name="tax_amount" value="0" min="0" readonly style="background:#f3f6f9">
+                                    <input type="number" class="form-control form-control" name="tax_amount" value="0" min="0" readonly style="background:#f3f6f9">
                                 </div>
                             </div>
                             <div class="row align-items-end mb-3">
                                 <div class="col-md-2"><label class="form-label mb-0 fw-medium">Phí lắp đặt</label></div>
                                 <div class="col-md-2">
-                                    <div class="input-group input-group-sm">
+                                    <div class="input-group input-group">
                                         <input type="number" class="form-control" name="installation_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'installation')">
                                         <span class="input-group-text">%</span>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <input type="number" class="form-control form-control-sm" name="installation_fee" value="0" min="0" onchange="calculateTotal()">
+                                    <input type="number" class="form-control form-control" name="installation_fee" value="0" min="0" onchange="calculateTotal()">
                                 </div>
                             </div>
                             <hr>
