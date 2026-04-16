@@ -71,10 +71,16 @@ class PermissionGroupController extends Controller
             $userGroupMap[$row['user_id']][] = $row;
         }
 
+        $allActions = [];
+        foreach ($permissions as $p) {
+            if (!in_array($p['action'], $allActions)) $allActions[] = $p['action'];
+        }
+
         return $this->view('settings.permission-groups', [
             'tree' => $tree,
             'groups' => $groups,
             'modules' => $modules,
+            'allActions' => $allActions,
             'allUsers' => $allUsers,
             'selectedGroup' => $selectedGroup,
             'selectedGroupId' => (int)$selectedGroupId,
