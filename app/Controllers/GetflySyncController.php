@@ -236,37 +236,129 @@ class GetflySyncController extends Controller
             'status' => 'running',
         ]);
 
-        // TODO: Implement actual sync logic per endpoint
-        // For now, just test connection and log
-        $ep = $this->endpoints[$endpoint];
-        $url = $config['api_domain'] . '/' . $ep['api_path'] . '?page=1&num_per_page=1';
-        if ($endpoint === 'orders_sale') $url .= '&order_type=2&start_date=2020-01-01&end_date=2026-12-31';
-        if ($endpoint === 'orders_purchase') $url .= '&order_type=1&start_date=2020-01-01&end_date=2026-12-31';
+        try {
+            $synced = match ($endpoint) {
+                'tasks' => $this->syncTasks($config),
+                default => $this->syncPlaceholder($config, $endpoint),
+            };
 
-        $result = $this->callApi($config['api_key'], $url);
-
-        if ($result['success']) {
-            $total = $result['data']['pagination']['total_record'] ?? 0;
             Database::update('getfly_sync_logs', [
                 'status' => 'success',
-                'records_synced' => 0,
+                'records_synced' => $synced,
                 'completed_at' => date('Y-m-d H:i:s'),
             ], 'id = ?', [$logId]);
 
             return $this->json([
                 'success' => true,
-                'message' => "Kết nối thành công. Tìm thấy {$total} records. Chức năng đồng bộ đang được phát triển.",
-                'total' => $total,
+                'message' => "Đã đồng bộ {$synced} records thành công.",
+                'total' => $synced,
             ]);
-        }
-
-        Database::update('getfly_sync_logs', [
-            'status' => 'error',
-            'error_message' => $result['error'],
-            'completed_at' => date('Y-m-d H:i:s'),
-        ], 'id = ?', [$logId]);
+        } catch (\Exception $e) {
+            Database::update('getfly_sync_logs', [
+                'status' => 'error',
+                'error_message' => $e->getMessage(),
+                'completed_at' => date('Y-m-d H:i:s'),
+            ], 'id = ?', [$logId]);
 
         return $this->json(['error' => $result['error']], 400);
+    }
+
+    private function syncTasks(array $config): int
+    {
+        $tid = Database::tenantId();
+        $synced = 0;
+        $page = 1;
+        $perPage = 30;
+
+        // Build user name → id map
+        $userMap = [];
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1");
+        foreach ($users as $u) $userMap[mb_strtolower($u['name'])] = $u['id'];
+
+        // Getfly status → ToryCRM status
+        $statusMap = [
+            '1' => 'todo',        // Mới
+            '6' => 'in_progress', // Đang làm
+            '11' => 'review',     // Chờ xác nhận
+            '14' => 'done',       // Hoàn thành
+        ];
+
+        while (true) {
+            $url = $config['api_domain'] . '/api/v3/tasks?page=' . $page . '&num_per_page=' . $perPage;
+            $result = $this->callApi($config['api_key'], $url);
+
+            if (!$result['success']) {
+                throw new \Exception('API error page ' . $page . ': ' . $result['error']);
+            }
+
+            $tasks = $result['data']['data'] ?? $result['data'] ?? [];
+            if (empty($tasks) || (is_array($tasks) && isset($tasks[0]) === false)) break;
+
+            foreach ($tasks as $t) {
+                $taskCode = trim($t['task_code'] ?? '');
+                if (empty($taskCode)) continue;
+
+                $receiverName = mb_strtolower(trim($t['receiver_name'] ?? ''));
+                $creatorName = mb_strtolower(trim($t['creator_name'] ?? ''));
+                $assignedTo = $userMap[$receiverName] ?? null;
+                $createdBy = $userMap[$creatorName] ?? null;
+                $status = $statusMap[$t['task_status'] ?? ''] ?? 'todo';
+
+                $data = [
+                    'tenant_id' => $tid,
+                    'task_code' => $taskCode,
+                    'title' => trim($t['task_name'] ?? 'Không tiêu đề'),
+                    'description' => trim($t['task_description'] ?? ''),
+                    'status' => $status,
+                    'progress' => (int)($t['task_progress'] ?? 0),
+                    'start_date' => $t['task_start_date'] ?? null,
+                    'due_date' => $t['task_end_date'] ?? null,
+                    'color' => ($t['task_color'] ?? '#ffffff') !== '#ffffff' ? $t['task_color'] : null,
+                    'is_important' => (int)($t['star'] ?? 0),
+                    'assigned_to' => $assignedTo,
+                    'created_by' => $createdBy,
+                ];
+
+                // Check if task exists
+                $existing = Database::fetch("SELECT id FROM tasks WHERE task_code = ? AND tenant_id = ?", [$taskCode, $tid]);
+
+                if ($existing) {
+                    Database::update('tasks', [
+                        'title' => $data['title'],
+                        'description' => $data['description'],
+                        'status' => $data['status'],
+                        'progress' => $data['progress'],
+                        'due_date' => $data['due_date'],
+                        'assigned_to' => $data['assigned_to'],
+                    ], 'id = ?', [$existing['id']]);
+                } else {
+                    if ($status === 'done') {
+                        $data['completed_at'] = $data['due_date'] ?? date('Y-m-d H:i:s');
+                    }
+                    Database::insert('tasks', $data);
+                }
+                $synced++;
+            }
+
+            $page++;
+            if (count($tasks) < $perPage) break;
+        }
+
+        return $synced;
+    }
+
+    private function syncPlaceholder(array $config, string $endpoint): int
+    {
+        // Test connection only for endpoints not yet implemented
+        $ep = $this->endpoints[$endpoint];
+        $url = $config['api_domain'] . '/' . $ep['api_path'] . '?page=1&num_per_page=1';
+        $result = $this->callApi($config['api_key'], $url);
+
+        if (!$result['success']) {
+            throw new \Exception($result['error']);
+        }
+
+        throw new \Exception('Chức năng đồng bộ ' . $ep['name'] . ' đang được phát triển.');
     }
 
     private function getConfig(): ?array
