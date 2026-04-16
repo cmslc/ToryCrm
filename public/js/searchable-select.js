@@ -22,10 +22,12 @@
         var items = [];
         var selectedValue = sel.value;
         var selectedText = '';
+        var placeholderText = '';
 
         function addOption(opt, group) {
             var item = { value: opt.value, text: opt.textContent.trim(), group: group || null };
             items.push(item);
+            if (opt.value === '' && !placeholderText) placeholderText = opt.textContent.trim();
             if (opt.value === selectedValue && opt.value !== '') selectedText = opt.textContent.trim();
         }
 
@@ -56,7 +58,7 @@
         var btn = document.createElement('div');
         btn.className = 'form-select d-flex align-items-center';
         btn.style.cursor = 'pointer';
-        btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">Chọn...</span>') + '</span>';
+        btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>') + '</span>';
         wrapper.appendChild(btn);
 
         // Dropdown
@@ -108,7 +110,7 @@
                 var item = document.createElement('div');
                 item.className = 'px-3 py-2 fs-13' + (o.value === selectedValue ? ' bg-primary text-white' : '');
                 item.style.cursor = 'pointer';
-                item.textContent = o.text || 'Chọn...';
+                item.textContent = o.text || placeholderText || 'Chọn...';
                 item.dataset.value = o.value;
 
                 item.addEventListener('mouseenter', function() {
@@ -122,7 +124,7 @@
                     sel.value = o.value;
                     selectedValue = o.value;
                     selectedText = o.value ? o.text : '';
-                    btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">Chọn...</span>') + '</span>';
+                    btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>') + '</span>';
                     close();
                     sel.dispatchEvent(new Event('change', { bubbles: true }));
                 });
@@ -164,6 +166,7 @@
                 items = [];
                 selectedValue = sel.value;
                 selectedText = '';
+                placeholderText = '';
                 for (var i = 0; i < sel.children.length; i++) {
                     var child = sel.children[i];
                     if (child.tagName.toUpperCase() === 'OPTGROUP') {
@@ -173,7 +176,7 @@
                         addOption(child, null);
                     }
                 }
-                btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">Chọn...</span>') + '</span>';
+                btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>') + '</span>';
             }
         };
     }
