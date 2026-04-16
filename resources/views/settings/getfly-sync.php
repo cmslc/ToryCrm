@@ -143,6 +143,27 @@
     </div>
 </div>
 
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmSyncModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <div class="avatar-lg mx-auto mb-3">
+                    <div class="avatar-title bg-info-subtle text-info rounded-circle fs-24">
+                        <i class="ri-refresh-line"></i>
+                    </div>
+                </div>
+                <h5 class="mb-2">Bắt đầu đồng bộ dữ liệu?</h5>
+                <p class="text-muted mb-4" id="confirmSyncText">Quá trình có thể mất vài phút.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-soft-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary px-4" id="confirmSyncBtn"><i class="ri-refresh-line me-1"></i> Đồng bộ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php if ($config): ?>
 <script>
 var token = '<?= csrf_token() ?>';
@@ -186,10 +207,28 @@ document.querySelectorAll('.btn-test-api').forEach(function(btn) {
 });
 
 // Sync API
+var pendingSyncEp = null;
+var pendingSyncBtn = null;
+
 document.querySelectorAll('.btn-sync-api').forEach(function(btn) {
     btn.addEventListener('click', function() {
-        if (!confirm('Bắt đầu đồng bộ dữ liệu?')) return;
-        var ep = this.dataset.endpoint;
+        pendingSyncEp = this.dataset.endpoint;
+        pendingSyncBtn = this;
+        var names = {};
+        document.querySelectorAll('[data-endpoint]').forEach(function(el) {
+            var card = el.closest('.border');
+            if (card) { var h = card.querySelector('h6'); if (h) names[el.dataset.endpoint] = h.textContent.trim(); }
+        });
+        document.getElementById('confirmSyncText').textContent = 'Đồng bộ ' + (names[pendingSyncEp] || pendingSyncEp) + '. Quá trình có thể mất vài phút.';
+        new bootstrap.Modal(document.getElementById('confirmSyncModal')).show();
+    });
+});
+
+document.getElementById('confirmSyncBtn')?.addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('confirmSyncModal')).hide();
+    if (!pendingSyncEp || !pendingSyncBtn) return;
+    var btn = pendingSyncBtn;
+    var ep = pendingSyncEp;
         var statusEl = document.getElementById('ep-' + ep + '-status');
         var syncBtn = this;
         syncBtn.disabled = true;
@@ -276,6 +315,5 @@ document.querySelectorAll('.btn-sync-api').forEach(function(btn) {
             });
         }
     });
-});
 </script>
 <?php endif; ?>
