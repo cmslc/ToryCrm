@@ -128,7 +128,7 @@
                                 <td class="text-muted fs-13"><?= $f['default'] !== null ? e($f['default']) : '-' ?></td>
                                 <td class="text-center">
                                     <div class="form-check form-switch d-flex justify-content-center mb-0">
-                                        <input class="form-check-input toggle-show-in-list" type="checkbox" data-field="<?= e($f['name']) ?>" <?= ($f['show_in_list'] ?? true) ? 'checked' : '' ?>>
+                                        <input class="form-check-input toggle-show-in-list" type="checkbox" data-field="<?= e($f['name']) ?>" <?= ($f['show_in_list'] ?? false) ? 'checked' : '' ?>>
                                     </div>
                                 </td>
                             </tr>

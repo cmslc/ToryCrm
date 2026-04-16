@@ -251,7 +251,7 @@ class DataDefinitionController extends Controller
                 'default' => $col['Default'],
                 'is_system' => $isSystem,
                 'is_custom' => false,
-                'show_in_list' => $showInList[$col['Field']] ?? true,
+                'show_in_list' => $showInList[$col['Field']] ?? ($isSystem ? false : true),
                 'source' => 'database',
             ];
         }
