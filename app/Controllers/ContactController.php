@@ -274,6 +274,13 @@ class ContactController extends Controller
         $contactData['owner_id'] = $contactData['owner_id'] ?: $this->userId();
         $contactData['created_by'] = $this->userId();
 
+        // Auto-generate account_code if empty
+        if (empty($contactData['account_code'])) {
+            $maxCode = Database::fetch("SELECT MAX(CAST(SUBSTRING(account_code, 3) AS UNSIGNED)) as max_num FROM contacts WHERE account_code LIKE 'KH%'");
+            $nextNum = ($maxCode['max_num'] ?? 0) + 1;
+            $contactData['account_code'] = 'KH' . $nextNum;
+        }
+
         $contactId = Database::insert('contacts', $contactData);
 
         $this->handleAvatarUpload($contactId);
