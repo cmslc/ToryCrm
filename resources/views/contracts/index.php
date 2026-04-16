@@ -4,6 +4,7 @@ $sc = ['draft' => 'secondary', 'sent' => 'info', 'signed' => 'primary', 'active'
 $sl = ['draft' => 'Nháp', 'sent' => 'Đã gửi', 'signed' => 'Đã ký', 'active' => 'Hoạt động', 'expired' => 'Hết hạn', 'cancelled' => 'Đã hủy'];
 $tc = ['service' => 'primary', 'product' => 'success', 'rental' => 'warning', 'maintenance' => 'info', 'other' => 'secondary'];
 $tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho thuê', 'maintenance' => 'Bảo trì', 'other' => 'Khác'];
+$colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -21,10 +22,13 @@ $tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho
         <div class="d-flex flex-wrap gap-3 mb-3">
             <?php foreach ($displayColumns as $dc): ?>
             <div class="form-check">
-                <input class="form-check-input column-toggle" type="checkbox" id="col-<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
-                <label class="form-check-label" for="col-<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
+                <input class="form-check-input column-toggle" type="checkbox" id="<?= $dc['key'] ?>" data-column="<?= $dc['key'] ?>" checked>
+                <label class="form-check-label" for="<?= $dc['key'] ?>"><?= e($dc['label']) ?></label>
             </div>
             <?php endforeach; ?>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
         </div>
     </div>
 </div>
@@ -176,13 +180,46 @@ $tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho
 
 <script>
 document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
-    document.getElementById('columnPanel').classList.toggle('d-none');
+    var panel = document.getElementById('columnPanel');
+    panel.classList.toggle('d-none');
+    var isOpen = !panel.classList.contains('d-none');
+    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
 });
-document.querySelectorAll('.column-toggle').forEach(function(cb) {
-    cb.addEventListener('change', function() {
-        var col = this.dataset.column;
-        var show = this.checked;
-        document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+
+(function() {
+    var STORAGE_KEY = 'torycrm_contracts_columns';
+    var allColumns = <?= json_encode($colKeys) ?>;
+    var defaultVisible = ['col-contractnumber','col-title','col-contactid','col-type','col-value','col-startdate','col-enddate','col-status'];
+
+    function getVisible() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
+        catch(e) { return defaultVisible; }
+    }
+
+    function applyColumns(visible) {
+        allColumns.forEach(function(col) {
+            var show = visible.includes(col);
+            document.querySelectorAll('.' + col).forEach(function(el) { el.style.display = show ? '' : 'none'; });
+            var cb = document.getElementById(col);
+            if (cb) cb.checked = show;
+        });
+    }
+
+    document.querySelectorAll('.column-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var visible = getVisible();
+            if (this.checked) { if (!visible.includes(this.dataset.column)) visible.push(this.dataset.column); }
+            else { visible = visible.filter(function(c) { return c !== cb.dataset.column; }); }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
+            applyColumns(visible);
+        });
     });
-});
+
+    document.getElementById('resetColumns')?.addEventListener('click', function() {
+        localStorage.removeItem(STORAGE_KEY);
+        applyColumns(defaultVisible);
+    });
+
+    applyColumns(getVisible());
+})();
 </script>
