@@ -4,10 +4,14 @@ $actionLabels = [
     'approve' => 'Duyệt', 'view_all' => 'Xem tất cả', 'confirm' => 'Xác nhận', 'manage' => 'Quản lý', 'use' => 'Sử dụng',
 ];
 $moduleLabels = [
-    'contacts' => 'Khách hàng', 'deals' => 'Cơ hội', 'tasks' => 'Công việc',
-    'products' => 'Sản phẩm', 'orders' => 'Đơn hàng', 'tickets' => 'Hỗ trợ', 'campaigns' => 'Chiến dịch',
-    'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng', 'reports' => 'Báo cáo', 'automation' => 'Tự động hóa',
-    'webhooks' => 'Webhooks', 'settings' => 'Cài đặt', 'import_export' => 'Import/Export',
+    'contacts' => 'Khách hàng', 'deals' => 'Cơ hội', 'quotations' => 'Báo giá',
+    'contracts' => 'Hợp đồng', 'orders' => 'Đơn hàng', 'debts' => 'Công nợ',
+    'products' => 'Sản phẩm', 'logistics' => 'Kho hàng', 'tasks' => 'Công việc',
+    'calendar' => 'Lịch hẹn', 'activities' => 'Hoạt động', 'tickets' => 'Hỗ trợ',
+    'campaigns' => 'Chiến dịch', 'commissions' => 'Hoa hồng', 'email' => 'Email',
+    'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng', 'reports' => 'Báo cáo',
+    'automation' => 'Tự động hóa', 'webhooks' => 'Webhooks', 'settings' => 'Cài đặt',
+    'import_export' => 'Import/Export',
 ];
 $group = $group ?? $selectedGroup ?? null;
 if (!$group) return;
