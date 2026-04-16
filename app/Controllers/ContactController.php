@@ -65,12 +65,11 @@ class ContactController extends Controller
         )['count'];
 
         $contacts = Database::fetchAll(
-            "SELECT c.*, comp.name as company_name, comp.phone as company_phone, comp.email as company_email,
+            "SELECT c.*,
                     u.name as owner_name, u.avatar as owner_avatar,
                     cs.name as source_name, cs.color as source_color,
                     (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = c.id AND a.type != 'system') as last_activity_at
              FROM contacts c
-             LEFT JOIN companies comp ON c.company_id = comp.id
              LEFT JOIN users u ON c.owner_id = u.id
              LEFT JOIN contact_sources cs ON c.source_id = cs.id
              WHERE {$whereClause}
@@ -130,42 +129,51 @@ class ContactController extends Controller
     public function create()
     {
         $this->authorize('contacts', 'create');
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
-
         $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+        $industries = Database::fetchAll("SELECT DISTINCT industry FROM contacts WHERE industry IS NOT NULL AND industry != '' ORDER BY industry");
 
         return $this->view('contacts.create', [
-            'companies' => $companies,
             'sources' => $sources,
             'users' => $users,
             'contactStatuses' => $contactStatuses,
+            'industries' => $industries,
         ]);
     }
 
     private function buildContactData(array $data): array
     {
-        // Support full_name (single field) or first_name/last_name (separate)
+        // Derive first_name/last_name from company_name or full_name
+        $companyName = trim($data['company_name'] ?? '');
         if (!empty($data['full_name'])) {
             $parts = explode(' ', trim($data['full_name']), 2);
             $firstName = $parts[0];
             $lastName = $parts[1] ?? '';
-        } else {
-            $firstName = trim($data['first_name'] ?? '');
+        } elseif (!empty($data['first_name'])) {
+            $firstName = trim($data['first_name']);
             $lastName = trim($data['last_name'] ?? '');
+        } else {
+            // Use company_name as display name
+            $parts = explode(' ', $companyName, 2);
+            $firstName = $parts[0];
+            $lastName = $parts[1] ?? '';
         }
 
         return [
             'first_name' => $firstName,
             'last_name' => $lastName,
+            'company_name' => trim($data['company_name'] ?? '') ?: null,
+            'company_phone' => trim($data['company_phone'] ?? '') ?: null,
+            'company_email' => trim($data['company_email'] ?? '') ?: null,
+            'industry' => trim($data['industry'] ?? '') ?: null,
+            'company_size' => trim($data['company_size'] ?? '') ?: null,
             'title' => trim($data['title'] ?? '') ?: null,
             'email' => trim($data['email'] ?? ''),
             'phone' => trim($data['phone'] ?? ''),
             'mobile' => trim($data['mobile'] ?? ''),
             'fax' => trim($data['fax'] ?? '') ?: null,
             'position' => trim($data['position'] ?? ''),
-            'company_id' => (!empty($data['company_id']) ? $data['company_id'] : null),
             'source_id' => (!empty($data['source_id']) ? $data['source_id'] : null),
             'account_code' => trim($data['account_code'] ?? '') ?: null,
             'tax_code' => trim($data['tax_code'] ?? '') ?: null,
@@ -185,6 +193,44 @@ class ContactController extends Controller
             'date_of_birth' => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
             'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),
         ];
+    }
+
+    private function saveContactPersons(int $contactId, array $data): void
+    {
+        $names = $data['cp_name'] ?? [];
+        if (empty($names)) return;
+
+        // Delete existing and re-insert
+        Database::query("DELETE FROM contact_persons WHERE contact_id = ?", [$contactId]);
+
+        $titles = $data['cp_title'] ?? [];
+        $positions = $data['cp_position'] ?? [];
+        $phones = $data['cp_phone'] ?? [];
+        $emails = $data['cp_email'] ?? [];
+        $genders = $data['cp_gender'] ?? [];
+        $dobs = $data['cp_dob'] ?? [];
+        $notes = $data['cp_note'] ?? [];
+        $primaries = $data['cp_primary'] ?? [];
+
+        foreach ($names as $i => $name) {
+            $name = trim($name);
+            if (empty($name)) continue;
+
+            Database::insert('contact_persons', [
+                'tenant_id' => Database::tenantId(),
+                'contact_id' => $contactId,
+                'title' => trim($titles[$i] ?? '') ?: null,
+                'full_name' => $name,
+                'position' => trim($positions[$i] ?? '') ?: null,
+                'phone' => trim($phones[$i] ?? '') ?: null,
+                'email' => trim($emails[$i] ?? '') ?: null,
+                'gender' => ($genders[$i] ?? '') ?: null,
+                'date_of_birth' => !empty($dobs[$i]) ? $dobs[$i] : null,
+                'note' => trim($notes[$i] ?? '') ?: null,
+                'is_primary' => in_array($i, $primaries) ? 1 : 0,
+                'sort_order' => $i,
+            ]);
+        }
     }
 
     private function handleAvatarUpload(int $contactId, ?string $oldAvatar = null): void
@@ -220,8 +266,8 @@ class ContactController extends Controller
         $data = $this->allInput();
         $contactData = $this->buildContactData($data);
 
-        if (empty($contactData['first_name'])) {
-            $this->setFlash('error', 'First name is required.');
+        if (empty($contactData['company_name']) && empty($contactData['first_name'])) {
+            $this->setFlash('error', 'Tên khách hàng không được để trống.');
             return $this->back();
         }
 
@@ -231,12 +277,15 @@ class ContactController extends Controller
         $contactId = Database::insert('contacts', $contactData);
 
         $this->handleAvatarUpload($contactId);
+        $this->saveContactPersons($contactId, $data);
+
+        $displayName = $contactData['company_name'] ?: ($contactData['first_name'] . ' ' . $contactData['last_name']);
 
         // Log activity
         Database::insert('activities', [
             'type' => 'system',
-            'title' => "Contact created: {$firstName} {$lastName}",
-            'description' => "New contact {$firstName} {$lastName} was created.",
+            'title' => "Contact created: {$displayName}",
+            'description' => "New contact {$displayName} was created.",
             'user_id' => $this->userId(),
             'contact_id' => $contactId,
         ]);
@@ -261,9 +310,8 @@ class ContactController extends Controller
     {
         $this->authorize('contacts', 'view');
         $contact = Database::fetch(
-            "SELECT c.*, comp.name as company_name, u.name as owner_name, u.avatar as owner_avatar, cs.name as source_name
+            "SELECT c.*, u.name as owner_name, u.avatar as owner_avatar, cs.name as source_name
              FROM contacts c
-             LEFT JOIN companies comp ON c.company_id = comp.id
              LEFT JOIN users u ON c.owner_id = u.id
              LEFT JOIN contact_sources cs ON c.source_id = cs.id
              WHERE c.id = ?",
@@ -324,6 +372,11 @@ class ContactController extends Controller
             [$id]
         );
 
+        $contactPersons = Database::fetchAll(
+            "SELECT * FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id",
+            [$id]
+        );
+
         return $this->view('contacts.show', [
             'contact' => $contact,
             'activities' => $activities,
@@ -331,6 +384,7 @@ class ContactController extends Controller
             'tasks' => $tasks,
             'contactStatuses' => $contactStatuses,
             'followers' => $followers,
+            'contactPersons' => $contactPersons,
         ]);
     }
 
@@ -350,18 +404,22 @@ class ContactController extends Controller
             return $this->redirect('contacts');
         }
 
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
-
         $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+        $industries = Database::fetchAll("SELECT DISTINCT industry FROM contacts WHERE industry IS NOT NULL AND industry != '' ORDER BY industry");
+        $contactPersons = Database::fetchAll(
+            "SELECT * FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id",
+            [$id]
+        );
 
         return $this->view('contacts.edit', [
             'contact' => $contact,
-            'companies' => $companies,
             'sources' => $sources,
             'users' => $users,
             'contactStatuses' => $contactStatuses,
+            'industries' => $industries,
+            'contactPersons' => $contactPersons,
         ]);
     }
 
@@ -388,14 +446,15 @@ class ContactController extends Controller
         $data = $this->allInput();
         $contactData = $this->buildContactData($data);
 
-        if (empty($contactData['first_name'])) {
-            $this->setFlash('error', 'First name is required.');
+        if (empty($contactData['company_name']) && empty($contactData['first_name'])) {
+            $this->setFlash('error', 'Tên khách hàng không được để trống.');
             return $this->back();
         }
 
         Database::update('contacts', $contactData, 'id = ?', [$id]);
 
         $this->handleAvatarUpload($id, $contact['avatar'] ?? null);
+        $this->saveContactPersons($id, $data);
 
         // Log activity
         Database::insert('activities', [

@@ -64,7 +64,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <!-- Hộp thư moved to topbar -->
 
                 <?php if (canSee('contacts')): ?>
-                <?php $crmOpen = isOpen(['contacts','companies','bookings'], $currentUrl); ?>
+                <?php $crmOpen = isOpen(['contacts','bookings'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>">
                         <i class="ri-contacts-line"></i> <span>Khách hàng</span>
@@ -72,7 +72,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $crmOpen ? 'show' : '' ?>" id="sidebarCrm">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('contacts') ?>" class="nav-link <?= isActive('contacts', $currentUrl) ?>">Danh sách KH</a></li>
-                            <?php if (canSee('companies')): ?><li class="nav-item"><a href="<?= url('companies') ?>" class="nav-link <?= isActive('companies', $currentUrl) ?>">Doanh nghiệp</a></li><?php endif; ?>
                             <?php if (plugin_active('booking')): ?><li class="nav-item"><a href="<?= url('bookings') ?>" class="nav-link <?= isActive('bookings', $currentUrl) ?>">Đặt lịch hẹn</a></li><?php endif; ?>
                         </ul>
                     </div>

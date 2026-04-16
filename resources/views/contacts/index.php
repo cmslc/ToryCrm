@@ -267,8 +267,8 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                 case 'mobile': case 'fax': case 'shipping_phone':
                                     echo $val ? '<i class="ri-phone-line me-1 text-muted"></i>' . e($val) : '-';
                                     break;
-                                case 'company_id':
-                                    echo $c['company_id'] ? '<a href="' . url('companies/' . $c['company_id']) . '">' . e($c['company_name'] ?? '') . '</a>' : '<span class="text-muted">-</span>';
+                                case 'company_id': case 'company_name':
+                                    echo !empty($c['company_name']) ? e($c['company_name']) : '<span class="text-muted">-</span>';
                                     break;
                                 case 'source_id':
                                     echo !empty($c['source_name']) ? '<span class="badge bg-secondary-subtle text-secondary">' . e($c['source_name']) . '</span>' : '<span class="text-muted">-</span>';
@@ -381,7 +381,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 (function() {
     var STORAGE_KEY = 'torycrm_contacts_columns';
     var allColumns = <?= json_encode($colKeys) ?>;
-    var defaultVisible = ['col-accountcode','col-fullname','col-email','col-phone','col-companyid','col-status','col-ownerid','col-customergroup','col-lastactivityat','col-createdat'];
+    var defaultVisible = ['col-accountcode','col-fullname','col-email','col-phone','col-companyname','col-status','col-ownerid','col-customergroup','col-lastactivityat','col-createdat'];
 
     function getVisible() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
