@@ -134,11 +134,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
             </select>
             <select name="customer_group" class="form-select" style="width:auto;min-width:140px" onchange="this.form.submit()">
                 <option value="">Nhóm KH</option>
-                <option value="du_an" <?= ($filters['customer_group'] ?? '') === 'du_an' ? 'selected' : '' ?>>Khách dự án</option>
-                <option value="le" <?= ($filters['customer_group'] ?? '') === 'le' ? 'selected' : '' ?>>Khách lẻ</option>
-                <option value="dai_ly" <?= ($filters['customer_group'] ?? '') === 'dai_ly' ? 'selected' : '' ?>>Khách đại lý</option>
-                <option value="doanh_nghiep" <?= ($filters['customer_group'] ?? '') === 'doanh_nghiep' ? 'selected' : '' ?>>Doanh nghiệp</option>
-                <option value="vip" <?= ($filters['customer_group'] ?? '') === 'vip' ? 'selected' : '' ?>>VIP</option>
+                <option value="Khách Lẻ" <?= ($filters['customer_group'] ?? '') === 'Khách Lẻ' ? 'selected' : '' ?>>Khách Lẻ</option>
+                <option value="Khách Dự Án" <?= ($filters['customer_group'] ?? '') === 'Khách Dự Án' ? 'selected' : '' ?>>Khách Dự Án</option>
+                <option value="Khách Đại Lý" <?= ($filters['customer_group'] ?? '') === 'Khách Đại Lý' ? 'selected' : '' ?>>Khách Đại Lý</option>
             </select>
             <input type="hidden" name="status" id="statusInput" value="<?= e($currentStatus) ?>">
             <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
@@ -227,8 +225,10 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                         <?php foreach ($contacts['items'] as $c): ?>
                         <?php
                         // Special renderers for known fields
-                        $groupLabels = ['du_an'=>'Khách dự án','le'=>'Khách lẻ','dai_ly'=>'Khách đại lý','doanh_nghiep'=>'Doanh nghiệp','vip'=>'VIP'];
-                        $groupColors = ['du_an'=>'info','le'=>'secondary','dai_ly'=>'warning','doanh_nghiep'=>'primary','vip'=>'danger'];
+                        $groupLabels = ['du_an'=>'Khách dự án','le'=>'Khách lẻ','dai_ly'=>'Khách đại lý','doanh_nghiep'=>'Doanh nghiệp','vip'=>'VIP',
+                            'Khách Dự Án'=>'Khách Dự Án','Khách Lẻ'=>'Khách Lẻ','Khách Đại Lý'=>'Khách Đại Lý'];
+                        $groupColors = ['du_an'=>'info','le'=>'secondary','dai_ly'=>'warning','doanh_nghiep'=>'primary','vip'=>'danger',
+                            'Khách Dự Án'=>'info','Khách Lẻ'=>'secondary','Khách Đại Lý'=>'warning'];
                         $genderLabels = ['male'=>'Nam','female'=>'Nữ','other'=>'Khác'];
                         ?>
                         <tr data-id="<?= $c['id'] ?>">
