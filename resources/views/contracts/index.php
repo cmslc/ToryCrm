@@ -36,25 +36,18 @@ $tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho
 </div>
 <?php endif; ?>
 
+<?php $currentStatus = $filters['status'] ?? ''; ?>
 <div class="card">
     <div class="card-header p-2">
         <form method="GET" action="<?= url('contracts') ?>" class="d-flex align-items-center gap-2 flex-wrap">
-            <select name="status" class="form-select" style="width:auto;min-width:120px" onchange="this.form.submit()">
-                <option value="">Trạng thái</option>
-                <?php foreach ($sl as $k => $v): ?>
-                <option value="<?= $k ?>" <?= ($filters['status'] ?? '') === $k ? 'selected' : '' ?>><?= $v ?></option>
-                <?php endforeach; ?>
-            </select>
+            <div class="search-box" style="min-width:160px;max-width:200px">
+                <input type="text" class="form-control" name="search" placeholder="Tìm số HĐ, tên..." value="<?= e($filters['search'] ?? '') ?>">
+                <i class="ri-search-line search-icon"></i>
+            </div>
             <select name="type" class="form-select" style="width:auto;min-width:100px" onchange="this.form.submit()">
                 <option value="">Loại HĐ</option>
                 <?php foreach ($tl as $k => $v): ?>
                 <option value="<?= $k ?>" <?= ($filters['type'] ?? '') === $k ? 'selected' : '' ?>><?= $v ?></option>
-                <?php endforeach; ?>
-            </select>
-            <select name="contact_id" class="form-select searchable-select" style="width:auto;min-width:150px" onchange="this.form.submit()">
-                <option value="">Khách hàng</option>
-                <?php foreach ($contacts ?? [] as $c): ?>
-                <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e(trim($c['first_name'] . ' ' . ($c['last_name'] ?? ''))) ?></option>
                 <?php endforeach; ?>
             </select>
             <input type="date" class="form-control" style="width:auto" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>">
@@ -63,7 +56,27 @@ $tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho
             <?php if (!empty(array_filter($filters ?? []))): ?>
             <a href="<?= url('contracts') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line"></i></a>
             <?php endif; ?>
+            <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
         </form>
+    </div>
+    <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
+        <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none">
+            <div class="d-flex gap-1 flex-nowrap">
+                <a href="<?= url('contracts?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> btn-label right rounded-pill text-nowrap waves-effect">
+                    Tất cả <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= $totalAll ?></span>
+                </a>
+                <?php foreach ($sl as $key => $label):
+                    $count = (int)($stats[$key] ?? 0);
+                    $color = $sc[$key] ?? 'secondary';
+                    $isActive = $currentStatus === $key;
+                ?>
+                <a href="<?= url('contracts?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
+                   class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> btn-label right rounded-pill text-nowrap waves-effect">
+                    <?= $label ?> <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= $count ?></span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

@@ -69,15 +69,16 @@ class ContractController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        // Stats
-        $stats = Database::fetch(
-            "SELECT
-                COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) as active_count,
-                COALESCE(SUM(CASE WHEN status = 'active' AND end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND end_date >= CURDATE() THEN 1 ELSE 0 END), 0) as expiring_soon,
-                COALESCE(SUM(CASE WHEN status = 'expired' OR (status = 'active' AND end_date < CURDATE()) THEN 1 ELSE 0 END), 0) as expired_count,
-                COALESCE(SUM(CASE WHEN status IN ('active', 'signed') THEN value ELSE 0 END), 0) as total_value
-             FROM contracts WHERE is_deleted = 0" . (!$this->isAdminOrManager() && !$this->getDeptMemberIds() ? " AND owner_id = " . (int)$this->userId() : '')
+        // Stats per status
+        $statusCounts = Database::fetchAll(
+            "SELECT status, COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 GROUP BY status"
         );
+        $stats = [];
+        $totalAll = 0;
+        foreach ($statusCounts as $sc2) { $stats[$sc2['status']] = (int)$sc2['cnt']; $totalAll += (int)$sc2['cnt']; }
+        $stats['expiring_soon'] = (int)(Database::fetch(
+            "SELECT COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 AND status = 'active' AND end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND end_date >= CURDATE()"
+        )['cnt'] ?? 0);
 
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
 
@@ -92,6 +93,7 @@ class ContractController extends Controller
             ],
             'displayColumns' => $displayColumns,
             'stats' => $stats,
+            'totalAll' => $totalAll,
             'contacts' => $contacts,
             'filters' => [
                 'status' => $status,
