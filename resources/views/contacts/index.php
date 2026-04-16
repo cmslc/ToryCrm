@@ -243,7 +243,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                             // Custom rendering per field
                             switch ($field):
                                 case 'full_name':
+                                    $contactTitle = $c['primary_contact_title'] ?? ($c['title'] ?? '');
                                     $contactName = $c['primary_contact_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                                    $displayName = ($contactTitle ? ucfirst($contactTitle) . ' ' : '') . $contactName;
                                     $initial = mb_substr($contactName ?: '?', 0, 1);
                                     echo '<div class="d-flex align-items-center gap-2">';
                                     if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])) {
@@ -251,7 +253,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     } else {
                                         echo '<span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:32px;height:32px;font-size:13px">' . strtoupper($initial) . '</span>';
                                     }
-                                    echo '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium text-dark">' . e($contactName ?: '-') . '</a>';
+                                    echo '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium text-dark">' . e($displayName ?: '-') . '</a>';
                                     echo '</div>';
                                     break;
                                 case 'account_code':
