@@ -260,7 +260,7 @@ class GetflySyncController extends Controller
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 15,
+            CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTPHEADER => [
                 'X-API-KEY: ' . $apiKey,
                 'Content-Type: application/json',
