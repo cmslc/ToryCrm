@@ -157,8 +157,11 @@ document.querySelectorAll('.btn-test-api').forEach(function(btn) {
         statusEl.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i>Đang kiểm tra...';
         statusEl.className = 'text-warning fs-12';
 
+        var controller = new AbortController();
+        setTimeout(function() { controller.abort(); }, 90000);
         fetch('<?= url('settings/getfly-sync/test-api') ?>?endpoint=' + ep, {
-            headers: {'X-Requested-With': 'XMLHttpRequest'}
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            signal: controller.signal
         })
         .then(function(r) { return r.json(); })
         .then(function(d) {
@@ -170,8 +173,8 @@ document.querySelectorAll('.btn-test-api').forEach(function(btn) {
                 statusEl.className = 'text-danger fs-12';
             }
         })
-        .catch(function() {
-            statusEl.innerHTML = '<i class="ri-close-line me-1"></i>Lỗi kết nối';
+        .catch(function(e) {
+            statusEl.innerHTML = '<i class="ri-close-line me-1"></i>' + (e.name === 'AbortError' ? 'Timeout - API phản hồi quá lâu' : 'Lỗi kết nối');
             statusEl.className = 'text-danger fs-12';
         })
         .finally(function() {

@@ -156,9 +156,9 @@ class GetflySyncController extends Controller
 
         // Add default params
         if ($endpoint === 'orders_sale') {
-            $url .= 'order_type=2&start_date=2026-01-01&end_date=2026-12-31&';
+            $url .= 'order_type=2&start_date=2020-01-01&end_date=2030-12-31&';
         } elseif ($endpoint === 'orders_purchase') {
-            $url .= 'order_type=1&start_date=2026-01-01&end_date=2026-12-31&';
+            $url .= 'order_type=1&start_date=2020-01-01&end_date=2030-12-31&';
         }
         $url .= 'page=1&num_per_page=1';
 
