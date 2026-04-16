@@ -33,6 +33,8 @@ class DataDefinitionController extends Controller
         'is_private' => 'Riêng tư', 'avatar' => 'Ảnh đại diện',
         'tax_code' => 'Mã số thuế', 'website' => 'Website', 'fax' => 'Fax',
         'latitude' => 'Kinh độ', 'longitude' => 'Vĩ độ',
+        'company_name' => 'Tên công ty', 'company_phone' => 'ĐT công ty', 'company_email' => 'Email công ty',
+        'industry' => 'Ngành KD', 'company_size' => 'Quy mô',
         'company_id' => 'Công ty', 'source_id' => 'Nguồn KH', 'owner_id' => 'Người phụ trách',
         'created_by' => 'Người tạo', 'created_at' => 'Ngày tạo', 'updated_at' => 'Ngày cập nhật',
         'last_activity_at' => 'Liên hệ lần cuối', 'is_deleted' => 'Đã xóa', 'deleted_at' => 'Ngày xóa',
