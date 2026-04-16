@@ -44,6 +44,33 @@ class GetflySyncController extends Controller
             'description' => 'Đồng bộ đơn mua hàng (order_type=1)',
             'params' => ['order_type=1', 'start_date', 'end_date', 'page', 'num_per_page'],
         ],
+        'campaigns' => [
+            'name' => 'Chiến dịch',
+            'icon' => 'ri-megaphone-line',
+            'color' => 'danger',
+            'api_path' => 'api/v3/campaigns',
+            'method' => 'GET',
+            'description' => 'Đồng bộ chiến dịch marketing',
+            'params' => ['page', 'num_per_page'],
+        ],
+        'users' => [
+            'name' => 'Nhân viên',
+            'icon' => 'ri-team-line',
+            'color' => 'secondary',
+            'api_path' => 'api/v3/users',
+            'method' => 'GET',
+            'description' => 'Đồng bộ nhân viên, phòng ban',
+            'params' => [],
+        ],
+        'tasks' => [
+            'name' => 'Công việc',
+            'icon' => 'ri-task-line',
+            'color' => 'dark',
+            'api_path' => 'api/v3/tasks',
+            'method' => 'GET',
+            'description' => 'Đồng bộ công việc, nhiệm vụ',
+            'params' => ['page', 'num_per_page'],
+        ],
     ];
 
     public function index()
