@@ -174,9 +174,8 @@ class ContactStatusController extends Controller
         $name = trim($this->input('name') ?? '');
         if (empty($name)) { $this->setFlash('error', 'Tên nguồn không được trống.'); return $this->back(); }
 
-        $maxSort = Database::fetch("SELECT MAX(sort_order) as m FROM contact_sources WHERE tenant_id = ?", [$this->tenantId()])['m'] ?? 0;
+        $maxSort = Database::fetch("SELECT MAX(sort_order) as m FROM contact_sources")['m'] ?? 0;
         Database::insert('contact_sources', [
-            'tenant_id' => $this->tenantId(),
             'name' => $name,
             'color' => $this->input('color') ?: '#405189',
             'sort_order' => $maxSort + 1,
@@ -191,7 +190,7 @@ class ContactStatusController extends Controller
         Database::update('contact_sources', [
             'name' => trim($this->input('name') ?? ''),
             'color' => $this->input('color') ?: '#405189',
-        ], 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        ], 'id = ?', [(int)$id]);
         $this->setFlash('success', 'Đã cập nhật nguồn KH.');
         return $this->redirect('settings/contact-statuses?tab=sources');
     }
@@ -199,8 +198,8 @@ class ContactStatusController extends Controller
     public function deleteSource($id)
     {
         if (!$this->isPost()) return $this->redirect('settings/contact-statuses?tab=sources');
-        Database::query("UPDATE contacts SET source_id = NULL WHERE source_id = ? AND tenant_id = ?", [(int)$id, $this->tenantId()]);
-        Database::delete('contact_sources', 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        Database::query("UPDATE contacts SET source_id = NULL WHERE source_id = ?", [(int)$id]);
+        Database::delete('contact_sources', 'id = ?', [(int)$id]);
         $this->setFlash('success', 'Đã xóa nguồn KH.');
         return $this->redirect('settings/contact-statuses?tab=sources');
     }
