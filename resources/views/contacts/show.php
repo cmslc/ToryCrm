@@ -552,10 +552,6 @@
                                     <?php endif; ?>
                                 </div>
 
-                                <!-- Trao đổi nội bộ -->
-                                <hr>
-                                <h6 class="mb-3"><i class="ri-team-line me-1"></i> Trao đổi nội bộ</h6>
-                                <?php $chatEntityType = 'contact'; $chatEntityId = $contact['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
                             </div>
 
                             <!-- Tab: Cơ hội -->
