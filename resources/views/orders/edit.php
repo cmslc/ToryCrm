@@ -136,40 +136,29 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                                 <table class="table align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
-                                            <th width="30%">Sản phẩm</th>
-                                            <th width="10%">SL</th>
-                                            <th width="10%">ĐVT</th>
-                                            <th width="15%">Đơn giá</th>
-                                            <th width="10%">Thuế %</th>
-                                            <th width="15%">Thành tiền</th>
-                                            <th width="5%"></th>
+                                            <th style="width:40px">#</th>
+                                            <th style="width:140px">Mã SP</th>
+                                            <th style="min-width:200px">Tên sản phẩm</th>
+                                            <th style="width:70px">ĐVT</th>
+                                            <th style="width:80px">SL</th>
+                                            <th style="width:120px">Giá vốn</th>
+                                            <th style="width:120px">Giá bán</th>
+                                            <th style="width:70px">CK(%)</th>
+                                            <th style="width:100px">CK</th>
+                                            <th style="width:70px">VAT(%)</th>
+                                            <th style="width:130px">Thành tiền</th>
+                                            <th style="width:40px"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="orderItems"></tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="5" class="text-end fw-medium">Tạm tính:</td>
+                                            <td colspan="10" class="text-end fw-medium">Tạm tính:</td>
                                             <td id="subtotalDisplay" class="fw-medium">0 ₫</td>
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="3"></td>
-                                            <td colspan="2" class="text-end">
-                                                <div class="d-flex align-items-center justify-content-end gap-2">
-                                                    <span>Giảm giá:</span>
-                                                    <select name="discount_type" class="form-select form-select" style="width:90px">
-                                                        <option value="fixed" <?= ($order['discount_type'] ?? '') === 'fixed' ? 'selected' : '' ?>>VNĐ</option>
-                                                        <option value="percent" <?= ($order['discount_type'] ?? '') === 'percent' ? 'selected' : '' ?>>%</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control form-control" name="discount_amount" value="<?= $order['discount_amount'] ?? 0 ?>" min="0" onchange="calculateTotal()">
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="5" class="text-end fw-bold fs-5">Tổng cộng:</td>
+                                            <td colspan="10" class="text-end fw-bold fs-5">Tổng cộng:</td>
                                             <td id="totalDisplay" class="fw-bold fs-5 text-primary">0 ₫</td>
                                             <td></td>
                                         </tr>
@@ -239,57 +228,102 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
         const existingItems = <?= json_encode($items ?? []) ?>;
         let itemIndex = 0;
 
+        let searchTimer = null;
+
         function addOrderItem(data = null) {
             const tbody = document.getElementById('orderItems');
             const idx = itemIndex++;
             const tr = document.createElement('tr');
             tr.id = 'item-row-' + idx;
 
-            let productOptions = '<option value="">Nhập tên SP</option>';
-            products.forEach(p => {
-                productOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit}" data-tax="${p.tax_rate}" ${data && p.id == data.product_id ? 'selected' : ''}>${p.name}${p.sku ? ' ('+p.sku+')' : ''}</option>`;
-            });
-
             tr.innerHTML = `
+                <td class="text-center text-muted">${idx + 1}</td>
                 <td>
-                    <select class="form-select form-select product-select" onchange="selectProduct(this, ${idx})">
-                        ${productOptions}
-                    </select>
-                    <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data ? data.product_id || '' : ''}">
-                    <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data ? data.product_name || '' : ''}">
+                    <div class="product-search-wrap">
+                        <input type="text" class="form-control" id="item-sku-${idx}" placeholder="Mã SP..." value="${data?.product_sku || data?.sku || ''}" autocomplete="off" onfocus="searchProduct(this,${idx},'sku')" oninput="searchProduct(this,${idx},'sku')">
+                        <div class="product-dropdown" id="item-skudrop-${idx}"></div>
+                    </div>
                 </td>
-                <td><input type="number" class="form-control form-control" name="items[${idx}][quantity]" value="${data ? data.quantity : 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
-                <td><input type="text" class="form-control form-control" name="items[${idx}][unit]" id="item-unit-${idx}" value="${data ? data.unit : 'Cái'}"></td>
-                <td><input type="number" class="form-control form-control" name="items[${idx}][unit_price]" id="item-price-${idx}" value="${data ? data.unit_price : 0}" min="0" onchange="calculateRow(${idx})"></td>
-                <td><input type="number" class="form-control form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data ? data.tax_rate : 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
-                <td class="fw-medium" id="item-total-${idx}">0 ₫</td>
-                <td><button type="button" class="btn btn btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
+                <td>
+                    <div class="product-search-wrap">
+                        <input type="text" class="form-control" id="item-namesearch-${idx}" placeholder="Tên SP..." value="${data?.product_name || ''}" autocomplete="off" onfocus="searchProduct(this,${idx},'name')" oninput="searchProduct(this,${idx},'name')">
+                        <div class="product-dropdown" id="item-namedrop-${idx}"></div>
+                    </div>
+                    <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data?.product_id || ''}">
+                    <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data?.product_name || ''}">
+                </td>
+                <td><input type="text" class="form-control" name="items[${idx}][unit]" id="item-unit-${idx}" value="${data?.unit || 'Cái'}"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][quantity]" value="${data?.quantity || 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][cost_price]" id="item-cost-${idx}" value="${data?.cost_price || 0}" min="0"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][unit_price]" id="item-price-${idx}" value="${data?.unit_price || 0}" min="0" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][discount_percent]" id="item-ckpct-${idx}" value="${data?.discount_percent || 0}" min="0" max="100" step="0.01" onchange="calcDiscountFromPct(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][discount]" id="item-discount-${idx}" value="${data?.discount || 0}" min="0" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data?.tax_rate || 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td class="fw-medium text-end" id="item-total-${idx}">0 ₫</td>
+                <td><button type="button" class="btn btn-soft-danger btn-icon" onclick="removeItem(${idx})"><i class="ri-delete-bin-line"></i></button></td>
             `;
             tbody.appendChild(tr);
+            if (data) calculateRow(idx);
+        }
+
+        function searchProduct(input, idx, type) {
+            const q = input.value.trim();
+            const dropId = type === 'sku' ? 'item-skudrop-' + idx : 'item-namedrop-' + idx;
+            const drop = document.getElementById(dropId);
+            if (q.length < 1) { drop.style.display = 'none'; return; }
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                fetch('<?= url("products/search-ajax") ?>?q=' + encodeURIComponent(q))
+                    .then(r => r.json())
+                    .then(results => {
+                        if (!results.length) { drop.innerHTML = '<div class="pd-item text-muted">Không tìm thấy</div>'; drop.style.display = 'block'; return; }
+                        drop.innerHTML = results.map(p =>
+                            '<div class="pd-item" onclick=\'pickProduct(' + idx + ',' + JSON.stringify(p).replace(/'/g, "\\'") + ')\'>' +
+                            '<strong>' + p.name + '</strong> <span class="pd-sku">' + (p.sku || '') + '</span>' +
+                            '<br><small class="text-muted">' + Number(p.price).toLocaleString('vi-VN') + ' ₫ / ' + (p.unit || 'Cái') + '</small></div>'
+                        ).join('');
+                        drop.style.display = 'block';
+                    });
+            }, 250);
+        }
+
+        function pickProduct(idx, p) {
+            document.getElementById('item-product-' + idx).value = p.id;
+            document.getElementById('item-name-' + idx).value = p.name;
+            document.getElementById('item-sku-' + idx).value = p.sku || '';
+            document.getElementById('item-namesearch-' + idx).value = p.name;
+            document.getElementById('item-price-' + idx).value = p.price || 0;
+            document.getElementById('item-unit-' + idx).value = p.unit || 'Cái';
+            document.getElementById('item-tax-' + idx).value = p.tax_rate || 0;
+            document.getElementById('item-skudrop-' + idx).style.display = 'none';
+            document.getElementById('item-namedrop-' + idx).style.display = 'none';
             calculateRow(idx);
         }
 
-        function selectProduct(select, idx) {
-            const option = select.options[select.selectedIndex];
-            if (option.value) {
-                document.getElementById('item-product-' + idx).value = option.value;
-                document.getElementById('item-name-' + idx).value = option.text.split(' (')[0];
-                document.getElementById('item-price-' + idx).value = option.dataset.price || 0;
-                document.getElementById('item-unit-' + idx).value = option.dataset.unit || 'Cái';
-                document.getElementById('item-tax-' + idx).value = option.dataset.tax || 0;
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.product-search-wrap')) {
+                document.querySelectorAll('.product-dropdown').forEach(d => d.style.display = 'none');
             }
+        });
+
+        function calcDiscountFromPct(idx) {
+            const qty = parseFloat(document.querySelector('[name="items[' + idx + '][quantity]"]')?.value || 0);
+            const price = parseFloat(document.getElementById('item-price-' + idx)?.value || 0);
+            const pct = parseFloat(document.getElementById('item-ckpct-' + idx)?.value || 0);
+            document.getElementById('item-discount-' + idx).value = Math.round(qty * price * pct / 100);
             calculateRow(idx);
         }
 
         function removeItem(idx) { document.getElementById('item-row-' + idx)?.remove(); calculateTotal(); }
 
         function calculateRow(idx) {
-            const qty = parseFloat(document.querySelector(`[name="items[${idx}][quantity]"]`)?.value || 0);
+            const qty = parseFloat(document.querySelector('[name="items[' + idx + '][quantity]"]')?.value || 0);
             const price = parseFloat(document.getElementById('item-price-' + idx)?.value || 0);
             const tax = parseFloat(document.getElementById('item-tax-' + idx)?.value || 0);
-            const total = qty * price * (1 + tax / 100);
+            const discount = parseFloat(document.getElementById('item-discount-' + idx)?.value || 0);
+            const total = qty * price * (1 + tax / 100) - discount;
             const el = document.getElementById('item-total-' + idx);
-            if (el) el.textContent = formatMoney(total);
+            if (el) el.textContent = formatMoney(Math.max(0, total));
             calculateTotal();
         }
 
@@ -301,10 +335,7 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
                 subtotal += qty * price;
             });
             document.getElementById('subtotalDisplay').textContent = formatMoney(subtotal);
-            const discountAmount = parseFloat(document.querySelector('[name="discount_amount"]')?.value || 0);
-            const discountType = document.querySelector('[name="discount_type"]')?.value || 'fixed';
-            const discount = discountType === 'percent' ? subtotal * discountAmount / 100 : discountAmount;
-            document.getElementById('totalDisplay').textContent = formatMoney(Math.max(0, subtotal - discount));
+            document.getElementById('totalDisplay').textContent = formatMoney(subtotal);
         }
 
         function formatMoney(amount) {
@@ -315,3 +346,10 @@ $pageTitle = 'Sửa ' . ($isQuote ? 'báo giá' : 'đơn hàng') . ' ' . $order[
         existingItems.forEach(item => addOrderItem(item));
         if (existingItems.length === 0) addOrderItem();
         </script>
+        <style>
+        .product-search-wrap { position: relative; }
+        .product-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 1050; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .product-dropdown .pd-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f3f3f3; }
+        .product-dropdown .pd-item:hover { background: #f0f4ff; }
+        .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
+        </style>
