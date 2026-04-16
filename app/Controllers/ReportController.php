@@ -100,13 +100,12 @@ class ReportController extends Controller
             array_merge($baseParams, $dateParams)
         );
 
-        // 7. Theo Ngành nghề - NEW
+        // 7. Theo Ngành nghề
         $byIndustry = Database::fetchAll(
-            "SELECT COALESCE(i.name, 'Chưa phân loại') as industry, COUNT(c.id) as count
+            "SELECT COALESCE(c.industry, 'Chưa phân loại') as industry, COUNT(c.id) as count
              FROM contacts c
-             LEFT JOIN industries i ON c.industry_id = i.id
              WHERE {$baseWhere} {$dateWhere}
-             GROUP BY industry ORDER BY count DESC",
+             GROUP BY c.industry ORDER BY count DESC",
             array_merge($baseParams, $dateParams)
         );
 
