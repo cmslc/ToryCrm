@@ -130,26 +130,86 @@ class ContractController extends Controller
 
         $contractNumber = $this->generateContractNumber();
 
-        $id = Database::insert('contracts', [
-            'contract_number' => $contractNumber,
-            'title' => trim($data['title']),
-            'type' => $data['type'] ?? 'service',
-            'status' => 'draft',
-            'value' => (float) ($data['value'] ?? 0),
-            'recurring_value' => (float) ($data['recurring_value'] ?? 0),
-            'recurring_cycle' => $data['recurring_cycle'] ?? null,
-            'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
-            'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
-            'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
-            'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
-            'start_date' => !empty($data['start_date']) ? $data['start_date'] : date('Y-m-d'),
-            'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
-            'auto_renew' => !empty($data['auto_renew']) ? 1 : 0,
-            'notes' => trim($data['notes'] ?? ''),
-            'terms' => trim($data['terms'] ?? ''),
-            'created_by' => $this->userId(),
-            'is_deleted' => 0,
-        ]);
+        Database::beginTransaction();
+        try {
+            $id = Database::insert('contracts', [
+                'contract_number' => $contractNumber,
+                'title' => trim($data['title']),
+                'type' => $data['type'] ?? 'service',
+                'status' => 'draft',
+                'value' => (float) ($data['value'] ?? 0),
+                'recurring_value' => (float) ($data['recurring_value'] ?? 0),
+                'recurring_cycle' => $data['recurring_cycle'] ?? null,
+                'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
+                'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
+                'contact_name' => trim($data['contact_name'] ?? '') ?: null,
+                'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
+                'start_date' => !empty($data['start_date']) ? $data['start_date'] : date('Y-m-d'),
+                'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
+                'auto_renew' => !empty($data['auto_renew']) ? 1 : 0,
+                'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'shipping_fee' => (float)($data['shipping_fee'] ?? 0),
+                'installation_fee' => (float)($data['installation_fee'] ?? 0),
+                'installation_address' => trim($data['installation_address'] ?? '') ?: null,
+                'notes' => trim($data['notes'] ?? ''),
+                'terms' => trim($data['terms'] ?? ''),
+                'created_by' => $this->userId(),
+                'tenant_id' => Database::tenantId(),
+                'is_deleted' => 0,
+            ]);
+
+            // Insert items
+            $subtotal = 0;
+            $totalTax = 0;
+            if (!empty($data['items']) && is_array($data['items'])) {
+                $sort = 0;
+                foreach ($data['items'] as $item) {
+                    if (empty($item['product_name'])) continue;
+                    $qty = (float)($item['quantity'] ?? 1);
+                    $unitPrice = (float)($item['unit_price'] ?? 0);
+                    $taxRate = (float)($item['tax_rate'] ?? 0);
+                    $discount = (float)($item['discount'] ?? 0);
+                    $lineSub = $qty * $unitPrice;
+                    $lineTax = $lineSub * $taxRate / 100;
+                    $lineTotal = $lineSub + $lineTax - $discount;
+
+                    Database::insert('contract_items', [
+                        'contract_id' => $id,
+                        'product_id' => !empty($item['product_id']) ? $item['product_id'] : null,
+                        'product_name' => $item['product_name'],
+                        'description' => $item['description'] ?? '',
+                        'quantity' => $qty,
+                        'unit' => $item['unit'] ?? 'Cái',
+                        'unit_price' => $unitPrice,
+                        'cost_price' => (float)($item['cost_price'] ?? 0),
+                        'tax_rate' => $taxRate,
+                        'discount_percent' => (float)($item['discount_percent'] ?? 0),
+                        'discount' => $discount,
+                        'total' => $lineTotal,
+                        'sort_order' => $sort++,
+                    ]);
+                    $subtotal += $lineSub;
+                    $totalTax += $lineTax;
+                }
+            }
+
+            $discountAmt = (float)($data['discount_amount'] ?? 0);
+            $shippingFee = (float)($data['shipping_fee'] ?? 0);
+            $installFee = (float)($data['installation_fee'] ?? 0);
+            $totalValue = $subtotal + $totalTax - $discountAmt + $shippingFee + $installFee;
+
+            Database::update('contracts', [
+                'subtotal' => $subtotal,
+                'tax_amount' => $totalTax,
+                'value' => max(0, $totalValue),
+            ], 'id = ?', [$id]);
+
+            Database::commit();
+        } catch (\Exception $e) {
+            Database::rollback();
+            $this->setFlash('error', 'Lỗi tạo hợp đồng: ' . $e->getMessage());
+            return $this->back();
+        }
 
         $this->setFlash('success', "Hợp đồng {$contractNumber} đã được tạo.");
         return $this->redirect('contracts/' . $id);
@@ -185,8 +245,13 @@ class ContractController extends Controller
             [$id]
         );
 
+        $items = Database::fetchAll(
+            "SELECT ci.*, p.sku as product_sku FROM contract_items ci LEFT JOIN products p ON ci.product_id = p.id WHERE ci.contract_id = ? ORDER BY ci.sort_order", [$id]
+        );
+
         return $this->view('contracts.show', [
             'contract' => $contract,
+            'items' => $items,
             'orders' => $orders,
         ]);
     }
@@ -204,8 +269,13 @@ class ContractController extends Controller
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
+        $items = Database::fetchAll(
+            "SELECT ci.*, p.sku as product_sku FROM contract_items ci LEFT JOIN products p ON ci.product_id = p.id WHERE ci.contract_id = ? ORDER BY ci.sort_order", [$id]
+        );
+
         return $this->view('contracts.edit', [
             'contract' => $contract,
+            'items' => $items,
             'contacts' => $contacts,
             'companies' => $companies,
             'deals' => $deals,
@@ -225,22 +295,79 @@ class ContractController extends Controller
 
         $data = $this->allInput();
 
-        Database::update('contracts', [
-            'title' => trim($data['title'] ?? $contract['title']),
-            'type' => $data['type'] ?? $contract['type'],
-            'value' => (float) ($data['value'] ?? 0),
-            'recurring_value' => (float) ($data['recurring_value'] ?? 0),
-            'recurring_cycle' => $data['recurring_cycle'] ?? null,
-            'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
-            'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
-            'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
-            'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $contract['owner_id'],
-            'start_date' => !empty($data['start_date']) ? $data['start_date'] : $contract['start_date'],
-            'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
-            'auto_renew' => !empty($data['auto_renew']) ? 1 : 0,
-            'notes' => trim($data['notes'] ?? ''),
-            'terms' => trim($data['terms'] ?? ''),
-        ], 'id = ?', [$id]);
+        Database::beginTransaction();
+        try {
+            Database::update('contracts', [
+                'title' => trim($data['title'] ?? $contract['title']),
+                'type' => $data['type'] ?? $contract['type'],
+                'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
+                'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
+                'contact_name' => trim($data['contact_name'] ?? '') ?: null,
+                'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $contract['owner_id'],
+                'start_date' => !empty($data['start_date']) ? $data['start_date'] : $contract['start_date'],
+                'end_date' => !empty($data['end_date']) ? $data['end_date'] : null,
+                'auto_renew' => !empty($data['auto_renew']) ? 1 : 0,
+                'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'shipping_fee' => (float)($data['shipping_fee'] ?? 0),
+                'installation_fee' => (float)($data['installation_fee'] ?? 0),
+                'installation_address' => trim($data['installation_address'] ?? '') ?: null,
+                'notes' => trim($data['notes'] ?? ''),
+                'terms' => trim($data['terms'] ?? ''),
+            ], 'id = ?', [$id]);
+
+            // Re-insert items
+            Database::delete('contract_items', 'contract_id = ?', [$id]);
+            $subtotal = 0;
+            $totalTax = 0;
+            if (!empty($data['items']) && is_array($data['items'])) {
+                $sort = 0;
+                foreach ($data['items'] as $item) {
+                    if (empty($item['product_name'])) continue;
+                    $qty = (float)($item['quantity'] ?? 1);
+                    $unitPrice = (float)($item['unit_price'] ?? 0);
+                    $taxRate = (float)($item['tax_rate'] ?? 0);
+                    $discount = (float)($item['discount'] ?? 0);
+                    $lineSub = $qty * $unitPrice;
+                    $lineTax = $lineSub * $taxRate / 100;
+                    $lineTotal = $lineSub + $lineTax - $discount;
+
+                    Database::insert('contract_items', [
+                        'contract_id' => $id,
+                        'product_id' => !empty($item['product_id']) ? $item['product_id'] : null,
+                        'product_name' => $item['product_name'],
+                        'description' => $item['description'] ?? '',
+                        'quantity' => $qty,
+                        'unit' => $item['unit'] ?? 'Cái',
+                        'unit_price' => $unitPrice,
+                        'cost_price' => (float)($item['cost_price'] ?? 0),
+                        'tax_rate' => $taxRate,
+                        'discount_percent' => (float)($item['discount_percent'] ?? 0),
+                        'discount' => $discount,
+                        'total' => $lineTotal,
+                        'sort_order' => $sort++,
+                    ]);
+                    $subtotal += $lineSub;
+                    $totalTax += $lineTax;
+                }
+            }
+
+            $discountAmt = (float)($data['discount_amount'] ?? 0);
+            $shippingFee = (float)($data['shipping_fee'] ?? 0);
+            $installFee = (float)($data['installation_fee'] ?? 0);
+            $totalValue = $subtotal + $totalTax - $discountAmt + $shippingFee + $installFee;
+
+            Database::update('contracts', [
+                'subtotal' => $subtotal,
+                'tax_amount' => $totalTax,
+                'value' => max(0, $totalValue),
+            ], 'id = ?', [$id]);
+
+            Database::commit();
+        } catch (\Exception $e) {
+            Database::rollback();
+            $this->setFlash('error', 'Lỗi cập nhật: ' . $e->getMessage());
+            return $this->back();
+        }
 
         $this->setFlash('success', 'Hợp đồng đã được cập nhật.');
         return $this->redirect('contracts/' . $id);

@@ -116,6 +116,14 @@ class DataDefinitionController extends Controller
         'issued_date' => 'Ngày phát hành', 'due_date' => 'Hạn thanh toán',
         'cost_price' => 'Giá vốn',
 
+        // Contracts
+        'contract_number' => 'Số HĐ', 'signed_date' => 'Ngày ký',
+        'actual_value' => 'Giá trị thực', 'executed_amount' => 'Đã thực hiện',
+        'paid_amount' => 'Đã thanh toán', 'installation_address' => 'ĐC lắp đặt',
+        'contact_name' => 'Người liên hệ', 'auto_renew' => 'Tự động gia hạn',
+        'recurring_value' => 'Giá trị định kỳ', 'recurring_cycle' => 'Chu kỳ',
+        'parent_contract_id' => 'HĐ gốc',
+
         // Common
         'id' => 'ID', 'sort_order' => 'Thứ tự',
         // Companies extra
