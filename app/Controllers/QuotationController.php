@@ -290,9 +290,17 @@ class QuotationController extends Controller
             [$id]
         );
 
+        $attachments = Database::fetchAll(
+            "SELECT a.*, u.name as user_name FROM quotation_attachments a
+             LEFT JOIN users u ON a.user_id = u.id
+             WHERE a.quotation_id = ? ORDER BY a.created_at DESC",
+            [$id]
+        );
+
         return $this->view('quotations.show', [
             'quotation' => $quotation,
             'items' => $items,
+            'attachments' => $attachments,
         ]);
     }
 
@@ -745,5 +753,71 @@ class QuotationController extends Controller
         );
         $seq = $last ? ((int) substr($last['quote_number'], -4)) + 1 : 1;
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function uploadAttachment($id)
+    {
+        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+
+        $quotation = Database::fetch("SELECT id FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$quotation) {
+            $this->setFlash('error', 'Báo giá không tồn tại.');
+            return $this->redirect('quotations');
+        }
+
+        if (empty($_FILES['attachment']) || $_FILES['attachment']['error'] !== UPLOAD_ERR_OK) {
+            $this->setFlash('error', 'Vui lòng chọn file để tải lên.');
+            return $this->redirect('quotations/' . $id);
+        }
+
+        $file = $_FILES['attachment'];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        if ($file['size'] > $maxSize) {
+            $this->setFlash('error', 'File quá lớn (tối đa 10MB).');
+            return $this->redirect('quotations/' . $id);
+        }
+
+        $uploadDir = BASE_PATH . '/public/uploads/quotations/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'q' . $id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+        if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            $this->setFlash('error', 'Lỗi tải file lên.');
+            return $this->redirect('quotations/' . $id);
+        }
+
+        Database::insert('quotation_attachments', [
+            'tenant_id' => Database::tenantId(),
+            'quotation_id' => $id,
+            'user_id' => $this->userId(),
+            'filename' => $filename,
+            'original_name' => $file['name'],
+            'file_size' => $file['size'],
+            'mime_type' => $file['type'],
+        ]);
+
+        $this->setFlash('success', 'Đã tải lên tài liệu.');
+        return $this->redirect('quotations/' . $id);
+    }
+
+    public function deleteAttachment($id, $attachId)
+    {
+        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+
+        $attach = Database::fetch(
+            "SELECT * FROM quotation_attachments WHERE id = ? AND quotation_id = ? AND tenant_id = ?",
+            [$attachId, $id, Database::tenantId()]
+        );
+
+        if ($attach) {
+            $path = BASE_PATH . '/public/uploads/quotations/' . $attach['filename'];
+            if (file_exists($path)) unlink($path);
+            Database::delete('quotation_attachments', 'id = ?', [$attachId]);
+            $this->setFlash('success', 'Đã xóa tài liệu.');
+        }
+
+        return $this->redirect('quotations/' . $id);
     }
 }

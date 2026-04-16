@@ -157,6 +157,50 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                     <div class="card-body"><?= nl2br(e($quotation['terms'])) ?></div>
                 </div>
                 <?php endif; ?>
+
+                <!-- Attachments -->
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0"><i class="ri-attachment-2 me-1"></i> Tài liệu đính kèm</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/attachment') ?>" enctype="multipart/form-data" class="mb-3">
+                            <?= csrf_field() ?>
+                            <div class="d-flex gap-2">
+                                <input type="file" name="attachment" class="form-control" required>
+                                <button type="submit" class="btn btn-primary flex-shrink-0"><i class="ri-upload-2-line me-1"></i> Tải lên</button>
+                            </div>
+                            <small class="text-muted">Tối đa 10MB. PDF, Word, Excel, hình ảnh...</small>
+                        </form>
+                        <?php if (!empty($attachments)): ?>
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($attachments as $att):
+                                $icon = 'ri-file-line';
+                                $mime = $att['mime_type'] ?? '';
+                                if (str_contains($mime, 'pdf')) $icon = 'ri-file-pdf-line text-danger';
+                                elseif (str_contains($mime, 'word') || str_contains($mime, 'document')) $icon = 'ri-file-word-line text-primary';
+                                elseif (str_contains($mime, 'sheet') || str_contains($mime, 'excel')) $icon = 'ri-file-excel-line text-success';
+                                elseif (str_contains($mime, 'image')) $icon = 'ri-image-line text-info';
+                                $size = $att['file_size'] < 1048576 ? round($att['file_size'] / 1024) . ' KB' : round($att['file_size'] / 1048576, 1) . ' MB';
+                            ?>
+                            <div class="list-group-item d-flex align-items-center px-0">
+                                <i class="<?= $icon ?> fs-4 me-3"></i>
+                                <div class="flex-grow-1">
+                                    <a href="<?= url('uploads/quotations/' . $att['filename']) ?>" target="_blank" class="fw-medium"><?= e($att['original_name']) ?></a>
+                                    <div class="text-muted fs-12"><?= $size ?> &middot; <?= e($att['user_name'] ?? '') ?> &middot; <?= date('d/m/Y H:i', strtotime($att['created_at'])) ?></div>
+                                </div>
+                                <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/attachment/' . $att['id'] . '/delete') ?>" onsubmit="return confirm('Xóa tài liệu này?')" class="ms-2">
+                                    <?= csrf_field() ?>
+                                    <button class="btn btn-soft-danger btn-icon btn-sm"><i class="ri-delete-bin-line"></i></button>
+                                </form>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php else: ?>
+                        <p class="text-muted text-center mb-0">Chưa có tài liệu đính kèm</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
 
             <div class="col-lg-4">

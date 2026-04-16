@@ -307,6 +307,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('quotations/{id}/send', 'QuotationController@send');
     Router::post('quotations/{id}/convert', 'QuotationController@convertToOrder');
     Router::post('quotations/{id}/delete', 'QuotationController@delete');
+    Router::post('quotations/{id}/attachment', 'QuotationController@uploadAttachment');
+    Router::post('quotations/{id}/attachment/{attachId}/delete', 'QuotationController@deleteAttachment');
     Router::get('quotations/{id}/pdf', 'QuotationController@pdf');
 
     // Budgets (Ngân sách)
