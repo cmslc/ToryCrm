@@ -125,9 +125,7 @@
                                 <div class="col-md-3">
                                     <input type="number" class="form-control form-control-sm" name="shipping_fee" value="<?= (float)($quotation['shipping_fee'] ?? 0) ?>" min="0" onchange="calculateTotal()">
                                 </div>
-                                <div class="col-md-3">
-                                    <input type="text" class="form-control form-control-sm" name="shipping_note" value="<?= e($quotation['shipping_note'] ?? '') ?>" placeholder="Ghi chú vận chuyển...">
-                                </div>
+                                <div class="col-md-3"></div>
                                 <div class="col-md-2">
                                     <div class="form-check form-check-sm">
                                         <input class="form-check-input" type="checkbox" name="shipping_after_tax" value="1" id="shippingAfterTax" <?= ($quotation['shipping_after_tax'] ?? 0) ? 'checked' : '' ?>>
