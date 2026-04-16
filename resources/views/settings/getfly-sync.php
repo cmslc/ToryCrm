@@ -166,7 +166,7 @@ document.querySelectorAll('.btn-test-api').forEach(function(btn) {
         .then(function(r) { return r.json(); })
         .then(function(d) {
             if (d.success) {
-                statusEl.innerHTML = '<i class="ri-check-line me-1"></i>OK - ' + Number(d.total_records).toLocaleString() + ' records';
+                statusEl.innerHTML = '<i class="ri-check-line me-1"></i>OK - ' + Number(d.total_records).toLocaleString() + ' records' + (d.extra || '');
                 statusEl.className = 'text-success fs-12 fw-medium';
             } else {
                 statusEl.innerHTML = '<i class="ri-close-line me-1"></i>' + (d.error || 'Lỗi');

@@ -154,21 +154,29 @@ class GetflySyncController extends Controller
         $ep = $this->endpoints[$endpoint];
         $url = $config['api_domain'] . '/' . $ep['api_path'] . '?';
 
-        // Add default params
+        // Add default params - for test, use short date range to avoid huge response
         if ($endpoint === 'orders_sale') {
-            $url .= 'order_type=2&start_date=2020-01-01&end_date=2030-12-31&';
+            $today = date('Y-m-d');
+            $url .= 'order_type=2&start_date=' . $today . '&end_date=' . $today . '&';
         } elseif ($endpoint === 'orders_purchase') {
-            $url .= 'order_type=1&start_date=2020-01-01&end_date=2030-12-31&';
+            $today = date('Y-m-d');
+            $url .= 'order_type=1&start_date=' . $today . '&end_date=' . $today . '&';
         }
         $url .= 'page=1&num_per_page=1';
 
         $result = $this->callApi($config['api_key'], $url);
 
         if ($result['success']) {
-            $total = $result['data']['pagination']['total_records'] ?? $result['data']['pagination']['total_record'] ?? count($result['data']['records'] ?? []);
+            $pagination = $result['data']['pagination'] ?? [];
+            $total = $pagination['total_records'] ?? $pagination['total_record'] ?? count($result['data']['records'] ?? []);
+            $extra = '';
+            if (in_array($endpoint, ['orders_sale', 'orders_purchase'])) {
+                $extra = ' (hôm nay)';
+            }
             return $this->json([
                 'success' => true,
                 'total_records' => $total,
+                'extra' => $extra,
                 'sample' => $result['data']['records'][0] ?? null,
             ]);
         }
