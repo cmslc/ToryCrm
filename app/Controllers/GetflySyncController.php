@@ -310,11 +310,15 @@ class GetflySyncController extends Controller
             $assignedTo = $userMap[mb_strtolower(trim($t['receiver_name'] ?? ''))] ?? null;
             $createdBy = $userMap[mb_strtolower(trim($t['creator_name'] ?? ''))] ?? null;
 
+            $desc = trim($t['task_description'] ?? '');
+            $desc = strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>'], "\n", $desc));
+            $desc = preg_replace('/\n{3,}/', "\n\n", trim($desc));
+
             $data = [
                 'tenant_id' => $tid,
                 'task_code' => $taskCode,
                 'title' => trim($t['task_name'] ?? 'Không tiêu đề'),
-                'description' => trim($t['task_description'] ?? ''),
+                'description' => $desc,
                 'status' => $status,
                 'progress' => (int)($t['task_progress'] ?? 0),
                 'start_date' => $t['task_start_date'] ?? null,
