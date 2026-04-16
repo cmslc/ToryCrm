@@ -167,8 +167,22 @@ class GetflySyncController extends Controller
         $result = $this->callApi($config['api_key'], $url);
 
         if ($result['success']) {
-            $pagination = $result['data']['pagination'] ?? [];
-            $total = $pagination['total_records'] ?? $pagination['total_record'] ?? count($result['data']['records'] ?? []);
+            $data = $result['data'];
+            // Handle different response formats: {records:[], pagination:{}} or plain array
+            if (isset($data['pagination'])) {
+                $total = $data['pagination']['total_records'] ?? $data['pagination']['total_record'] ?? count($data['records'] ?? []);
+                $sample = $data['records'][0] ?? null;
+            } elseif (isset($data['records'])) {
+                $total = count($data['records']);
+                $sample = $data['records'][0] ?? null;
+            } elseif (is_array($data) && isset($data[0])) {
+                // Plain array (users, campaigns)
+                $total = count($data);
+                $sample = $data[0] ?? null;
+            } else {
+                $total = 0;
+                $sample = null;
+            }
             $extra = '';
             if (in_array($endpoint, ['orders_sale', 'orders_purchase'])) {
                 $extra = ' (hôm nay)';
@@ -177,7 +191,7 @@ class GetflySyncController extends Controller
                 'success' => true,
                 'total_records' => $total,
                 'extra' => $extra,
-                'sample' => $result['data']['records'][0] ?? null,
+                'sample' => $sample,
             ]);
         }
 
