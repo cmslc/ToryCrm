@@ -26,11 +26,14 @@ body {
 }
 
 /* Fix btn-label badge truncating large numbers */
-.btn-label .label-icon {
-  min-width: auto !important;
+.btn-label.right {
+  padding-right: 14px !important;
+}
+.btn-label.right .label-icon {
+  position: relative !important;
   width: auto !important;
-  padding-left: 8px !important;
-  padding-right: 8px !important;
+  right: auto !important;
+  padding: 0 8px !important;
 }
 
 /* Hide searchable-select immediately to prevent flash */
