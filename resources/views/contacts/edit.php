@@ -18,6 +18,36 @@
                     <h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Avatar -->
+                    <div class="mb-3 d-flex align-items-center gap-3">
+                        <div class="position-relative">
+                            <?php if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])): ?>
+                            <img src="<?= url('uploads/avatars/' . $c['avatar']) ?>" class="rounded-circle" id="avatarPreview" style="width:64px;height:64px;object-fit:cover">
+                            <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center d-none" style="width:64px;height:64px;font-size:24px" id="avatarInitial"><?= strtoupper(mb_substr($c['company_name'] ?? $c['first_name'] ?? '?', 0, 1)) ?></div>
+                            <?php else: ?>
+                            <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:24px" id="avatarInitial"><?= strtoupper(mb_substr($c['company_name'] ?? $c['first_name'] ?? '?', 0, 1)) ?></div>
+                            <img src="" class="rounded-circle d-none" id="avatarPreview" style="width:64px;height:64px;object-fit:cover">
+                            <?php endif; ?>
+                            <label for="avatarInput" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:24px;height:24px;cursor:pointer">
+                                <i class="ri-camera-line fs-12"></i>
+                            </label>
+                            <input type="file" name="avatar" id="avatarInput" accept="image/*" class="d-none">
+                        </div>
+                        <div class="text-muted fs-13">Ảnh đại diện <br><small>JPG, PNG tối đa 5MB</small></div>
+                    </div>
+                    <script>
+                    document.getElementById('avatarInput')?.addEventListener('change', function() {
+                        if (this.files && this.files[0]) {
+                            var reader = new FileReader();
+                            reader.onload = function(e) {
+                                document.getElementById('avatarPreview').src = e.target.result;
+                                document.getElementById('avatarPreview').classList.remove('d-none');
+                                document.getElementById('avatarInitial').classList.add('d-none');
+                            };
+                            reader.readAsDataURL(this.files[0]);
+                        }
+                    });
+                    </script>
                     <div class="mb-3">
                         <label class="form-label">Mã KH</label>
                         <input type="text" class="form-control" name="account_code" value="<?= e($c['account_code'] ?? '') ?>">
