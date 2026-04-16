@@ -11,40 +11,19 @@ $actionLabels = [
     'manage' => 'Quản lý',
     'use' => 'Sử dụng',
 ];
-// Core modules - always visible
-$coreModules = [
-    'contacts' => 'Khách hàng',
-    'deals' => 'Cơ hội',
-    'quotations' => 'Báo giá',
-    'contracts' => 'Hợp đồng',
-    'orders' => 'Đơn hàng',
-    'debts' => 'Công nợ',
-    'products' => 'Sản phẩm',
-    'tasks' => 'Công việc',
-    'activities' => 'Hoạt động',
-    'tickets' => 'Hỗ trợ',
-    'fund' => 'Quỹ thu/chi',
-    'users' => 'Người dùng',
-    'reports' => 'Báo cáo',
-    'settings' => 'Cài đặt',
-    'import_export' => 'Import/Export',
+// Module labels (flat map for display)
+$moduleLabels = [
+    'contacts' => 'Khách hàng', 'deals' => 'Cơ hội', 'quotations' => 'Báo giá',
+    'contracts' => 'Hợp đồng', 'orders' => 'Đơn hàng', 'debts' => 'Công nợ',
+    'products' => 'Sản phẩm', 'tasks' => 'Công việc', 'activities' => 'Hoạt động',
+    'tickets' => 'Hỗ trợ', 'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng',
+    'reports' => 'Báo cáo', 'settings' => 'Cài đặt', 'import_export' => 'Import/Export',
+    'calendar' => 'Lịch hẹn', 'logistics' => 'Kho hàng', 'email' => 'Email',
+    'campaigns' => 'Chiến dịch', 'commissions' => 'Hoa hồng',
+    'automation' => 'Tự động hóa', 'webhooks' => 'Webhooks',
 ];
-// Plugin modules - only visible when plugin is active
-$pluginModules = [
-    'calendar' => ['label' => 'Lịch hẹn', 'plugin' => 'booking'],
-    'logistics' => ['label' => 'Kho hàng', 'plugin' => 'warehouse'],
-    'email' => ['label' => 'Email', 'plugin' => 'email'],
-    'campaigns' => ['label' => 'Chiến dịch', 'plugin' => 'lead-forms'],
-    'commissions' => ['label' => 'Hoa hồng', 'plugin' => 'gamification'],
-    'automation' => ['label' => 'Tự động hóa', 'plugin' => 'lead-forms'],
-    'webhooks' => ['label' => 'Webhooks', 'plugin' => 'lead-forms'],
-];
-// Build final module list: core + active plugins
-$moduleLabels = $coreModules;
-foreach ($pluginModules as $mod => $info) {
-    if (plugin_active($info['plugin'])) {
-        $moduleLabels[$mod] = $info['label'];
-    }
+// Keep for backward compat
+foreach ($moduleLabels as $mod => $label) {
 }
 
 // All unique actions across modules

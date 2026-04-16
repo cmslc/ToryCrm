@@ -3,28 +3,74 @@ $actionLabels = [
     'view' => 'Truy cập', 'create' => 'Thêm mới', 'edit' => 'Sửa', 'delete' => 'Xóa',
     'approve' => 'Duyệt', 'view_all' => 'Xem tất cả', 'confirm' => 'Xác nhận', 'manage' => 'Quản lý', 'use' => 'Sử dụng',
 ];
-$coreModules = [
-    'contacts' => 'Khách hàng', 'deals' => 'Cơ hội', 'quotations' => 'Báo giá',
-    'contracts' => 'Hợp đồng', 'orders' => 'Đơn hàng', 'debts' => 'Công nợ',
-    'products' => 'Sản phẩm', 'tasks' => 'Công việc', 'activities' => 'Hoạt động',
-    'tickets' => 'Hỗ trợ', 'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng',
-    'reports' => 'Báo cáo', 'settings' => 'Cài đặt', 'import_export' => 'Import/Export',
+
+// Grouped modules for visual organization (no inheritance)
+$moduleGroups = [
+    'Khách hàng & Bán hàng' => [
+        'contacts' => 'Khách hàng',
+        'deals' => 'Cơ hội',
+        'quotations' => 'Báo giá',
+        'contracts' => 'Hợp đồng',
+        'orders' => 'Đơn hàng',
+        'debts' => 'Công nợ',
+    ],
+    'Sản phẩm & Kho' => [
+        'products' => 'Sản phẩm',
+    ],
+    'Công việc' => [
+        'tasks' => 'Công việc',
+        'activities' => 'Hoạt động',
+    ],
+    'Hỗ trợ' => [
+        'tickets' => 'Hỗ trợ',
+    ],
+    'Tài chính' => [
+        'fund' => 'Quỹ thu/chi',
+    ],
+    'Hệ thống' => [
+        'users' => 'Người dùng',
+        'reports' => 'Báo cáo',
+        'settings' => 'Cài đặt',
+        'import_export' => 'Import/Export',
+    ],
 ];
-$pluginModules = [
-    'calendar' => ['label' => 'Lịch hẹn', 'plugin' => 'booking'],
-    'logistics' => ['label' => 'Kho hàng', 'plugin' => 'warehouse'],
-    'email' => ['label' => 'Email', 'plugin' => 'email'],
-    'campaigns' => ['label' => 'Chiến dịch', 'plugin' => 'lead-forms'],
-    'commissions' => ['label' => 'Hoa hồng', 'plugin' => 'gamification'],
-    'automation' => ['label' => 'Tự động hóa', 'plugin' => 'lead-forms'],
-    'webhooks' => ['label' => 'Webhooks', 'plugin' => 'lead-forms'],
+
+// Plugin modules - inject into groups when active
+$pluginInjections = [
+    'Sản phẩm & Kho' => [
+        'logistics' => ['label' => 'Kho hàng', 'plugin' => 'warehouse'],
+    ],
+    'Công việc' => [
+        'calendar' => ['label' => 'Lịch hẹn', 'plugin' => 'booking'],
+    ],
+    'Khách hàng & Bán hàng' => [
+        'campaigns' => ['label' => 'Chiến dịch', 'plugin' => 'lead-forms'],
+        'commissions' => ['label' => 'Hoa hồng', 'plugin' => 'gamification'],
+    ],
+    'Hệ thống' => [
+        'email' => ['label' => 'Email', 'plugin' => 'email'],
+        'automation' => ['label' => 'Tự động hóa', 'plugin' => 'lead-forms'],
+        'webhooks' => ['label' => 'Webhooks', 'plugin' => 'lead-forms'],
+    ],
 ];
-$moduleLabels = $coreModules;
-foreach ($pluginModules as $mod => $info) {
-    if (plugin_active($info['plugin'])) {
-        $moduleLabels[$mod] = $info['label'];
+
+// Inject active plugins into groups
+foreach ($pluginInjections as $groupName => $plugins) {
+    foreach ($plugins as $mod => $info) {
+        if (plugin_active($info['plugin'])) {
+            $moduleGroups[$groupName][$mod] = $info['label'];
+        }
     }
 }
+
+// Build flat moduleLabels for rendering
+$moduleLabels = [];
+foreach ($moduleGroups as $modules) {
+    foreach ($modules as $mod => $label) {
+        $moduleLabels[$mod] = $label;
+    }
+}
+
 $group = $group ?? $selectedGroup ?? null;
 if (!$group) return;
 $selectedGroupId = $group['id'];
@@ -66,7 +112,7 @@ $selectedGroupId = $group['id'];
     <?= csrf_field() ?>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
+            <thead class="table-light sticky-top">
                 <tr>
                     <th style="min-width:200px">
                         <div class="form-check">
@@ -85,15 +131,24 @@ $selectedGroupId = $group['id'];
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($modules as $mod => $perms):
+                <?php foreach ($moduleGroups as $groupLabel => $groupModules): ?>
+                <!-- Group header -->
+                <tr class="table-secondary">
+                    <td colspan="<?= count($allActions) + 1 ?>" class="fw-bold text-dark py-2">
+                        <?= e($groupLabel) ?>
+                    </td>
+                </tr>
+                <?php foreach ($groupModules as $mod => $modLabel):
+                    if (!isset($modules[$mod])) continue;
+                    $perms = $modules[$mod];
                     $permByAction = [];
                     foreach ($perms as $p) $permByAction[$p['action']] = $p;
                 ?>
                 <tr data-module="<?= $mod ?>">
-                    <td class="fw-medium">
+                    <td class="ps-4">
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input perm-row-toggle">
-                            <label class="form-check-label"><?= $moduleLabels[$mod] ?? ucfirst($mod) ?></label>
+                            <label class="form-check-label"><?= e($modLabel) ?></label>
                         </div>
                     </td>
                     <?php foreach ($allActions as $idx => $act):
@@ -106,6 +161,7 @@ $selectedGroupId = $group['id'];
                     </td>
                     <?php endforeach; ?>
                 </tr>
+                <?php endforeach; ?>
                 <?php endforeach; ?>
             </tbody>
         </table>
@@ -173,7 +229,6 @@ $selectedGroupId = $group['id'];
         updateMaster();
     }
 
-    // Master toggle
     master.addEventListener('change', function() {
         var state = this.checked;
         allCheckboxes.forEach(function(cb) { cb.checked = state; });
@@ -181,7 +236,6 @@ $selectedGroupId = $group['id'];
         rowToggles.forEach(function(rt) { rt.checked = state; rt.indeterminate = false; });
     });
 
-    // Column toggle
     colToggles.forEach(function(ct) {
         ct.addEventListener('change', function() {
             var state = this.checked;
@@ -194,7 +248,6 @@ $selectedGroupId = $group['id'];
         });
     });
 
-    // Row toggle
     rowToggles.forEach(function(rt) {
         rt.addEventListener('change', function() {
             var state = this.checked;
@@ -207,7 +260,6 @@ $selectedGroupId = $group['id'];
         });
     });
 
-    // Individual checkbox
     allCheckboxes.forEach(function(cb) {
         cb.addEventListener('change', function() {
             updateColToggle(this.dataset.col);
@@ -216,7 +268,6 @@ $selectedGroupId = $group['id'];
         });
     });
 
-    // Init states on load
     updateAllToggles();
 })();
 </script>
