@@ -7,6 +7,22 @@ use Core\Database;
 
 class ProductController extends Controller
 {
+    public function searchAjax()
+    {
+        $q = trim($this->input('q', ''));
+        $tid = Database::tenantId();
+        if (strlen($q) < 1) return $this->json([]);
+
+        $results = Database::fetchAll(
+            "SELECT id, name, sku, price, unit, tax_rate FROM products
+             WHERE tenant_id = ? AND is_active = 1 AND is_deleted = 0
+             AND (name LIKE ? OR sku LIKE ?)
+             ORDER BY name LIMIT 20",
+            [$tid, "%{$q}%", "%{$q}%"]
+        );
+        return $this->json($results);
+    }
+
     public function index()
     {
         $this->authorize('products', 'view');

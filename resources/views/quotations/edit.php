@@ -213,10 +213,18 @@
             </div>
         </form>
 
+        <style>
+        .product-search-wrap { position: relative; }
+        .product-search-wrap input { width: 100%; }
+        .product-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 1050; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .product-dropdown .pd-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f3f3f3; }
+        .product-dropdown .pd-item:hover { background: #f0f4ff; }
+        .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
+        </style>
         <script>
-        const products = <?= json_encode($products ?? []) ?>;
         const existingItems = <?= json_encode($items ?? []) ?>;
         let itemIndex = 0;
+        let searchTimer = null;
 
         function addItem(data) {
             const tbody = document.getElementById('itemsBody');
@@ -224,33 +232,19 @@
             const tr = document.createElement('tr');
             tr.id = 'item-row-' + idx;
 
-            let skuOptions = '<option value="">Chọn</option>';
-            let nameOptions = '<option value="">Chọn sản phẩm</option>';
-            let foundInList = false;
-            products.forEach(p => {
-                const selected = data && data.product_id == p.id ? 'selected' : '';
-                if (selected) foundInList = true;
-                skuOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" data-name="${p.name}" ${selected}>${p.sku || p.name}</option>`;
-                nameOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" data-sku="${p.sku || ''}" ${selected}>${p.name}</option>`;
-            });
-            // If product not in list (manual entry), add it as option
-            if (data && data.product_name && !foundInList) {
-                const pid = data.product_id || 'custom-' + idx;
-                skuOptions += `<option value="${pid}" selected>${data.product_name}</option>`;
-                nameOptions += `<option value="${pid}" selected>${data.product_name}</option>`;
-            }
-
             tr.innerHTML = `
                 <td class="text-center text-muted">${idx + 1}</td>
                 <td>
-                    <select class="form-select sku-select searchable-select" onchange="selectBySku(this, ${idx})">
-                        ${skuOptions}
-                    </select>
+                    <div class="product-search-wrap">
+                        <input type="text" class="form-control" id="item-sku-${idx}" placeholder="Tìm mã SP..." value="${data?.sku || ''}" autocomplete="off" onfocus="searchProduct(this,${idx},'sku')" oninput="searchProduct(this,${idx},'sku')">
+                        <div class="product-dropdown" id="item-skudrop-${idx}"></div>
+                    </div>
                 </td>
                 <td>
-                    <select class="form-select product-select searchable-select" onchange="selectProduct(this, ${idx})">
-                        ${nameOptions}
-                    </select>
+                    <div class="product-search-wrap">
+                        <input type="text" class="form-control" id="item-namesearch-${idx}" placeholder="Tìm tên SP..." value="${data?.product_name || ''}" autocomplete="off" onfocus="searchProduct(this,${idx},'name')" oninput="searchProduct(this,${idx},'name')">
+                        <div class="product-dropdown" id="item-namedrop-${idx}"></div>
+                    </div>
                     <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data?.product_id || ''}">
                     <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data?.product_name || ''}">
                 </td>
@@ -266,42 +260,50 @@
                 </td>
             `;
             tbody.appendChild(tr);
-            if (typeof window._initSearchableSelect === 'function') window._initSearchableSelect();
             if (data) calculateRow(idx);
         }
 
-        function selectProduct(select, idx) {
-            const option = select.options[select.selectedIndex];
-            if (option.value) {
-                document.getElementById('item-product-' + idx).value = option.value;
-                document.getElementById('item-name-' + idx).value = option.text;
-                document.getElementById('item-price-' + idx).value = option.dataset.price || 0;
-                document.getElementById('item-unit-' + idx).value = option.dataset.unit || 'Cái';
-                document.getElementById('item-tax-' + idx).value = option.dataset.tax || 0;
-                const row = document.getElementById('item-row-' + idx);
-                const skuSel = row?.querySelector('.sku-select');
-                if (skuSel) skuSel.value = option.value;
-            } else {
-                document.getElementById('item-product-' + idx).value = '';
-                document.getElementById('item-name-' + idx).value = '';
-            }
+        function searchProduct(input, idx, type) {
+            const q = input.value.trim();
+            const dropId = type === 'sku' ? 'item-skudrop-' + idx : 'item-namedrop-' + idx;
+            const drop = document.getElementById(dropId);
+            if (q.length < 1) { drop.style.display = 'none'; return; }
+
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                fetch('<?= url("products/search-ajax") ?>?q=' + encodeURIComponent(q))
+                    .then(r => r.json())
+                    .then(results => {
+                        if (!results.length) { drop.innerHTML = '<div class="pd-item text-muted">Không tìm thấy</div>'; drop.style.display = 'block'; return; }
+                        drop.innerHTML = results.map(p =>
+                            `<div class="pd-item" onclick="pickProduct(${idx}, ${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                                <strong>${p.name}</strong> <span class="pd-sku">${p.sku || ''}</span>
+                                <br><small class="text-muted">${Number(p.price).toLocaleString('vi-VN')} ₫ / ${p.unit || 'Cái'}</small>
+                            </div>`
+                        ).join('');
+                        drop.style.display = 'block';
+                    });
+            }, 250);
+        }
+
+        function pickProduct(idx, p) {
+            document.getElementById('item-product-' + idx).value = p.id;
+            document.getElementById('item-name-' + idx).value = p.name;
+            document.getElementById('item-sku-' + idx).value = p.sku || '';
+            document.getElementById('item-namesearch-' + idx).value = p.name;
+            document.getElementById('item-price-' + idx).value = p.price || 0;
+            document.getElementById('item-unit-' + idx).value = p.unit || 'Cái';
+            document.getElementById('item-tax-' + idx).value = p.tax_rate || 0;
+            document.getElementById('item-skudrop-' + idx).style.display = 'none';
+            document.getElementById('item-namedrop-' + idx).style.display = 'none';
             calculateRow(idx);
         }
 
-        function selectBySku(select, idx) {
-            const option = select.options[select.selectedIndex];
-            if (option.value) {
-                document.getElementById('item-product-' + idx).value = option.value;
-                document.getElementById('item-name-' + idx).value = option.dataset.name || '';
-                document.getElementById('item-price-' + idx).value = option.dataset.price || 0;
-                document.getElementById('item-unit-' + idx).value = option.dataset.unit || 'Cái';
-                document.getElementById('item-tax-' + idx).value = option.dataset.tax || 0;
-                const row = document.getElementById('item-row-' + idx);
-                const nameSel = row?.querySelector('.product-select');
-                if (nameSel) nameSel.value = option.value;
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.product-search-wrap')) {
+                document.querySelectorAll('.product-dropdown').forEach(d => d.style.display = 'none');
             }
-            calculateRow(idx);
-        }
+        });
 
         function calcDiscountFromPct(idx) {
             const qty = parseFloat(document.querySelector(`[name="items[${idx}][quantity]"]`)?.value || 0);

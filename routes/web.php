@@ -181,6 +181,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('tasks/{id}/dependency/{depId}/delete', 'TaskController@removeDependency');
 
     // Products
+    Router::get('products/search-ajax', 'ProductController@searchAjax');
     Router::get('products', 'ProductController@index');
     Router::get('products/settings', 'ProductController@settings');
     Router::post('products/settings/category', 'ProductController@saveCategory');

@@ -135,7 +135,6 @@ class QuotationController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
         $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
-        $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('quotations.create', [
@@ -143,7 +142,6 @@ class QuotationController extends Controller
             'contacts' => $contacts,
             'companies' => $companies,
             'deals' => $deals,
-            'products' => $products,
             'users' => $users,
         ]);
     }
@@ -323,7 +321,6 @@ class QuotationController extends Controller
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
         $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
-        $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('quotations.edit', [
@@ -332,7 +329,6 @@ class QuotationController extends Controller
             'contacts' => $contacts,
             'companies' => $companies,
             'deals' => $deals,
-            'products' => $products,
             'users' => $users,
         ]);
     }
