@@ -299,6 +299,10 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                 case 'created_at': case 'updated_at': case 'last_activity_at':
                                     echo $val ? '<span class="text-muted">' . time_ago($val) . '</span>' : '-';
                                     break;
+                                case 'title':
+                                    $t = $val ?: ($c['primary_contact_title'] ?? '');
+                                    echo $t ? e(ucfirst($t)) : '-';
+                                    break;
                                 default:
                                     echo e($val ?: '-');
                             endswitch;
