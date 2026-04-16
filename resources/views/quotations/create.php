@@ -75,52 +75,39 @@
                     <!-- Items Table -->
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Sản phẩm / Dịch vụ</h5>
+                            <h5 class="card-title mb-0"><i class="ri-shopping-bag-line me-1"></i> Sản phẩm</h5>
                             <button type="button" class="btn btn-soft-primary" onclick="addItem()">
                                 <i class="ri-add-line me-1"></i> Thêm dòng
                             </button>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table align-middle mb-0" id="itemsTable">
                                     <thead class="table-light">
                                         <tr>
-                                            <th width="28%">Sản phẩm</th>
-                                            <th width="8%">SL</th>
-                                            <th width="8%">ĐVT</th>
-                                            <th width="15%">Đơn giá</th>
-                                            <th width="8%">Thuế %</th>
-                                            <th width="12%">Chiết khấu</th>
-                                            <th width="15%">Thành tiền</th>
-                                            <th width="5%"></th>
+                                            <th style="width:40px">#</th>
+                                            <th style="width:140px">Mã sản phẩm</th>
+                                            <th style="min-width:200px">Tên sản phẩm</th>
+                                            <th style="width:70px">Đơn vị</th>
+                                            <th style="width:90px">Số lượng</th>
+                                            <th style="width:130px">Đơn giá</th>
+                                            <th style="width:80px">CK (%)</th>
+                                            <th style="width:110px">CK</th>
+                                            <th style="width:80px">VAT (%)</th>
+                                            <th style="width:140px">Thành tiền</th>
+                                            <th style="width:50px"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="itemsBody">
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colspan="6" class="text-end fw-medium">Tạm tính:</td>
+                                            <td colspan="9" class="text-end fw-medium">Tạm tính:</td>
                                             <td id="subtotalDisplay" class="fw-medium">0 ₫</td>
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="4"></td>
-                                            <td colspan="2" class="text-end">
-                                                <div class="d-flex align-items-center justify-content-end gap-2">
-                                                    <span>Giảm giá:</span>
-                                                    <select name="discount_type" class="form-select" style="width:90px" onchange="calculateTotal()">
-                                                        <option value="fixed">VNĐ</option>
-                                                        <option value="percent">%</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <input type="number" class="form-control" name="discount_amount" value="0" min="0" onchange="calculateTotal()">
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="6" class="text-end fw-bold fs-5">Tổng cộng:</td>
+                                            <td colspan="9" class="text-end fw-bold fs-5">Tổng cộng:</td>
                                             <td id="totalDisplay" class="fw-bold fs-5 text-primary">0 ₫</td>
                                             <td></td>
                                         </tr>
@@ -242,27 +229,38 @@
             const tr = document.createElement('tr');
             tr.id = 'item-row-' + idx;
 
-            let productOptions = '<option value="">Chọn sản phẩm</option>';
+            let skuOptions = '<option value="">Chọn</option>';
+            let nameOptions = '<option value="">Chọn sản phẩm</option>';
             products.forEach(p => {
                 const selected = data && data.product_id == p.id ? 'selected' : '';
-                productOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" ${selected}>${p.name}${p.sku ? ' ('+p.sku+')' : ''}</option>`;
+                skuOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" data-name="${p.name}" ${selected}>${p.sku || p.name}</option>`;
+                nameOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" data-sku="${p.sku || ''}" ${selected}>${p.name}</option>`;
             });
 
             tr.innerHTML = `
-                <td style="min-width:250px">
+                <td class="text-center text-muted">${idx + 1}</td>
+                <td>
+                    <select class="form-select sku-select searchable-select" onchange="selectBySku(this, ${idx})">
+                        ${skuOptions}
+                    </select>
+                </td>
+                <td>
                     <select class="form-select product-select searchable-select" onchange="selectProduct(this, ${idx})">
-                        ${productOptions}
+                        ${nameOptions}
                     </select>
                     <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data?.product_id || ''}">
                     <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data?.product_name || ''}">
                 </td>
-                <td><input type="number" class="form-control" name="items[${idx}][quantity]" value="${data?.quantity || 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
                 <td><input type="text" class="form-control" name="items[${idx}][unit]" id="item-unit-${idx}" value="${data?.unit || 'Cái'}"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][quantity]" value="${data?.quantity || 1}" min="0.01" step="0.01" onchange="calculateRow(${idx})"></td>
                 <td><input type="number" class="form-control" name="items[${idx}][unit_price]" id="item-price-${idx}" value="${data?.unit_price || 0}" min="0" onchange="calculateRow(${idx})"></td>
-                <td><input type="number" class="form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data?.tax_rate || 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td><input type="number" class="form-control" name="items[${idx}][discount_percent]" id="item-ckpct-${idx}" value="0" min="0" max="100" step="0.01" onchange="calcDiscountFromPct(${idx})"></td>
                 <td><input type="number" class="form-control" name="items[${idx}][discount]" id="item-discount-${idx}" value="${data?.discount || 0}" min="0" onchange="calculateRow(${idx})"></td>
-                <td class="fw-medium" id="item-total-${idx}">0 ₫</td>
-                <td><button type="button" class="btn btn-soft-danger" onclick="removeItem(${idx})"><i class="ri-close-line"></i></button></td>
+                <td><input type="number" class="form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data?.tax_rate || 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
+                <td class="fw-medium text-end" id="item-total-${idx}">0 ₫</td>
+                <td>
+                    <button type="button" class="btn btn-soft-danger btn-icon" onclick="removeItem(${idx})"><i class="ri-delete-bin-line"></i></button>
+                </td>
             `;
             tbody.appendChild(tr);
             // Init searchable select for the new row
@@ -274,14 +272,43 @@
             const option = select.options[select.selectedIndex];
             if (option.value) {
                 document.getElementById('item-product-' + idx).value = option.value;
-                document.getElementById('item-name-' + idx).value = option.text.split(' (')[0];
+                document.getElementById('item-name-' + idx).value = option.text;
                 document.getElementById('item-price-' + idx).value = option.dataset.price || 0;
                 document.getElementById('item-unit-' + idx).value = option.dataset.unit || 'Cái';
                 document.getElementById('item-tax-' + idx).value = option.dataset.tax || 0;
+                // Sync SKU select
+                const row = document.getElementById('item-row-' + idx);
+                const skuSel = row?.querySelector('.sku-select');
+                if (skuSel) skuSel.value = option.value;
             } else {
                 document.getElementById('item-product-' + idx).value = '';
                 document.getElementById('item-name-' + idx).value = '';
             }
+            calculateRow(idx);
+        }
+
+        function selectBySku(select, idx) {
+            const option = select.options[select.selectedIndex];
+            if (option.value) {
+                document.getElementById('item-product-' + idx).value = option.value;
+                document.getElementById('item-name-' + idx).value = option.dataset.name || '';
+                document.getElementById('item-price-' + idx).value = option.dataset.price || 0;
+                document.getElementById('item-unit-' + idx).value = option.dataset.unit || 'Cái';
+                document.getElementById('item-tax-' + idx).value = option.dataset.tax || 0;
+                // Sync product name select
+                const row = document.getElementById('item-row-' + idx);
+                const nameSel = row?.querySelector('.product-select');
+                if (nameSel) nameSel.value = option.value;
+            }
+            calculateRow(idx);
+        }
+
+        function calcDiscountFromPct(idx) {
+            const qty = parseFloat(document.querySelector(`[name="items[${idx}][quantity]"]`)?.value || 0);
+            const price = parseFloat(document.getElementById('item-price-' + idx)?.value || 0);
+            const pct = parseFloat(document.getElementById('item-ckpct-' + idx)?.value || 0);
+            const discount = Math.round(qty * price * pct / 100);
+            document.getElementById('item-discount-' + idx).value = discount;
             calculateRow(idx);
         }
 
