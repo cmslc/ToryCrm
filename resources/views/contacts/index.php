@@ -257,9 +257,14 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     echo '<code>' . e($val ?: '-') . '</code>';
                                     break;
                                 case 'email':
-                                    echo $val ? '<i class="ri-mail-line me-1 text-muted"></i>' . e($val) : '-';
+                                    $em = $val ?: ($c['company_email'] ?? '');
+                                    echo $em ? '<i class="ri-mail-line me-1 text-muted"></i>' . e($em) : '-';
                                     break;
-                                case 'phone': case 'mobile': case 'fax': case 'shipping_phone':
+                                case 'phone':
+                                    $ph = $val ?: ($c['mobile'] ?? '') ?: ($c['company_phone'] ?? '');
+                                    echo $ph ? '<i class="ri-phone-line me-1 text-muted"></i>' . e($ph) : '-';
+                                    break;
+                                case 'mobile': case 'fax': case 'shipping_phone':
                                     echo $val ? '<i class="ri-phone-line me-1 text-muted"></i>' . e($val) : '-';
                                     break;
                                 case 'company_id':

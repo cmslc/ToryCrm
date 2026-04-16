@@ -65,7 +65,8 @@ class ContactController extends Controller
         )['count'];
 
         $contacts = Database::fetchAll(
-            "SELECT c.*, comp.name as company_name, u.name as owner_name, u.avatar as owner_avatar,
+            "SELECT c.*, comp.name as company_name, comp.phone as company_phone, comp.email as company_email,
+                    u.name as owner_name, u.avatar as owner_avatar,
                     cs.name as source_name, cs.color as source_color,
                     (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = c.id AND a.type != 'system') as last_activity_at
              FROM contacts c
