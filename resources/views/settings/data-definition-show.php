@@ -112,6 +112,7 @@
                                 <th>Mã thuộc tính</th>
                                 <th>Kiểu dữ liệu</th>
                                 <th>Giá trị mặc định</th>
+                                <th class="text-center">Hiển thị</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,6 +126,11 @@
                                 <td><code class="fs-12"><?= e($f['name']) ?></code></td>
                                 <td><span class="badge bg-light text-dark"><?= e($f['type']) ?></span></td>
                                 <td class="text-muted fs-13"><?= $f['default'] !== null ? e($f['default']) : '-' ?></td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input toggle-show-in-list" type="checkbox" data-field="<?= e($f['name']) ?>" <?= ($f['show_in_list'] ?? true) ? 'checked' : '' ?>>
+                                    </div>
+                                </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
