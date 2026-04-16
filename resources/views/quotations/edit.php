@@ -226,11 +226,19 @@
 
             let skuOptions = '<option value="">Chọn</option>';
             let nameOptions = '<option value="">Chọn sản phẩm</option>';
+            let foundInList = false;
             products.forEach(p => {
                 const selected = data && data.product_id == p.id ? 'selected' : '';
+                if (selected) foundInList = true;
                 skuOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" data-name="${p.name}" ${selected}>${p.sku || p.name}</option>`;
                 nameOptions += `<option value="${p.id}" data-price="${p.price}" data-unit="${p.unit || 'Cái'}" data-tax="${p.tax_rate || 0}" data-sku="${p.sku || ''}" ${selected}>${p.name}</option>`;
             });
+            // If product not in list (manual entry), add it as option
+            if (data && data.product_name && !foundInList) {
+                const pid = data.product_id || 'custom-' + idx;
+                skuOptions += `<option value="${pid}" selected>${data.product_name}</option>`;
+                nameOptions += `<option value="${pid}" selected>${data.product_name}</option>`;
+            }
 
             tr.innerHTML = `
                 <td class="text-center text-muted">${idx + 1}</td>
