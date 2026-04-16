@@ -304,7 +304,7 @@ class ColumnService
         'portal_token', 'client_note', 'accepted_at', 'rejected_at', 'rejection_reason', 'last_viewed_at',
         'approved_by', 'approved_at', 'cancelled_at', 'cancelled_reason', 'is_auto_approve',
         'tracking_url', 'sort_order', 'campaign_id', 'order_source_id', 'warehouse_id',
-        'last_activity_at', 'password',
+        'password',
     ];
 
     /**

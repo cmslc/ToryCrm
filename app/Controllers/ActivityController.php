@@ -156,16 +156,23 @@ class ActivityController extends Controller
             return $this->json(['error' => 'Type and title are required'], 422);
         }
 
+        $contactId = $data['contact_id'] ?? null;
+
         $activityId = Database::insert('activities', [
             'type' => $type,
             'title' => $title,
             'description' => trim($data['description'] ?? ''),
             'user_id' => $this->userId(),
-            'contact_id' => $data['contact_id'] ?? null,
+            'contact_id' => $contactId,
             'deal_id' => $data['deal_id'] ?? null,
             'company_id' => $data['company_id'] ?? null,
             'scheduled_at' => $data['scheduled_at'] ?? null,
         ]);
+
+        // Update last_activity_at on contact
+        if ($contactId && $type !== 'system') {
+            Database::update('contacts', ['last_activity_at' => date('Y-m-d H:i:s')], 'id = ?', [$contactId]);
+        }
 
         // AJAX request → return JSON
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
