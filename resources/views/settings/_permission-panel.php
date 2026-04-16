@@ -3,16 +3,28 @@ $actionLabels = [
     'view' => 'Truy cập', 'create' => 'Thêm mới', 'edit' => 'Sửa', 'delete' => 'Xóa',
     'approve' => 'Duyệt', 'view_all' => 'Xem tất cả', 'confirm' => 'Xác nhận', 'manage' => 'Quản lý', 'use' => 'Sử dụng',
 ];
-$moduleLabels = [
+$coreModules = [
     'contacts' => 'Khách hàng', 'deals' => 'Cơ hội', 'quotations' => 'Báo giá',
     'contracts' => 'Hợp đồng', 'orders' => 'Đơn hàng', 'debts' => 'Công nợ',
-    'products' => 'Sản phẩm', 'logistics' => 'Kho hàng', 'tasks' => 'Công việc',
-    'calendar' => 'Lịch hẹn', 'activities' => 'Hoạt động', 'tickets' => 'Hỗ trợ',
-    'campaigns' => 'Chiến dịch', 'commissions' => 'Hoa hồng', 'email' => 'Email',
-    'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng', 'reports' => 'Báo cáo',
-    'automation' => 'Tự động hóa', 'webhooks' => 'Webhooks', 'settings' => 'Cài đặt',
-    'import_export' => 'Import/Export',
+    'products' => 'Sản phẩm', 'tasks' => 'Công việc', 'activities' => 'Hoạt động',
+    'tickets' => 'Hỗ trợ', 'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng',
+    'reports' => 'Báo cáo', 'settings' => 'Cài đặt', 'import_export' => 'Import/Export',
 ];
+$pluginModules = [
+    'calendar' => ['label' => 'Lịch hẹn', 'plugin' => 'booking'],
+    'logistics' => ['label' => 'Kho hàng', 'plugin' => 'warehouse'],
+    'email' => ['label' => 'Email', 'plugin' => 'email'],
+    'campaigns' => ['label' => 'Chiến dịch', 'plugin' => 'lead-forms'],
+    'commissions' => ['label' => 'Hoa hồng', 'plugin' => 'gamification'],
+    'automation' => ['label' => 'Tự động hóa', 'plugin' => 'lead-forms'],
+    'webhooks' => ['label' => 'Webhooks', 'plugin' => 'lead-forms'],
+];
+$moduleLabels = $coreModules;
+foreach ($pluginModules as $mod => $info) {
+    if (plugin_active($info['plugin'])) {
+        $moduleLabels[$mod] = $info['label'];
+    }
+}
 $group = $group ?? $selectedGroup ?? null;
 if (!$group) return;
 $selectedGroupId = $group['id'];

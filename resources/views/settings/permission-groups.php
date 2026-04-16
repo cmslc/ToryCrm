@@ -11,7 +11,8 @@ $actionLabels = [
     'manage' => 'Quản lý',
     'use' => 'Sử dụng',
 ];
-$moduleLabels = [
+// Core modules - always visible
+$coreModules = [
     'contacts' => 'Khách hàng',
     'deals' => 'Cơ hội',
     'quotations' => 'Báo giá',
@@ -19,22 +20,32 @@ $moduleLabels = [
     'orders' => 'Đơn hàng',
     'debts' => 'Công nợ',
     'products' => 'Sản phẩm',
-    'logistics' => 'Kho hàng',
     'tasks' => 'Công việc',
-    'calendar' => 'Lịch hẹn',
     'activities' => 'Hoạt động',
     'tickets' => 'Hỗ trợ',
-    'campaigns' => 'Chiến dịch',
-    'commissions' => 'Hoa hồng',
-    'email' => 'Email',
     'fund' => 'Quỹ thu/chi',
     'users' => 'Người dùng',
     'reports' => 'Báo cáo',
-    'automation' => 'Tự động hóa',
-    'webhooks' => 'Webhooks',
     'settings' => 'Cài đặt',
     'import_export' => 'Import/Export',
 ];
+// Plugin modules - only visible when plugin is active
+$pluginModules = [
+    'calendar' => ['label' => 'Lịch hẹn', 'plugin' => 'booking'],
+    'logistics' => ['label' => 'Kho hàng', 'plugin' => 'warehouse'],
+    'email' => ['label' => 'Email', 'plugin' => 'email'],
+    'campaigns' => ['label' => 'Chiến dịch', 'plugin' => 'lead-forms'],
+    'commissions' => ['label' => 'Hoa hồng', 'plugin' => 'gamification'],
+    'automation' => ['label' => 'Tự động hóa', 'plugin' => 'lead-forms'],
+    'webhooks' => ['label' => 'Webhooks', 'plugin' => 'lead-forms'],
+];
+// Build final module list: core + active plugins
+$moduleLabels = $coreModules;
+foreach ($pluginModules as $mod => $info) {
+    if (plugin_active($info['plugin'])) {
+        $moduleLabels[$mod] = $info['label'];
+    }
+}
 
 // All unique actions across modules
 $allActions = [];
