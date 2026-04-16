@@ -260,7 +260,8 @@ class GetflySyncController extends Controller
                 'completed_at' => date('Y-m-d H:i:s'),
             ], 'id = ?', [$logId]);
 
-        return $this->json(['error' => $result['error']], 400);
+            return $this->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     private function syncTasks(array $config): int
