@@ -11,46 +11,65 @@
         <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/update') ?>" id="quotationForm">
             <?= csrf_field() ?>
 
-            <div class="row">
-                <div class="col-xl-8">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Thông tin báo giá</h5></div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Mã báo giá</label>
-                                    <input type="text" class="form-control" value="<?= e($quotation['quote_number']) ?>" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Khách hàng</label>
-                                    <select name="contact_id" class="form-select searchable-select">
-                                        <option value="">Chọn khách hàng</option>
-                                        <?php foreach ($contacts ?? [] as $c): ?>
-                                            <option value="<?= $c['id'] ?>" <?= ($quotation['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Công ty</label>
-                                    <select name="company_id" class="form-select searchable-select">
-                                        <option value="">Chọn công ty</option>
-                                        <?php foreach ($companies ?? [] as $comp): ?>
-                                            <option value="<?= $comp['id'] ?>" <?= ($quotation['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Cơ hội liên quan</label>
-                                    <select name="deal_id" class="form-select">
-                                        <option value="">Không</option>
-                                        <?php foreach ($deals ?? [] as $d): ?>
-                                            <option value="<?= $d['id'] ?>" <?= ($quotation['deal_id'] ?? '') == $d['id'] ? 'selected' : '' ?>><?= e($d['title']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
+            <?php
+            $deptGrouped = [];
+            foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+            ?>
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0">Thông tin báo giá</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Mã báo giá</label>
+                            <input type="text" class="form-control" value="<?= e($quotation['quote_number']) ?>" readonly>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Khách hàng</label>
+                            <select name="contact_id" class="form-select searchable-select">
+                                <option value="">Chọn khách hàng</option>
+                                <?php foreach ($contacts ?? [] as $c): ?>
+                                    <option value="<?= $c['id'] ?>" <?= ($quotation['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Công ty</label>
+                            <select name="company_id" class="form-select searchable-select">
+                                <option value="">Chọn công ty</option>
+                                <?php foreach ($companies ?? [] as $comp): ?>
+                                    <option value="<?= $comp['id'] ?>" <?= ($quotation['company_id'] ?? '') == $comp['id'] ? 'selected' : '' ?>><?= e($comp['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Cơ hội liên quan</label>
+                            <select name="deal_id" class="form-select">
+                                <option value="">Không</option>
+                                <?php foreach ($deals ?? [] as $d): ?>
+                                    <option value="<?= $d['id'] ?>" <?= ($quotation['deal_id'] ?? '') == $d['id'] ? 'selected' : '' ?>><?= e($d['title']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Hiệu lực đến</label>
+                            <input type="date" class="form-control" name="valid_until" value="<?= e($quotation['valid_until'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Người phụ trách</label>
+                            <select name="owner_id" class="form-select searchable-select">
+                                <option value="">Chọn</option>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                <optgroup label="<?= e($dept) ?>">
+                                    <?php foreach ($dUsers as $u): ?>
+                                    <option value="<?= $u['id'] ?>" <?= ($quotation['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
+                </div>
+            </div>
 
                     <!-- Items Table -->
                     <div class="card">
@@ -199,41 +218,10 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="col-xl-4">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Thiết lập</h5></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Hiệu lực đến</label>
-                                <input type="date" class="form-control" name="valid_until" value="<?= $quotation['valid_until'] ?? '' ?>">
-                            </div>
-                            <?php
-                            $deptGrouped = [];
-                            foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
-                            ?>
-                            <div class="mb-3">
-                                <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select searchable-select">
-                                    <option value="">Chọn</option>
-                                    <?php foreach ($deptGrouped as $dept => $dUsers): ?>
-                                    <optgroup label="<?= e($dept) ?>">
-                                        <?php foreach ($dUsers as $u): ?>
-                                        <option value="<?= $u['id'] ?>" <?= ($quotation['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    </optgroup>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Lưu</button>
-                            <a href="<?= url('quotations/' . $quotation['id']) ?>" class="btn btn-soft-secondary">Hủy</a>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-body d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Lưu</button>
+                    <a href="<?= url('quotations/' . $quotation['id']) ?>" class="btn btn-soft-secondary">Hủy</a>
                 </div>
             </div>
         </form>

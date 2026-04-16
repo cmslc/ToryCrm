@@ -12,46 +12,65 @@
             <?= csrf_field() ?>
             <input type="hidden" name="action" id="formAction" value="draft">
 
-            <div class="row">
-                <div class="col-xl-8">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Thông tin báo giá</h5></div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Mã báo giá</label>
-                                    <input type="text" class="form-control" value="<?= e($quoteNumber) ?>" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Khách hàng</label>
-                                    <select name="contact_id" class="form-select searchable-select">
-                                        <option value="">Chọn khách hàng</option>
-                                        <?php foreach ($contacts ?? [] as $c): ?>
-                                            <option value="<?= $c['id'] ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Công ty</label>
-                                    <select name="company_id" class="form-select searchable-select">
-                                        <option value="">Chọn công ty</option>
-                                        <?php foreach ($companies ?? [] as $comp): ?>
-                                            <option value="<?= $comp['id'] ?>"><?= e($comp['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Cơ hội liên quan</label>
-                                    <select name="deal_id" class="form-select">
-                                        <option value="">Không</option>
-                                        <?php foreach ($deals ?? [] as $d): ?>
-                                            <option value="<?= $d['id'] ?>"><?= e($d['title']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                            </div>
+            <?php
+            $deptGrouped = [];
+            foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+            ?>
+            <div class="card">
+                <div class="card-header"><h5 class="card-title mb-0">Thông tin báo giá</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Mã báo giá</label>
+                            <input type="text" class="form-control" value="<?= e($quoteNumber) ?>" readonly>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Khách hàng</label>
+                            <select name="contact_id" class="form-select searchable-select">
+                                <option value="">Chọn khách hàng</option>
+                                <?php foreach ($contacts ?? [] as $c): ?>
+                                    <option value="<?= $c['id'] ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Công ty</label>
+                            <select name="company_id" class="form-select searchable-select">
+                                <option value="">Chọn công ty</option>
+                                <?php foreach ($companies ?? [] as $comp): ?>
+                                    <option value="<?= $comp['id'] ?>"><?= e($comp['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Cơ hội liên quan</label>
+                            <select name="deal_id" class="form-select">
+                                <option value="">Không</option>
+                                <?php foreach ($deals ?? [] as $d): ?>
+                                    <option value="<?= $d['id'] ?>"><?= e($d['title']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Hiệu lực đến</label>
+                            <input type="date" class="form-control" name="valid_until" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Người phụ trách</label>
+                            <select name="owner_id" class="form-select searchable-select">
+                                <option value="">Chọn</option>
+                                <?php foreach ($deptGrouped as $dept => $dUsers): ?>
+                                <optgroup label="<?= e($dept) ?>">
+                                    <?php foreach ($dUsers as $u): ?>
+                                    <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
+                </div>
+            </div>
 
                     <!-- Items Table -->
                     <div class="card">
@@ -201,45 +220,14 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="col-xl-4">
-                    <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Thiết lập</h5></div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Hiệu lực đến</label>
-                                <input type="date" class="form-control" name="valid_until" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
-                            </div>
-                            <?php
-                            $deptGrouped = [];
-                            foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
-                            ?>
-                            <div class="mb-3">
-                                <label class="form-label">Người phụ trách</label>
-                                <select name="owner_id" class="form-select searchable-select">
-                                    <option value="">Chọn</option>
-                                    <?php foreach ($deptGrouped as $dept => $dUsers): ?>
-                                    <optgroup label="<?= e($dept) ?>">
-                                        <?php foreach ($dUsers as $u): ?>
-                                        <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    </optgroup>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-body d-flex gap-2">
-                            <button type="submit" class="btn btn-soft-primary flex-grow-1" onclick="document.getElementById('formAction').value='draft'">
-                                <i class="ri-save-line me-1"></i> Lưu nháp
-                            </button>
-                            <button type="submit" class="btn btn-primary flex-grow-1" onclick="document.getElementById('formAction').value='send'">
-                                <i class="ri-send-plane-line me-1"></i> Lưu & Gửi
-                            </button>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-body d-flex gap-2">
+                    <button type="submit" class="btn btn-soft-primary flex-grow-1" onclick="document.getElementById('formAction').value='draft'">
+                        <i class="ri-save-line me-1"></i> Lưu nháp
+                    </button>
+                    <button type="submit" class="btn btn-primary flex-grow-1" onclick="document.getElementById('formAction').value='send'">
+                        <i class="ri-send-plane-line me-1"></i> Lưu & Gửi
+                    </button>
                 </div>
             </div>
         </form>
