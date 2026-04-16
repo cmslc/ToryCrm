@@ -165,7 +165,6 @@ class QuotationController extends Controller
         try {
             $quotationId = Database::insert('quotations', [
                 'quote_number' => $quoteNumber,
-                'title' => trim($data['title'] ?? ''),
                 'status' => $data['action'] === 'send' ? 'sent' : 'draft',
                 'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
                 'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
@@ -175,7 +174,6 @@ class QuotationController extends Controller
                 'terms' => trim($data['terms'] ?? ''),
                 'currency' => 'VND',
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
-                'discount_type' => $data['discount_type'] ?? 'fixed',
                 'portal_token' => $portalToken,
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
                 'created_by' => $this->userId(),
@@ -220,20 +218,14 @@ class QuotationController extends Controller
 
             // Calculate totals
             $discountAmount = (float)($data['discount_amount'] ?? 0);
-            $discountType = $data['discount_type'] ?? 'fixed';
-            $totalDiscount = $discountType === 'percent' ? $subtotal * $discountAmount / 100 : $discountAmount;
-            $total = $subtotal + $totalTax - $totalDiscount;
+            $total = $subtotal + $totalTax - $discountAmount;
 
             Database::update('quotations', [
                 'subtotal' => $subtotal,
                 'tax_amount' => $totalTax,
+                'discount_amount' => $discountAmount,
                 'total' => max(0, $total),
             ], 'id = ?', [$quotationId]);
-
-            if ($data['action'] === 'send') {
-                Database::update('quotations', [
-                    'sent_at' => date('Y-m-d H:i:s'),
-                ], 'id = ?', [$quotationId]);
             }
 
             Database::commit();
@@ -356,7 +348,6 @@ class QuotationController extends Controller
         Database::beginTransaction();
         try {
             Database::update('quotations', [
-                'title' => trim($data['title'] ?? ''),
                 'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
                 'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
                 'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
@@ -364,7 +355,6 @@ class QuotationController extends Controller
                 'notes' => trim($data['notes'] ?? ''),
                 'terms' => trim($data['terms'] ?? ''),
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
-                'discount_type' => $data['discount_type'] ?? 'fixed',
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
             ], 'id = ?', [$id]);
 
@@ -407,13 +397,12 @@ class QuotationController extends Controller
             }
 
             $discountAmount = (float)($data['discount_amount'] ?? 0);
-            $discountType = $data['discount_type'] ?? 'fixed';
-            $totalDiscount = $discountType === 'percent' ? $subtotal * $discountAmount / 100 : $discountAmount;
-            $total = $subtotal + $totalTax - $totalDiscount;
+            $total = $subtotal + $totalTax - $discountAmount;
 
             Database::update('quotations', [
                 'subtotal' => $subtotal,
                 'tax_amount' => $totalTax,
+                'discount_amount' => $discountAmount,
                 'total' => max(0, $total),
             ], 'id = ?', [$id]);
 
@@ -555,7 +544,7 @@ class QuotationController extends Controller
                 'subtotal' => $quotation['subtotal'],
                 'tax_amount' => $quotation['tax_amount'],
                 'discount_amount' => $quotation['discount_amount'],
-                'discount_type' => $quotation['discount_type'],
+                'discount_type' => 'fixed',
                 'total' => $quotation['total'],
                 'currency' => 'VND',
                 'notes' => $quotation['notes'],
