@@ -119,7 +119,7 @@
 
                     <!-- Payment Info -->
                     <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h5></div>
+                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-1"></i> Chi phí & Thuế</h5></div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-3 mb-3">
