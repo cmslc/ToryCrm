@@ -154,14 +154,22 @@ class GetflySyncController extends Controller
         $ep = $this->endpoints[$endpoint];
         $url = $config['api_domain'] . '/' . $ep['api_path'] . '?';
 
-        // Add default params - for test, use short date range to avoid huge response
-        if ($endpoint === 'orders_sale') {
-            $today = date('Y-m-d');
-            $url .= 'order_type=2&start_date=' . $today . '&end_date=' . $today . '&';
-        } elseif ($endpoint === 'orders_purchase') {
-            $today = date('Y-m-d');
-            $url .= 'order_type=1&start_date=' . $today . '&end_date=' . $today . '&';
+        // Orders API returns ALL records (ignores pagination, huge response)
+        // For test: just verify connection with accounts endpoint instead
+        if (in_array($endpoint, ['orders_sale', 'orders_purchase'])) {
+            $testUrl = $config['api_domain'] . '/api/v3/accounts?page=1&num_per_page=1';
+            $testResult = $this->callApi($config['api_key'], $testUrl);
+            if ($testResult['success']) {
+                return $this->json([
+                    'success' => true,
+                    'total_records' => '?',
+                    'extra' => ' (API kết nối OK - đơn hàng không hỗ trợ pagination)',
+                    'sample' => null,
+                ]);
+            }
+            return $this->json(['error' => $testResult['error']], 400);
         }
+
         $url .= 'page=1&num_per_page=1';
 
         $result = $this->callApi($config['api_key'], $url);
@@ -282,7 +290,8 @@ class GetflySyncController extends Controller
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 60,
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_CONNECTTIMEOUT => 15,
             CURLOPT_HTTPHEADER => [
                 'X-API-KEY: ' . $apiKey,
                 'Content-Type: application/json',
