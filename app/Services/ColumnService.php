@@ -339,17 +339,6 @@ class ColumnService
             }
         } catch (\Exception $e) {}
 
-        // Get ALL columns from DB table (not just defaults)
-        try {
-            $dbColumns = Database::fetchAll("SHOW COLUMNS FROM `{$module}`");
-            foreach ($dbColumns as $col) {
-                $field = $col['Field'];
-                if (!isset($defaults[$field]) && !in_array($field, self::$systemFields) && !in_array($field, ['id', 'tenant_id'])) {
-                    $defaults[$field] = self::$commonLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
-                }
-            }
-        } catch (\Exception $e) {}
-
         $columns = [];
         foreach ($defaults as $field => $label) {
             $columns[] = [
