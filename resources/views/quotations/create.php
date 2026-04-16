@@ -101,22 +101,29 @@
                                             <td></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="5" class="text-end fw-medium">Phí vận chuyển:</td>
-                                            <td>
-                                                <input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
-                                            </td>
-                                            <td>
-                                                <input type="text" class="form-control form-control-sm" name="shipping_note" placeholder="Ghi chú VC...">
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
                                             <td colspan="6" class="text-end fw-bold fs-5">Tổng cộng:</td>
                                             <td id="totalDisplay" class="fw-bold fs-5 text-primary">0 ₫</td>
                                             <td></td>
                                         </tr>
                                     </tfoot>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping -->
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-truck-line me-1"></i> Phí vận chuyển</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Phí vận chuyển (VNĐ)</label>
+                                    <input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Ghi chú vận chuyển</label>
+                                    <input type="text" class="form-control" name="shipping_note" placeholder="VD: Giao hàng nội thành HCM, miễn phí đơn trên 10 triệu...">
+                                </div>
                             </div>
                         </div>
                     </div>
