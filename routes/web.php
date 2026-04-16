@@ -734,6 +734,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/contact-statuses/{id}/default', 'ContactStatusController@setDefault');
     Router::post('settings/contact-statuses/{id}/toggle-active', 'ContactStatusController@toggleActive');
     Router::get('api/tax-lookup', 'TaxLookupController@lookup');
+
+    // Getfly Sync
+    Router::get('settings/getfly-sync', 'GetflySyncController@index');
+    Router::post('settings/getfly-sync/save-config', 'GetflySyncController@saveConfig');
+    Router::get('settings/getfly-sync/test-api', 'GetflySyncController@testApi');
+    Router::post('settings/getfly-sync/sync', 'GetflySyncController@sync');
     Router::post('settings/contact-sources/store', 'ContactStatusController@storeSource');
     Router::post('settings/contact-sources/reorder', 'ContactStatusController@reorderSources');
     Router::post('settings/contact-sources/{id}/update', 'ContactStatusController@updateSource');

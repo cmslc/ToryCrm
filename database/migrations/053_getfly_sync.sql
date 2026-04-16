@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS getfly_sync_config (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED DEFAULT 1,
+    api_domain VARCHAR(255) NOT NULL,
+    api_key VARCHAR(100) NOT NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS getfly_sync_logs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tenant_id INT UNSIGNED DEFAULT 1,
+    endpoint VARCHAR(100) NOT NULL,
+    status ENUM('running','success','error') DEFAULT 'running',
+    records_synced INT DEFAULT 0,
+    error_message TEXT DEFAULT NULL,
+    started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    completed_at DATETIME DEFAULT NULL
+);
