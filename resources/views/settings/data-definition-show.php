@@ -269,11 +269,21 @@ document.getElementById('customCount').textContent = <?= $customCount ?>;
 document.querySelectorAll('.toggle-show-in-list').forEach(function(cb) {
     cb.addEventListener('change', function() {
         var field = this.dataset.field;
-        var show = this.checked ? 1 : 0;
+        var isOn = this.checked;
+        var label = this.closest('tr').querySelector('.fw-medium')?.textContent.trim() || field;
         fetch('<?= url('settings/data-definition/' . $module . '/toggle-show') ?>', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=<?= csrf_token() ?>&field_name=' + field + '&show=' + show
+            body: '_token=<?= csrf_token() ?>&field_name=' + field + '&show=' + (isOn ? 1 : 0)
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            if (d.success) {
+                var toast = document.createElement('div');
+                toast.className = 'position-fixed top-0 end-0 m-3 alert alert-' + (isOn ? 'success' : 'warning') + ' shadow fade show';
+                toast.style.zIndex = 9999;
+                toast.innerHTML = '<i class="ri-' + (isOn ? 'eye' : 'eye-off') + '-line me-1"></i>' + (isOn ? 'Đã hiện' : 'Đã ẩn') + ' cột <b>' + label + '</b>';
+                document.body.appendChild(toast);
+                setTimeout(function() { toast.remove(); }, 2000);
+            }
         });
     });
 });
