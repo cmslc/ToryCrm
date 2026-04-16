@@ -262,7 +262,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     echo $em ? '<i class="ri-mail-line me-1 text-muted"></i>' . e($em) : '-';
                                     break;
                                 case 'phone':
-                                    $ph = $val ?: ($c['mobile'] ?? '') ?: ($c['company_phone'] ?? '');
+                                    $ph = ($c['primary_contact_phone'] ?? '') ?: $val ?: ($c['mobile'] ?? '') ?: ($c['company_phone'] ?? '');
                                     echo $ph ? '<i class="ri-phone-line me-1 text-muted"></i>' . e($ph) : '-';
                                     break;
                                 case 'mobile': case 'fax': case 'shipping_phone':

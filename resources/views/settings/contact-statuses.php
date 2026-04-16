@@ -39,7 +39,7 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
-                            <tr><th style="width:40px"></th><th>Trạng thái</th><th>Mã</th><th>Màu</th><th>Mặc định</th><th>Số KH</th><th>Thao tác</th></tr>
+                            <tr><th style="width:40px"></th><th>Trạng thái</th><th>Mã</th><th>Màu</th><th>Mặc định</th><th class="text-center">Hiển thị</th><th>Số KH</th><th>Thao tác</th></tr>
                         </thead>
                         <tbody id="sortableStatuses">
                             <?php foreach ($statuses as $s):
@@ -63,6 +63,11 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
                                             <button class="btn btn-soft-secondary py-0 px-2 fs-12">Đặt MĐ</button>
                                         </form>
                                     <?php endif; ?>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input toggle-status-active" type="checkbox" data-id="<?= $s['id'] ?>" <?= ($s['is_active'] ?? 1) ? 'checked' : '' ?>>
+                                    </div>
                                 </td>
                                 <td><span class="badge bg-secondary-subtle text-secondary"><?= $contactCount['cnt'] ?? 0 ?></span></td>
                                 <td>
@@ -276,6 +281,17 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
+// Toggle status active
+document.querySelectorAll('.toggle-status-active').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        fetch('<?= url('settings/contact-statuses/') ?>' + this.dataset.id + '/toggle-active', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= csrf_token() ?>&is_active=' + (this.checked ? 1 : 0)
+        });
+    });
+});
+
 // === Status edit ===
 document.querySelectorAll('.edit-status-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {

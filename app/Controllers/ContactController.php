@@ -93,7 +93,7 @@ class ContactController extends Controller
         $totalPages = ceil($total / $perPage);
 
         $contactStatuses = Database::fetchAll(
-            "SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order",
+            "SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order",
             [Database::tenantId()]
         );
 
@@ -133,7 +133,7 @@ class ContactController extends Controller
         $this->authorize('contacts', 'create');
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
-        $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+        $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order", [Database::tenantId()]);
         $industries = Database::fetchAll("SELECT DISTINCT industry FROM contacts WHERE industry IS NOT NULL AND industry != '' ORDER BY industry");
 
         return $this->view('contacts.create', [
@@ -350,7 +350,7 @@ class ContactController extends Controller
 
         // Split view partial (no layout)
         if ($this->input('partial')) {
-            $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+            $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order", [Database::tenantId()]);
             return $this->view('contacts.partial-show', [
                 'contact' => $contact,
                 'activities' => $activities,
@@ -374,7 +374,7 @@ class ContactController extends Controller
         );
 
         $contactStatuses = Database::fetchAll(
-            "SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order",
+            "SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order",
             [Database::tenantId()]
         );
 
@@ -417,7 +417,7 @@ class ContactController extends Controller
 
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
-        $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
+        $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order", [Database::tenantId()]);
         $industries = Database::fetchAll("SELECT DISTINCT industry FROM contacts WHERE industry IS NOT NULL AND industry != '' ORDER BY industry");
         $contactPersons = Database::fetchAll(
             "SELECT * FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id",

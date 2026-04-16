@@ -152,6 +152,14 @@ class ContactStatusController extends Controller
         return $this->redirect('settings/contact-statuses');
     }
 
+    public function toggleActive($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $isActive = $this->input('is_active') ? 1 : 0;
+        Database::update('contact_statuses', ['is_active' => $isActive], 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        return $this->json(['success' => true]);
+    }
+
     private function slugify(string $text): string
     {
         $text = mb_strtolower($text);
