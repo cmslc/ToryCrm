@@ -26,10 +26,10 @@
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Khách hàng</label>
-                            <select name="contact_id" class="form-select searchable-select">
+                            <select name="contact_id" class="form-select searchable-select" id="contactSelect" onchange="onContactChange(this)">
                                 <option value="">Chọn khách hàng</option>
                                 <?php foreach ($contacts ?? [] as $c): ?>
-                                    <option value="<?= $c['id'] ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                                    <option value="<?= $c['id'] ?>" data-company="<?= $c['company_id'] ?? '' ?>"><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -39,15 +39,6 @@
                                 <option value="">Chọn công ty</option>
                                 <?php foreach ($companies ?? [] as $comp): ?>
                                     <option value="<?= $comp['id'] ?>"><?= e($comp['name']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Cơ hội liên quan</label>
-                            <select name="deal_id" class="form-select">
-                                <option value="">Không</option>
-                                <?php foreach ($deals ?? [] as $d): ?>
-                                    <option value="<?= $d['id'] ?>"><?= e($d['title']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -233,6 +224,15 @@
         .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
         </style>
         <script>
+        function onContactChange(sel) {
+            var opt = sel.options[sel.selectedIndex];
+            var compId = opt ? opt.dataset.company : '';
+            if (compId) {
+                var compSel = document.querySelector('[name="company_id"]');
+                if (compSel) { compSel.value = compId; compSel.dispatchEvent(new Event('change')); }
+            }
+        }
+
         let itemIndex = 0;
         let searchTimer = null;
 

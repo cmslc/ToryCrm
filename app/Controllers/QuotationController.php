@@ -99,7 +99,7 @@ class QuotationController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_id FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
         $displayColumns = \App\Services\ColumnService::getColumns('quotations');
 
         return $this->view('quotations.index', [
@@ -132,7 +132,7 @@ class QuotationController extends Controller
         $tid = Database::tenantId();
         $quoteNumber = $this->generateQuoteNumber();
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_id FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
         $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
@@ -329,7 +329,7 @@ class QuotationController extends Controller
             [$id]
         );
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_id FROM contacts WHERE tenant_id = ? ORDER BY first_name", [$tid]);
         $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
