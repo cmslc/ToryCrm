@@ -32,7 +32,7 @@ $st = $contact['status'] ?? 'new';
                 <tr><td class="text-muted py-1 ps-0"><i class="ri-phone-line me-1"></i>SĐT</td><td class="py-1"><?= e($contact['phone']) ?></td></tr>
                 <?php endif; ?>
                 <?php if (!empty($contact['company_name'])): ?>
-                <tr><td class="text-muted py-1 ps-0"><i class="ri-building-line me-1"></i>Công ty</td><td class="py-1"><a href="<?= url('companies/' . $contact['company_id']) ?>"><?= e($contact['company_name']) ?></a></td></tr>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-building-line me-1"></i>Công ty</td><td class="py-1 fw-medium" style="word-break:break-word"><?= e($contact['company_name']) ?></td></tr>
                 <?php endif; ?>
                 <?php if (!empty($contact['source_name'])): ?>
                 <tr><td class="text-muted py-1 ps-0"><i class="ri-focus-line me-1"></i>Nguồn</td><td class="py-1"><?= e($contact['source_name']) ?></td></tr>
