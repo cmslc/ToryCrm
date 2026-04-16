@@ -312,12 +312,13 @@ class GetflySyncController extends Controller
 
             $desc = trim($t['task_description'] ?? '');
             $desc = strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>'], "\n", $desc));
+            $desc = html_entity_decode($desc, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $desc = preg_replace('/\n{3,}/', "\n\n", trim($desc));
 
             $data = [
                 'tenant_id' => $tid,
                 'task_code' => $taskCode,
-                'title' => trim($t['task_name'] ?? 'Không tiêu đề'),
+                'title' => html_entity_decode(trim($t['task_name'] ?? 'Không tiêu đề'), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 'description' => $desc,
                 'status' => $status,
                 'progress' => (int)($t['task_progress'] ?? 0),
