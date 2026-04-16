@@ -13,7 +13,6 @@ $actionLabels = [
 ];
 $moduleLabels = [
     'contacts' => 'Khách hàng',
-    'companies' => 'Doanh nghiệp',
     'deals' => 'Cơ hội',
     'tasks' => 'Công việc',
     'products' => 'Sản phẩm',

@@ -4,7 +4,7 @@ $actionLabels = [
     'approve' => 'Duyệt', 'view_all' => 'Xem tất cả', 'confirm' => 'Xác nhận', 'manage' => 'Quản lý', 'use' => 'Sử dụng',
 ];
 $moduleLabels = [
-    'contacts' => 'Khách hàng', 'companies' => 'Doanh nghiệp', 'deals' => 'Cơ hội', 'tasks' => 'Công việc',
+    'contacts' => 'Khách hàng', 'deals' => 'Cơ hội', 'tasks' => 'Công việc',
     'products' => 'Sản phẩm', 'orders' => 'Đơn hàng', 'tickets' => 'Hỗ trợ', 'campaigns' => 'Chiến dịch',
     'fund' => 'Quỹ thu/chi', 'users' => 'Người dùng', 'reports' => 'Báo cáo', 'automation' => 'Tự động hóa',
     'webhooks' => 'Webhooks', 'settings' => 'Cài đặt', 'import_export' => 'Import/Export',
