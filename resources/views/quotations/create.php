@@ -8,7 +8,7 @@
             </ol>
         </div>
 
-        <form method="POST" action="<?= url('quotations/store') ?>" id="quotationForm">
+        <form method="POST" action="<?= url('quotations/store') ?>" id="quotationForm" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <input type="hidden" name="action" id="formAction" value="draft">
 
@@ -203,6 +203,15 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Attachments -->
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-attachment-2 me-1"></i> Tài liệu đính kèm</h5></div>
+                        <div class="card-body">
+                            <input type="file" name="attachments[]" class="form-control mb-2" multiple>
+                            <small class="text-muted">Chọn nhiều file cùng lúc. Tối đa 10MB/file. PDF, Word, Excel, hình ảnh...</small>
+                        </div>
+                    </div>
+
             <div class="card">
                 <div class="card-body d-flex gap-2">
                     <button type="submit" class="btn btn-soft-primary flex-grow-1" onclick="document.getElementById('formAction').value='draft'">

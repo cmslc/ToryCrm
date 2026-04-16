@@ -243,6 +243,9 @@ class QuotationController extends Controller
             return $this->back();
         }
 
+        // Handle attachments
+        $this->handleAttachments($quotationId);
+
         Database::insert('activities', [
             'type' => 'deal',
             'title' => "Báo giá tạo mới: {$quoteNumber}",
@@ -331,6 +334,11 @@ class QuotationController extends Controller
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
+        $attachments = Database::fetchAll(
+            "SELECT * FROM quotation_attachments WHERE quotation_id = ? ORDER BY created_at DESC",
+            [$id]
+        );
+
         return $this->view('quotations.edit', [
             'quotation' => $quotation,
             'items' => $items,
@@ -338,6 +346,7 @@ class QuotationController extends Controller
             'companies' => $companies,
             'deals' => $deals,
             'users' => $users,
+            'attachments' => $attachments,
         ]);
     }
 
@@ -437,6 +446,9 @@ class QuotationController extends Controller
             $this->setFlash('error', 'Lỗi cập nhật báo giá: ' . $e->getMessage());
             return $this->back();
         }
+
+        // Handle attachments
+        $this->handleAttachments($id);
 
         $this->setFlash('success', 'Cập nhật báo giá thành công.');
         return $this->redirect('quotations/' . $id);
@@ -753,6 +765,35 @@ class QuotationController extends Controller
         );
         $seq = $last ? ((int) substr($last['quote_number'], -4)) + 1 : 1;
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function handleAttachments($quotationId)
+    {
+        if (empty($_FILES['attachments']['name'][0])) return;
+
+        $uploadDir = BASE_PATH . '/public/uploads/quotations/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+        $maxSize = 10 * 1024 * 1024;
+
+        foreach ($_FILES['attachments']['name'] as $i => $name) {
+            if ($_FILES['attachments']['error'][$i] !== UPLOAD_ERR_OK || !$name) continue;
+            if ($_FILES['attachments']['size'][$i] > $maxSize) continue;
+
+            $ext = pathinfo($name, PATHINFO_EXTENSION);
+            $filename = 'q' . $quotationId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+            if (move_uploaded_file($_FILES['attachments']['tmp_name'][$i], $uploadDir . $filename)) {
+                Database::insert('quotation_attachments', [
+                    'tenant_id' => Database::tenantId(),
+                    'quotation_id' => $quotationId,
+                    'user_id' => $this->userId(),
+                    'filename' => $filename,
+                    'original_name' => $name,
+                    'file_size' => $_FILES['attachments']['size'][$i],
+                    'mime_type' => $_FILES['attachments']['type'][$i],
+                ]);
+            }
+        }
     }
 
     public function uploadAttachment($id)

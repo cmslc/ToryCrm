@@ -8,7 +8,7 @@
             </ol>
         </div>
 
-        <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/update') ?>" id="quotationForm">
+        <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/update') ?>" id="quotationForm" enctype="multipart/form-data">
             <?= csrf_field() ?>
 
             <?php
@@ -201,6 +201,36 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Attachments -->
+                    <div class="card">
+                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-attachment-2 me-1"></i> Tài liệu đính kèm</h5></div>
+                        <div class="card-body">
+                            <?php if (!empty($attachments)): ?>
+                            <div class="list-group list-group-flush mb-3">
+                                <?php foreach ($attachments as $att):
+                                    $icon = 'ri-file-line';
+                                    $mime = $att['mime_type'] ?? '';
+                                    if (str_contains($mime, 'pdf')) $icon = 'ri-file-pdf-line text-danger';
+                                    elseif (str_contains($mime, 'word') || str_contains($mime, 'document')) $icon = 'ri-file-word-line text-primary';
+                                    elseif (str_contains($mime, 'sheet') || str_contains($mime, 'excel')) $icon = 'ri-file-excel-line text-success';
+                                    elseif (str_contains($mime, 'image')) $icon = 'ri-image-line text-info';
+                                    $size = $att['file_size'] < 1048576 ? round($att['file_size'] / 1024) . ' KB' : round($att['file_size'] / 1048576, 1) . ' MB';
+                                ?>
+                                <div class="list-group-item d-flex align-items-center px-0">
+                                    <i class="<?= $icon ?> fs-4 me-3"></i>
+                                    <div class="flex-grow-1">
+                                        <a href="<?= url('uploads/quotations/' . $att['filename']) ?>" target="_blank" class="fw-medium"><?= e($att['original_name']) ?></a>
+                                        <div class="text-muted fs-12"><?= $size ?> &middot; <?= date('d/m/Y H:i', strtotime($att['created_at'])) ?></div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
+                            <input type="file" name="attachments[]" class="form-control mb-2" multiple>
+                            <small class="text-muted">Chọn nhiều file cùng lúc. Tối đa 10MB/file.</small>
+                        </div>
+                    </div>
+
             <div class="card">
                 <div class="card-body d-flex gap-2">
                     <button type="submit" class="btn btn-primary flex-grow-1"><i class="ri-save-line me-1"></i> Lưu</button>
