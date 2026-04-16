@@ -341,9 +341,11 @@ class ContactController extends Controller
 
         // Split view partial (no layout)
         if ($this->input('partial')) {
+            $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order", [Database::tenantId()]);
             return $this->view('contacts.partial-show', [
                 'contact' => $contact,
                 'activities' => $activities,
+                'contactStatuses' => $contactStatuses,
                 'noLayout' => true,
             ]);
         }
