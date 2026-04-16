@@ -346,17 +346,38 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 Hiển thị <strong><?= (($contacts['page'] - 1) * ($filters['per_page'] ?? 10)) + 1 ?> - <?= min($contacts['page'] * ($filters['per_page'] ?? 10), $contacts['total']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng
             </div>
             <nav>
+                <?php
+                $pg = $contacts['page'];
+                $tp = $contacts['total_pages'];
+                $qs = http_build_query(array_filter($filters ?? []));
+                $pgUrl = function($p) use ($qs) { return url('contacts?page=' . $p . '&' . $qs); };
+
+                // Build page numbers: 1 ... [pg-2, pg-1, pg, pg+1, pg+2] ... last
+                $pages = [];
+                $pages[] = 1;
+                for ($i = max(2, $pg - 2); $i <= min($tp - 1, $pg + 2); $i++) {
+                    $pages[] = $i;
+                }
+                if ($tp > 1) $pages[] = $tp;
+                $pages = array_unique($pages);
+                sort($pages);
+                ?>
                 <ul class="pagination mb-0">
-                    <?php if ($contacts['page'] > 1): ?>
-                        <li class="page-item"><a class="page-link" href="<?= url('contacts?page=' . ($contacts['page']-1) . '&' . http_build_query(array_filter($filters ?? []))) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
+                    <?php if ($pg > 1): ?>
+                        <li class="page-item"><a class="page-link" href="<?= $pgUrl($pg - 1) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
                     <?php endif; ?>
-                    <?php for ($i = max(1, $contacts['page']-2); $i <= min($contacts['total_pages'], $contacts['page']+2); $i++): ?>
-                        <li class="page-item <?= $i === $contacts['page'] ? 'active' : '' ?>">
-                            <a class="page-link" href="<?= url('contacts?page=' . $i . '&' . http_build_query(array_filter($filters ?? []))) ?>"><?= $i ?></a>
+                    <?php
+                    $prev = 0;
+                    foreach ($pages as $p):
+                        if ($p - $prev > 1): ?>
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        <?php endif; ?>
+                        <li class="page-item <?= $p === $pg ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= $pgUrl($p) ?>"><?= $p ?></a>
                         </li>
-                    <?php endfor; ?>
-                    <?php if ($contacts['page'] < $contacts['total_pages']): ?>
-                        <li class="page-item"><a class="page-link" href="<?= url('contacts?page=' . ($contacts['page']+1) . '&' . http_build_query(array_filter($filters ?? []))) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
+                    <?php $prev = $p; endforeach; ?>
+                    <?php if ($pg < $tp): ?>
+                        <li class="page-item"><a class="page-link" href="<?= $pgUrl($pg + 1) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
                     <?php endif; ?>
                 </ul>
             </nav>
