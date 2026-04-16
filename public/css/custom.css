@@ -24,3 +24,8 @@ html,
 body {
   overflow-x: hidden;
 }
+
+/* Hide searchable-select immediately to prevent flash */
+select.searchable-select {
+  display: none !important;
+}
