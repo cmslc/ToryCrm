@@ -177,15 +177,22 @@ class GetflySyncController extends Controller
 
         if ($result['success']) {
             $data = $result['data'];
-            // Handle different response formats: {records:[], pagination:{}} or plain array
+            // Handle different response formats:
+            // 1. {records:[], pagination:{total_records:N}} - accounts, products
+            // 2. {data:[], pagination:{}} - tasks
+            // 3. [...] - plain array - users, campaigns
+            // 4. {records:[]} - orders (no useful pagination)
             if (isset($data['pagination'])) {
-                $total = $data['pagination']['total_records'] ?? $data['pagination']['total_record'] ?? count($data['records'] ?? []);
-                $sample = $data['records'][0] ?? null;
+                $items = $data['records'] ?? $data['data'] ?? [];
+                $total = $data['pagination']['total_records'] ?? $data['pagination']['total_record'] ?? count($items);
+                $sample = $items[0] ?? null;
+            } elseif (isset($data['data']) && is_array($data['data'])) {
+                $total = count($data['data']);
+                $sample = $data['data'][0] ?? null;
             } elseif (isset($data['records'])) {
                 $total = count($data['records']);
                 $sample = $data['records'][0] ?? null;
             } elseif (is_array($data) && isset($data[0])) {
-                // Plain array (users, campaigns)
                 $total = count($data);
                 $sample = $data[0] ?? null;
             } else {
