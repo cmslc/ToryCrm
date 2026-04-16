@@ -134,7 +134,13 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                         <td class="text-end"><?= format_money($quotation['shipping_fee']) ?></td>
                                     </tr>
                                     <?php endif; ?>
+                                    <?php if (($quotation['installation_fee'] ?? 0) > 0): ?>
                                     <tr>
+                                        <td colspan="7" class="text-end">Phí lắp đặt:</td>
+                                        <td class="text-end"><?= format_money($quotation['installation_fee']) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <tr class="table-primary">
                                         <td colspan="7" class="text-end fw-bold fs-5">Tổng cộng:</td>
                                         <td class="text-end fw-bold fs-5 text-primary"><?= format_money($quotation['total'] ?? 0) ?></td>
                                     </tr>

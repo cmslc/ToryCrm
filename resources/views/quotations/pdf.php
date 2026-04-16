@@ -193,6 +193,12 @@
                 <span><?= number_format($quotation['shipping_fee'], 0, ',', '.') ?> ₫</span>
             </div>
             <?php endif; ?>
+            <?php if (($quotation['installation_fee'] ?? 0) > 0): ?>
+            <div class="totals-row">
+                <span>Phí lắp đặt:</span>
+                <span><?= number_format($quotation['installation_fee'], 0, ',', '.') ?> ₫</span>
+            </div>
+            <?php endif; ?>
             <div class="totals-row grand">
                 <span>TỔNG CỘNG</span>
                 <span><?= number_format($quotation['total'] ?? 0, 0, ',', '.') ?> ₫</span>
