@@ -27,7 +27,7 @@ class ColumnService
             'city' => 'Thành phố',
             'country' => 'Quốc gia',
             'description' => 'Mô tả',
-            'status' => 'Trạng thái',
+            'status' => 'Mối quan hệ',
             'customer_group' => 'Nhóm KH',
             'referrer_code' => 'Người giới thiệu',
             'is_private' => 'Riêng tư',

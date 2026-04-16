@@ -572,9 +572,10 @@ class ContactController extends Controller
                 break;
 
             case 'status':
-                $validStatuses = ['new', 'contacted', 'qualified', 'converted', 'lost'];
+                $allStatuses = Database::fetchAll("SELECT slug FROM contact_statuses WHERE tenant_id = ?", [$tenantId]);
+                $validStatuses = array_column($allStatuses, 'slug');
                 if (!in_array($value, $validStatuses)) {
-                    return $this->json(['error' => 'Trạng thái không hợp lệ'], 422);
+                    return $this->json(['error' => 'Mối quan hệ không hợp lệ'], 422);
                 }
                 foreach ($ids as $id) {
                     Database::update('contacts', ['status' => $value], 'id = ? AND tenant_id = ?', [$id, $tenantId]);

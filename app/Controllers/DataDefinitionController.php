@@ -28,7 +28,7 @@ class DataDefinitionController extends Controller
         'account_code' => 'Mã KH', 'position' => 'Chức vụ', 'gender' => 'Giới tính',
         'date_of_birth' => 'Ngày sinh', 'address' => 'Địa chỉ', 'city' => 'Thành phố',
         'province' => 'Tỉnh/TP', 'district' => 'Quận/Huyện', 'ward' => 'Phường/Xã',
-        'country' => 'Quốc gia', 'description' => 'Mô tả', 'status' => 'Trạng thái',
+        'country' => 'Quốc gia', 'description' => 'Mô tả', 'status' => 'Mối quan hệ',
         'customer_group' => 'Nhóm KH', 'referrer_code' => 'Người giới thiệu',
         'is_private' => 'Riêng tư', 'avatar' => 'Ảnh đại diện',
         'tax_code' => 'Mã số thuế', 'website' => 'Website', 'fax' => 'Fax',

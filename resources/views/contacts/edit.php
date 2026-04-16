@@ -171,7 +171,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Trạng thái</label>
+                        <label class="form-label">Mối quan hệ</label>
                         <select name="status" class="form-select">
                             <?php foreach ($contactStatuses ?? [] as $st): ?>
                             <option value="<?= e($st['slug']) ?>" <?= ($c['status'] ?? '') === $st['slug'] ? 'selected' : '' ?>><?= e($st['name']) ?></option>
