@@ -233,17 +233,23 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
         var syncBtn = this;
         syncBtn.disabled = true;
 
-        if (ep === 'tasks') {
+        var syncEndpoints = {
+            tasks: {url: '<?= url('settings/getfly-sync/sync-tasks-page') ?>', est: 9200},
+            accounts: {url: '<?= url('settings/getfly-sync/sync-accounts-page') ?>', est: 26000},
+        };
+
+        if (syncEndpoints[ep]) {
             // Page-by-page sync with progress
             var totalSynced = 0;
             var page = 1;
-            var estimatedTotal = 9200; // approximate
+            var estimatedTotal = syncEndpoints[ep].est;
+            var syncUrl = syncEndpoints[ep].url;
 
             statusEl.innerHTML = '<div class="w-100"><div class="d-flex justify-content-between mb-1"><small>Đang đồng bộ...</small><small id="sync-percent">0%</small></div><div class="progress" style="height:6px"><div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-bar" style="width:0%"></div></div><small class="text-muted" id="sync-detail">Trang 1...</small></div>';
             statusEl.className = 'fs-12 w-100';
 
             function syncPage(pg) {
-                fetch('<?= url('settings/getfly-sync/sync-tasks-page') ?>', {
+                fetch(syncUrl, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                     body: '_token=' + token + '&page=' + pg
@@ -262,19 +268,19 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                     if (d.done) pct = 100;
                     document.getElementById('sync-bar').style.width = pct + '%';
                     document.getElementById('sync-percent').textContent = pct + '%';
-                    document.getElementById('sync-detail').textContent = 'Trang ' + pg + ' - ' + totalSynced + ' tasks';
+                    document.getElementById('sync-detail').textContent = 'Trang ' + pg + ' - ' + totalSynced + ' records';
 
                     if (d.has_more) {
                         syncPage(pg + 1);
                     } else {
-                        statusEl.innerHTML = '<i class="ri-check-double-line me-1"></i>Hoàn thành! ' + totalSynced + ' tasks đã đồng bộ';
+                        statusEl.innerHTML = '<i class="ri-check-double-line me-1"></i>Hoàn thành! ' + totalSynced + ' records đã đồng bộ';
                         statusEl.className = 'text-success fs-12 fw-medium';
                         syncBtn.disabled = false;
                         syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
                         var toast = document.createElement('div');
                         toast.className = 'position-fixed top-0 end-0 m-3 alert alert-success shadow fade show';
                         toast.style.zIndex = 9999;
-                        toast.innerHTML = '<i class="ri-check-line me-1"></i>Đã đồng bộ ' + totalSynced + ' công việc từ Getfly';
+                        toast.innerHTML = '<i class="ri-check-line me-1"></i>Đã đồng bộ ' + totalSynced + ' records từ Getfly';
                         document.body.appendChild(toast);
                         setTimeout(function() { toast.remove(); }, 3000);
                     }

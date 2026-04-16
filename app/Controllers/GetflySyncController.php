@@ -355,16 +355,119 @@ class GetflySyncController extends Controller
 
     private function syncPlaceholder(array $config, string $endpoint): int
     {
-        // Test connection only for endpoints not yet implemented
-        $ep = $this->endpoints[$endpoint];
-        $url = $config['api_domain'] . '/' . $ep['api_path'] . '?page=1&num_per_page=1';
-        $result = $this->callApi($config['api_key'], $url);
+        throw new \Exception('Chức năng đồng bộ đang được phát triển.');
+    }
 
-        if (!$result['success']) {
-            throw new \Exception($result['error']);
+    /**
+     * Sync accounts page by page
+     */
+    public function syncAccountsPage()
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $this->authorize('settings', 'manage');
+        $config = $this->getConfig();
+        if (!$config) return $this->json(['error' => 'Chưa cấu hình'], 400);
+
+        $page = max(1, (int)$this->input('page'));
+        $tid = Database::tenantId();
+
+        $url = $config['api_domain'] . '/api/v3/accounts?page=' . $page . '&num_per_page=50';
+        $result = $this->callApi($config['api_key'], $url);
+        if (!$result['success']) return $this->json(['error' => $result['error']], 400);
+
+        $records = $result['data']['records'] ?? [];
+        if (empty($records)) return $this->json(['done' => true, 'synced' => 0, 'page' => $page]);
+
+        $totalPages = (int)($result['data']['pagination']['total_page'] ?? 0);
+
+        // User map
+        $userMap = [];
+        $users = Database::fetchAll("SELECT id, name, email FROM users WHERE is_active = 1");
+        foreach ($users as $u) {
+            $userMap[mb_strtolower($u['name'])] = $u['id'];
+            if ($u['email']) $userMap[mb_strtolower($u['email'])] = $u['id'];
         }
 
-        throw new \Exception('Chức năng đồng bộ ' . $ep['name'] . ' đang được phát triển.');
+        // Source map
+        $sourceMap = [];
+        $sources = Database::fetchAll("SELECT id, name FROM contact_sources");
+        foreach ($sources as $s) $sourceMap[mb_strtolower($s['name'])] = $s['id'];
+
+        // Status map
+        $statusMap = [];
+        $statuses = Database::fetchAll("SELECT slug, name FROM contact_statuses WHERE tenant_id = ?", [$tid]);
+        foreach ($statuses as $s) $statusMap[mb_strtolower(trim($s['name']))] = $s['slug'];
+
+        $synced = 0;
+        foreach ($records as $r) {
+            $code = trim($r['account_code'] ?? '');
+            if (empty($code)) continue;
+
+            $ownerEmail = mb_strtolower(trim($r['manager_email'] ?? ''));
+            $ownerId = $userMap[$ownerEmail] ?? null;
+            $sourceId = $sourceMap[mb_strtolower(trim($r['account_source'] ?? ''))] ?? null;
+            $statusSlug = $statusMap[mb_strtolower(trim($r['relation_name'] ?? ''))] ?? 'new';
+
+            $data = [
+                'tenant_id' => $tid,
+                'account_code' => $code,
+                'company_name' => html_entity_decode(trim($r['account_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                'phone' => trim($r['phone'] ?? '') ?: null,
+                'email' => trim($r['email'] ?? '') ?: null,
+                'address' => html_entity_decode(trim($r['address'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                'website' => trim($r['website'] ?? '') ?: null,
+                'tax_code' => trim($r['sic_code'] ?? '') ?: null,
+                'description' => html_entity_decode(strip_tags(trim($r['description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                'status' => $statusSlug,
+                'customer_group' => trim($r['account_type'] ?? '') ?: null,
+                'province' => trim($r['province_name'] ?? '') ?: null,
+                'industry' => trim($r['industry_name'] ?? '') ?: null,
+                'total_revenue' => (float)str_replace(',', '', $r['revenue'] ?? '0'),
+                'source_id' => $sourceId,
+                'owner_id' => $ownerId,
+            ];
+
+            $existing = Database::fetch("SELECT id FROM contacts WHERE account_code = ? AND tenant_id = ?", [$code, $tid]);
+            if ($existing) {
+                Database::update('contacts', $data, 'id = ?', [$existing['id']]);
+                $contactId = $existing['id'];
+            } else {
+                $parts = explode(' ', $data['company_name'], 2);
+                $data['first_name'] = $parts[0];
+                $data['last_name'] = $parts[1] ?? '';
+                $data['created_by'] = $ownerId;
+                $contactId = Database::insert('contacts', $data);
+            }
+
+            // Sync contact persons
+            $contacts = $r['contacts'] ?? [];
+            if (!empty($contacts)) {
+                Database::query("DELETE FROM contact_persons WHERE contact_id = ?", [$contactId]);
+                foreach ($contacts as $idx => $cp) {
+                    $cpName = trim($cp['first_name'] ?? '');
+                    if (empty($cpName)) continue;
+                    Database::insert('contact_persons', [
+                        'tenant_id' => $tid,
+                        'contact_id' => $contactId,
+                        'full_name' => html_entity_decode($cpName, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                        'phone' => trim($cp['phone_mobile'] ?? $cp['phone_home'] ?? '') ?: null,
+                        'email' => trim($cp['email'] ?? '') ?: null,
+                        'position' => html_entity_decode(trim($cp['title'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8') ?: null,
+                        'is_primary' => $idx === 0 ? 1 : 0,
+                        'sort_order' => $idx,
+                    ]);
+                }
+            }
+            $synced++;
+        }
+
+        return $this->json([
+            'done' => $page >= $totalPages,
+            'synced' => $synced,
+            'page' => $page,
+            'total_pages' => $totalPages,
+            'has_more' => $page < $totalPages,
+        ]);
     }
 
     private function getConfig(): ?array
