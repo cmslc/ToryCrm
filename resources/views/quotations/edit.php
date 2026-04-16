@@ -48,7 +48,7 @@
                         <div class="col-md-3 mb-3">
                             <label class="form-label">Người phụ trách</label>
                             <select name="owner_id" class="form-select searchable-select">
-                                <option value="">Chọn</option>
+                                <option value="">Chọn người phụ trách</option>
                                 <?php foreach ($deptGrouped as $dept => $dUsers): ?>
                                 <optgroup label="<?= e($dept) ?>">
                                     <?php foreach ($dUsers as $u): ?>
