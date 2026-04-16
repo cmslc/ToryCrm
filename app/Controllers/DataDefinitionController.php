@@ -189,6 +189,16 @@ class DataDefinitionController extends Controller
             foreach ($ovRows as $ov) $overrides[$ov['field_name']] = $ov;
         } catch (\Exception $e) {}
 
+        // Load show_in_list overrides
+        $showInList = [];
+        try {
+            $slRows = Database::fetchAll(
+                "SELECT field_name, show_in_list FROM field_label_overrides WHERE tenant_id = ? AND table_name = ? AND show_in_list IS NOT NULL",
+                [Database::tenantId(), $module]
+            );
+            foreach ($slRows as $sl) $showInList[$sl['field_name']] = (bool)$sl['show_in_list'];
+        } catch (\Exception $e) {}
+
         // Build field list
         $fields = [];
         $systemFields = [
@@ -241,6 +251,7 @@ class DataDefinitionController extends Controller
                 'default' => $col['Default'],
                 'is_system' => $isSystem,
                 'is_custom' => false,
+                'show_in_list' => $showInList[$col['Field']] ?? true,
                 'source' => 'database',
             ];
         }
@@ -314,6 +325,24 @@ class DataDefinitionController extends Controller
 
         $this->setFlash('success', 'Đã xóa trường.');
         return $this->redirect('settings/data-definition/' . $module);
+    }
+
+    public function toggleShowInList($module)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $this->authorize('settings', 'manage');
+
+        $fieldName = $this->input('field_name');
+        $show = $this->input('show') ? 1 : 0;
+
+        Database::query(
+            "INSERT INTO field_label_overrides (tenant_id, table_name, field_name, label, show_in_list)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE show_in_list = VALUES(show_in_list)",
+            [Database::tenantId(), $module, $fieldName, $fieldName, $show]
+        );
+
+        return $this->json(['success' => true]);
     }
 
     private function parseColumnType(string $rawType): string

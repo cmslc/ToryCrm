@@ -315,15 +315,19 @@ class ColumnService
     {
         $defaults = self::$defaultLabels[$module] ?? [];
 
-        // Load overrides from DB
+        // Load overrides from DB (label + show_in_list)
+        $hiddenFields = [];
         try {
             $overrides = Database::fetchAll(
-                "SELECT field_name, label FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
+                "SELECT field_name, label, show_in_list FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
                 [Database::tenantId(), $module]
             );
             foreach ($overrides as $ov) {
                 if (!empty($ov['label'])) {
                     $defaults[$ov['field_name']] = $ov['label'];
+                }
+                if (isset($ov['show_in_list']) && !$ov['show_in_list']) {
+                    $hiddenFields[$ov['field_name']] = true;
                 }
             }
         } catch (\Exception $e) {}
@@ -341,6 +345,7 @@ class ColumnService
 
         $columns = [];
         foreach ($defaults as $field => $label) {
+            if (isset($hiddenFields[$field])) continue; // Skip hidden fields
             $columns[] = [
                 'key' => 'col-' . str_replace('_', '', $field),
                 'field' => $field,

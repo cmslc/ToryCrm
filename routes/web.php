@@ -705,6 +705,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/data-definition/{module}', 'DataDefinitionController@show');
     Router::post('settings/data-definition/{module}/update-field', 'DataDefinitionController@updateField');
     Router::post('settings/data-definition/{module}/delete-field', 'DataDefinitionController@deleteField');
+    Router::post('settings/data-definition/{module}/toggle-show', 'DataDefinitionController@toggleShowInList');
     Router::get('settings/positions', 'PositionController@index');
     Router::post('settings/positions/store', 'PositionController@store');
     Router::post('settings/positions/{id}/update', 'PositionController@update');

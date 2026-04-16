@@ -33,7 +33,7 @@
                                 <th>Kiểu dữ liệu</th>
                                 <th class="text-center">Bắt buộc</th>
                                 <th class="text-center">Kiểm tra trùng</th>
-                                <th>Giá trị mặc định</th>
+                                <th class="text-center">Hiển thị</th>
                                 <th class="text-center" style="width:100px">Thao tác</th>
                             </tr>
                         </thead>
@@ -72,7 +72,11 @@
                                     <span class="text-muted">Không</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-muted fs-13"><?= $f['default'] !== null ? e($f['default']) : '-' ?></td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input toggle-show-in-list" type="checkbox" data-field="<?= e($f['name']) ?>" <?= ($f['show_in_list'] ?? true) ? 'checked' : '' ?>>
+                                    </div>
+                                </td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-ghost-primary btn-icon btn-sm edit-field-btn"
                                         data-name="<?= e($f['name']) ?>"
@@ -254,4 +258,17 @@ document.querySelectorAll('.edit-field-btn').forEach(function(btn) {
 document.getElementById('activeCount').textContent = <?= $activeCount ?>;
 document.getElementById('systemCount').textContent = <?= $systemCount ?>;
 document.getElementById('customCount').textContent = <?= $customCount ?>;
+
+// Toggle show in list
+document.querySelectorAll('.toggle-show-in-list').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+        var field = this.dataset.field;
+        var show = this.checked ? 1 : 0;
+        fetch('<?= url('settings/data-definition/' . $module . '/toggle-show') ?>', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: '_token=<?= csrf_token() ?>&field_name=' + field + '&show=' + show
+        });
+    });
+});
 </script>
