@@ -226,7 +226,6 @@ class QuotationController extends Controller
                 'discount_amount' => $discountAmount,
                 'total' => max(0, $total),
             ], 'id = ?', [$quotationId]);
-            }
 
             Database::commit();
         } catch (\Exception $e) {
