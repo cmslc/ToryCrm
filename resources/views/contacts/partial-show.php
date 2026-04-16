@@ -34,6 +34,9 @@ $st = $contact['status'] ?? 'new';
                 <?php if (!empty($contact['company_name'])): ?>
                 <tr><td class="text-muted py-1 ps-0"><i class="ri-building-line me-1"></i>Công ty</td><td class="py-1 fw-medium" style="word-break:break-word"><?= e($contact['company_name']) ?></td></tr>
                 <?php endif; ?>
+                <?php if (!empty($contact['last_activity_at'])): ?>
+                <tr><td class="text-muted py-1 ps-0"><i class="ri-time-line me-1"></i>LH cuối</td><td class="py-1"><?= time_ago($contact['last_activity_at']) ?></td></tr>
+                <?php endif; ?>
                 <?php if (!empty($contact['source_name'])): ?>
                 <tr><td class="text-muted py-1 ps-0"><i class="ri-focus-line me-1"></i>Nguồn</td><td class="py-1"><?= e($contact['source_name']) ?></td></tr>
                 <?php endif; ?>
