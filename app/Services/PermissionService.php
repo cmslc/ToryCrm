@@ -139,14 +139,15 @@ class PermissionService
     {
         if (self::$groupPerms === null) {
             self::$groupPerms = [];
-            $expandedIds = self::getGroupWithAncestors($groupIds);
-            if (empty($expandedIds)) {
+            // Only check direct group membership, no ancestor inheritance
+            // parent_id is for organizational tree display only
+            if (empty($groupIds)) {
                 return false;
             }
-            $placeholders = implode(',', array_fill(0, count($expandedIds), '?'));
+            $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
             $rows = Database::fetchAll(
                 "SELECT p.module, p.action FROM group_permissions gp JOIN permissions p ON gp.permission_id = p.id WHERE gp.group_id IN ({$placeholders})",
-                $expandedIds
+                $groupIds
             );
             foreach ($rows as $row) {
                 self::$groupPerms[$row['module'] . ':' . $row['action']] = true;
