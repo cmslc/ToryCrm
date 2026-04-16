@@ -102,6 +102,20 @@ class DataDefinitionController extends Controller
         'shipping_after_tax' => 'VC sau thuế', 'shipping_note' => 'Ghi chú VC',
         'installation_fee' => 'Phí lắp đặt', 'installation_percent' => 'Phí lắp đặt (%)',
 
+        // Orders
+        'order_number' => 'Mã ĐH', 'order_source_id' => 'Nguồn đơn hàng',
+        'discount_type' => 'Loại CK', 'transport_amount' => 'Phí vận chuyển',
+        'installation_amount' => 'Phí lắp đặt', 'order_terms' => 'Điều khoản ĐH',
+        'payment_status' => 'TT thanh toán', 'payment_method' => 'Hình thức TT',
+        'paid_amount' => 'Đã thanh toán', 'payment_date' => 'Ngày thanh toán',
+        'lading_code' => 'Mã vận đơn', 'lading_status' => 'TT vận đơn',
+        'shipping_address' => 'ĐC giao hàng', 'shipping_contact' => 'Người nhận',
+        'shipping_phone' => 'SĐT nhận', 'shipping_province' => 'Tỉnh/TP giao',
+        'shipping_district' => 'Q/H giao', 'warehouse_id' => 'Kho',
+        'tracking_url' => 'Link tracking', 'commission_amount' => 'Hoa hồng',
+        'issued_date' => 'Ngày phát hành', 'due_date' => 'Hạn thanh toán',
+        'cost_price' => 'Giá vốn',
+
         // Common
         'id' => 'ID', 'sort_order' => 'Thứ tự',
         // Companies extra
