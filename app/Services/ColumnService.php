@@ -323,10 +323,15 @@ class ColumnService
                 [Database::tenantId(), $module]
             );
             foreach ($overrides as $ov) {
-                if (!empty($ov['label'])) {
+                if (!empty($ov['label']) && $ov['label'] !== $ov['field_name']) {
                     $defaults[$ov['field_name']] = $ov['label'];
                 }
-                if (isset($ov['show_in_list']) && !$ov['show_in_list']) {
+                if (isset($ov['show_in_list']) && $ov['show_in_list']) {
+                    // Explicitly shown - add to defaults if not already there (e.g. system fields)
+                    if (!isset($defaults[$ov['field_name']])) {
+                        $defaults[$ov['field_name']] = self::$commonLabels[$ov['field_name']] ?? ucfirst(str_replace('_', ' ', $ov['field_name']));
+                    }
+                } elseif (isset($ov['show_in_list']) && !$ov['show_in_list']) {
                     $hiddenFields[$ov['field_name']] = true;
                 }
             }
