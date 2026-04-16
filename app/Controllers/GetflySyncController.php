@@ -162,9 +162,10 @@ class GetflySyncController extends Controller
             if ($testResult['success']) {
                 return $this->json([
                     'success' => true,
-                    'total_records' => '?',
-                    'extra' => ' (API kết nối OK - đơn hàng không hỗ trợ pagination)',
+                    'total_records' => 0,
+                    'extra' => ' — API kết nối OK',
                     'sample' => null,
+                    'hide_count' => true,
                 ]);
             }
             return $this->json(['error' => $testResult['error']], 400);
