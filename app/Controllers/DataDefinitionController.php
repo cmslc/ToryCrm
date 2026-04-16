@@ -38,6 +38,11 @@ class DataDefinitionController extends Controller
         'company_id' => 'Công ty', 'source_id' => 'Nguồn KH', 'owner_id' => 'Người phụ trách',
         'created_by' => 'Người tạo', 'created_at' => 'Ngày tạo', 'updated_at' => 'Ngày cập nhật',
         'last_activity_at' => 'Liên hệ lần cuối', 'is_deleted' => 'Đã xóa', 'deleted_at' => 'Ngày xóa',
+        'relation_id' => 'Mối quan hệ (ID)', 'industry_id' => 'Ngành KD (ID)',
+        'referrer_type' => 'Loại người giới thiệu', 'total_revenue' => 'Tổng doanh thu',
+        'portal_token' => 'Token cổng KH', 'portal_password' => 'Mật khẩu cổng KH',
+        'portal_active' => 'Kích hoạt cổng KH', 'tenant_id' => 'Mã doanh nghiệp',
+        'id' => 'ID', 'title' => 'Danh xưng',
 
         // Companies
         'name' => 'Tên', 'website' => 'Website', 'tax_code' => 'Mã số thuế',
