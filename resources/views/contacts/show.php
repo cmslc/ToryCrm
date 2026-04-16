@@ -458,18 +458,18 @@
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-soft-primary activity-type-btn active" data-type="note" title="Ghi chú">
-                                                <i class="ri-file-text-line"></i>
+                                            <button type="button" class="btn btn-soft-secondary" title="Tag người dùng" onclick="var ta=this.closest('form').querySelector('textarea');ta.value+=' @';ta.focus();">
+                                                <i class="ri-at-line"></i> Tag
                                             </button>
-                                            <button type="button" class="btn btn-soft-success activity-type-btn" data-type="call" title="Cuộc gọi">
-                                                <i class="ri-phone-line"></i>
+                                            <label class="btn btn-soft-secondary mb-0" title="Đính kèm file">
+                                                <i class="ri-attachment-2"></i> File
+                                                <input type="file" name="attachment" class="d-none" onchange="this.closest('label').querySelector('span')?.remove();var s=document.createElement('span');s.className='ms-1 badge bg-primary';s.textContent=this.files[0].name;this.closest('label').appendChild(s);">
+                                            </label>
+                                            <button type="button" class="btn btn-soft-secondary" title="Check-in vị trí" id="btnCheckin">
+                                                <i class="ri-map-pin-line"></i> Check-in
                                             </button>
-                                            <button type="button" class="btn btn-soft-info activity-type-btn" data-type="email" title="Email">
-                                                <i class="ri-mail-line"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-soft-warning activity-type-btn" data-type="meeting" title="Cuộc họp">
-                                                <i class="ri-calendar-line"></i>
-                                            </button>
+                                            <input type="hidden" name="latitude" id="checkinLat">
+                                            <input type="hidden" name="longitude" id="checkinLng">
                                         </div>
                                         <button type="submit" class="btn btn-primary"><i class="ri-send-plane-fill me-1"></i> Gửi</button>
                                     </div>
@@ -1325,12 +1325,23 @@
         </div>
 
 <script>
-// Activity type toggle
-document.querySelectorAll('.activity-type-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.activity-type-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        document.getElementById('activityType').value = this.dataset.type;
+// Check-in GPS
+document.getElementById('btnCheckin')?.addEventListener('click', function() {
+    var btn = this;
+    if (!navigator.geolocation) { alert('Trình duyệt không hỗ trợ GPS'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Đang lấy...';
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        document.getElementById('checkinLat').value = pos.coords.latitude;
+        document.getElementById('checkinLng').value = pos.coords.longitude;
+        btn.innerHTML = '<i class="ri-map-pin-fill"></i> Đã check-in';
+        btn.classList.remove('btn-soft-secondary');
+        btn.classList.add('btn-soft-success');
+        btn.disabled = false;
+    }, function() {
+        btn.innerHTML = '<i class="ri-map-pin-line"></i> Check-in';
+        btn.disabled = false;
+        alert('Không thể lấy vị trí. Vui lòng cho phép truy cập GPS.');
     });
 });
 
