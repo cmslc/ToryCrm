@@ -68,7 +68,7 @@ class ContactController extends Controller
             "SELECT c.*,
                     u.name as owner_name, u.avatar as owner_avatar,
                     cs.name as source_name, cs.color as source_color,
-                    (SELECT MAX(a.created_at) FROM activities a WHERE a.contact_id = c.id AND a.type != 'system') as last_activity_at
+                    c.last_activity_at
              FROM contacts c
              LEFT JOIN users u ON c.owner_id = u.id
              LEFT JOIN contact_sources cs ON c.source_id = cs.id
