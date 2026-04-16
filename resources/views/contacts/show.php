@@ -231,60 +231,114 @@
                 })();
                 </script>
 
-                <!-- Contact Info -->
+                <!-- Thông tin công ty -->
                 <div class="card">
                     <div class="card-header p-2">
-                        <h5 class="card-title mb-0">Thông tin liên hệ</h5>
+                        <h5 class="card-title mb-0"><i class="ri-building-line me-1"></i> Thông tin công ty</h5>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-borderless mb-0">
-                                <tbody>
-                                    <tr>
-                                        <th class="text-muted" width="35%"><i class="ri-mail-line me-2"></i>Email</th>
-                                        <td><?= e($contact['email'] ?? '-') ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-phone-line me-2"></i>Điện thoại</th>
-                                        <td><?= e($contact['phone'] ?? '-') ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-smartphone-line me-2"></i>Di động</th>
-                                        <td><?= e($contact['mobile'] ?? '-') ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-map-pin-line me-2"></i>Địa chỉ</th>
-                                        <td><?= e($contact['address'] ?? '-') ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-building-line me-2"></i>Thành phố</th>
-                                        <td><?= e($contact['city'] ?? '-') ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-user-line me-2"></i>Giới tính</th>
-                                        <td><?php $g = ['male' => 'Nam', 'female' => 'Nữ', 'other' => 'Khác']; echo $g[$contact['gender'] ?? ''] ?? '-'; ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-cake-2-line me-2"></i>Sinh nhật</th>
-                                        <td><?= $contact['date_of_birth'] ? format_date($contact['date_of_birth']) : '-' ?></td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-links-line me-2"></i>Nguồn</th>
-                                        <td>
-                                            <?php if ($contact['source_name']): ?>
-                                                <span class="badge" style="background-color: <?= safe_color($contact['source_color']) ?>"><?= e($contact['source_name']) ?></span>
-                                            <?php else: ?>
-                                                -
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-muted"><i class="ri-user-star-line me-2"></i>Phụ trách</th>
-                                        <td><?= user_avatar($contact['owner_name'] ?? null) ?></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="card-body py-2">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="text-muted" width="35%">Mã KH</th>
+                                    <td><?= e($contact['account_code'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted"><i class="ri-phone-line me-2"></i>ĐT</th>
+                                    <td><?= e($contact['phone'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted"><i class="ri-mail-line me-2"></i>Email</th>
+                                    <td><?= e($contact['email'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted"><i class="ri-map-pin-line me-2"></i>Địa chỉ</th>
+                                    <td><?= e($contact['address'] ?? '-') ?></td>
+                                </tr>
+                                <?php if ($contact['province'] ?? ''): ?>
+                                <tr>
+                                    <th class="text-muted">Tỉnh/TP</th>
+                                    <td><?= e($contact['province']) ?><?= ($contact['district'] ?? '') ? ' - ' . e($contact['district']) : '' ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <tr>
+                                    <th class="text-muted">MST</th>
+                                    <td><?= e($contact['tax_code'] ?? '-') ?></td>
+                                </tr>
+                                <?php if ($contact['website'] ?? ''): ?>
+                                <tr>
+                                    <th class="text-muted">Website</th>
+                                    <td><a href="<?= e($contact['website']) ?>" target="_blank" class="text-truncate d-inline-block" style="max-width:180px"><?= e($contact['website']) ?></a></td>
+                                </tr>
+                                <?php endif; ?>
+                                <?php if ($contact['industry'] ?? ''): ?>
+                                <tr>
+                                    <th class="text-muted">Ngành KD</th>
+                                    <td><?= e($contact['industry']) ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <?php if ($contact['fax'] ?? ''): ?>
+                                <tr>
+                                    <th class="text-muted">Fax</th>
+                                    <td><?= e($contact['fax']) ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <tr>
+                                    <th class="text-muted"><i class="ri-links-line me-2"></i>Nguồn</th>
+                                    <td>
+                                        <?php if ($contact['source_name'] ?? ''): ?>
+                                            <span class="badge" style="background-color: <?= safe_color($contact['source_color'] ?? '#6c757d') ?>"><?= e($contact['source_name']) ?></span>
+                                        <?php else: ?>-<?php endif; ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">Nhóm KH</th>
+                                    <td><?= e($contact['customer_group'] ?? '-') ?></td>
+                                </tr>
+                                <?php if ($contact['description'] ?? ''): ?>
+                                <tr>
+                                    <th class="text-muted">Mô tả</th>
+                                    <td class="text-muted fs-12"><?= e($contact['description']) ?></td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Người liên hệ -->
+                <div class="card">
+                    <div class="card-header p-2 d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Người liên hệ</h5>
+                        <span class="badge bg-primary"><?= count($contactPersons ?? []) ?></span>
+                    </div>
+                    <div class="card-body py-2">
+                        <?php if (!empty($contactPersons)): ?>
+                            <?php foreach ($contactPersons as $cp): ?>
+                            <div class="d-flex align-items-start gap-2 py-2 <?= $cp !== end($contactPersons) ? 'border-bottom' : '' ?>">
+                                <div class="avatar-xs flex-shrink-0">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= strtoupper(mb_substr($cp['full_name'], 0, 1)) ?></span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">
+                                        <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?><?= e($cp['full_name']) ?>
+                                        <?php if ($cp['is_primary']): ?><span class="badge bg-success-subtle text-success ms-1">Chính</span><?php endif; ?>
+                                    </div>
+                                    <?php if ($cp['position'] ?? ''): ?><div class="text-muted fs-12"><?= e($cp['position']) ?></div><?php endif; ?>
+                                    <div class="d-flex gap-3 mt-1 fs-12">
+                                        <?php if ($cp['phone'] ?? ''): ?><span><i class="ri-phone-line me-1"></i><?= e($cp['phone']) ?></span><?php endif; ?>
+                                        <?php if ($cp['email'] ?? ''): ?><span><i class="ri-mail-line me-1"></i><?= e($cp['email']) ?></span><?php endif; ?>
+                                    </div>
+                                    <?php if ($cp['note'] ?? ''): ?><div class="text-muted fs-12 mt-1"><i class="ri-sticky-note-line me-1"></i><?= e($cp['note']) ?></div><?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="ri-user-add-line fs-20 d-block mb-1"></i>
+                                <small>Chưa có người liên hệ</small>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -354,11 +408,6 @@
                                     <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab-calls"><i class="ri-phone-line me-2"></i>Cuộc gọi</a></li>
                                     <li><a class="dropdown-item" data-bs-toggle="tab" href="#tab-docs"><i class="ri-file-list-line me-2"></i>Tài liệu</a></li>
                                 </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#tab-company" role="tab">
-                                    <i class="ri-building-line me-1"></i> Công ty
-                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" data-bs-toggle="tab" href="#tab-calendar" role="tab">
@@ -942,107 +991,6 @@
                                         <p class="text-muted mt-2">Chưa có tài liệu</p>
                                     </div>
                                 <?php endif; ?>
-                            </div>
-
-                            <!-- Tab: Công ty -->
-                            <div class="tab-pane" id="tab-company" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-lg-6">
-                                        <h6 class="text-muted mb-3"><i class="ri-building-line me-1"></i> Thông tin công ty</h6>
-                                        <div class="table-responsive">
-                                            <table class="table table-borderless mb-0">
-                                                <tbody>
-                                                    <tr>
-                                                        <th class="text-muted" width="40%">Tên công ty</th>
-                                                        <td class="fw-medium"><?= e($contact['company_name'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Mã số thuế</th>
-                                                        <td><?= e($contact['tax_code'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Điện thoại công ty</th>
-                                                        <td><?= e($contact['company_phone'] ?? $contact['phone'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Email công ty</th>
-                                                        <td><?= e($contact['company_email'] ?? $contact['email'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Địa chỉ</th>
-                                                        <td><?= e($contact['address'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Tỉnh/TP</th>
-                                                        <td><?= e($contact['province'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Quận/Huyện</th>
-                                                        <td><?= e($contact['district'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Website</th>
-                                                        <td><?= !empty($contact['website']) ? '<a href="' . e($contact['website']) . '" target="_blank">' . e($contact['website']) . '</a>' : '-' ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Ngành kinh doanh</th>
-                                                        <td><?= e($contact['industry'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Fax</th>
-                                                        <td><?= e($contact['fax'] ?? '-') ?></td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="text-muted">Nhóm KH</th>
-                                                        <td><?= e($contact['customer_group'] ?? '-') ?></td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h6 class="text-muted mb-0"><i class="ri-contacts-book-line me-1"></i> Người liên hệ</h6>
-                                        </div>
-                                        <?php if (!empty($contactPersons)): ?>
-                                            <?php foreach ($contactPersons as $cp): ?>
-                                            <div class="border rounded p-3 mb-2">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <div class="avatar-xs me-2">
-                                                        <span class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= strtoupper(mb_substr($cp['full_name'], 0, 1)) ?></span>
-                                                    </div>
-                                                    <div>
-                                                        <h6 class="mb-0">
-                                                            <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?><?= e($cp['full_name']) ?>
-                                                            <?php if ($cp['is_primary']): ?><span class="badge bg-success-subtle text-success ms-1">Chính</span><?php endif; ?>
-                                                        </h6>
-                                                        <?php if ($cp['position']): ?><small class="text-muted"><?= e($cp['position']) ?></small><?php endif; ?>
-                                                    </div>
-                                                </div>
-                                                <div class="ps-4 ms-2">
-                                                    <?php if ($cp['phone']): ?>
-                                                    <div class="mb-1"><i class="ri-phone-line me-2 text-muted"></i><?= e($cp['phone']) ?></div>
-                                                    <?php endif; ?>
-                                                    <?php if ($cp['email']): ?>
-                                                    <div class="mb-1"><i class="ri-mail-line me-2 text-muted"></i><?= e($cp['email']) ?></div>
-                                                    <?php endif; ?>
-                                                    <?php if ($cp['date_of_birth']): ?>
-                                                    <div class="mb-1"><i class="ri-cake-2-line me-2 text-muted"></i><?= format_date($cp['date_of_birth']) ?></div>
-                                                    <?php endif; ?>
-                                                    <?php if ($cp['note']): ?>
-                                                    <div class="text-muted fs-12 mt-1"><i class="ri-sticky-note-line me-1"></i><?= e($cp['note']) ?></div>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <div class="text-center text-muted py-4">
-                                                <i class="ri-user-add-line fs-24 d-block mb-2"></i>
-                                                Chưa có người liên hệ
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
                             </div>
 
                             <!-- Tab: Lịch hẹn -->
