@@ -284,10 +284,21 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
 // Toggle status active
 document.querySelectorAll('.toggle-status-active').forEach(function(cb) {
     cb.addEventListener('change', function() {
+        var name = this.closest('tr').querySelector('.badge')?.textContent.trim() || '';
+        var isOn = this.checked;
         fetch('<?= url('settings/contact-statuses/') ?>' + this.dataset.id + '/toggle-active', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=<?= csrf_token() ?>&is_active=' + (this.checked ? 1 : 0)
+            body: '_token=<?= csrf_token() ?>&is_active=' + (isOn ? 1 : 0)
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            if (d.success) {
+                var toast = document.createElement('div');
+                toast.className = 'position-fixed top-0 end-0 m-3 alert alert-' + (isOn ? 'success' : 'warning') + ' shadow fade show';
+                toast.style.zIndex = 9999;
+                toast.innerHTML = '<i class="ri-' + (isOn ? 'check' : 'close') + '-line me-1"></i>' + (isOn ? 'Đã bật' : 'Đã tắt') + ' trạng thái <b>' + name + '</b>';
+                document.body.appendChild(toast);
+                setTimeout(function() { toast.remove(); }, 2000);
+            }
         });
     });
 });
