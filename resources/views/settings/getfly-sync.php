@@ -191,38 +191,90 @@ document.querySelectorAll('.btn-sync-api').forEach(function(btn) {
         if (!confirm('Bắt đầu đồng bộ dữ liệu?')) return;
         var ep = this.dataset.endpoint;
         var statusEl = document.getElementById('ep-' + ep + '-status');
-        this.disabled = true;
-        this.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i> Đang đồng bộ...';
+        var syncBtn = this;
+        syncBtn.disabled = true;
 
-        fetch('<?= url('settings/getfly-sync/sync') ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
-            body: '_token=' + token + '&endpoint=' + ep
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            if (d.success) {
-                statusEl.innerHTML = '<i class="ri-check-double-line me-1"></i>' + d.message;
-                statusEl.className = 'text-success fs-12';
-                var toast = document.createElement('div');
-                toast.className = 'position-fixed top-0 end-0 m-3 alert alert-success shadow fade show';
-                toast.style.zIndex = 9999;
-                toast.innerHTML = '<i class="ri-check-line me-1"></i>' + d.message;
-                document.body.appendChild(toast);
-                setTimeout(function() { toast.remove(); }, 3000);
-            } else {
-                statusEl.innerHTML = '<i class="ri-error-warning-line me-1"></i>' + (d.error || 'Lỗi');
-                statusEl.className = 'text-danger fs-12';
+        if (ep === 'tasks') {
+            // Page-by-page sync with progress
+            var totalSynced = 0;
+            var page = 1;
+            var estimatedTotal = 9200; // approximate
+
+            statusEl.innerHTML = '<div class="w-100"><div class="d-flex justify-content-between mb-1"><small>Đang đồng bộ...</small><small id="sync-percent">0%</small></div><div class="progress" style="height:6px"><div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-bar" style="width:0%"></div></div><small class="text-muted" id="sync-detail">Trang 1...</small></div>';
+            statusEl.className = 'fs-12 w-100';
+
+            function syncPage(pg) {
+                fetch('<?= url('settings/getfly-sync/sync-tasks-page') ?>', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: '_token=' + token + '&page=' + pg
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.error) {
+                        statusEl.innerHTML = '<i class="ri-error-warning-line me-1"></i>' + d.error;
+                        statusEl.className = 'text-danger fs-12';
+                        syncBtn.disabled = false;
+                        syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+                        return;
+                    }
+                    totalSynced += (d.synced || 0);
+                    var pct = Math.min(99, Math.round(totalSynced / estimatedTotal * 100));
+                    if (d.done) pct = 100;
+                    document.getElementById('sync-bar').style.width = pct + '%';
+                    document.getElementById('sync-percent').textContent = pct + '%';
+                    document.getElementById('sync-detail').textContent = 'Trang ' + pg + ' - ' + totalSynced + ' tasks';
+
+                    if (d.has_more) {
+                        syncPage(pg + 1);
+                    } else {
+                        statusEl.innerHTML = '<i class="ri-check-double-line me-1"></i>Hoàn thành! ' + totalSynced + ' tasks đã đồng bộ';
+                        statusEl.className = 'text-success fs-12 fw-medium';
+                        syncBtn.disabled = false;
+                        syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+                        var toast = document.createElement('div');
+                        toast.className = 'position-fixed top-0 end-0 m-3 alert alert-success shadow fade show';
+                        toast.style.zIndex = 9999;
+                        toast.innerHTML = '<i class="ri-check-line me-1"></i>Đã đồng bộ ' + totalSynced + ' công việc từ Getfly';
+                        document.body.appendChild(toast);
+                        setTimeout(function() { toast.remove(); }, 3000);
+                    }
+                })
+                .catch(function() {
+                    statusEl.innerHTML = '<i class="ri-close-line me-1"></i>Lỗi trang ' + pg;
+                    statusEl.className = 'text-danger fs-12';
+                    syncBtn.disabled = false;
+                    syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+                });
             }
-        })
-        .catch(function() {
-            statusEl.innerHTML = '<i class="ri-close-line me-1"></i>Lỗi kết nối';
-            statusEl.className = 'text-danger fs-12';
-        })
-        .finally(function() {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
-        });
+            syncPage(1);
+        } else {
+            // Other endpoints - placeholder
+            syncBtn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i> Đang đồng bộ...';
+            fetch('<?= url('settings/getfly-sync/sync') ?>', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: '_token=' + token + '&endpoint=' + ep
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    statusEl.innerHTML = '<i class="ri-check-double-line me-1"></i>' + d.message;
+                    statusEl.className = 'text-success fs-12';
+                } else {
+                    statusEl.innerHTML = '<i class="ri-error-warning-line me-1"></i>' + (d.error || 'Lỗi');
+                    statusEl.className = 'text-danger fs-12';
+                }
+            })
+            .catch(function() {
+                statusEl.innerHTML = '<i class="ri-close-line me-1"></i>Lỗi kết nối';
+                statusEl.className = 'text-danger fs-12';
+            })
+            .finally(function() {
+                syncBtn.disabled = false;
+                syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+            });
+        }
     });
 });
 </script>

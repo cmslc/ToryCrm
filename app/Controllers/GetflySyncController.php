@@ -264,88 +264,88 @@ class GetflySyncController extends Controller
         }
     }
 
-    private function syncTasks(array $config): int
+    /**
+     * Sync tasks page by page (called via AJAX per page)
+     */
+    public function syncTasksPage()
     {
-        $tid = Database::tenantId();
-        $synced = 0;
-        $page = 1;
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $this->authorize('settings', 'manage');
+
+        $config = $this->getConfig();
+        if (!$config) return $this->json(['error' => 'Chưa cấu hình'], 400);
+
+        $page = max(1, (int)$this->input('page'));
         $perPage = 30;
+        $tid = Database::tenantId();
 
-        // Build user name → id map
-        $userMap = [];
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1");
-        foreach ($users as $u) $userMap[mb_strtolower($u['name'])] = $u['id'];
+        $url = $config['api_domain'] . '/api/v3/tasks?page=' . $page . '&num_per_page=' . $perPage;
+        $result = $this->callApi($config['api_key'], $url);
 
-        // Getfly status → ToryCRM status
-        $statusMap = [
-            '1' => 'todo',        // Mới
-            '6' => 'in_progress', // Đang làm
-            '11' => 'review',     // Chờ xác nhận
-            '14' => 'done',       // Hoàn thành
-        ];
-
-        while (true) {
-            $url = $config['api_domain'] . '/api/v3/tasks?page=' . $page . '&num_per_page=' . $perPage;
-            $result = $this->callApi($config['api_key'], $url);
-
-            if (!$result['success']) {
-                throw new \Exception('API error page ' . $page . ': ' . $result['error']);
-            }
-
-            $tasks = $result['data']['data'] ?? $result['data'] ?? [];
-            if (empty($tasks) || (is_array($tasks) && isset($tasks[0]) === false)) break;
-
-            foreach ($tasks as $t) {
-                $taskCode = trim($t['task_code'] ?? '');
-                if (empty($taskCode)) continue;
-
-                $receiverName = mb_strtolower(trim($t['receiver_name'] ?? ''));
-                $creatorName = mb_strtolower(trim($t['creator_name'] ?? ''));
-                $assignedTo = $userMap[$receiverName] ?? null;
-                $createdBy = $userMap[$creatorName] ?? null;
-                $status = $statusMap[$t['task_status'] ?? ''] ?? 'todo';
-
-                $data = [
-                    'tenant_id' => $tid,
-                    'task_code' => $taskCode,
-                    'title' => trim($t['task_name'] ?? 'Không tiêu đề'),
-                    'description' => trim($t['task_description'] ?? ''),
-                    'status' => $status,
-                    'progress' => (int)($t['task_progress'] ?? 0),
-                    'start_date' => $t['task_start_date'] ?? null,
-                    'due_date' => $t['task_end_date'] ?? null,
-                    'color' => ($t['task_color'] ?? '#ffffff') !== '#ffffff' ? $t['task_color'] : null,
-                    'is_important' => (int)($t['star'] ?? 0),
-                    'assigned_to' => $assignedTo,
-                    'created_by' => $createdBy,
-                ];
-
-                // Check if task exists
-                $existing = Database::fetch("SELECT id FROM tasks WHERE task_code = ? AND tenant_id = ?", [$taskCode, $tid]);
-
-                if ($existing) {
-                    Database::update('tasks', [
-                        'title' => $data['title'],
-                        'description' => $data['description'],
-                        'status' => $data['status'],
-                        'progress' => $data['progress'],
-                        'due_date' => $data['due_date'],
-                        'assigned_to' => $data['assigned_to'],
-                    ], 'id = ?', [$existing['id']]);
-                } else {
-                    if ($status === 'done') {
-                        $data['completed_at'] = $data['due_date'] ?? date('Y-m-d H:i:s');
-                    }
-                    Database::insert('tasks', $data);
-                }
-                $synced++;
-            }
-
-            $page++;
-            if (count($tasks) < $perPage) break;
+        if (!$result['success']) {
+            return $this->json(['error' => 'API error: ' . $result['error']], 400);
         }
 
-        return $synced;
+        $tasks = $result['data']['data'] ?? [];
+        if (empty($tasks)) {
+            return $this->json(['done' => true, 'synced' => 0, 'page' => $page]);
+        }
+
+        // Build user map
+        static $userMap = null;
+        if ($userMap === null) {
+            $userMap = [];
+            $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1");
+            foreach ($users as $u) $userMap[mb_strtolower($u['name'])] = $u['id'];
+        }
+
+        $statusMap = ['1' => 'todo', '6' => 'in_progress', '11' => 'review', '14' => 'done'];
+        $synced = 0;
+
+        foreach ($tasks as $t) {
+            $taskCode = trim($t['task_code'] ?? '');
+            if (empty($taskCode)) continue;
+
+            $status = $statusMap[$t['task_status'] ?? ''] ?? 'todo';
+            $assignedTo = $userMap[mb_strtolower(trim($t['receiver_name'] ?? ''))] ?? null;
+            $createdBy = $userMap[mb_strtolower(trim($t['creator_name'] ?? ''))] ?? null;
+
+            $data = [
+                'tenant_id' => $tid,
+                'task_code' => $taskCode,
+                'title' => trim($t['task_name'] ?? 'Không tiêu đề'),
+                'description' => trim($t['task_description'] ?? ''),
+                'status' => $status,
+                'progress' => (int)($t['task_progress'] ?? 0),
+                'start_date' => $t['task_start_date'] ?? null,
+                'due_date' => $t['task_end_date'] ?? null,
+                'color' => ($t['task_color'] ?? '#ffffff') !== '#ffffff' ? $t['task_color'] : null,
+                'is_important' => (int)($t['star'] ?? 0),
+                'assigned_to' => $assignedTo,
+                'created_by' => $createdBy,
+            ];
+
+            $existing = Database::fetch("SELECT id FROM tasks WHERE task_code = ? AND tenant_id = ?", [$taskCode, $tid]);
+            if ($existing) {
+                Database::update('tasks', [
+                    'title' => $data['title'], 'description' => $data['description'],
+                    'status' => $data['status'], 'progress' => $data['progress'],
+                    'due_date' => $data['due_date'], 'assigned_to' => $data['assigned_to'],
+                ], 'id = ?', [$existing['id']]);
+            } else {
+                if ($status === 'done') $data['completed_at'] = $data['due_date'] ?? date('Y-m-d H:i:s');
+                Database::insert('tasks', $data);
+            }
+            $synced++;
+        }
+
+        $hasMore = count($tasks) >= $perPage;
+        return $this->json([
+            'done' => !$hasMore,
+            'synced' => $synced,
+            'page' => $page,
+            'has_more' => $hasMore,
+        ]);
     }
 
     private function syncPlaceholder(array $config, string $endpoint): int
