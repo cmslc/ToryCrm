@@ -243,14 +243,15 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                             // Custom rendering per field
                             switch ($field):
                                 case 'full_name':
-                                    $fullName = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                                    $contactName = $c['primary_contact_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                                    $initial = mb_substr($contactName ?: '?', 0, 1);
                                     echo '<div class="d-flex align-items-center gap-2">';
                                     if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])) {
                                         echo '<img src="' . url('uploads/avatars/' . $c['avatar']) . '" class="rounded-circle" width="32" height="32" style="object-fit:cover">';
                                     } else {
-                                        echo '<span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:32px;height:32px;font-size:13px">' . strtoupper(mb_substr($c['first_name'] ?? '?', 0, 1)) . '</span>';
+                                        echo '<span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:32px;height:32px;font-size:13px">' . strtoupper($initial) . '</span>';
                                     }
-                                    echo '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium text-dark">' . e($fullName ?: '-') . '</a>';
+                                    echo '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium text-dark">' . e($contactName ?: '-') . '</a>';
                                     echo '</div>';
                                     break;
                                 case 'account_code':

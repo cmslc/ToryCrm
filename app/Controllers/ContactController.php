@@ -22,9 +22,9 @@ class ContactController extends Controller
         $params = [Database::tenantId()];
 
         if ($search) {
-            $where[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR c.mobile LIKE ? OR c.account_code LIKE ?)";
+            $where[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR c.company_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR c.mobile LIKE ? OR c.account_code LIKE ? OR c.id IN (SELECT contact_id FROM contact_persons WHERE full_name LIKE ?))";
             $searchTerm = "%{$search}%";
-            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+            $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
         }
 
         if ($status === 'today') {
@@ -68,10 +68,12 @@ class ContactController extends Controller
             "SELECT c.*,
                     u.name as owner_name, u.avatar as owner_avatar,
                     cs.name as source_name, cs.color as source_color,
-                    c.last_activity_at
+                    c.last_activity_at,
+                    cp.full_name as primary_contact_name, cp.phone as primary_contact_phone, cp.title as primary_contact_title
              FROM contacts c
              LEFT JOIN users u ON c.owner_id = u.id
              LEFT JOIN contact_sources cs ON c.source_id = cs.id
+             LEFT JOIN contact_persons cp ON cp.contact_id = c.id AND cp.is_primary = 1
              WHERE {$whereClause}
              ORDER BY c.created_at DESC
              LIMIT {$perPage} OFFSET {$offset}",
