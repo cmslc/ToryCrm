@@ -174,8 +174,15 @@ class QuotationController extends Controller
                 'terms' => trim($data['terms'] ?? ''),
                 'currency' => 'VND',
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'discount_percent' => (float)($data['discount_percent'] ?? 0),
+                'discount_after_tax' => !empty($data['discount_after_tax']) ? 1 : 0,
                 'shipping_fee' => (float)($data['shipping_fee'] ?? 0),
+                'shipping_percent' => (float)($data['shipping_percent'] ?? 0),
+                'shipping_after_tax' => !empty($data['shipping_after_tax']) ? 1 : 0,
                 'shipping_note' => trim($data['shipping_note'] ?? '') ?: null,
+                'tax_rate' => (float)($data['tax_rate'] ?? 0),
+                'installation_fee' => (float)($data['installation_fee'] ?? 0),
+                'installation_percent' => (float)($data['installation_percent'] ?? 0),
                 'portal_token' => $portalToken,
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
                 'created_by' => $this->userId(),
@@ -218,15 +225,16 @@ class QuotationController extends Controller
             }
 
             // Calculate totals
+            $taxRate = (float)($data['tax_rate'] ?? 0);
+            $taxAmount = $subtotal * $taxRate / 100;
             $discountAmount = (float)($data['discount_amount'] ?? 0);
             $shippingFee = (float)($data['shipping_fee'] ?? 0);
-            $total = $subtotal + $totalTax - $discountAmount + $shippingFee;
+            $installFee = (float)($data['installation_fee'] ?? 0);
+            $total = $subtotal + $taxAmount - $discountAmount + $shippingFee + $installFee;
 
             Database::update('quotations', [
                 'subtotal' => $subtotal,
-                'tax_amount' => $totalTax,
-                'discount_amount' => $discountAmount,
-                'shipping_fee' => $shippingFee,
+                'tax_amount' => $taxAmount,
                 'total' => max(0, $total),
             ], 'id = ?', [$quotationId]);
 
@@ -357,8 +365,15 @@ class QuotationController extends Controller
                 'notes' => trim($data['notes'] ?? ''),
                 'terms' => trim($data['terms'] ?? ''),
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'discount_percent' => (float)($data['discount_percent'] ?? 0),
+                'discount_after_tax' => !empty($data['discount_after_tax']) ? 1 : 0,
                 'shipping_fee' => (float)($data['shipping_fee'] ?? 0),
+                'shipping_percent' => (float)($data['shipping_percent'] ?? 0),
+                'shipping_after_tax' => !empty($data['shipping_after_tax']) ? 1 : 0,
                 'shipping_note' => trim($data['shipping_note'] ?? '') ?: null,
+                'tax_rate' => (float)($data['tax_rate'] ?? 0),
+                'installation_fee' => (float)($data['installation_fee'] ?? 0),
+                'installation_percent' => (float)($data['installation_percent'] ?? 0),
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
             ], 'id = ?', [$id]);
 
@@ -399,15 +414,16 @@ class QuotationController extends Controller
                 }
             }
 
+            $taxRate = (float)($data['tax_rate'] ?? 0);
+            $taxAmount = $subtotal * $taxRate / 100;
             $discountAmount = (float)($data['discount_amount'] ?? 0);
             $shippingFee = (float)($data['shipping_fee'] ?? 0);
-            $total = $subtotal + $totalTax - $discountAmount + $shippingFee;
+            $installFee = (float)($data['installation_fee'] ?? 0);
+            $total = $subtotal + $taxAmount - $discountAmount + $shippingFee + $installFee;
 
             Database::update('quotations', [
                 'subtotal' => $subtotal,
-                'tax_amount' => $totalTax,
-                'discount_amount' => $discountAmount,
-                'shipping_fee' => $shippingFee,
+                'tax_amount' => $taxAmount,
                 'total' => max(0, $total),
             ], 'id = ?', [$id]);
 

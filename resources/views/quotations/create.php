@@ -111,19 +111,79 @@
                         </div>
                     </div>
 
-                    <!-- Shipping -->
+                    <!-- Payment Info -->
                     <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-truck-line me-1"></i> Phí vận chuyển</h5></div>
+                        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h5></div>
                         <div class="card-body">
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Phí vận chuyển</label></div>
+                                <div class="col-md-2">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" name="shipping_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'shipping')">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control form-control-sm" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control form-control-sm" name="shipping_note" placeholder="Ghi chú vận chuyển...">
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check form-check-sm">
+                                        <input class="form-check-input" type="checkbox" name="shipping_after_tax" value="1" id="shippingAfterTax">
+                                        <label class="form-check-label small" for="shippingAfterTax">Sau thuế</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Chiết khấu</label></div>
+                                <div class="col-md-2">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" name="discount_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'discount')">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control form-control-sm" name="discount_amount" value="0" min="0" onchange="calculateTotal()">
+                                </div>
+                                <div class="col-md-3"></div>
+                                <div class="col-md-2">
+                                    <div class="form-check form-check-sm">
+                                        <input class="form-check-input" type="checkbox" name="discount_after_tax" value="1" id="discountAfterTax">
+                                        <label class="form-check-label small" for="discountAfterTax">Sau thuế</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Thuế VAT</label></div>
+                                <div class="col-md-2">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" name="tax_rate" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'tax')">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control form-control-sm" name="tax_amount" value="0" min="0" readonly style="background:#f3f6f9">
+                                </div>
+                            </div>
+                            <div class="row align-items-end mb-3">
+                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Phí lắp đặt</label></div>
+                                <div class="col-md-2">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" class="form-control" name="installation_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'installation')">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control form-control-sm" name="installation_fee" value="0" min="0" onchange="calculateTotal()">
+                                </div>
+                            </div>
+                            <hr>
                             <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Phí vận chuyển (VNĐ)</label>
-                                    <input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
-                                </div>
-                                <div class="col-md-8 mb-3">
-                                    <label class="form-label">Ghi chú vận chuyển</label>
-                                    <input type="text" class="form-control" name="shipping_note" placeholder="VD: Giao hàng nội thành HCM, miễn phí đơn trên 10 triệu...">
-                                </div>
+                                <div class="col-md-2"><span class="fw-bold fs-5">Tổng cộng</span></div>
+                                <div class="col-md-5"></div>
+                                <div class="col-md-3"><span class="fw-bold fs-5 text-primary" id="grandTotalDisplay">0 ₫</span></div>
                             </div>
                         </div>
                     </div>
@@ -264,10 +324,34 @@
             });
             document.getElementById('subtotalDisplay').textContent = formatMoney(subtotal);
 
+            const taxRate = parseFloat(document.querySelector('[name="tax_rate"]')?.value || 0);
+            const taxAmount = subtotal * taxRate / 100;
+            document.querySelector('[name="tax_amount"]').value = Math.round(taxAmount);
+
             const discountAmount = parseFloat(document.querySelector('[name="discount_amount"]')?.value || 0);
             const shippingFee = parseFloat(document.querySelector('[name="shipping_fee"]')?.value || 0);
-            const total = Math.max(0, subtotal - discountAmount + shippingFee);
+            const installFee = parseFloat(document.querySelector('[name="installation_fee"]')?.value || 0);
+            const total = Math.max(0, subtotal + taxAmount - discountAmount + shippingFee + installFee);
+
             document.getElementById('totalDisplay').textContent = formatMoney(total);
+            var gt = document.getElementById('grandTotalDisplay');
+            if (gt) gt.textContent = formatMoney(total);
+        }
+
+        function calcPaymentRow(el, type) {
+            let subtotal = 0;
+            document.querySelectorAll('#itemsBody tr').forEach(tr => {
+                const qty = parseFloat(tr.querySelector('[name*="[quantity]"]')?.value || 0);
+                const price = parseFloat(tr.querySelector('[name*="[unit_price]"]')?.value || 0);
+                subtotal += qty * price;
+            });
+            const pct = parseFloat(el.value || 0);
+            const amount = Math.round(subtotal * pct / 100);
+            if (type === 'shipping') document.querySelector('[name="shipping_fee"]').value = amount;
+            if (type === 'discount') document.querySelector('[name="discount_amount"]').value = amount;
+            if (type === 'tax') document.querySelector('[name="tax_amount"]').value = amount;
+            if (type === 'installation') document.querySelector('[name="installation_fee"]').value = amount;
+            calculateTotal();
         }
 
         function formatMoney(amount) {
