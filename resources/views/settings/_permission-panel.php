@@ -65,8 +65,8 @@ foreach ($pluginInjections as $groupName => $plugins) {
 
 // Build flat moduleLabels for rendering
 $moduleLabels = [];
-foreach ($moduleGroups as $modules) {
-    foreach ($modules as $mod => $label) {
+foreach ($moduleGroups as $_grpMods) {
+    foreach ($_grpMods as $mod => $label) {
         $moduleLabels[$mod] = $label;
     }
 }
