@@ -187,6 +187,12 @@
                 <span>-<?= number_format($quotation['discount_amount'], 0, ',', '.') ?> ₫</span>
             </div>
             <?php endif; ?>
+            <?php if (($quotation['shipping_fee'] ?? 0) > 0): ?>
+            <div class="totals-row">
+                <span>Phí vận chuyển<?= !empty($quotation['shipping_note']) ? ' (' . e($quotation['shipping_note']) . ')' : '' ?>:</span>
+                <span><?= number_format($quotation['shipping_fee'], 0, ',', '.') ?> ₫</span>
+            </div>
+            <?php endif; ?>
             <div class="totals-row grand">
                 <span>TỔNG CỘNG</span>
                 <span><?= number_format($quotation['total'] ?? 0, 0, ',', '.') ?> ₫</span>

@@ -1,0 +1,2 @@
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS shipping_fee DECIMAL(15,2) DEFAULT 0 AFTER discount_amount;
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS shipping_note VARCHAR(255) DEFAULT NULL AFTER shipping_fee;

@@ -128,6 +128,12 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                         <td class="text-end text-danger">-<?= format_money($quotation['discount_amount']) ?></td>
                                     </tr>
                                     <?php endif; ?>
+                                    <?php if (($quotation['shipping_fee'] ?? 0) > 0): ?>
+                                    <tr>
+                                        <td colspan="7" class="text-end">Phí vận chuyển<?= !empty($quotation['shipping_note']) ? ' <small class="text-muted">(' . e($quotation['shipping_note']) . ')</small>' : '' ?>:</td>
+                                        <td class="text-end"><?= format_money($quotation['shipping_fee']) ?></td>
+                                    </tr>
+                                    <?php endif; ?>
                                     <tr>
                                         <td colspan="7" class="text-end fw-bold fs-5">Tổng cộng:</td>
                                         <td class="text-end fw-bold fs-5 text-primary"><?= format_money($quotation['total'] ?? 0) ?></td>

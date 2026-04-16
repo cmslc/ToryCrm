@@ -174,6 +174,8 @@ class QuotationController extends Controller
                 'terms' => trim($data['terms'] ?? ''),
                 'currency' => 'VND',
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'shipping_fee' => (float)($data['shipping_fee'] ?? 0),
+                'shipping_note' => trim($data['shipping_note'] ?? '') ?: null,
                 'portal_token' => $portalToken,
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
                 'created_by' => $this->userId(),
@@ -217,12 +219,14 @@ class QuotationController extends Controller
 
             // Calculate totals
             $discountAmount = (float)($data['discount_amount'] ?? 0);
-            $total = $subtotal + $totalTax - $discountAmount;
+            $shippingFee = (float)($data['shipping_fee'] ?? 0);
+            $total = $subtotal + $totalTax - $discountAmount + $shippingFee;
 
             Database::update('quotations', [
                 'subtotal' => $subtotal,
                 'tax_amount' => $totalTax,
                 'discount_amount' => $discountAmount,
+                'shipping_fee' => $shippingFee,
                 'total' => max(0, $total),
             ], 'id = ?', [$quotationId]);
 
@@ -353,6 +357,8 @@ class QuotationController extends Controller
                 'notes' => trim($data['notes'] ?? ''),
                 'terms' => trim($data['terms'] ?? ''),
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
+                'shipping_fee' => (float)($data['shipping_fee'] ?? 0),
+                'shipping_note' => trim($data['shipping_note'] ?? '') ?: null,
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
             ], 'id = ?', [$id]);
 
@@ -394,12 +400,14 @@ class QuotationController extends Controller
             }
 
             $discountAmount = (float)($data['discount_amount'] ?? 0);
-            $total = $subtotal + $totalTax - $discountAmount;
+            $shippingFee = (float)($data['shipping_fee'] ?? 0);
+            $total = $subtotal + $totalTax - $discountAmount + $shippingFee;
 
             Database::update('quotations', [
                 'subtotal' => $subtotal,
                 'tax_amount' => $totalTax,
                 'discount_amount' => $discountAmount,
+                'shipping_fee' => $shippingFee,
                 'total' => max(0, $total),
             ], 'id = ?', [$id]);
 

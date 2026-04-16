@@ -101,6 +101,16 @@
                                             <td></td>
                                         </tr>
                                         <tr>
+                                            <td colspan="5" class="text-end fw-medium">Phí vận chuyển:</td>
+                                            <td>
+                                                <input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm" name="shipping_note" placeholder="Ghi chú VC...">
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
                                             <td colspan="6" class="text-end fw-bold fs-5">Tổng cộng:</td>
                                             <td id="totalDisplay" class="fw-bold fs-5 text-primary">0 ₫</td>
                                             <td></td>
@@ -248,9 +258,8 @@
             document.getElementById('subtotalDisplay').textContent = formatMoney(subtotal);
 
             const discountAmount = parseFloat(document.querySelector('[name="discount_amount"]')?.value || 0);
-            const discountType = document.querySelector('[name="discount_type"]')?.value || 'fixed';
-            const discount = discountType === 'percent' ? subtotal * discountAmount / 100 : discountAmount;
-            const total = Math.max(0, subtotal - discount);
+            const shippingFee = parseFloat(document.querySelector('[name="shipping_fee"]')?.value || 0);
+            const total = Math.max(0, subtotal - discountAmount + shippingFee);
             document.getElementById('totalDisplay').textContent = formatMoney(total);
         }
 
