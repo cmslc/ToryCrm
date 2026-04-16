@@ -165,7 +165,7 @@ class GetflySyncController extends Controller
         $result = $this->callApi($config['api_key'], $url);
 
         if ($result['success']) {
-            $total = $result['data']['pagination']['total_record'] ?? count($result['data']['records'] ?? []);
+            $total = $result['data']['pagination']['total_records'] ?? $result['data']['pagination']['total_record'] ?? count($result['data']['records'] ?? []);
             return $this->json([
                 'success' => true,
                 'total_records' => $total,
