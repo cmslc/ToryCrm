@@ -98,6 +98,10 @@
                                 <input type="text" class="form-control" name="website" value="<?= old('website') ?>" placeholder="https://">
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Fax</label>
+                                <input type="text" class="form-control" name="fax" value="<?= old('fax') ?>">
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Sinh nhật</label>
                                 <input type="date" class="form-control" name="date_of_birth" value="<?= old('date_of_birth') ?>">
                             </div>
@@ -152,19 +156,9 @@
                                         <input type="email" class="form-control" name="cp_email[]">
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <div class="col-6 mb-2">
-                                        <label class="form-label">Sinh nhật</label>
-                                        <input type="date" class="form-control" name="cp_dob[]">
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <label class="form-label">Giới tính</label>
-                                        <select name="cp_gender[]" class="form-select">
-                                            <option value="">Chọn</option>
-                                            <option value="male">Nam</option>
-                                            <option value="female">Nữ</option>
-                                        </select>
-                                    </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Sinh nhật</label>
+                                    <input type="date" class="form-control" name="cp_dob[]">
                                 </div>
                                 <div class="mb-0">
                                     <label class="form-label">Ghi chú</label>
