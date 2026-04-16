@@ -192,13 +192,31 @@ foreach ($stats as $v) $totalAll += (int)$v;
 
                 <?php if (($quotations['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
-                        <div class="text-muted fs-13">Hiển thị <strong><?= (($quotations['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($quotations['page'] * ($filters['per_page'] ?? 20), $quotations['total']) ?></strong> / <strong><?= number_format($quotations['total']) ?></strong></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fs-13">Hiển thị <strong><?= (($quotations['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($quotations['page'] * ($filters['per_page'] ?? 20), $quotations['total']) ?></strong> / <strong><?= number_format($quotations['total']) ?></strong></span>
+                            <?php $currentPerPage = $filters['per_page'] ?? 20; include __DIR__ . '/../components/per-page-select.php'; ?>
+                        </div>
+                        <?php
+                        $pg = $quotations['page'];
+                        $tp = $quotations['total_pages'];
+                        $qs = http_build_query(array_filter($filters ?? []));
+                        $pgUrl = function($p) use ($qs) { return url('quotations?page=' . $p . '&' . $qs); };
+                        $pages = [1];
+                        for ($i = max(2, $pg - 2); $i <= min($tp - 1, $pg + 2); $i++) $pages[] = $i;
+                        if ($tp > 1) $pages[] = $tp;
+                        $pages = array_unique($pages); sort($pages);
+                        ?>
                         <nav><ul class="pagination mb-0">
-                            <?php for ($i = 1; $i <= $quotations['total_pages']; $i++): ?>
-                                <li class="page-item <?= $i === $quotations['page'] ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= url('quotations?page=' . $i . '&' . http_build_query(array_filter($filters ?? []))) ?>"><?= $i ?></a>
-                                </li>
-                            <?php endfor; ?>
+                            <?php if ($pg > 1): ?>
+                            <li class="page-item"><a class="page-link" href="<?= $pgUrl($pg - 1) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
+                            <?php endif; ?>
+                            <?php $prev = 0; foreach ($pages as $p):
+                                if ($p - $prev > 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
+                                <li class="page-item <?= $p === $pg ? 'active' : '' ?>"><a class="page-link" href="<?= $pgUrl($p) ?>"><?= $p ?></a></li>
+                            <?php $prev = $p; endforeach; ?>
+                            <?php if ($pg < $tp): ?>
+                            <li class="page-item"><a class="page-link" href="<?= $pgUrl($pg + 1) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
+                            <?php endif; ?>
                         </ul></nav>
                     </div>
                 <?php endif; ?>
