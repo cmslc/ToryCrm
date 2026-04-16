@@ -19,8 +19,7 @@ class ContactStatusController extends Controller
         );
 
         $sources = Database::fetchAll(
-            "SELECT cs.*, (SELECT COUNT(*) FROM contacts WHERE source_id = cs.id) as use_count FROM contact_sources cs WHERE cs.tenant_id = ? ORDER BY cs.sort_order",
-            [$this->tenantId()]
+            "SELECT cs.*, (SELECT COUNT(*) FROM contacts WHERE source_id = cs.id) as use_count FROM contact_sources cs ORDER BY cs.sort_order"
         );
 
         return $this->view('settings.contact-statuses', [
