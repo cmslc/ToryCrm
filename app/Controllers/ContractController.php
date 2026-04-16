@@ -81,6 +81,8 @@ class ContractController extends Controller
 
         $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
 
+        $displayColumns = \App\Services\ColumnService::getColumns('contracts');
+
         return $this->view('contracts.index', [
             'contracts' => [
                 'items' => $contracts,
@@ -88,6 +90,7 @@ class ContractController extends Controller
                 'page' => $page,
                 'total_pages' => $totalPages,
             ],
+            'displayColumns' => $displayColumns,
             'stats' => $stats,
             'contacts' => $contacts,
             'filters' => [
