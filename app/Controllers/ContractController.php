@@ -80,7 +80,7 @@ class ContractController extends Controller
             "SELECT COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 AND status = 'active' AND end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND end_date >= CURDATE()"
         )['cnt'] ?? 0);
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
 
         $displayColumns = \App\Services\ColumnService::getColumns('contracts');
 
@@ -108,7 +108,7 @@ class ContractController extends Controller
     public function create()
     {
         $contractNumber = $this->generateContractNumber();
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
@@ -269,7 +269,7 @@ class ContractController extends Controller
             return $this->redirect('contracts');
         }
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");

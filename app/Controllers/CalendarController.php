@@ -35,7 +35,7 @@ class CalendarController extends Controller
 
     public function create()
     {
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
@@ -148,7 +148,7 @@ class CalendarController extends Controller
             return $this->redirect('calendar');
         }
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");

@@ -127,7 +127,7 @@ class DealController extends Controller
     {
         $this->authorize('deals', 'create');
         $contacts = Database::fetchAll(
-            "SELECT id, first_name, last_name FROM contacts ORDER BY first_name"
+            "SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500"
         );
         $companies = Database::fetchAll(
             "SELECT id, name FROM companies ORDER BY name"
@@ -278,7 +278,7 @@ class DealController extends Controller
         }
 
         $contacts = Database::fetchAll(
-            "SELECT id, first_name, last_name FROM contacts ORDER BY first_name"
+            "SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500"
         );
         $companies = Database::fetchAll(
             "SELECT id, name FROM companies ORDER BY name"

@@ -150,7 +150,7 @@ class OrderController extends Controller
         $type = $this->input('type') ?: 'order';
         $orderNumber = $orderModel->generateOrderNumber($type);
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
@@ -399,7 +399,7 @@ class OrderController extends Controller
             [$id]
         );
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
         $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
