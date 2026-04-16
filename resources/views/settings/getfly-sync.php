@@ -236,6 +236,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
         var syncEndpoints = {
             tasks: {url: '<?= url('settings/getfly-sync/sync-tasks-page') ?>', est: 9200},
             accounts: {url: '<?= url('settings/getfly-sync/sync-accounts-page') ?>', est: 26000},
+            products: {url: '<?= url('settings/getfly-sync/sync-products-page') ?>', est: 6300},
         };
 
         if (syncEndpoints[ep]) {

@@ -238,7 +238,12 @@ class GetflySyncController extends Controller
 
         try {
             $synced = match ($endpoint) {
-                'tasks' => $this->syncTasks($config),
+                'tasks' => 0, // handled by syncTasksPage
+                'accounts' => 0, // handled by syncAccountsPage
+                'products' => 0, // handled by syncProductsPage
+                'users' => $this->syncUsers($config),
+                'campaigns' => $this->syncCampaigns($config),
+                'orders_sale', 'orders_purchase' => 0, // TODO
                 default => $this->syncPlaceholder($config, $endpoint),
             };
 
@@ -468,6 +473,125 @@ class GetflySyncController extends Controller
             'total_pages' => $totalPages,
             'has_more' => $page < $totalPages,
         ]);
+    }
+
+    /**
+     * Sync products page by page
+     */
+    public function syncProductsPage()
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $this->authorize('settings', 'manage');
+        $config = $this->getConfig();
+        if (!$config) return $this->json(['error' => 'Chưa cấu hình'], 400);
+
+        $page = max(1, (int)$this->input('page'));
+        $tid = Database::tenantId();
+
+        $url = $config['api_domain'] . '/api/v3/products?page=' . $page . '&num_per_page=20';
+        $result = $this->callApi($config['api_key'], $url);
+        if (!$result['success']) return $this->json(['error' => $result['error']], 400);
+
+        $records = $result['data']['records'] ?? [];
+        if (empty($records)) return $this->json(['done' => true, 'synced' => 0, 'page' => $page]);
+
+        $totalPages = (int)($result['data']['pagination']['total_page'] ?? 0);
+        $synced = 0;
+
+        foreach ($records as $r) {
+            $sku = trim($r['product_code'] ?? $r['sku'] ?? '');
+            $name = html_entity_decode(trim($r['product_name'] ?? $r['name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if (empty($name)) continue;
+
+            $data = [
+                'tenant_id' => $tid,
+                'sku' => $sku ?: null,
+                'name' => $name,
+                'description' => html_entity_decode(strip_tags(trim($r['description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                'price' => (float)str_replace(',', '', $r['price'] ?? $r['unit_price'] ?? '0'),
+                'unit' => trim($r['unit'] ?? $r['unit_name'] ?? '') ?: null,
+            ];
+
+            $existing = $sku ? Database::fetch("SELECT id FROM products WHERE sku = ? AND tenant_id = ?", [$sku, $tid]) : null;
+            if ($existing) {
+                Database::update('products', $data, 'id = ?', [$existing['id']]);
+            } else {
+                Database::insert('products', $data);
+            }
+            $synced++;
+        }
+
+        return $this->json([
+            'done' => $page >= $totalPages,
+            'synced' => $synced,
+            'page' => $page,
+            'total_pages' => $totalPages,
+            'has_more' => $page < $totalPages,
+        ]);
+    }
+
+    /**
+     * Sync users (single call, small data)
+     */
+    private function syncUsers(array $config): int
+    {
+        $url = $config['api_domain'] . '/api/v3/users';
+        $result = $this->callApi($config['api_key'], $url);
+        if (!$result['success']) throw new \Exception($result['error']);
+
+        $users = is_array($result['data']) && isset($result['data'][0]) ? $result['data'] : [];
+        $synced = 0;
+
+        foreach ($users as $u) {
+            $email = trim($u['email'] ?? '');
+            if (empty($email)) continue;
+
+            $existing = Database::fetch("SELECT id FROM users WHERE email = ?", [$email]);
+            if ($existing) {
+                Database::update('users', [
+                    'name' => html_entity_decode(trim($u['name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                    'mobile' => trim($u['mobile'] ?? '') ?: null,
+                ], 'id = ?', [$existing['id']]);
+            }
+            $synced++;
+        }
+        return $synced;
+    }
+
+    /**
+     * Sync campaigns (single call, small data)
+     */
+    private function syncCampaigns(array $config): int
+    {
+        $url = $config['api_domain'] . '/api/v3/campaigns';
+        $result = $this->callApi($config['api_key'], $url);
+        if (!$result['success']) throw new \Exception($result['error']);
+
+        $campaigns = is_array($result['data']) && isset($result['data'][0]) ? $result['data'] : [];
+        $tid = Database::tenantId();
+        $synced = 0;
+
+        foreach ($campaigns as $c) {
+            $name = html_entity_decode(trim($c['campaign_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if (empty($name)) continue;
+
+            $existing = Database::fetch("SELECT id FROM campaigns WHERE name = ? AND tenant_id = ?", [$name, $tid]);
+            if (!$existing) {
+                try {
+                    Database::insert('campaigns', [
+                        'tenant_id' => $tid,
+                        'name' => $name,
+                        'description' => trim($c['description'] ?? '') ?: null,
+                        'start_date' => $c['start_date'] ?? null,
+                        'end_date' => $c['end_date'] ?? null,
+                        'status' => 'active',
+                        'created_by' => $this->userId(),
+                    ]);
+                } catch (\Exception $e) {}
+            }
+            $synced++;
+        }
+        return $synced;
     }
 
     private function getConfig(): ?array
