@@ -17,7 +17,7 @@ class OrderController extends Controller
         $status = $this->input('status');
         $paymentStatus = $this->input('payment_status');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 10;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
         $where = ["o.is_deleted = 0", "o.tenant_id = ?"];

@@ -158,7 +158,10 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 
         <?php if (($contracts['total_pages'] ?? 0) > 1): ?>
         <div class="d-flex justify-content-between align-items-center p-3">
-            <div class="text-muted">Hiển thị <?= count($contracts['items']) ?> / <?= $contracts['total'] ?></div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted">Hiển thị <?= count($contracts['items']) ?> / <?= $contracts['total'] ?></span>
+                <?php $currentPerPage = $filters['per_page'] ?? 20; include __DIR__ . '/../components/per-page-select.php'; ?>
+            </div>
             <nav><ul class="pagination mb-0">
                 <?php
                 $curPage = $contracts['page'];

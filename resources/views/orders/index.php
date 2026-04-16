@@ -71,7 +71,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                     <?php endif; ?>
                     <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
                         <?php foreach ([10,20,50,100] as $pp): ?>
-                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 20) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
                         <?php endforeach; ?>
                     </select>
                 </form>

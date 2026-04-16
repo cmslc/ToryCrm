@@ -264,7 +264,7 @@ class SettingController extends Controller
     public function auditLog()
     {
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 20;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
         $module = $this->input('module');

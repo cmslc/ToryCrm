@@ -81,7 +81,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <?php endif; ?>
                 <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
                     <?php foreach ([10,20,50,100] as $pp): ?>
-                    <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                    <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 20) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
                     <?php endforeach; ?>
                 </select>
             </form>
@@ -183,7 +183,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         <?php if (($companies['total_pages'] ?? 0) > 1): ?>
         <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
             <div class="text-muted fs-13">
-                Hiển thị <strong><?= (($companies['page'] - 1) * ($filters['per_page'] ?? 10)) + 1 ?> - <?= min($companies['page'] * ($filters['per_page'] ?? 10), $companies['total']) ?></strong> / <strong><?= number_format($companies['total']) ?></strong>
+                Hiển thị <strong><?= (($companies['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($companies['page'] * ($filters['per_page'] ?? 20), $companies['total']) ?></strong> / <strong><?= number_format($companies['total']) ?></strong>
             </div>
             <nav>
                 <ul class="pagination mb-0">

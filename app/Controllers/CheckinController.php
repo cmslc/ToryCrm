@@ -14,7 +14,7 @@ class CheckinController extends Controller
         $dateTo = $this->input('date_to');
         $contactSearch = $this->input('contact');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 20;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
         $where = ["1=1"];

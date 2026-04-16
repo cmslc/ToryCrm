@@ -257,7 +257,7 @@ class LogisticsController extends Controller
         $status = $this->input('status');
         $search = $this->input('search');
         $page = max(1, (int)($this->input('page') ?: 1));
-        $perPage = 10;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
 
         $where = ["lp.tenant_id = ?"];
         $params = [$tid];

@@ -72,7 +72,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                     <?php endif; ?>
                     <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
                         <?php foreach ([10,20,50,100] as $pp): ?>
-                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 10) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 20) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
                         <?php endforeach; ?>
                     </select>
                 </form>
@@ -192,7 +192,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
 
                 <?php if (($quotations['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
-                        <div class="text-muted fs-13">Hiển thị <strong><?= (($quotations['page'] - 1) * ($filters['per_page'] ?? 10)) + 1 ?> - <?= min($quotations['page'] * ($filters['per_page'] ?? 10), $quotations['total']) ?></strong> / <strong><?= number_format($quotations['total']) ?></strong></div>
+                        <div class="text-muted fs-13">Hiển thị <strong><?= (($quotations['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($quotations['page'] * ($filters['per_page'] ?? 20), $quotations['total']) ?></strong> / <strong><?= number_format($quotations['total']) ?></strong></div>
                         <nav><ul class="pagination mb-0">
                             <?php for ($i = 1; $i <= $quotations['total_pages']; $i++): ?>
                                 <li class="page-item <?= $i === $quotations['page'] ? 'active' : '' ?>">

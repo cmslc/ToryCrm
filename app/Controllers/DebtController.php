@@ -16,7 +16,7 @@ class DebtController extends Controller
         $dateFrom = $this->input('date_from');
         $dateTo = $this->input('date_to');
         $page = max(1, (int) $this->input('page') ?: 1);
-        $perPage = 15;
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
         $where = ["d.type = ?"];
