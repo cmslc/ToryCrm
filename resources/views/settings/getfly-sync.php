@@ -246,6 +246,10 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
             var estimatedTotal = syncEndpoints[ep].est;
             var syncUrl = syncEndpoints[ep].url;
 
+            // Hide buttons during sync
+            var btnContainer = btn.closest('.border').querySelector('.d-flex.gap-1');
+            if (btnContainer) btnContainer.style.display = 'none';
+
             statusEl.innerHTML = '<div class="w-100"><div class="d-flex justify-content-between mb-1"><small>Đang đồng bộ...</small><small id="sync-percent">0%</small></div><div class="progress" style="height:6px"><div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-bar" style="width:0%"></div></div><small class="text-muted" id="sync-detail">Trang 1...</small></div>';
             statusEl.className = 'fs-12 w-100';
 
@@ -262,6 +266,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                         statusEl.className = 'text-danger fs-12';
                         syncBtn.disabled = false;
                         syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+                        if (btnContainer) btnContainer.style.display = '';
                         return;
                     }
                     totalSynced += (d.synced || 0);
@@ -278,6 +283,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                         statusEl.className = 'text-success fs-12 fw-medium';
                         syncBtn.disabled = false;
                         syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+                        if (btnContainer) btnContainer.style.display = '';
                         var toast = document.createElement('div');
                         toast.className = 'position-fixed top-0 end-0 m-3 alert alert-success shadow fade show';
                         toast.style.zIndex = 9999;
@@ -291,6 +297,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                     statusEl.className = 'text-danger fs-12';
                     syncBtn.disabled = false;
                     syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
+                    if (btnContainer) btnContainer.style.display = '';
                 });
             }
             syncPage(1);
