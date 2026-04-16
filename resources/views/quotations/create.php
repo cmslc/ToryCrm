@@ -120,75 +120,50 @@
                     <!-- Payment Info -->
                     <div class="card">
                         <div class="card-header"><h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h5></div>
-                        <div class="card-body">
-                            <div class="row align-items-end mb-3">
-                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Phí vận chuyển</label></div>
-                                <div class="col-md-2">
-                                    <div class="input-group input-group">
-                                        <input type="number" class="form-control" name="shipping_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'shipping')">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()">
-                                </div>
-                                <div class="col-md-3"></div>
-                                <div class="col-md-2">
-                                    <div class="form-check form-check-sm">
-                                        <input class="form-check-input" type="checkbox" name="shipping_after_tax" value="1" id="shippingAfterTax">
-                                        <label class="form-check-label small" for="shippingAfterTax">Sau thuế</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row align-items-end mb-3">
-                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Chiết khấu</label></div>
-                                <div class="col-md-2">
-                                    <div class="input-group input-group">
-                                        <input type="number" class="form-control" name="discount_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'discount')">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control form-control" name="discount_amount" value="0" min="0" onchange="calculateTotal()">
-                                </div>
-                                <div class="col-md-3"></div>
-                                <div class="col-md-2">
-                                    <div class="form-check form-check-sm">
-                                        <input class="form-check-input" type="checkbox" name="discount_after_tax" value="1" id="discountAfterTax">
-                                        <label class="form-check-label small" for="discountAfterTax">Sau thuế</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row align-items-end mb-3">
-                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Thuế VAT</label></div>
-                                <div class="col-md-2">
-                                    <div class="input-group input-group">
-                                        <input type="number" class="form-control" name="tax_rate" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'tax')">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control form-control" name="tax_amount" value="0" min="0" readonly style="background:#f3f6f9">
-                                </div>
-                            </div>
-                            <div class="row align-items-end mb-3">
-                                <div class="col-md-2"><label class="form-label mb-0 fw-medium">Phí lắp đặt</label></div>
-                                <div class="col-md-2">
-                                    <div class="input-group input-group">
-                                        <input type="number" class="form-control" name="installation_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'installation')">
-                                        <span class="input-group-text">%</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <input type="number" class="form-control form-control" name="installation_fee" value="0" min="0" onchange="calculateTotal()">
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-md-2"><span class="fw-bold fs-5">Tổng cộng</span></div>
-                                <div class="col-md-5"></div>
-                                <div class="col-md-3"><span class="fw-bold fs-5 text-primary" id="grandTotalDisplay">0 ₫</span></div>
-                            </div>
+                        <div class="card-body p-0">
+                            <table class="table table-borderless align-middle mb-0">
+                                <colgroup><col style="width:200px"><col style="width:140px"><col style="width:180px"><col></colgroup>
+                                <tbody>
+                                    <tr>
+                                        <td class="ps-4 fw-medium">Phí vận chuyển sau thuế</td>
+                                        <td colspan="3"><div class="form-check mb-0"><input class="form-check-input" type="checkbox" name="shipping_after_tax" value="1" id="shippingAfterTax"></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4 fw-medium">Phí vận chuyển</td>
+                                        <td><div class="input-group"><input type="number" class="form-control" name="shipping_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'shipping')"><span class="input-group-text">%</span></div></td>
+                                        <td><input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()"></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4 fw-medium">Chiết khấu</td>
+                                        <td><div class="input-group"><input type="number" class="form-control" name="discount_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'discount')"><span class="input-group-text">%</span></div></td>
+                                        <td><input type="number" class="form-control" name="discount_amount" value="0" min="0" onchange="calculateTotal()"></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4 fw-medium">Chiết khấu sau thuế</td>
+                                        <td colspan="3"><div class="form-check mb-0"><input class="form-check-input" type="checkbox" name="discount_after_tax" value="1" id="discountAfterTax"></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4 fw-medium">Thuế VAT</td>
+                                        <td><div class="input-group"><input type="number" class="form-control" name="tax_rate" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'tax')"><span class="input-group-text">%</span></div></td>
+                                        <td><input type="number" class="form-control" name="tax_amount" value="0" min="0" readonly style="background:#f3f6f9"></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ps-4 fw-medium">Phí lắp đặt</td>
+                                        <td><div class="input-group"><input type="number" class="form-control" name="installation_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'installation')"><span class="input-group-text">%</span></div></td>
+                                        <td><input type="number" class="form-control" name="installation_fee" value="0" min="0" onchange="calculateTotal()"></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr class="table-light">
+                                        <td class="ps-4 fw-bold fs-5">Tổng cộng</td>
+                                        <td></td>
+                                        <td class="fw-bold fs-5 text-primary" id="grandTotalDisplay">0 ₫</td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
