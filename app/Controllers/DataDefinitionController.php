@@ -96,6 +96,11 @@ class DataDefinitionController extends Controller
         'client_note' => 'Ghi chú KH', 'accepted_at' => 'Ngày chấp nhận',
         'rejected_at' => 'Ngày từ chối', 'rejection_reason' => 'Lý do từ chối',
         'portal_token' => 'Token portal',
+        'tax_rate' => 'Thuế VAT (%)', 'tax_amount' => 'Tiền thuế',
+        'discount_percent' => 'Chiết khấu (%)', 'discount_after_tax' => 'CK sau thuế',
+        'shipping_fee' => 'Phí vận chuyển', 'shipping_percent' => 'Phí VC (%)',
+        'shipping_after_tax' => 'VC sau thuế', 'shipping_note' => 'Ghi chú VC',
+        'installation_fee' => 'Phí lắp đặt', 'installation_percent' => 'Phí lắp đặt (%)',
 
         // Common
         'id' => 'ID', 'sort_order' => 'Thứ tự',
