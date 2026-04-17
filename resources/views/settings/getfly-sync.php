@@ -242,18 +242,30 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
         if (syncEndpoints[ep]) {
             // Page-by-page sync with progress
             var totalSynced = 0;
+            var savedPage = parseInt(localStorage.getItem('gf_sync_' + ep + '_page') || '0');
             var page = 1;
             var estimatedTotal = syncEndpoints[ep].est;
             var syncUrl = syncEndpoints[ep].url;
+
+            // If there's a saved page, ask to continue
+            if (savedPage > 1) {
+                if (confirm('Lần trước dừng ở trang ' + savedPage + '. Tiếp tục từ trang ' + savedPage + '?\n\nBấm Cancel để đồng bộ lại từ đầu.')) {
+                    page = savedPage;
+                    totalSynced = (savedPage - 1) * 50; // estimate
+                }
+            }
 
             // Hide ALL test/sync buttons during sync
             var allBtnContainers = document.querySelectorAll('.sync-actions');
             allBtnContainers.forEach(function(c) { c.style.display = 'none'; });
 
-            statusEl.innerHTML = '<div class="w-100"><div class="d-flex justify-content-between mb-1"><small>Đang đồng bộ...</small><small id="sync-percent">0%</small></div><div class="progress" style="height:6px"><div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-bar" style="width:0%"></div></div><small class="text-muted" id="sync-detail">Trang 1...</small></div>';
+            statusEl.innerHTML = '<div class="w-100"><div class="d-flex justify-content-between mb-1"><small>Đang đồng bộ...</small><small id="sync-percent">0%</small></div><div class="progress" style="height:6px"><div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-bar" style="width:0%"></div></div><small class="text-muted" id="sync-detail">Trang ' + page + '...</small></div>';
             statusEl.className = 'fs-12 w-100';
 
             function syncPage(pg) {
+                // Save current page for resume
+                localStorage.setItem('gf_sync_' + ep + '_page', pg);
+
                 fetch(syncUrl, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -277,6 +289,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                     if (d.has_more) {
                         syncPage(pg + 1);
                     } else {
+                        localStorage.removeItem('gf_sync_' + ep + '_page');
                         statusEl.innerHTML = '<i class="ri-check-double-line me-1"></i>Hoàn thành! ' + totalSynced + ' records đã đồng bộ';
                         statusEl.className = 'text-success fs-12 fw-medium';
                         syncBtn.disabled = false;
