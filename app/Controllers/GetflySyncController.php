@@ -404,7 +404,9 @@ class GetflySyncController extends Controller
         foreach ($statuses as $s) $statusMap[mb_strtolower(trim($s['name']))] = $s['slug'];
 
         $synced = 0;
+        $errors = 0;
         foreach ($records as $r) {
+          try {
             $code = trim($r['account_code'] ?? '');
             if (empty($code)) continue;
 
@@ -464,11 +466,15 @@ class GetflySyncController extends Controller
                 }
             }
             $synced++;
+          } catch (\Exception $e) {
+            $errors++;
+          }
         }
 
         return $this->json([
             'done' => $page >= $totalPages,
             'synced' => $synced,
+            'errors' => $errors,
             'page' => $page,
             'total_pages' => $totalPages,
             'has_more' => $page < $totalPages,

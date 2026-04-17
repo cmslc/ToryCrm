@@ -262,11 +262,9 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     if (d.error) {
-                        statusEl.innerHTML = '<i class="ri-error-warning-line me-1"></i>' + d.error;
-                        statusEl.className = 'text-danger fs-12';
-                        syncBtn.disabled = false;
-                        syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
-                        allBtnContainers.forEach(function(c) { c.style.display = ''; });
+                        // API error on this page - skip and continue
+                        document.getElementById('sync-detail').textContent = 'Lỗi trang ' + pg + ': ' + d.error + ', tiếp tục...';
+                        setTimeout(function() { syncPage(pg + 1); }, 500);
                         return;
                     }
                     totalSynced += (d.synced || 0);
@@ -293,11 +291,15 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                     }
                 })
                 .catch(function() {
-                    statusEl.innerHTML = '<i class="ri-close-line me-1"></i>Lỗi trang ' + pg;
-                    statusEl.className = 'text-danger fs-12';
-                    syncBtn.disabled = false;
-                    syncBtn.innerHTML = '<i class="ri-refresh-line me-1"></i> Đồng bộ';
-                    allBtnContainers.forEach(function(c) { c.style.display = ''; });
+                    // Network error - retry next page instead of stopping
+                    document.getElementById('sync-detail').textContent = 'Lỗi trang ' + pg + ', tiếp tục...';
+                    if (pg < 999) syncPage(pg + 1);
+                    else {
+                        statusEl.innerHTML = '<i class="ri-close-line me-1"></i>Dừng do quá nhiều lỗi';
+                        statusEl.className = 'text-danger fs-12';
+                        syncBtn.disabled = false;
+                        allBtnContainers.forEach(function(c) { c.style.display = ''; });
+                    }
                 });
             }
             syncPage(1);
