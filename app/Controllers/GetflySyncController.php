@@ -243,7 +243,8 @@ class GetflySyncController extends Controller
                 'products' => 0, // handled by syncProductsPage
                 'users' => $this->syncUsers($config),
                 'campaigns' => $this->syncCampaigns($config),
-                'orders_sale', 'orders_purchase' => 0, // TODO
+                'orders_sale' => 0, // handled by syncOrdersPage
+                'orders_purchase' => 0, // handled by syncOrdersPage
                 default => $this->syncPlaceholder($config, $endpoint),
             };
 
@@ -618,6 +619,128 @@ class GetflySyncController extends Controller
             $synced++;
         }
         return $synced;
+    }
+
+    /**
+     * Sync orders month by month (API returns ALL records per date range, no pagination)
+     */
+    public function syncOrdersPage()
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $this->authorize('settings', 'manage');
+        $config = $this->getConfig();
+        if (!$config) return $this->json(['error' => 'Chưa cấu hình'], 400);
+
+        $page = max(0, (int)$this->input('page')); // page = month offset from start
+        $orderType = $this->input('order_type') ?: '2';
+        $tid = Database::tenantId();
+
+        // Calculate month range: start from 2021-01 + page months
+        $startYear = 2021;
+        $startMonth = 1;
+        $monthOffset = $page;
+        $year = $startYear + intdiv($startMonth - 1 + $monthOffset, 12);
+        $month = (($startMonth - 1 + $monthOffset) % 12) + 1;
+
+        $startDate = sprintf('%04d-%02d-01', $year, $month);
+        $endDate = date('Y-m-t', strtotime($startDate));
+        $now = date('Y-m-d');
+
+        // Stop if we're past current month
+        if ($startDate > $now) {
+            return $this->json(['done' => true, 'synced' => 0, 'page' => $page]);
+        }
+
+        $url = $config['api_domain'] . '/api/v3/orders?order_type=' . $orderType
+            . '&start_date=' . $startDate . '&end_date=' . $endDate;
+
+        $result = $this->callApi($config['api_key'], $url);
+        if (!$result['success']) {
+            return $this->json(['error' => 'API error: ' . $result['error'], 'page' => $page, 'month' => $startDate], 400);
+        }
+
+        $records = $result['data']['records'] ?? [];
+
+        // Status map: Getfly status 1=confirmed, 2=pending, 3=cancelled
+        $statusMap = ['1' => 'approved', '2' => 'pending', '3' => 'cancelled'];
+
+        // User map
+        $userMap = [];
+        $users = Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1");
+        foreach ($users as $u) $userMap[(int)($u['id'])] = $u['id'];
+
+        $synced = 0;
+        foreach ($records as $r) {
+            $orderCode = trim($r['order_code'] ?? '');
+            if (empty($orderCode)) continue;
+
+            $status = $statusMap[$r['status'] ?? ''] ?? 'pending';
+            $accountCode = $r['account_info']['account_code'] ?? '';
+            $assignedUser = (int)($r['assigned_user'] ?? 0);
+            $ownerId = $userMap[$assignedUser] ?? null;
+
+            $amount = (float)str_replace(',', '', $r['amount'] ?? '0');
+            $discount = (float)str_replace(',', '', $r['discount_amount'] ?? '0');
+            $vat = (float)str_replace(',', '', $r['vat_amount'] ?? '0');
+            $fAmount = (float)str_replace(',', '', $r['f_amount'] ?? '0');
+
+            $payStatus = 'unpaid';
+            if (($r['payment_status'] ?? '') === 'paid') $payStatus = 'paid';
+            elseif ($fAmount > 0 && $fAmount < $amount) $payStatus = 'partial';
+
+            $data = [
+                'tenant_id' => $tid,
+                'order_number' => $orderCode,
+                'type' => 'order',
+                'status' => $status,
+                'contact_id' => null,
+                'subtotal' => $amount - $vat,
+                'tax_amount' => $vat,
+                'discount_amount' => $discount,
+                'total' => $amount,
+                'paid_amount' => $fAmount,
+                'payment_status' => $payStatus,
+                'lading_code' => $r['lading_code'] ?? null,
+                'shipping_address' => $r['account_info']['address'] ?? null,
+                'owner_id' => $ownerId,
+                'issued_date' => $r['order_date'] ?? null,
+                'created_at' => $r['created_at'] ?? date('Y-m-d H:i:s'),
+                'updated_at' => $r['updated_at'] ?? date('Y-m-d H:i:s'),
+            ];
+
+            // Lookup contact
+            if ($accountCode) {
+                $contact = Database::fetch("SELECT id FROM contacts WHERE account_code = ? AND tenant_id = ? LIMIT 1", [$accountCode, $tid]);
+                if ($contact) $data['contact_id'] = $contact['id'];
+            }
+
+            $existing = Database::fetch("SELECT id FROM orders WHERE order_number = ? AND tenant_id = ?", [$orderCode, $tid]);
+            if ($existing) {
+                Database::update('orders', [
+                    'status' => $data['status'],
+                    'total' => $data['total'],
+                    'paid_amount' => $data['paid_amount'],
+                    'payment_status' => $data['payment_status'],
+                ], 'id = ?', [$existing['id']]);
+            } else {
+                $data['created_by'] = $ownerId;
+                Database::insert('orders', $data);
+            }
+            $synced++;
+        }
+
+        // Estimate total months (2021-01 to now)
+        $totalMonths = ((int)date('Y') - $startYear) * 12 + (int)date('m');
+        $hasMore = $startDate <= date('Y-m-01');
+
+        return $this->json([
+            'done' => !$hasMore || $startDate >= date('Y-m-01'),
+            'synced' => $synced,
+            'page' => $page,
+            'month' => sprintf('%02d/%04d', $month, $year),
+            'total_pages' => $totalMonths,
+            'has_more' => $hasMore && $startDate < date('Y-m-01'),
+        ]);
     }
 
     private function getConfig(): ?array

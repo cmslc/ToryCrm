@@ -241,6 +241,8 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
             tasks: {url: '<?= url('settings/getfly-sync/sync-tasks-page') ?>', est: 9200},
             accounts: {url: '<?= url('settings/getfly-sync/sync-accounts-page') ?>', est: 26000},
             products: {url: '<?= url('settings/getfly-sync/sync-products-page') ?>', est: 6300},
+            orders_sale: {url: '<?= url('settings/getfly-sync/sync-orders-page') ?>', est: 65, extra: '&order_type=2'},
+            orders_purchase: {url: '<?= url('settings/getfly-sync/sync-orders-page') ?>', est: 65, extra: '&order_type=1'},
         };
 
         if (syncEndpoints[ep]) {
@@ -271,7 +273,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                 fetch(syncUrl, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: '_token=' + token + '&page=' + pg
+                    body: '_token=' + token + '&page=' + pg + (syncEndpoints[ep].extra || '')
                 })
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
@@ -286,7 +288,8 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                     if (d.done) pct = 100;
                     document.getElementById('sync-bar').style.width = pct + '%';
                     document.getElementById('sync-percent').textContent = pct + '%';
-                    document.getElementById('sync-detail').textContent = 'Trang ' + pg + ' - ' + totalSynced + ' records';
+                    var detail = d.month ? ('Tháng ' + d.month + ' - ' + totalSynced + ' records') : ('Trang ' + pg + ' - ' + totalSynced + ' records');
+                    document.getElementById('sync-detail').textContent = detail;
 
                     if (d.has_more) {
                         syncPage(pg + 1);

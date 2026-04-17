@@ -743,6 +743,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/getfly-sync/sync-tasks-page', 'GetflySyncController@syncTasksPage');
     Router::post('settings/getfly-sync/sync-accounts-page', 'GetflySyncController@syncAccountsPage');
     Router::post('settings/getfly-sync/sync-products-page', 'GetflySyncController@syncProductsPage');
+    Router::post('settings/getfly-sync/sync-orders-page', 'GetflySyncController@syncOrdersPage');
     Router::post('settings/contact-sources/store', 'ContactStatusController@storeSource');
     Router::post('settings/contact-sources/reorder', 'ContactStatusController@reorderSources');
     Router::post('settings/contact-sources/{id}/update', 'ContactStatusController@updateSource');
