@@ -84,6 +84,8 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                         <th>Phòng ban</th>
                         <th>Chức vụ</th>
                         <th>Nhóm quyền</th>
+                        <th class="text-center">Khách hàng</th>
+                        <th class="text-center">Đơn hàng</th>
                         <th>Trạng thái</th>
                         <th>Đăng nhập cuối</th>
                         <th style="width:140px">Thao tác</th>
@@ -119,6 +121,20 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <span class="text-muted fs-12">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if (($u['contact_count'] ?? 0) > 0): ?>
+                                <a href="<?= url('contacts?owner_id=' . $u['id']) ?>" class="badge bg-primary-subtle text-primary"><?= number_format($u['contact_count']) ?></a>
+                                <?php else: ?>
+                                <span class="text-muted">0</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if (($u['order_count'] ?? 0) > 0): ?>
+                                <a href="<?= url('orders?owner_id=' . $u['id']) ?>" class="badge bg-success-subtle text-success"><?= number_format($u['order_count']) ?></a>
+                                <?php else: ?>
+                                <span class="text-muted">0</span>
                                 <?php endif; ?>
                             </td>
                             <td>

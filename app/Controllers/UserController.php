@@ -36,7 +36,10 @@ class UserController extends Controller
 
         $total = Database::fetch("SELECT COUNT(*) as count FROM users u WHERE {$whereClause}", $params)['count'];
         $users = Database::fetchAll(
-            "SELECT u.*, d.name as dept_name, p.name as position_name FROM users u LEFT JOIN departments d ON u.department_id = d.id LEFT JOIN positions p ON u.position_id = p.id WHERE {$whereClause} ORDER BY u.created_at DESC LIMIT {$perPage} OFFSET {$offset}",
+            "SELECT u.*, d.name as dept_name, p.name as position_name,
+                    (SELECT COUNT(*) FROM contacts c WHERE c.owner_id = u.id AND c.is_deleted = 0) as contact_count,
+                    (SELECT COUNT(*) FROM orders o WHERE o.owner_id = u.id) as order_count
+             FROM users u LEFT JOIN departments d ON u.department_id = d.id LEFT JOIN positions p ON u.position_id = p.id WHERE {$whereClause} ORDER BY u.created_at DESC LIMIT {$perPage} OFFSET {$offset}",
             $params
         );
         $totalPages = ceil($total / $perPage);
