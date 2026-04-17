@@ -84,13 +84,18 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                         <a href="<?= url('orders?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> rounded-pill text-nowrap waves-effect">
                             Tất cả <span class="badge rounded-pill bg-danger ms-1"><?= number_format($totalAll) ?></span>
                         </a>
-                        <?php foreach ($sl as $key => $label):
+                        <?php
+                        $paymentKeys = ['unpaid', 'paid', 'collected'];
+                        foreach ($sl as $key => $label):
                             $count = 0;
                             foreach ($statusCounts ?? [] as $stc) { if ($stc['status'] === $key) $count = $stc['count']; }
                             $color = $sc[$key] ?? 'secondary';
-                            $isActive = $currentStatus === $key;
+                            $isPayment = in_array($key, $paymentKeys);
+                            $filterParam = $isPayment ? 'payment_status' : 'status';
+                            $clearKeys = ['status'=>'', 'payment_status'=>'', 'page'=>''];
+                            $isActive = $isPayment ? (($filters['payment_status'] ?? '') === $key) : ($currentStatus === $key);
                         ?>
-                        <a href="<?= url('orders?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
+                        <a href="<?= url('orders?' . $filterParam . '=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], $clearKeys))) ?>"
                            class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> rounded-pill text-nowrap waves-effect">
                             <?= $label ?> <span class="badge rounded-pill bg-danger ms-1"><?= number_format($count) ?></span>
                         </a>

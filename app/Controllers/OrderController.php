@@ -115,6 +115,8 @@ class OrderController extends Controller
         if ($os['where']) { $scopeWhere[] = $os['where']; $scopeParams = array_merge($scopeParams, $os['params']); }
         $scopeClause = implode(' AND ', $scopeWhere);
         $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM orders o WHERE {$scopeClause} GROUP BY status", $scopeParams);
+        $paymentCounts = Database::fetchAll("SELECT payment_status as status, COUNT(*) as count FROM orders o WHERE {$scopeClause} GROUP BY payment_status", $scopeParams);
+        $allCounts = array_merge($statusCounts, $paymentCounts);
         $totalAll = 0;
         foreach ($statusCounts as $sc) $totalAll += $sc['count'];
 
@@ -127,7 +129,7 @@ class OrderController extends Controller
                 'page' => $page,
                 'total_pages' => $totalPages,
             ],
-            'statusCounts' => $statusCounts,
+            'statusCounts' => $allCounts,
             'totalAll' => $totalAll,
             'filters' => [
                 'search' => $search,
