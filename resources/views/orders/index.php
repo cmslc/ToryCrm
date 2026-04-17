@@ -154,7 +154,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                                 echo $val ? '<a href="' . url('contacts/' . $val) . '">' . e($contactName ?: '-') . '</a>' : '-';
                                                 break;
                                             case 'company_id':
-                                                echo $val ? '<a href="' . url('companies/' . $val) . '">' . e($order['company_name'] ?? '-') . '</a>' : '-';
+                                                echo !empty($order['company_name']) ? e($order['company_name']) : '-';
                                                 break;
                                             case 'deal_id':
                                                 echo $val ? '<a href="' . url('deals/' . $val) . '">' . e($order['deal_title'] ?? $val) . '</a>' : '-';
@@ -172,6 +172,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                                 break;
                                             case 'owner_id':
                                                 echo user_avatar($order['owner_name'] ?? null, 'primary', $order['owner_avatar'] ?? null);
+                                                break;
+                                            case 'created_by':
+                                                echo user_avatar($order['creator_name'] ?? null, 'info', $order['creator_avatar'] ?? null);
                                                 break;
                                             case 'shipping_contact':
                                                 echo $val ? e($val) . ($order['shipping_phone'] ? ' - ' . e($order['shipping_phone']) : '') : '-';

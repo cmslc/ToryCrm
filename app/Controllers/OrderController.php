@@ -94,12 +94,13 @@ class OrderController extends Controller
         $orders = Database::fetchAll(
             "SELECT o.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
-                    comp.name as company_name,
-                    u.name as owner_name
+                    c.company_name, c.avatar as contact_avatar,
+                    u.name as owner_name, u.avatar as owner_avatar,
+                    u2.name as creator_name, u2.avatar as creator_avatar
              FROM orders o
              LEFT JOIN contacts c ON o.contact_id = c.id
-             LEFT JOIN companies comp ON o.company_id = comp.id
              LEFT JOIN users u ON o.owner_id = u.id
+             LEFT JOIN users u2 ON o.created_by = u2.id
              WHERE {$whereClause}
              ORDER BY o.created_at DESC
              LIMIT {$perPage} OFFSET {$offset}",
