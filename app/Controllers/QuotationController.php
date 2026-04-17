@@ -85,7 +85,8 @@ class QuotationController extends Controller
             "SELECT q.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
                     comp.name as company_name,
-                    u.name as owner_name, u2.name as creator_name
+                    u.name as owner_name, u.avatar as owner_avatar,
+                    u2.name as creator_name, u2.avatar as creator_avatar
              FROM quotations q
              LEFT JOIN contacts c ON q.contact_id = c.id
              LEFT JOIN companies comp ON q.company_id = comp.id

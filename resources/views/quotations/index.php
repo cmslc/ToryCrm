@@ -139,11 +139,29 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                             <?php break; case 'view_count': ?>
                                                 <i class="ri-eye-line me-1"></i><?= (int)$val ?>
                                             <?php break; case 'owner_id': ?>
-                                                <?= e($q['owner_name'] ?? '-') ?>
+                                                <?php if (!empty($q['owner_name'])): ?>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <?php if (!empty($q['owner_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $q['owner_avatar'])): ?>
+                                                        <img src="<?= url('uploads/avatars/' . $q['owner_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                    <?php else: ?>
+                                                        <span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($q['owner_name'], 0, 1)) ?></span>
+                                                    <?php endif; ?>
+                                                    <?= e($q['owner_name']) ?>
+                                                </div>
+                                                <?php else: ?>-<?php endif; ?>
                                             <?php break; case 'deal_id': ?>
                                                 <?= $val ? e($q['deal_title'] ?? $val) : '-' ?>
                                             <?php break; case 'created_by': ?>
-                                                <?= e($q['creator_name'] ?? '-') ?>
+                                                <?php if (!empty($q['creator_name'])): ?>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <?php if (!empty($q['creator_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $q['creator_avatar'])): ?>
+                                                        <img src="<?= url('uploads/avatars/' . $q['creator_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                    <?php else: ?>
+                                                        <span class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($q['creator_name'], 0, 1)) ?></span>
+                                                    <?php endif; ?>
+                                                    <?= e($q['creator_name']) ?>
+                                                </div>
+                                                <?php else: ?>-<?php endif; ?>
                                             <?php break; case 'created_at': case 'updated_at': case 'accepted_at': case 'rejected_at': case 'last_viewed_at': ?>
                                                 <?= $val ? time_ago($val) : '-' ?>
                                             <?php break; default: ?>
