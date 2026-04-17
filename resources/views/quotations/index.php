@@ -128,9 +128,19 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                             case 'quote_number': ?>
                                                 <a href="<?= url('quotations/' . $q['id']) ?>" class="fw-medium"><?= e($val) ?></a>
                                             <?php break; case 'contact_id': ?>
-                                                <?= e(trim(($q['contact_first_name'] ?? '') . ' ' . ($q['contact_last_name'] ?? ''))) ?: '-' ?>
+                                                <?php $cName = trim(($q['contact_first_name'] ?? '') . ' ' . ($q['contact_last_name'] ?? '')); ?>
+                                                <?php if ($cName): ?>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <?php if (!empty($q['contact_avatar']) && file_exists(BASE_PATH . '/public/' . $q['contact_avatar'])): ?>
+                                                        <img src="<?= url($q['contact_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                    <?php else: ?>
+                                                        <span class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($cName, 0, 1)) ?></span>
+                                                    <?php endif; ?>
+                                                    <?= e($cName) ?>
+                                                </div>
+                                                <?php else: ?>-<?php endif; ?>
                                             <?php break; case 'company_id': ?>
-                                                <?= $val ? e($q['company_name'] ?? '-') : '-' ?>
+                                                <?= !empty($q['company_name']) ? e($q['company_name']) : '-' ?>
                                             <?php break; case 'total': case 'subtotal': case 'tax_amount': case 'discount_amount': ?>
                                                 <?= ($val + 0) > 0 ? format_money($val) : '-' ?>
                                             <?php break; case 'valid_until': ?>
@@ -144,8 +154,8 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                             <?php break; case 'owner_id': ?>
                                                 <?php if (!empty($q['owner_name'])): ?>
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <?php if (!empty($q['owner_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $q['owner_avatar'])): ?>
-                                                        <img src="<?= url('uploads/avatars/' . $q['owner_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                    <?php if (!empty($q['owner_avatar']) && file_exists(BASE_PATH . '/public/' . $q['owner_avatar'])): ?>
+                                                        <img src="<?= url($q['owner_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
                                                     <?php else: ?>
                                                         <span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($q['owner_name'], 0, 1)) ?></span>
                                                     <?php endif; ?>
@@ -157,8 +167,8 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                             <?php break; case 'created_by': ?>
                                                 <?php if (!empty($q['creator_name'])): ?>
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <?php if (!empty($q['creator_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $q['creator_avatar'])): ?>
-                                                        <img src="<?= url('uploads/avatars/' . $q['creator_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                    <?php if (!empty($q['creator_avatar']) && file_exists(BASE_PATH . '/public/' . $q['creator_avatar'])): ?>
+                                                        <img src="<?= url($q['creator_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
                                                     <?php else: ?>
                                                         <span class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($q['creator_name'], 0, 1)) ?></span>
                                                     <?php endif; ?>
