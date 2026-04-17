@@ -213,13 +213,31 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 
                 <?php if (($orders['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted">Hiển thị <?= count($orders['items']) ?> / <?= $orders['total'] ?></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted">Hiển thị <strong><?= (($orders['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($orders['page'] * ($filters['per_page'] ?? 20), $orders['total']) ?></strong> / <strong><?= number_format($orders['total']) ?></strong></span>
+                            <?php $currentPerPage = $filters['per_page'] ?? 20; include __DIR__ . '/../components/per-page-select.php'; ?>
+                        </div>
+                        <?php
+                        $pg = $orders['page'];
+                        $tp = $orders['total_pages'];
+                        $qs = http_build_query(array_filter($filters ?? []));
+                        $pgUrl = function($p) use ($qs) { return url('orders?page=' . $p . '&' . $qs); };
+                        $pages = [1];
+                        for ($i = max(2, $pg - 2); $i <= min($tp - 1, $pg + 2); $i++) $pages[] = $i;
+                        if ($tp > 1) $pages[] = $tp;
+                        $pages = array_unique($pages); sort($pages);
+                        ?>
                         <nav><ul class="pagination mb-0">
-                            <?php for ($i = 1; $i <= $orders['total_pages']; $i++): ?>
-                                <li class="page-item <?= $i === $orders['page'] ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= url('orders?page=' . $i . '&' . http_build_query(array_filter($filters ?? []))) ?>"><?= $i ?></a>
-                                </li>
-                            <?php endfor; ?>
+                            <?php if ($pg > 1): ?>
+                            <li class="page-item"><a class="page-link" href="<?= $pgUrl($pg - 1) ?>"><i class="ri-arrow-left-s-line"></i></a></li>
+                            <?php endif; ?>
+                            <?php $prev = 0; foreach ($pages as $p):
+                                if ($p - $prev > 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
+                                <li class="page-item <?= $p === $pg ? 'active' : '' ?>"><a class="page-link" href="<?= $pgUrl($p) ?>"><?= $p ?></a></li>
+                            <?php $prev = $p; endforeach; ?>
+                            <?php if ($pg < $tp): ?>
+                            <li class="page-item"><a class="page-link" href="<?= $pgUrl($pg + 1) ?>"><i class="ri-arrow-right-s-line"></i></a></li>
+                            <?php endif; ?>
                         </ul></nav>
                     </div>
                 <?php endif; ?>
