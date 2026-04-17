@@ -77,10 +77,12 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 </form>
             </div>
             <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
-                <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
-                    <div class="d-flex gap-1 flex-nowrap">
-                        <a href="<?= url('orders?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> btn-label right rounded-pill text-nowrap waves-effect">
-                            Tất cả <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($totalAll) ?></span>
+                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollLeft"><i class="ri-arrow-left-s-line fs-18"></i></button>
+                <div class="flex-grow-1 d-flex" id="tabScrollContainer" style="overflow-x:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-width:0">
+                <style>#tabScrollContainer::-webkit-scrollbar{display:none}</style>
+                    <div class="d-flex gap-1 flex-nowrap" id="tabScrollInner">
+                        <a href="<?= url('orders?' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>" class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> rounded-pill text-nowrap waves-effect">
+                            Tất cả <span class="badge rounded-pill bg-danger ms-1"><?= number_format($totalAll) ?></span>
                         </a>
                         <?php foreach ($sl as $key => $label):
                             $count = 0;
@@ -89,12 +91,13 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                             $isActive = $currentStatus === $key;
                         ?>
                         <a href="<?= url('orders?status=' . $key . '&' . http_build_query(array_diff_key($filters ?? [], ['status'=>'','page'=>'']))) ?>"
-                           class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> btn-label right rounded-pill text-nowrap waves-effect">
-                            <?= $label ?> <span class="label-icon align-middle rounded-pill fs-12 ms-2"><?= number_format($count) ?></span>
+                           class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> rounded-pill text-nowrap waves-effect">
+                            <?= $label ?> <span class="badge rounded-pill bg-danger ms-1"><?= number_format($count) ?></span>
                         </a>
                         <?php endforeach; ?>
                     </div>
                 </div>
+                <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight"><i class="ri-arrow-right-s-line fs-18"></i></button>
                 <div class="dropdown flex-shrink-0 ms-auto">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                     <ul class="dropdown-menu dropdown-menu-end">
