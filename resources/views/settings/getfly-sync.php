@@ -230,8 +230,12 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
     var btn = pendingSyncBtn;
     var ep = pendingSyncEp;
         var statusEl = document.getElementById('ep-' + ep + '-status');
-        var syncBtn = this;
-        syncBtn.disabled = true;
+        var syncBtn = btn;
+        btn.disabled = true;
+        this.disabled = true;
+
+        // Hide ALL test/sync buttons immediately
+        document.querySelectorAll('.sync-actions').forEach(function(c) { c.style.display = 'none'; });
 
         var syncEndpoints = {
             tasks: {url: '<?= url('settings/getfly-sync/sync-tasks-page') ?>', est: 9200},
@@ -255,9 +259,7 @@ document.getElementById('confirmSyncBtn')?.addEventListener('click', function() 
                 }
             }
 
-            // Hide ALL test/sync buttons during sync
             var allBtnContainers = document.querySelectorAll('.sync-actions');
-            allBtnContainers.forEach(function(c) { c.style.display = 'none'; });
 
             statusEl.innerHTML = '<div class="w-100"><div class="d-flex justify-content-between mb-1"><small>Đang đồng bộ...</small><small id="sync-percent">0%</small></div><div class="progress" style="height:6px"><div class="progress-bar progress-bar-striped progress-bar-animated" id="sync-bar" style="width:0%"></div></div><small class="text-muted" id="sync-detail">Trang ' + page + '...</small></div>';
             statusEl.className = 'fs-12 w-100';
