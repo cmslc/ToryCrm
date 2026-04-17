@@ -109,16 +109,14 @@ class ContractController extends Controller
     {
         $contractNumber = $this->generateContractNumber();
         $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
-        $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $products = Database::fetchAll("SELECT id, sku, name, price, unit FROM products WHERE is_deleted = 0 ORDER BY name LIMIT 500");
 
         return $this->view('contracts.create', [
             'contractNumber' => $contractNumber,
             'contacts' => $contacts,
-            'companies' => $companies,
-            'deals' => $deals,
             'users' => $users,
+            'products' => $products,
         ]);
     }
 
@@ -270,9 +268,8 @@ class ContractController extends Controller
         }
 
         $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
-        $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $products = Database::fetchAll("SELECT id, sku, name, price, unit FROM products WHERE is_deleted = 0 ORDER BY name LIMIT 500");
 
         $items = Database::fetchAll(
             "SELECT ci.*, p.sku as product_sku FROM contract_items ci LEFT JOIN products p ON ci.product_id = p.id WHERE ci.contract_id = ? ORDER BY ci.sort_order", [$id]
@@ -282,9 +279,8 @@ class ContractController extends Controller
             'contract' => $contract,
             'items' => $items,
             'contacts' => $contacts,
-            'companies' => $companies,
-            'deals' => $deals,
             'users' => $users,
+            'products' => $products,
         ]);
     }
 
