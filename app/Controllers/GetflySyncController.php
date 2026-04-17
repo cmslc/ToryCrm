@@ -430,6 +430,8 @@ class GetflySyncController extends Controller
                 'province' => trim($r['province_name'] ?? '') ?: null,
                 'industry' => trim($r['industry_name'] ?? '') ?: null,
                 'total_revenue' => (float)str_replace(',', '', $r['revenue'] ?? '0'),
+                'gender' => match($r['gender'] ?? '') { '2' => 'male', '1' => 'female', default => null },
+                'date_of_birth' => !empty($r['birthday']) ? $r['birthday'] : null,
                 'source_id' => $sourceId,
                 'owner_id' => $ownerId,
             ];
