@@ -99,9 +99,9 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
                                 <div class="d-flex align-items-center">
                                     <div class="flex-shrink-0 me-2">
                                         <?php if (!empty($u['avatar'])): ?>
-                                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
+                                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="32" height="32" style="object-fit:cover">
                                         <?php else: ?>
-                                        <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:36px;height:36px"><?= $initials ?></div>
+                                        <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:32px;height:32px;font-size:13px"><?= $initials ?></div>
                                         <?php endif; ?>
                                     </div>
                                     <div>
