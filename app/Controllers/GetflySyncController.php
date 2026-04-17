@@ -453,10 +453,28 @@ class GetflySyncController extends Controller
                 foreach ($contacts as $idx => $cp) {
                     $cpName = trim($cp['first_name'] ?? '');
                     if (empty($cpName)) continue;
+                    $cpName = html_entity_decode($cpName, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                    // Detect title (danh xưng) from name prefix
+                    $cpTitle = null;
+                    $prefixes = ['anh ' => 'anh', 'chị ' => 'chị', 'ông ' => 'ông', 'bà ' => 'bà', 'mr.' => 'anh', 'mr ' => 'anh', 'ms.' => 'chị', 'ms ' => 'chị', 'mrs.' => 'chị', 'em ' => 'chị'];
+                    $nameLower = mb_strtolower($cpName);
+                    foreach ($prefixes as $prefix => $title) {
+                        if (str_starts_with($nameLower, $prefix)) {
+                            $cpTitle = $title;
+                            $cpName = trim(mb_substr($cpName, mb_strlen($prefix)));
+                            break;
+                        }
+                    }
+                    // Fallback: detect from gender
+                    if (!$cpTitle && ($r['gender'] ?? '') === '2') $cpTitle = 'anh';
+                    if (!$cpTitle && ($r['gender'] ?? '') === '1') $cpTitle = 'chị';
+
                     Database::insert('contact_persons', [
                         'tenant_id' => $tid,
                         'contact_id' => $contactId,
-                        'full_name' => html_entity_decode($cpName, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                        'title' => $cpTitle,
+                        'full_name' => $cpName,
                         'phone' => trim($cp['phone_mobile'] ?? $cp['phone_home'] ?? '') ?: null,
                         'email' => trim($cp['email'] ?? '') ?: null,
                         'position' => html_entity_decode(trim($cp['title'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8') ?: null,
