@@ -163,7 +163,7 @@ class ReportController extends Controller
         try {
             $orderRevenue = Database::fetchAll(
                 "SELECT MONTH(created_at) as month, SUM(total) as revenue, COUNT(*) as count
-                 FROM orders WHERE type = 'order' AND status = 'completed' AND YEAR(created_at) = ? AND tenant_id = ?
+                 FROM orders WHERE type = 'order' AND status IN ('approved','completed') AND YEAR(created_at) = ? AND tenant_id = ?
                  GROUP BY MONTH(created_at) ORDER BY month",
                 [$year, $tid]
             );
@@ -181,20 +181,44 @@ class ReportController extends Controller
             [$year, $tid]
         );
 
+        // Top orders by revenue
+        $topOrders = Database::fetchAll(
+            "SELECT o.order_number as title, o.total as value, c.first_name, c.last_name, c.company_name
+             FROM orders o
+             LEFT JOIN contacts c ON o.contact_id = c.id
+             WHERE o.status IN ('approved','completed') AND o.type = 'order' AND YEAR(o.created_at) = ? AND o.tenant_id = ?
+             ORDER BY o.total DESC LIMIT 10",
+            [$year, $tid]
+        );
+
+        // Revenue by owner (from orders)
         $byOwner = Database::fetchAll(
-            "SELECT u.name, SUM(d.value) as revenue, COUNT(d.id) as count
-             FROM deals d JOIN users u ON d.owner_id = u.id
-             WHERE d.status = 'won' AND YEAR(d.actual_close_date) = ? AND d.tenant_id = ?
+            "SELECT u.name, SUM(o.total) as revenue, COUNT(o.id) as count
+             FROM orders o JOIN users u ON o.owner_id = u.id
+             WHERE o.status IN ('approved','completed') AND o.type = 'order' AND YEAR(o.created_at) = ? AND o.tenant_id = ?
              GROUP BY u.id, u.name ORDER BY revenue DESC",
             [$year, $tid]
         );
+
+        // Total summary
+        $totalRevenue = array_sum($orderData);
+        $totalOrders = 0;
+        try {
+            $totalOrders = (int)(Database::fetch(
+                "SELECT COUNT(*) as c FROM orders WHERE type = 'order' AND status IN ('approved','completed') AND YEAR(created_at) = ? AND tenant_id = ?",
+                [$year, $tid]
+            )['c'] ?? 0);
+        } catch (\Exception $e) {}
 
         return $this->view('reports.revenue', [
             'year' => $year,
             'dealData' => $dealData,
             'orderData' => $orderData,
             'topDeals' => $topDeals,
+            'topOrders' => $topOrders,
             'byOwner' => $byOwner,
+            'totalRevenue' => $totalRevenue,
+            'totalOrders' => $totalOrders,
         ]);
     }
 
