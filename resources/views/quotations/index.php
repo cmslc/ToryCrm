@@ -132,9 +132,9 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                 <?php if ($cName): ?>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <?php if (!empty($q['contact_avatar']) && file_exists(BASE_PATH . '/public/' . $q['contact_avatar'])): ?>
-                                                        <img src="<?= url($q['contact_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                        <img src="<?= url($q['contact_avatar']) ?>" class="rounded-circle" width="32" height="32" style="object-fit:cover">
                                                     <?php else: ?>
-                                                        <span class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($cName, 0, 1)) ?></span>
+                                                        <span class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:13px"><?= strtoupper(mb_substr($cName, 0, 1)) ?></span>
                                                     <?php endif; ?>
                                                     <?= e($cName) ?>
                                                 </div>
@@ -155,9 +155,9 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                 <?php if (!empty($q['owner_name'])): ?>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <?php if (!empty($q['owner_avatar']) && file_exists(BASE_PATH . '/public/' . $q['owner_avatar'])): ?>
-                                                        <img src="<?= url($q['owner_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                        <img src="<?= url($q['owner_avatar']) ?>" class="rounded-circle" width="32" height="32" style="object-fit:cover">
                                                     <?php else: ?>
-                                                        <span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($q['owner_name'], 0, 1)) ?></span>
+                                                        <span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:13px"><?= strtoupper(mb_substr($q['owner_name'], 0, 1)) ?></span>
                                                     <?php endif; ?>
                                                     <?= e($q['owner_name']) ?>
                                                 </div>
@@ -168,9 +168,9 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                 <?php if (!empty($q['creator_name'])): ?>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <?php if (!empty($q['creator_avatar']) && file_exists(BASE_PATH . '/public/' . $q['creator_avatar'])): ?>
-                                                        <img src="<?= url($q['creator_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                                        <img src="<?= url($q['creator_avatar']) ?>" class="rounded-circle" width="32" height="32" style="object-fit:cover">
                                                     <?php else: ?>
-                                                        <span class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= strtoupper(mb_substr($q['creator_name'], 0, 1)) ?></span>
+                                                        <span class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width:32px;height:32px;font-size:13px"><?= strtoupper(mb_substr($q['creator_name'], 0, 1)) ?></span>
                                                     <?php endif; ?>
                                                     <?= e($q['creator_name']) ?>
                                                 </div>
