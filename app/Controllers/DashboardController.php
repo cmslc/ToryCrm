@@ -70,16 +70,16 @@ class DashboardController extends Controller
             array_merge([$tid], $ownerParams)
         )['c'] ?? 0);
 
-        $totalRevenue = (float)(Database::fetch("SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?{$ownerWhere}", array_merge([$tid], $ownerParams))['total'] ?? 0);
+        $totalRevenue = (float)(Database::fetch("SELECT COALESCE(SUM(total),0) as total FROM orders WHERE status IN ('approved','completed') AND type='order' AND tenant_id=?{$ownerWhere}", array_merge([$tid], $ownerParams))['total'] ?? 0);
         $thisMonthRevenue = (float)(Database::fetch(
-            "SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?
-             AND YEAR(actual_close_date)=YEAR(CURDATE()) AND MONTH(actual_close_date)=MONTH(CURDATE()){$ownerWhere}",
+            "SELECT COALESCE(SUM(total),0) as total FROM orders WHERE status IN ('approved','completed') AND type='order' AND tenant_id=?
+             AND YEAR(created_at)=YEAR(CURDATE()) AND MONTH(created_at)=MONTH(CURDATE()){$ownerWhere}",
             array_merge([$tid], $ownerParams)
         )['total'] ?? 0);
         $lastMonthRevenue = (float)(Database::fetch(
-            "SELECT COALESCE(SUM(value),0) as total FROM deals WHERE status='won' AND tenant_id=?
-             AND YEAR(actual_close_date)=YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-             AND MONTH(actual_close_date)=MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)){$ownerWhere}",
+            "SELECT COALESCE(SUM(total),0) as total FROM orders WHERE status IN ('approved','completed') AND type='order' AND tenant_id=?
+             AND YEAR(created_at)=YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+             AND MONTH(created_at)=MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)){$ownerWhere}",
             array_merge([$tid], $ownerParams)
         )['total'] ?? 0);
 
@@ -133,9 +133,9 @@ class DashboardController extends Controller
         // ---- Revenue chart data (last 12 months) ----
         $year = date('Y');
         $revenueRows = Database::fetchAll(
-            "SELECT MONTH(actual_close_date) as month, SUM(value) as revenue
-             FROM deals WHERE status = 'won' AND YEAR(actual_close_date) = ? AND tenant_id = ?{$ownerWhere}
-             GROUP BY MONTH(actual_close_date)",
+            "SELECT MONTH(created_at) as month, SUM(total) as revenue
+             FROM orders WHERE status IN ('approved','completed') AND type='order' AND YEAR(created_at) = ? AND tenant_id = ?{$ownerWhere}
+             GROUP BY MONTH(created_at)",
             array_merge([$year, $tid], $ownerParams)
         );
         $revenueData = array_fill(0, 12, 0);
@@ -231,9 +231,9 @@ class DashboardController extends Controller
         $topStaff = [];
         if ($isAdmin) {
             $topStaff = Database::fetchAll(
-                "SELECT u.id, u.name, u.avatar, COUNT(d.id) as deal_count, COALESCE(SUM(d.value),0) as revenue
-                 FROM deals d JOIN users u ON d.owner_id = u.id
-                 WHERE d.tenant_id = ? AND d.status = 'won'
+                "SELECT u.id, u.name, u.avatar, COUNT(o.id) as deal_count, COALESCE(SUM(o.total),0) as revenue
+                 FROM orders o JOIN users u ON o.owner_id = u.id
+                 WHERE o.tenant_id = ? AND o.status IN ('approved','completed') AND o.type = 'order'
                  GROUP BY u.id, u.name, u.avatar
                  ORDER BY revenue DESC LIMIT 5",
                 [$tid]
