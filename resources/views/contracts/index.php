@@ -1,7 +1,7 @@
 <?php
 $pageTitle = 'Hợp đồng';
-$sc = ['draft' => 'secondary', 'sent' => 'info', 'signed' => 'primary', 'active' => 'success', 'expired' => 'danger', 'cancelled' => 'dark'];
-$sl = ['draft' => 'Nháp', 'sent' => 'Đã gửi', 'signed' => 'Đã ký', 'active' => 'Hoạt động', 'expired' => 'Hết hạn', 'cancelled' => 'Đã hủy'];
+$sc = ['pending' => 'warning', 'approved' => 'primary', 'renewed' => 'info', 'in_progress' => 'success', 'auto_renewed' => 'info', 'completed' => 'dark', 'cancelled' => 'danger'];
+$sl = ['pending' => 'Chờ duyệt', 'approved' => 'Đã duyệt', 'renewed' => 'Đã gia hạn', 'in_progress' => 'Đang thực hiện', 'auto_renewed' => 'Tự động gia hạn lần 1', 'completed' => 'Đã kết thúc', 'cancelled' => 'Đã hủy'];
 $tc = ['service' => 'primary', 'product' => 'success', 'rental' => 'warning', 'maintenance' => 'info', 'other' => 'secondary'];
 $tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho thuê', 'maintenance' => 'Bảo trì', 'other' => 'Khác'];
 $colKeys = array_column($displayColumns ?? [], 'key');
