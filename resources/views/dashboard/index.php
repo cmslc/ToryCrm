@@ -276,7 +276,7 @@
                 <h4 class="card-title mb-0 flex-grow-1">Top nhân viên theo doanh thu</h4>
                 <a href="<?= url('leaderboard') ?>" class="btn btn-soft-primary">Bảng xếp hạng</a>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -515,7 +515,7 @@
             <h4 class="card-title mb-0 flex-grow-1 fs-14">Hoạt động</h4>
             <a href="<?= url('activities') ?>" class="text-muted fs-12">Xem tất cả <i class="ri-arrow-right-s-line"></i></a>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-2">
             <div>
                 <?php if (!empty($recentActivities)): ?>
                     <?php

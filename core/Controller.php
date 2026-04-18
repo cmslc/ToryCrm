@@ -98,9 +98,81 @@ class Controller
     }
 
     /**
+     * True only for system admin group, not regular managers.
+     */
+    protected function isSystemAdmin(): bool
+    {
+        return \App\Services\PermissionService::isInSystemGroup($_SESSION['user']['id'] ?? 0);
+    }
+
+    /**
+     * SQL suffix for owner-based filter in raw queries.
+     * Admin: "", others: " AND col IN (1,2,3)"
+     */
+    protected function getOwnerScopeSql(string $col = 'owner_id'): string
+    {
+        if ($this->isSystemAdmin()) return '';
+        $ids = $this->getVisibleUserIds();
+        if ($ids && count($ids) > 0) {
+            return " AND {$col} IN (" . implode(',', array_map('intval', $ids)) . ")";
+        }
+        return " AND {$col} = " . (int)$this->userId();
+    }
+
+    /**
      * Check if current user is department head (trưởng/phó phòng).
      * Returns array of user IDs in their department, or null if not a dept head.
      */
+    /**
+     * Get all user IDs this user can see data of.
+     * Manager/vice_manager: own dept + child depts.
+     * Staff: own dept members only.
+     */
+    protected function getVisibleUserIds(): ?array
+    {
+        static $visCache = null;
+        if ($visCache !== null) return $visCache ?: null;
+
+        $uid = $this->userId();
+        $deptId = $_SESSION['user']['department_id'] ?? null;
+        if (!$deptId) {
+            try {
+                $u = Database::fetch("SELECT department_id FROM users WHERE id = ?", [$uid]);
+                $deptId = $u['department_id'] ?? null;
+                $_SESSION['user']['department_id'] = $deptId;
+            } catch (\Exception $e) {}
+        }
+
+        if (!$deptId) { $visCache = false; return null; }
+
+        try {
+            $dept = Database::fetch("SELECT manager_id, vice_manager_id FROM departments WHERE id = ?", [$deptId]);
+
+            $deptIds = [(int)$deptId];
+
+            // If manager/vice_manager, include child depts
+            if ($dept && ($dept['manager_id'] == $uid || $dept['vice_manager_id'] == $uid)) {
+                $childIds = $this->getChildDeptIds($deptId);
+                $deptIds = array_merge($deptIds, $childIds);
+            }
+
+            $placeholders = implode(',', array_fill(0, count($deptIds), '?'));
+            $members = Database::fetchAll(
+                "SELECT id FROM users WHERE department_id IN ({$placeholders}) AND is_active = 1",
+                $deptIds
+            );
+            $visCache = array_column($members, 'id');
+
+            // Make sure own ID is included
+            if (!in_array($uid, $visCache)) $visCache[] = $uid;
+
+            return $visCache;
+        } catch (\Exception $e) {}
+
+        $visCache = false;
+        return null;
+    }
+
     protected function getDeptMemberIds(): ?array
     {
         static $cache = null;
@@ -127,9 +199,14 @@ class Controller
             if (!$dept) { $cache = false; return null; }
 
             if ($dept['manager_id'] == $uid || $dept['vice_manager_id'] == $uid) {
+                // Collect this dept + all child depts (recursive)
+                $deptIds = $this->getChildDeptIds($deptId);
+                $deptIds[] = (int)$deptId;
+
+                $placeholders = implode(',', array_fill(0, count($deptIds), '?'));
                 $members = Database::fetchAll(
-                    "SELECT id FROM users WHERE department_id = ? AND is_active = 1",
-                    [$deptId]
+                    "SELECT id FROM users WHERE department_id IN ({$placeholders}) AND is_active = 1",
+                    $deptIds
                 );
                 $cache = array_column($members, 'id');
                 return $cache;
@@ -141,6 +218,33 @@ class Controller
     }
 
     /**
+     * Get all child department IDs recursively.
+     */
+    private function getChildDeptIds(int $parentId): array
+    {
+        $allDepts = Database::fetchAll("SELECT id, parent_id FROM departments");
+        $childMap = [];
+        foreach ($allDepts as $d) {
+            if ($d['parent_id']) {
+                $childMap[(int)$d['parent_id']][] = (int)$d['id'];
+            }
+        }
+
+        $result = [];
+        $queue = $childMap[$parentId] ?? [];
+        while (!empty($queue)) {
+            $id = array_shift($queue);
+            $result[] = $id;
+            if (isset($childMap[$id])) {
+                foreach ($childMap[$id] as $childId) {
+                    $queue[] = $childId;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Get owner scope SQL for list queries.
      * Admin/Manager role: no filter (see all).
      * Dept head (trưởng/phó phòng): see department members' data.
@@ -149,7 +253,9 @@ class Controller
      */
     protected function ownerScope(string $alias = '', string $ownerField = 'owner_id', string $module = ''): array
     {
-        if ($this->isAdminOrManager()) {
+        // Only system group (admin) sees everything
+        $userId = $_SESSION['user']['id'] ?? 0;
+        if (\App\Services\PermissionService::isInSystemGroup($userId)) {
             return ['where' => '', 'params' => []];
         }
 
@@ -160,17 +266,17 @@ class Controller
 
         $col = $alias ? "{$alias}.{$ownerField}" : $ownerField;
 
-        // Department head: see all members' data
-        $deptMembers = $this->getDeptMemberIds();
-        if ($deptMembers && count($deptMembers) > 0) {
-            $placeholders = implode(',', array_fill(0, count($deptMembers), '?'));
+        // Get visible user IDs based on department hierarchy
+        $visibleIds = $this->getVisibleUserIds();
+        if ($visibleIds && count($visibleIds) > 0) {
+            $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
             return [
                 'where' => "{$col} IN ({$placeholders})",
-                'params' => $deptMembers,
+                'params' => $visibleIds,
             ];
         }
 
-        // Regular staff: own data only
+        // Fallback: own data only
         return [
             'where' => "{$col} = ?",
             'params' => [$this->userId()],
@@ -183,11 +289,55 @@ class Controller
      */
     protected function canAccessOwner(?int $ownerId): bool
     {
-        if ($this->isAdminOrManager()) return true;
+        $userId = $_SESSION['user']['id'] ?? 0;
+        if (\App\Services\PermissionService::isInSystemGroup($userId)) return true;
         if ($ownerId == $this->userId()) return true;
-        $deptMembers = $this->getDeptMemberIds();
-        if ($deptMembers && in_array($ownerId, $deptMembers)) return true;
+        $visible = $this->getVisibleUserIds();
+        if ($visible && in_array($ownerId, $visible)) return true;
         return false;
+    }
+
+    /**
+     * Get users list filtered by visibility (same dept / child depts).
+     * Admin sees all, others see only their dept scope.
+     */
+    protected function getVisibleUsers(): array
+    {
+        $userId = $_SESSION['user']['id'] ?? 0;
+        $tid = Database::tenantId();
+
+        if (\App\Services\PermissionService::isInSystemGroup($userId)) {
+            return Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 AND tenant_id = ? ORDER BY name", [$tid]);
+        }
+
+        $visibleIds = $this->getVisibleUserIds();
+        if ($visibleIds && count($visibleIds) > 0) {
+            $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
+            return Database::fetchAll("SELECT id, name FROM users WHERE id IN ({$placeholders}) AND is_active = 1 ORDER BY name", $visibleIds);
+        }
+
+        return Database::fetchAll("SELECT id, name FROM users WHERE id = ?", [$userId]);
+    }
+
+    /**
+     * Get visible users with avatar info.
+     */
+    protected function getVisibleUsersWithAvatar(): array
+    {
+        $userId = $_SESSION['user']['id'] ?? 0;
+        $tid = Database::tenantId();
+
+        if (\App\Services\PermissionService::isInSystemGroup($userId)) {
+            return Database::fetchAll("SELECT id, name, avatar FROM users WHERE is_active = 1 AND tenant_id = ? ORDER BY name", [$tid]);
+        }
+
+        $visibleIds = $this->getVisibleUserIds();
+        if ($visibleIds && count($visibleIds) > 0) {
+            $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
+            return Database::fetchAll("SELECT id, name, avatar FROM users WHERE id IN ({$placeholders}) AND is_active = 1 ORDER BY name", $visibleIds);
+        }
+
+        return Database::fetchAll("SELECT id, name, avatar FROM users WHERE id = ?", [$userId]);
     }
 
     /**

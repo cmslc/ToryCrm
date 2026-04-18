@@ -44,6 +44,12 @@ class OrderController extends Controller
             $params[] = $paymentStatus;
         }
 
+        $ownerId = $this->input('owner_id');
+        if ($ownerId) {
+            $where[] = "o.owner_id = ?";
+            $params[] = $ownerId;
+        }
+
         // Date period filter
         $datePeriod = $this->input('date_period');
         $dateFrom = $this->input('date_from');
@@ -137,12 +143,14 @@ class OrderController extends Controller
                 'type' => $type,
                 'status' => $status,
                 'payment_status' => $paymentStatus,
+                'owner_id' => $ownerId,
                 'date_period' => $datePeriod,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
                 'per_page' => $perPage,
             ],
             'displayColumns' => $displayColumns,
+            'users' => $this->getVisibleUsersWithAvatar(),
         ]);
     }
 

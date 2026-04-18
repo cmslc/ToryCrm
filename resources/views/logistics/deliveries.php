@@ -11,7 +11,7 @@ $stColors = ['pending'=>'secondary','delivering'=>'warning','delivered'=>'succes
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Mã phiếu</th><th>Khách hàng</th><th>Kiện</th><th>Loại</th><th>COD</th><th>Đã thu</th><th>PT thu</th><th>Trạng thái</th><th>Người giao</th><th>Ngày giao</th><th></th></tr></thead>

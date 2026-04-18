@@ -10,62 +10,23 @@
             <div class="row">
                 <!-- Settings Form -->
                 <div class="col-lg-7">
-                    <!-- Company Info -->
+                    <!-- Brand Name -->
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0"><i class="ri-building-line me-2"></i>Thông tin công ty</h5>
+                            <h5 class="card-title mb-0"><i class="ri-building-line me-2"></i>Thương hiệu</h5>
                         </div>
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="name" id="brandName" value="<?= e($branding['name'] ?? 'ToryCRM') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Mã số thuế</label>
-                                    <input type="text" class="form-control" name="tax_code" value="<?= e($branding['tax_code'] ?? '') ?>">
-                                </div>
-                                <div class="col-12 mb-3">
-                                    <label class="form-label">Trụ sở chính</label>
-                                    <input type="text" class="form-control" name="address" value="<?= e($branding['address'] ?? '') ?>" placeholder="VD: 352 Giải Phóng, Phương Liệt, Thanh Xuân, HN">
-                                </div>
-                                <div class="col-12 mb-3">
-                                    <label class="form-label">Chi nhánh</label>
-                                    <input type="text" class="form-control" name="branch_address" value="<?= e($branding['branch_address'] ?? '') ?>" placeholder="Địa chỉ chi nhánh (nếu có)">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="email" value="<?= e($branding['email'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Điện thoại / Hotline</label>
-                                    <input type="text" class="form-control" name="phone" value="<?= e($branding['phone'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Fax</label>
-                                    <input type="text" class="form-control" name="fax" value="<?= e($branding['fax'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Website</label>
-                                    <input type="text" class="form-control" name="website" value="<?= e($branding['website'] ?? '') ?>" placeholder="https://">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Người đại diện</label>
-                                    <input type="text" class="form-control" name="representative" value="<?= e($branding['representative'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Chức vụ người đại diện</label>
-                                    <input type="text" class="form-control" name="representative_title" value="<?= e($branding['representative_title'] ?? '') ?>" placeholder="VD: Giám đốc">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Số tài khoản</label>
-                                    <input type="text" class="form-control" name="bank_account" value="<?= e($branding['bank_account'] ?? '') ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Ngân hàng</label>
-                                    <input type="text" class="form-control" name="bank_name" value="<?= e($branding['bank_name'] ?? '') ?>">
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tên thương hiệu <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" id="brandName" value="<?= e($branding['name'] ?? 'ToryCRM') ?>">
+                                <small class="text-muted">Hiển thị trên sidebar, trang đăng nhập</small>
                             </div>
+                            <div class="alert alert-info mb-0 py-2">
+                                <i class="ri-information-line me-1"></i> Thông tin công ty (MST, địa chỉ, đại diện, TK ngân hàng...) đã chuyển sang <a href="<?= url('settings/company-profiles') ?>" class="fw-medium">Quản lý công ty</a>.
+                            </div>
+                            <?php foreach (['tax_code','address','branch_address','email','phone','fax','website','representative','representative_title','bank_account','bank_name'] as $hf): ?>
+                            <input type="hidden" name="<?= $hf ?>" value="<?= e($branding[$hf] ?? '') ?>">
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -163,7 +124,7 @@
                         <div class="card-header">
                             <h5 class="card-title mb-0"><i class="ri-eye-line me-2"></i>Xem trước</h5>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-2">
                             <!-- Sidebar Preview -->
                             <div id="previewSidebar" style="background:#405189; color:#fff; padding:20px; border-radius:4px 4px 0 0; min-height:200px">
                                 <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-light border-opacity-25">

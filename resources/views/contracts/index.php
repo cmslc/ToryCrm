@@ -2,8 +2,8 @@
 $pageTitle = 'Hợp đồng';
 $sc = ['pending' => 'warning', 'approved' => 'primary', 'renewed' => 'info', 'in_progress' => 'success', 'auto_renewed' => 'info', 'completed' => 'dark', 'cancelled' => 'danger'];
 $sl = ['pending' => 'Chờ duyệt', 'approved' => 'Đã duyệt', 'renewed' => 'Đã gia hạn', 'in_progress' => 'Đang thực hiện', 'auto_renewed' => 'Tự động gia hạn lần 1', 'completed' => 'Đã kết thúc', 'cancelled' => 'Đã hủy'];
-$tc = ['service' => 'primary', 'product' => 'success', 'rental' => 'warning', 'maintenance' => 'info', 'other' => 'secondary'];
-$tl = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho thuê', 'maintenance' => 'Bảo trì', 'other' => 'Khác'];
+$tc = ['Mới' => 'primary', 'Gia hạn' => 'info', 'Bổ sung' => 'warning', 'service' => 'primary', 'product' => 'success', 'rental' => 'warning', 'maintenance' => 'info', 'other' => 'secondary'];
+$tl = ['Mới' => 'Mới', 'Gia hạn' => 'Gia hạn', 'Bổ sung' => 'Bổ sung'];
 $colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
@@ -85,7 +85,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         </div>
         <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight"><i class="ri-arrow-right-s-line fs-18"></i></button>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">

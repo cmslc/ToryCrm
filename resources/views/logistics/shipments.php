@@ -41,7 +41,7 @@ $hasFilter = $fStatus || $fSearch || $fDateFrom || $fDateTo;
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Mã lô</th><th>Tuyến</th><th>Phương tiện</th><th>Kiện</th><th>Bao</th><th>Cân nặng</th><th>Khối</th><th>Trạng thái</th><th>Người tạo</th><th>Ngày tạo</th></tr></thead>

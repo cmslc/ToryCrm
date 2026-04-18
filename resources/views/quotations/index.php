@@ -40,16 +40,43 @@ foreach ($stats as $v) $totalAll += (int)$v;
         <div class="card mb-3">
             <div class="card-header p-2">
                 <form method="GET" action="<?= url('quotations') ?>" class="d-flex align-items-center gap-2 flex-wrap">
-                    <div class="search-box" style="min-width:200px;max-width:300px">
-                        <input type="text" class="form-control" name="search" placeholder="Tìm mã BG, tiêu đề..." value="<?= e($filters['search'] ?? '') ?>">
+                    <div class="search-box" style="min-width:160px;max-width:200px">
+                        <input type="text" class="form-control" name="search" placeholder="Tìm mã BG, KH..." value="<?= e($filters['search'] ?? '') ?>">
                         <i class="ri-search-line search-icon"></i>
                     </div>
-                    <select name="contact_id" class="form-select searchable-select" style="width:auto;min-width:140px;max-width:200px" onchange="this.form.submit()">
-                        <option value="">Khách hàng</option>
-                        <?php foreach ($contacts ?? [] as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= ($filters['contact_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= e($c['first_name'] . ' ' . ($c['last_name'] ?? '')) ?></option>
+                    <input type="hidden" name="contact_id" value="<?= e($filters['contact_id'] ?? '') ?>">
+                    <input type="hidden" name="owner_id" id="qOwnerIdInput" value="<?= e($filters['owner_id'] ?? '') ?>">
+                    <div class="position-relative" id="qOwnerDropdown">
+                        <div class="form-select d-flex align-items-center gap-2" style="cursor:pointer;width:auto;white-space:nowrap" id="qOwnerBtn">
+                            <?php
+                            $selectedOwner = null;
+                            foreach ($users ?? [] as $u) { if (($filters['owner_id'] ?? '') == $u['id']) $selectedOwner = $u; }
+                            ?>
+                            <?php if ($selectedOwner): ?>
+                                <?php if (!empty($selectedOwner['avatar'])): ?>
+                                <img src="<?= asset($selectedOwner['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                                <?php else: ?>
+                                <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:10px"><?= mb_substr($selectedOwner['name'], 0, 1) ?></span>
+                                <?php endif; ?>
+                                <span><?= e($selectedOwner['name']) ?></span>
+                            <?php else: ?>
+                                <span class="text-muted">Người phụ trách</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="border rounded bg-white shadow" id="qOwnerList" style="position:absolute;z-index:1060;min-width:220px;display:none;top:100%;left:0;margin-top:2px;max-height:280px;overflow-y:auto">
+                            <div class="q-owner-opt px-3 py-2 text-primary fw-medium" style="cursor:pointer" data-id="">Tất cả</div>
+                            <?php foreach ($users ?? [] as $u): ?>
+                            <div class="q-owner-opt d-flex align-items-center gap-2 px-3 py-2 <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'bg-primary bg-opacity-10' : '' ?>" style="cursor:pointer" data-id="<?= $u['id'] ?>">
+                                <?php if (!empty($u['avatar'])): ?>
+                                <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                <?php else: ?>
+                                <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= mb_substr($u['name'], 0, 1) ?></span>
+                                <?php endif; ?>
+                                <span style="font-size:13px"><?= e($u['name']) ?></span>
+                            </div>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
+                    </div>
                     <?php $dp = $filters['date_period'] ?? ''; ?>
                     <select name="date_period" class="form-select" style="width:auto;min-width:140px" onchange="if(this.value==='custom'){document.getElementById('qCustomDate').classList.remove('d-none')}else{this.form.submit()}">
                         <option value="">Thời gian</option>
@@ -102,7 +129,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
         </div>
 
         <div class="card">
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -255,6 +282,23 @@ foreach ($stats as $v) $totalAll += (int)$v;
         </div>
 
 <script>
+// Owner dropdown with avatars
+(function(){
+    var btn = document.getElementById('qOwnerBtn');
+    var list = document.getElementById('qOwnerList');
+    if (!btn || !list) return;
+    btn.addEventListener('click', function(e) { e.stopPropagation(); list.style.display = list.style.display === 'none' ? 'block' : 'none'; });
+    document.addEventListener('click', function(e) { if (!document.getElementById('qOwnerDropdown').contains(e.target)) list.style.display = 'none'; });
+    list.querySelectorAll('.q-owner-opt').forEach(function(opt) {
+        opt.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
+        opt.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+        opt.addEventListener('click', function() {
+            document.getElementById('qOwnerIdInput').value = this.dataset.id;
+            this.closest('form').submit();
+        });
+    });
+})();
+
 document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
     var panel = document.getElementById('columnPanel');
     panel.classList.toggle('d-none');

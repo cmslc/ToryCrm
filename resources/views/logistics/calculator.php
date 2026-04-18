@@ -39,7 +39,7 @@
                 <h5 class="card-title mb-0 flex-grow-1">Bảng giá</h5>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRateModal"><i class="ri-add-line me-1"></i> Thêm</button>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Tên</th><th>Loại</th><th>Giá/kg</th><th>Giá/m³</th><th>Tuyến</th><th></th></tr></thead>

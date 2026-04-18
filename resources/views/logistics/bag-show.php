@@ -169,7 +169,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
     <!-- Packages Tab -->
     <div class="tab-pane active" id="tabPkgs">
         <div class="card border-top-0 rounded-top-0">
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" id="pkgTable">
                         <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Khách hàng</th><th>Cân nặng</th><th>Trạng thái</th><th>Ngày nhập</th><?php if ($bag['status'] === 'open'): ?><th style="width:50px"></th><?php endif; ?></tr></thead>
@@ -198,7 +198,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
     <!-- Scan Logs Tab -->
     <div class="tab-pane" id="tabLogs">
         <div class="card border-top-0 rounded-top-0">
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Mã quét</th><th>Kết quả</th><th>Ghi chú</th><th>Người quét</th><th>Thời gian</th></tr></thead>

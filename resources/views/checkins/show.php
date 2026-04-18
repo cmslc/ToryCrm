@@ -106,7 +106,7 @@
             <div class="card-header">
                 <h6 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Vị trí check-in</h6>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
                 <div id="checkinMap" style="height:300px;border-radius:0 0 .25rem .25rem"></div>
                 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

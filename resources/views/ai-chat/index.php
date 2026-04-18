@@ -14,7 +14,7 @@
             <div class="card-header">
                 <h6 class="card-title mb-0"><i class="ri-history-line me-1"></i> Lịch sử trò chuyện</h6>
             </div>
-            <div class="card-body p-0" data-simplebar style="max-height: calc(100vh - 300px)">
+            <div class="card-body p-2" data-simplebar style="max-height: calc(100vh - 300px)">
                 <div id="chatHistoryList" class="list-group list-group-flush">
                     <div class="text-center text-muted p-3">
                         <i class="ri-chat-3-line" style="font-size: 40px"></i>

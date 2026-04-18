@@ -34,7 +34,7 @@ class EmailController extends Controller
         $offset = ($page - 1) * $limit;
 
         // Admin sees all, user sees own assigned accounts
-        if ($this->isAdminOrManager()) {
+        if ($this->isSystemAdmin()) {
             $accounts = EmailService::getAllAccounts();
         } else {
             $accounts = EmailService::getAccountsForUser($this->userId());
@@ -136,7 +136,7 @@ class EmailController extends Controller
         }
 
         $accountId = (int)$message['account_id'];
-        $accounts = $this->isAdminOrManager() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
+        $accounts = $this->isSystemAdmin() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
         $folders = Database::fetchAll(
             "SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END) as unread
              FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]
@@ -359,7 +359,7 @@ class EmailController extends Controller
     public function settings()
     {
         if (!$this->checkPlugin()) return;
-        if (!$this->isAdminOrManager()) {
+        if (!$this->isSystemAdmin()) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('email');
         }
@@ -489,7 +489,7 @@ class EmailController extends Controller
         if (!$this->checkPlugin()) return;
         $tid = Database::tenantId();
         $templates = Database::fetchAll("SELECT * FROM email_templates WHERE tenant_id = ? ORDER BY name", [$tid]);
-        $accounts = $this->isAdminOrManager() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
+        $accounts = $this->isSystemAdmin() ? EmailService::getAllAccounts() : EmailService::getAccountsForUser($this->userId());
         $accountId = $accounts[0]['id'] ?? 0;
         $folders = $accountId ? Database::fetchAll("SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read=0 THEN 1 ELSE 0 END) as unread FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]) : [];
         $folder = '';

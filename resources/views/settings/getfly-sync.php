@@ -47,7 +47,7 @@
             <div class="card-header">
                 <h5 class="card-title mb-0"><i class="ri-history-line me-1"></i> Lịch sử đồng bộ</h5>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <?php if (empty($logs)): ?>
                 <div class="text-center text-muted py-4">Chưa có lịch sử</div>
                 <?php else: ?>

@@ -13,7 +13,7 @@ $chatEntityId = $chatEntityId ?? 0;
         <h5 class="card-title mb-0"><i class="ri-chat-3-line me-1"></i> Trao đổi nội bộ</h5>
         <span class="badge bg-primary-subtle text-primary" id="chat-count">0</span>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <!-- Chat Messages Area -->
         <div id="chat-messages" style="max-height: 400px; overflow-y: auto; padding: 16px;">
             <div id="chat-loading" class="text-center py-4 text-muted">

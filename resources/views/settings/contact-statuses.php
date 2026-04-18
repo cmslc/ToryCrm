@@ -35,7 +35,7 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
             <div class="card-header d-flex align-items-center">
                 <h5 class="card-title mb-0 flex-grow-1">Danh sách trạng thái</h5>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -145,7 +145,7 @@ $presetColors = ['#405189','#0ab39c','#f06548','#f7b84b','#299cdb','#6559cc','#e
     <div class="col-xl-8">
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0">Danh sách nguồn KH</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">

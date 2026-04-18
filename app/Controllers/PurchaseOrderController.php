@@ -25,7 +25,9 @@ class PurchaseOrderController extends Controller
                 'search' => $this->input('search'),
                 'status' => $this->input('status'),
                 'payment_status' => $this->input('payment_status'),
+                'owner_id' => $this->input('owner_id'),
             ],
+            'users' => $this->getVisibleUsersWithAvatar(),
         ]);
     }
 

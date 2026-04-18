@@ -98,7 +98,7 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
 <!-- Scan History -->
 <div class="card">
     <div class="card-header"><h5 class="card-title mb-0">Lịch sử quét hôm nay</h5></div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>#</th><th>Mã quét</th><th>Loại</th><th>Sản phẩm</th><th>Khách hàng</th><th>Kết quả</th><th>Chi tiết</th><th>Thời gian</th></tr></thead>

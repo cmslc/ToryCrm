@@ -55,7 +55,7 @@
                     </div>
 
                     <!-- Message area -->
-                    <div class="card-body p-0">
+                    <div class="card-body p-2">
                         <div data-simplebar style="max-height: 500px; padding: 1rem;" id="messageArea">
                             <?php if (!empty($messages)): ?>
                                 <?php foreach ($messages as $msg): ?>

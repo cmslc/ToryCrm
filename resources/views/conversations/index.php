@@ -20,7 +20,7 @@
             <!-- Left sidebar: conversation list -->
             <div class="col-xl-4">
                 <div class="card" style="height: var(--conv-height)">
-                    <div class="card-body p-0 d-flex flex-column" style="height:100%">
+                    <div class="card-body p-2 d-flex flex-column" style="height:100%">
                         <!-- Search -->
                         <div class="p-3 border-bottom">
                             <form method="GET" action="<?= url('conversations') ?>">
@@ -150,7 +150,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body p-0 d-flex flex-column" style="flex:1;min-height:0">
+                        <div class="card-body p-2 d-flex flex-column" style="flex:1;min-height:0">
                             <div id="aiChatMessages" style="flex:1;overflow-y:auto;padding:16px">
                                 <!-- Suggested prompts -->
                                 <div id="aiSuggestions" class="text-center py-4">
@@ -317,7 +317,7 @@
                         </div>
 
                         <!-- Message area -->
-                        <div class="card-body p-0" style="flex:1;min-height:0">
+                        <div class="card-body p-2" style="flex:1;min-height:0">
                             <div data-simplebar style="height:100%; padding: 1rem;" id="messageArea">
                                 <?php if (!empty($messages)): ?>
                                     <?php foreach ($messages as $msg): ?>

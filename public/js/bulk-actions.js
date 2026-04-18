@@ -18,7 +18,7 @@
     }
 
     var config = window.__bulkConfig || {};
-    var bulkUrl = config.url || '';
+    var bulkUrl = config.bulkUrl || config.url || '';
     var statuses = config.statuses || {};
     var users = config.users || [];
 

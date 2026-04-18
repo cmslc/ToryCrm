@@ -32,7 +32,7 @@ $defaultWhId = (int)($__whConfig['default_warehouse_id'] ?? 0);
 
 <!-- List -->
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Mã phiếu</th><th>Loại</th><th>Kho</th><th>Số SP</th><th>Tổng SL</th><th>Người tạo</th><th>Ngày tạo</th><th>Trạng thái</th></tr></thead>

@@ -13,7 +13,7 @@ $typeColors = ['import'=>'success','export'=>'danger','transfer'=>'info','adjust
     <div class="col-xl-8">
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0">Chi tiết phiếu</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Sản phẩm</th><th>SKU</th><th>ĐVT</th><th class="text-end">Số lượng</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr></thead>

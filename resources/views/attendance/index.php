@@ -62,7 +62,7 @@ $monthNames = ['','Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng
 
 <!-- Attendance Table -->
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-bordered table-hover align-middle mb-0 fs-12">
                 <thead class="table-light">

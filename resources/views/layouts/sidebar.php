@@ -215,23 +215,28 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
-                <?php if (plugin_active('attendance-payroll')): ?>
                 <li class="nav-item">
-                    <?php $attOpen = isOpen(['attendance','users'], $currentUrl); ?>
+                    <?php $attOpen = isOpen(['attendance','users','departments','settings/permissions','settings/positions'], $currentUrl); ?>
                     <a class="nav-link menu-link <?= $attOpen ? '' : 'collapsed' ?>" href="#sidebarAttendance" data-bs-toggle="collapse" role="button" aria-expanded="<?= $attOpen ? 'true' : 'false' ?>">
                         <i class="ri-team-line"></i> <span>Nhân sự</span>
                     </a>
                     <div class="collapse menu-dropdown <?= $attOpen ? 'show' : '' ?>" id="sidebarAttendance">
                         <ul class="nav nav-sm flex-column">
                             <?php if (canSee('users')): ?><li class="nav-item"><a href="<?= url('users') ?>" class="nav-link <?= isActive('users', $currentUrl) ?>">Người dùng</a></li><?php endif; ?>
+                            <?php if ($_isManager): ?><li class="nav-item"><a href="<?= url('departments') ?>" class="nav-link <?= isActive('departments', $currentUrl) ?>">Phòng ban</a></li><?php endif; ?>
+                            <?php if ($_isAdmin): ?>
+                            <li class="nav-item"><a href="<?= url('settings/positions') ?>" class="nav-link <?= isActive('settings/positions', $currentUrl) ?>">Chức vụ</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/permissions') ?>" class="nav-link <?= isActive('settings/permissions', $currentUrl) ?>">Phân quyền</a></li>
+                            <?php endif; ?>
+                            <?php if (plugin_active('attendance-payroll')): ?>
                             <li class="nav-item"><a href="<?= url('attendance') ?>" class="nav-link <?= isActive('attendance', $currentUrl) && !str_contains($currentUrl, 'leaves') && !str_contains($currentUrl, 'payroll') && !str_contains($currentUrl, 'advances') ? 'active' : '' ?>">Chấm công</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/leaves') ?>" class="nav-link <?= isActive('attendance/leaves', $currentUrl) ?>">Nghỉ phép</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/payroll') ?>" class="nav-link <?= isActive('attendance/payroll', $currentUrl) ?>">Bảng lương</a></li>
                             <li class="nav-item"><a href="<?= url('attendance/advances') ?>" class="nav-link <?= isActive('attendance/advances', $currentUrl) ?>">Tạm ứng</a></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </li>
-                <?php endif; ?>
 
                 <?php if (canSee('reports')): ?>
                 <?php $rptOpen = isOpen(['reports','finance-reports','leaderboard'], $currentUrl); ?>
@@ -292,7 +297,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
                 <?php endif; /* end $_isManager */ ?>
 
-                <?php $settingsOpen = isOpen(['settings','custom-fields','tags','departments','help','data-definition'], $currentUrl); ?>
+                <?php $settingsOpen = isOpen(['settings/white-label','settings/api','settings/contact-statuses','settings/data-definition','settings/widgets','settings/api-keys','settings/audit-log','settings/document-templates','settings/company-profiles','custom-fields','tags','data-definition','document-templates'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
                         <i class="ri-tools-line"></i> <span>Cài đặt</span>
@@ -300,17 +305,16 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
                         <ul class="nav nav-sm flex-column">
                             <?php if ($_isManager): ?>
-                            <li class="nav-item"><a href="<?= url('departments') ?>" class="nav-link <?= isActive('departments', $currentUrl) ?>">Phòng ban</a></li>
                             <li class="nav-item"><a href="<?= url('settings/widgets') ?>" class="nav-link <?= isActive('settings/widgets', $currentUrl) ?>">Dashboard</a></li>
                             <?php endif; ?>
                             <?php if ($_isAdmin): ?>
-                            <li class="nav-item"><a href="<?= url('settings/positions') ?>" class="nav-link <?= isActive('settings/positions', $currentUrl) ?>">Chức vụ</a></li>
-                            <li class="nav-item"><a href="<?= url('settings/permissions') ?>" class="nav-link <?= isActive('settings/permissions', $currentUrl) ?>">Phân quyền</a></li>
                             <li class="nav-item"><a href="<?= url('settings/white-label') ?>" class="nav-link <?= isActive('settings/white-label', $currentUrl) ?>">Thương hiệu</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/company-profiles') ?>" class="nav-link <?= isActive('settings/company-profiles', $currentUrl) ?>">Quản lý công ty</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
                             <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive(['settings/contact-statuses','tags'], $currentUrl) ?>">Nhãn & Trạng thái</a></li>
                             <li class="nav-item"><a href="<?= url('settings/data-definition') ?>" class="nav-link <?= isActive('settings/data-definition', $currentUrl) ?>">Định nghĩa dữ liệu</a></li>
                             <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/document-templates') ?>" class="nav-link <?= isActive('settings/document-templates', $currentUrl) ?>">Mẫu báo giá & HĐ</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api-keys') ?>" class="nav-link <?= isActive('settings/api-keys', $currentUrl) ?>">API Keys</a></li>
                             <li class="nav-item"><a href="<?= url('settings/audit-log') ?>" class="nav-link <?= isActive('settings/audit-log', $currentUrl) ?>">Audit Log</a></li>
                             <?php endif; ?>

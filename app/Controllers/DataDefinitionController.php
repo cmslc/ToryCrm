@@ -124,12 +124,64 @@ class DataDefinitionController extends Controller
         'cost_price' => 'Giá vốn',
 
         // Contracts
-        'contract_number' => 'Số HĐ', 'signed_date' => 'Ngày ký',
+        'contract_number' => 'Số HĐ', 'contract_code' => 'Mã HĐ', 'signed_date' => 'Ngày ký',
         'actual_value' => 'Giá trị thực', 'executed_amount' => 'Đã thực hiện',
         'paid_amount' => 'Đã thanh toán', 'installation_address' => 'ĐC lắp đặt',
         'contact_name' => 'Người liên hệ', 'auto_renew' => 'Tự động gia hạn',
         'recurring_value' => 'Giá trị định kỳ', 'recurring_cycle' => 'Chu kỳ',
-        'parent_contract_id' => 'HĐ gốc',
+        'parent_contract_id' => 'HĐ gốc', 'related_contract_id' => 'HĐ liên quan',
+        'payment_method' => 'Hình thức TT', 'usage_type' => 'HĐ sử dụng',
+        'created_date' => 'Ngày tạo HĐ', 'actual_start_date' => 'TG thực tế bắt đầu',
+        'actual_end_date' => 'TG thực tế kết thúc', 'location' => 'Địa điểm',
+        'project' => 'Dự án', 'quote_id' => 'Báo giá',
+        'party_a_company_id' => 'Công ty bên bán', 'party_a_name' => 'Tên bên bán',
+        'party_a_address' => 'ĐC bên bán', 'party_a_phone' => 'ĐT bên bán',
+        'party_a_fax' => 'Fax bên bán', 'party_a_representative' => 'Đại diện bên bán',
+        'party_a_position' => 'CV bên bán', 'party_a_bank_account' => 'TK bên bán',
+        'party_a_bank_name' => 'NH bên bán', 'party_a_tax_code' => 'MST bên bán',
+        'party_b_name' => 'Tên bên mua', 'party_b_address' => 'ĐC bên mua',
+        'party_b_phone' => 'ĐT bên mua', 'party_b_fax' => 'Fax bên mua',
+        'party_b_representative' => 'Đại diện bên mua', 'party_b_position' => 'CV bên mua',
+        'party_b_bank_account' => 'TK bên mua', 'party_b_bank_name' => 'NH bên mua',
+        'party_b_tax_code' => 'MST bên mua',
+        'discount_percent' => 'CK (%)', 'discount_after_tax' => 'CK sau thuế',
+        'shipping_fee_percent' => 'Phí VC (%)', 'shipping_after_tax' => 'VC sau thuế',
+        'apply_vat' => 'Áp dụng VAT', 'vat_percent' => 'VAT (%)', 'vat_amount' => 'Tiền VAT',
+        'installation_fee_percent' => 'Phí lắp đặt (%)',
+        'auto_create_order' => 'Tự tạo ĐH', 'auto_notify_expiry' => 'Tự báo hết hạn',
+        'auto_send_sms' => 'Tự gửi SMS', 'auto_send_email' => 'Tự gửi email',
+
+        // Deals extra
+        'opportunity_status_id' => 'Trạng thái cơ hội', 'receipt_date' => 'Ngày nhận',
+        'lost_reason' => 'Lý do mất', 'probability' => 'Xác suất (%)',
+        'close_reason' => 'Lý do đóng', 'competitor' => 'Đối thủ',
+
+        // Tasks extra
+        'progress' => 'Tiến độ (%)', 'estimated_hours' => 'Giờ dự kiến',
+        'color' => 'Màu', 'is_important' => 'Quan trọng',
+        'cancelled_at' => 'Ngày hủy', 'project_id' => 'Dự án',
+        'parent_id' => 'Công việc cha', 'recurring_id' => 'Lặp lại',
+        'task_type_id' => 'Loại công việc',
+
+        // Products extra
+        'barcode' => 'Mã vạch', 'origin_id' => 'Xuất xứ',
+        'manufacturer_id' => 'Nhà sản xuất', 'price_wholesale' => 'Giá sỉ',
+        'price_online' => 'Giá online', 'saleoff_price' => 'Giá khuyến mãi',
+        'weight' => 'Trọng lượng', 'short_description' => 'Mô tả ngắn',
+        'featured_image' => 'Ảnh nổi bật',
+
+        // Orders extra
+        'cancelled_reason' => 'Lý do hủy', 'is_auto_approve' => 'Tự duyệt',
+
+        // Order items extra
+        'note' => 'Ghi chú',
+
+        // Tickets extra
+        'status_id' => 'Trạng thái', 'expected_at' => 'Dự kiến xử lý',
+        'resolved_at' => 'Ngày giải quyết', 'closed_at' => 'Ngày đóng',
+        'sla_policy_id' => 'Chính sách SLA', 'first_response_at' => 'Phản hồi đầu',
+        'sla_first_response_due' => 'Hạn phản hồi SLA', 'sla_resolution_due' => 'Hạn xử lý SLA',
+        'sla_breached' => 'Vi phạm SLA',
 
         // Common
         'id' => 'ID', 'sort_order' => 'Thứ tự',

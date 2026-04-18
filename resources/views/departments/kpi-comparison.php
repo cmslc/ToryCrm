@@ -28,7 +28,7 @@ $pYear = (int)substr($period, 0, 4);
 
 <!-- Comparison Table -->
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">

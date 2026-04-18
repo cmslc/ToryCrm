@@ -22,8 +22,9 @@ class FundController extends Controller
             'date_from' => $this->input('date_from'),
             'date_to' => $this->input('date_to'),
         ];
-        if (!$this->isAdminOrManager()) {
-            $filters['created_by'] = $this->userId();
+        if (!$this->isSystemAdmin()) {
+            $visibleIds = $this->getVisibleUserIds();
+            $filters['created_by_in'] = $visibleIds ?: [$this->userId()];
         }
         $transactions = $model->getWithRelations($page, 10, $filters);
 

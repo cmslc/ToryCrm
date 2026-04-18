@@ -8,7 +8,7 @@
 <?php if (!empty($accounts)): ?>
 <div class="card mb-3">
     <div class="card-header"><h5 class="card-title mb-0">Tài khoản đã cấu hình</h5></div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Email</th><th>Nhân viên</th><th>API Token</th><th>Đồng bộ cuối</th><th>MĐ</th><th>Thao tác</th></tr></thead>

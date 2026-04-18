@@ -74,7 +74,7 @@
                     <i class="ri-links-line me-1"></i> Bài viết liên quan
                 </h6>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <?php if (!empty($relatedArticles)): ?>
                     <div class="list-group list-group-flush">
                         <?php foreach ($relatedArticles as $related): ?>

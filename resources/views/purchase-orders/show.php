@@ -166,7 +166,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         <form method="POST" action="<?= url('purchase-orders/' . $order['id'] . '/payment') ?>">
                             <?= csrf_field() ?>
                             <div class="mb-2">
-                                <input type="number" class="form-control form-control" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
+                                <input type="number" class="form-control" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
                             </div>
                             <button type="submit" class="btn btn-success btn w-100"><i class="ri-money-dollar-circle-line me-1"></i> Ghi nhận thanh toán</button>
                         </form>

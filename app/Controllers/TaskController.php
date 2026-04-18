@@ -771,7 +771,7 @@ class TaskController extends Controller
         $comment = Database::fetch("SELECT * FROM task_comments WHERE id = ? AND task_id = ?", [$commentId, $id]);
         if (!$comment) return $this->json(['error' => 'Không tồn tại'], 404);
 
-        if ($comment['user_id'] != $this->userId() && !$this->isAdminOrManager()) {
+        if ($comment['user_id'] != $this->userId() && !$this->isSystemAdmin()) {
             return $this->json(['error' => 'Không có quyền'], 403);
         }
 

@@ -67,7 +67,7 @@
     <div class="col-lg-6">
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-server-line me-2"></i> Server</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <table class="table table-hover mb-0">
                     <tbody>
                         <tr><td class="text-muted" style="width:40%">PHP</td><td class="fw-medium"><?= $server['php_version'] ?></td></tr>
@@ -89,7 +89,7 @@
         <!-- Plugins -->
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-plug-line me-2"></i> Plugins (<?= count($plugins) ?>)</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <table class="table table-hover mb-0">
                     <tbody>
                         <?php foreach ($plugins as $p): ?>
@@ -115,7 +115,7 @@
     <div class="col-lg-6">
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-database-2-line me-2"></i> Database — <?= $dbStats['size'] ?></h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <table class="table table-hover mb-0">
                     <thead class="table-light"><tr><th>Bảng</th><th class="text-end">Rows</th><th class="text-end">Dung lượng</th></tr></thead>
                     <tbody>
@@ -134,7 +134,7 @@
         <!-- Record Counts -->
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-line me-2"></i> Số liệu</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <?php
                 $countLabels = ['contacts'=>'Khách hàng','deals'=>'Cơ hội','tasks'=>'Công việc','orders'=>'Đơn hàng','tickets'=>'Ticket','quotations'=>'Báo giá','contracts'=>'Hợp đồng','fund_transactions'=>'Giao dịch quỹ','debts'=>'Công nợ','email_messages'=>'Email','activities'=>'Hoạt động','users'=>'Người dùng','lead_form_submissions'=>'Lead Forms'];
                 ?>

@@ -60,7 +60,7 @@
     <div class="col-lg-6">
         <div class="card card-height-100">
             <div class="card-header"><h5 class="card-title mb-0">Top 10 Deal thắng</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -94,7 +94,7 @@
     <div class="col-lg-6">
         <div class="card card-height-100">
             <div class="card-header"><h5 class="card-title mb-0">Doanh thu theo nhân viên</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">

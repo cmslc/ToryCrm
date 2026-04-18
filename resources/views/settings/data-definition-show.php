@@ -19,7 +19,7 @@
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabCustom">Tùy chỉnh <span class="badge bg-info-subtle text-info ms-1" id="customCount">0</span></a></li>
         </ul>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="tab-content">
             <!-- Active fields -->
             <div class="tab-pane active" id="tabActive">

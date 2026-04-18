@@ -5,56 +5,56 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
 ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0"><?= $pageTitle ?></h4>
-            <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="<?= url('quotations') ?>">Báo giá</a></li>
-                <li class="breadcrumb-item active"><?= e($quotation['quote_number']) ?></li>
-            </ol>
+            <div>
+                <span class="text-muted">Báo giá</span><br>
+                <h4 class="mb-0">
+                    BÁO GIÁ <?= e($quotation['quote_number']) ?>
+                    <span class="badge bg-<?= $sc[$quotation['status']] ?? 'secondary' ?> ms-2"><?= $sl[$quotation['status']] ?? '' ?></span>
+                </h4>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="<?= url('quotations/' . $quotation['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
+                <a href="<?= url('quotations/' . $quotation['id'] . '/pdf') ?>" class="btn btn-soft-info" target="_blank"><i class="ri-printer-line me-1"></i>PDF</a>
+
+                <?php if ($quotation['status'] === 'draft'): ?>
+                    <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/submit') ?>" class="d-inline" data-confirm="Gửi duyệt báo giá này?">
+                        <?= csrf_field() ?><button class="btn btn-warning"><i class="ri-send-plane-line me-1"></i>Gửi duyệt</button>
+                    </form>
+                <?php endif; ?>
+
+                <?php if ($quotation['status'] === 'pending'): ?>
+                    <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt báo giá này?">
+                        <?= csrf_field() ?><button class="btn btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
+                    </form>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectApprovalModal"><i class="ri-close-line me-1"></i>Từ chối</button>
+                <?php endif; ?>
+
+                <?php if ($quotation['status'] === 'approved'): ?>
+                    <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/send') ?>" class="d-inline" data-confirm="Gửi báo giá cho khách hàng?">
+                        <?= csrf_field() ?><button class="btn btn-success"><i class="ri-mail-send-line me-1"></i>Gửi khách</button>
+                    </form>
+                <?php endif; ?>
+
+                <?php if (in_array($quotation['status'], ['approved', 'accepted', 'sent'])): ?>
+                    <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/convert') ?>" class="d-inline" data-confirm="Tạo đơn hàng từ báo giá này?">
+                        <?= csrf_field() ?><button class="btn btn-soft-success"><i class="ri-shopping-cart-line me-1"></i>Tạo đơn hàng</button>
+                    </form>
+                    <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/create-contract') ?>" class="d-inline" data-confirm="Tạo hợp đồng từ báo giá này?">
+                        <?= csrf_field() ?><button class="btn btn-soft-warning"><i class="ri-file-shield-line me-1"></i>Tạo hợp đồng</button>
+                    </form>
+                <?php endif; ?>
+
+                <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa báo giá này?">
+                    <?= csrf_field() ?><button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
+                </form>
+            </div>
         </div>
 
         <div class="row">
             <div class="col-lg-8">
                 <!-- Quotation Info -->
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-1"><?= e($quotation['quote_number']) ?></h5>
-                            <span class="badge bg-<?= $sc[$quotation['status']] ?? 'secondary' ?>"><?= $sl[$quotation['status']] ?? '' ?></span>
-                        </div>
-                        <div class="d-flex gap-1 flex-wrap">
-                            <a href="<?= url('quotations/' . $quotation['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
-                            <a href="<?= url('quotations/' . $quotation['id'] . '/pdf') ?>" class="btn btn-soft-info" target="_blank"><i class="ri-printer-line me-1"></i>PDF</a>
-
-                            <?php if ($quotation['status'] === 'draft'): ?>
-                                <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/submit') ?>" class="d-inline" data-confirm="Gửi duyệt báo giá này?">
-                                    <?= csrf_field() ?><button class="btn btn-warning"><i class="ri-send-plane-line me-1"></i>Gửi duyệt</button>
-                                </form>
-                            <?php endif; ?>
-
-                            <?php if ($quotation['status'] === 'pending'): ?>
-                                <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt báo giá này?">
-                                    <?= csrf_field() ?><button class="btn btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
-                                </form>
-                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectApprovalModal"><i class="ri-close-line me-1"></i>Từ chối duyệt</button>
-                            <?php endif; ?>
-
-                            <?php if ($quotation['status'] === 'approved'): ?>
-                                <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/send') ?>" class="d-inline" data-confirm="Gửi báo giá cho khách hàng?">
-                                    <?= csrf_field() ?><button class="btn btn-success"><i class="ri-mail-send-line me-1"></i>Gửi khách</button>
-                                </form>
-                            <?php endif; ?>
-
-                            <?php if (in_array($quotation['status'], ['accepted', 'sent'])): ?>
-                                <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/convert') ?>" class="d-inline" data-confirm="Chuyển thành đơn hàng?">
-                                    <?= csrf_field() ?><button class="btn btn-soft-warning"><i class="ri-swap-line me-1"></i>Chuyển đơn hàng</button>
-                                </form>
-                            <?php endif; ?>
-
-                            <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa báo giá này?">
-                                <?= csrf_field() ?><button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
-                            </form>
-                        </div>
-                    </div>
+                    <div class="card-header">
                     <div class="card-body">
                         <div class="row mb-4">
                             <div class="col-md-6">

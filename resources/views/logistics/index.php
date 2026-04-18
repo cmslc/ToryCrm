@@ -48,7 +48,7 @@ $statusColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primar
         <h5 class="card-title mb-0 flex-grow-1">Kiện hàng gần đây</h5>
         <a href="<?= url('logistics/packages') ?>" class="btn btn-soft-primary">Xem tất cả</a>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Khách hàng</th><th>Cân nặng</th><th>Trạng thái</th><th>Cập nhật</th></tr></thead>

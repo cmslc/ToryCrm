@@ -9,35 +9,66 @@
         </div>
 
         <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?= url('purchase-orders') ?>" class="row g-3 mb-4">
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" name="search" placeholder="Tìm mã đơn, nhà cung cấp..." value="<?= e($filters['search'] ?? '') ?>">
+            <div class="card-header p-2">
+                <form method="GET" action="<?= url('purchase-orders') ?>" class="d-flex align-items-center gap-2 flex-wrap">
+                    <div class="search-box" style="min-width:160px;max-width:200px">
+                        <input type="text" class="form-control" name="search" placeholder="Tìm mã đơn, NCC..." value="<?= e($filters['search'] ?? '') ?>">
+                        <i class="ri-search-line search-icon"></i>
                     </div>
-                    <div class="col-md-2">
-                        <select name="status" class="form-select">
-                            <option value="">Trạng thái</option>
-                            <option value="draft" <?= ($filters['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Nháp</option>
-                            <option value="pending" <?= ($filters['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Chờ duyệt</option>
-                            <option value="approved" <?= ($filters['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Đã duyệt</option>
-                            <option value="receiving" <?= ($filters['status'] ?? '') === 'receiving' ? 'selected' : '' ?>>Đang nhận</option>
-                            <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Hoàn thành</option>
-                            <option value="cancelled" <?= ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
-                        </select>
+                    <select name="status" class="form-select" style="width:auto" onchange="this.form.submit()">
+                        <option value="">Trạng thái</option>
+                        <option value="draft" <?= ($filters['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Nháp</option>
+                        <option value="pending" <?= ($filters['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Chờ duyệt</option>
+                        <option value="approved" <?= ($filters['status'] ?? '') === 'approved' ? 'selected' : '' ?>>Đã duyệt</option>
+                        <option value="receiving" <?= ($filters['status'] ?? '') === 'receiving' ? 'selected' : '' ?>>Đang nhận</option>
+                        <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Hoàn thành</option>
+                        <option value="cancelled" <?= ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
+                    </select>
+                    <select name="payment_status" class="form-select" style="width:auto" onchange="this.form.submit()">
+                        <option value="">Thanh toán</option>
+                        <option value="unpaid" <?= ($filters['payment_status'] ?? '') === 'unpaid' ? 'selected' : '' ?>>Chưa TT</option>
+                        <option value="partial" <?= ($filters['payment_status'] ?? '') === 'partial' ? 'selected' : '' ?>>Một phần</option>
+                        <option value="paid" <?= ($filters['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Đã TT</option>
+                    </select>
+                    <input type="hidden" name="owner_id" id="poOwnerIdInput" value="<?= e($filters['owner_id'] ?? '') ?>">
+                    <div class="position-relative" id="poOwnerDropdown">
+                        <div class="form-select d-flex align-items-center gap-2" style="cursor:pointer;width:auto;white-space:nowrap" id="poOwnerBtn">
+                            <?php
+                            $selectedOwner = null;
+                            foreach ($users ?? [] as $u) { if (($filters['owner_id'] ?? '') == $u['id']) $selectedOwner = $u; }
+                            ?>
+                            <?php if ($selectedOwner): ?>
+                                <?php if (!empty($selectedOwner['avatar'])): ?>
+                                <img src="<?= asset($selectedOwner['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                                <?php else: ?>
+                                <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:10px"><?= mb_substr($selectedOwner['name'], 0, 1) ?></span>
+                                <?php endif; ?>
+                                <span><?= e($selectedOwner['name']) ?></span>
+                            <?php else: ?>
+                                <span class="text-muted">Người phụ trách</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="border rounded bg-white shadow" id="poOwnerList" style="position:absolute;z-index:1060;min-width:220px;display:none;top:100%;left:0;margin-top:2px;max-height:280px;overflow-y:auto">
+                            <div class="po-owner-opt px-3 py-2 text-primary fw-medium" style="cursor:pointer" data-id="">Tất cả</div>
+                            <?php foreach ($users ?? [] as $u): ?>
+                            <div class="po-owner-opt d-flex align-items-center gap-2 px-3 py-2 <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'bg-primary bg-opacity-10' : '' ?>" style="cursor:pointer" data-id="<?= $u['id'] ?>">
+                                <?php if (!empty($u['avatar'])): ?>
+                                <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                <?php else: ?>
+                                <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= mb_substr($u['name'], 0, 1) ?></span>
+                                <?php endif; ?>
+                                <span style="font-size:13px"><?= e($u['name']) ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <select name="payment_status" class="form-select">
-                            <option value="">Thanh toán</option>
-                            <option value="unpaid" <?= ($filters['payment_status'] ?? '') === 'unpaid' ? 'selected' : '' ?>>Chưa TT</option>
-                            <option value="partial" <?= ($filters['payment_status'] ?? '') === 'partial' ? 'selected' : '' ?>>Một phần</option>
-                            <option value="paid" <?= ($filters['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Đã TT</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
-                        <a href="<?= url('purchase-orders') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
-                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
+                    <?php if (!empty(array_filter($filters ?? []))): ?>
+                    <a href="<?= url('purchase-orders') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                    <?php endif; ?>
                 </form>
+            </div>
+            <div class="card-body p-2">
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -106,3 +137,21 @@
                 <?php endif; ?>
             </div>
         </div>
+
+<script>
+(function(){
+    var btn = document.getElementById('poOwnerBtn');
+    var list = document.getElementById('poOwnerList');
+    if (!btn || !list) return;
+    btn.addEventListener('click', function(e) { e.stopPropagation(); list.style.display = list.style.display === 'none' ? 'block' : 'none'; });
+    document.addEventListener('click', function(e) { if (!document.getElementById('poOwnerDropdown').contains(e.target)) list.style.display = 'none'; });
+    list.querySelectorAll('.po-owner-opt').forEach(function(opt) {
+        opt.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
+        opt.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+        opt.addEventListener('click', function() {
+            document.getElementById('poOwnerIdInput').value = this.dataset.id;
+            this.closest('form').submit();
+        });
+    });
+})();
+</script>

@@ -1,0 +1,112 @@
+<p style="text-align:center"><strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br>
+<strong>Độc lập - Tự do - Hạnh phúc</strong><br>
+--------------</p>
+
+<h2 style="text-align:center">HỢP ĐỒNG CUNG CẤP VÀ LẮP ĐẶT NỘI THẤT</h2>
+<p style="text-align:center"><strong>Số: {{contract_number}}</strong></p>
+
+<p>- Căn cứ Bộ luật Dân sự số 91/2015/QH13;<br>
+- Căn cứ Luật Thương mại số 36/2005/QH11;<br>
+- Căn cứ vào nhu cầu và năng lực của hai bên.</p>
+
+<p><em>Hôm nay, {{today_text}}, chúng tôi gồm:</em></p>
+
+<h3>BÊN A (BÊN MUA): {{customer_name}}</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse">
+<tbody>
+<tr><td style="width:25%"><strong>Địa chỉ</strong></td><td colspan="3">{{customer_address}}</td></tr>
+<tr><td><strong>MST</strong></td><td colspan="3">{{customer_tax_code}}</td></tr>
+<tr><td><strong>Đại diện</strong></td><td>{{customer_representative}}</td><td><strong>Chức vụ</strong></td><td>{{customer_position}}</td></tr>
+<tr><td><strong>Tài khoản</strong></td><td>{{customer_bank_account}}</td><td><strong>Ngân hàng</strong></td><td>{{customer_bank_name}}</td></tr>
+</tbody>
+</table>
+<p>Sau đây gọi là <strong>"Bên A"</strong></p>
+
+<h3>BÊN B (BÊN BÁN): {{company_name}}</h3>
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse">
+<tbody>
+<tr><td style="width:25%"><strong>Địa chỉ</strong></td><td colspan="3">{{company_address}}</td></tr>
+<tr><td><strong>MST</strong></td><td colspan="3">{{company_tax_code}}</td></tr>
+<tr><td><strong>Đại diện</strong></td><td>{{company_representative}}</td><td><strong>Chức vụ</strong></td><td>{{company_position}}</td></tr>
+<tr><td><strong>Tài khoản</strong></td><td>{{company_bank_account}}</td><td><strong>Ngân hàng</strong></td><td>{{company_bank_name}}</td></tr>
+</tbody>
+</table>
+<p>Sau đây gọi là <strong>"Bên B"</strong></p>
+
+<p><strong>HAI BÊN THỐNG NHẤT KÝ KẾT HỢP ĐỒNG VỚI CÁC NỘI DUNG SAU:</strong></p>
+
+<h3>ĐIỀU 1: NỘI DUNG CUNG CẤP VÀ LẮP ĐẶT</h3>
+<p>Bên A đồng ý mua, Bên B đồng ý cung cấp và lắp đặt trang thiết bị nội thất theo danh mục sau:</p>
+{{items_table}}
+
+<h3>ĐIỀU 2: CHẤT LƯỢNG</h3>
+<p>- Sản phẩm mới 100%, đúng chủng loại, tiêu chuẩn theo mẫu đã thống nhất.<br>
+- Sản phẩm đảm bảo tính đồng bộ, thẩm mỹ và chức năng sử dụng.<br>
+- Bên B cung cấp chứng nhận xuất xứ và chất lượng sản phẩm khi có yêu cầu.</p>
+
+<h3>ĐIỀU 3: GIÁ TRỊ VÀ PHƯƠNG THỨC THANH TOÁN</h3>
+<p><strong>3.1. Giá trị hợp đồng:</strong> {{total}} VNĐ (Bằng chữ: {{w_revenue}})</p>
+<p>Giá trị trên đã bao gồm thuế VAT, chi phí vận chuyển, lắp đặt tại công trình.</p>
+
+<p><strong>3.2. Phương thức thanh toán:</strong> {{payment_method}}</p>
+<p>- <strong>Đợt 1 (50%):</strong> Bên A tạm ứng ngay sau khi ký hợp đồng.<br>
+- <strong>Đợt 2 (30%):</strong> Trước khi Bên B giao hàng và lắp đặt.<br>
+- <strong>Đợt 3 (20%):</strong> Sau khi nghiệm thu hoàn thành, trong vòng 07 ngày làm việc.</p>
+
+<p><strong>3.3. Thông tin thanh toán:</strong></p>
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;border-collapse:collapse">
+<tbody>
+<tr><td><strong>Tên TK:</strong></td><td>{{company_name}}</td></tr>
+<tr><td><strong>Số TK:</strong></td><td>{{company_bank_account}}</td></tr>
+<tr><td><strong>Ngân hàng:</strong></td><td>{{company_bank_name}}</td></tr>
+</tbody>
+</table>
+
+<h3>ĐIỀU 4: TIẾN ĐỘ VÀ ĐỊA ĐIỂM</h3>
+<p>- <strong>Thời gian sản xuất:</strong> 15-25 ngày làm việc kể từ ngày nhận tạm ứng Đợt 1.<br>
+- <strong>Thời gian lắp đặt:</strong> 3-5 ngày làm việc tại công trình.<br>
+- <strong>Địa điểm lắp đặt:</strong> {{installation_address}}</p>
+
+<h3>ĐIỀU 5: NGHIỆM THU VÀ BÀN GIAO</h3>
+<p>- Sau khi lắp đặt xong, hai bên tiến hành nghiệm thu.<br>
+- Biên bản nghiệm thu có xác nhận của hai bên là cơ sở để thanh toán Đợt 3.<br>
+- Bên A có 03 ngày làm việc để kiểm tra và phản hồi. Quá thời hạn mà không có ý kiến, coi như nghiệm thu đạt.</p>
+
+<h3>ĐIỀU 6: BẢO HÀNH</h3>
+<p>- <strong>Thời gian bảo hành:</strong> 12 tháng kể từ ngày nghiệm thu bàn giao.<br>
+- Trong thời gian bảo hành, Bên B sửa chữa/thay thế miễn phí các lỗi do sản xuất.<br>
+- Bên B phải có mặt xử lý trong vòng <strong>48 giờ</strong> kể từ khi nhận thông báo.<br>
+- <strong>Không bảo hành:</strong> Hư hỏng do sử dụng sai mục đích, tác động ngoại lực, thiên tai, hỏa hoạn.</p>
+
+<h3>ĐIỀU 7: TRÁCH NHIỆM CÁC BÊN</h3>
+<p><strong>7.1. Bên A:</strong></p>
+<p>- Chuẩn bị mặt bằng, nguồn điện, nước phục vụ lắp đặt.<br>
+- Cử người phối hợp giám sát và nhận bàn giao.<br>
+- Thanh toán đúng tiến độ theo Điều 3.</p>
+
+<p><strong>7.2. Bên B:</strong></p>
+<p>- Cung cấp hàng đúng chủng loại, số lượng, chất lượng.<br>
+- Lắp đặt đúng tiến độ, đảm bảo an toàn lao động.<br>
+- Hướng dẫn sử dụng và bảo quản sản phẩm cho Bên A.<br>
+- Hoàn thiện hồ sơ quyết toán: hóa đơn, biên bản giao nhận, biên bản nghiệm thu.</p>
+
+<h3>ĐIỀU 8: PHẠT VI PHẠM</h3>
+<p>- Bên nào vi phạm hợp đồng phải bồi thường thiệt hại cho bên kia.<br>
+- Phạt chậm thanh toán/chậm giao hàng: 0.05%/ngày trên giá trị vi phạm, tối đa 8% giá trị hợp đồng.<br>
+- Trường hợp bất khả kháng (thiên tai, dịch bệnh, quyết định của cơ quan nhà nước), hai bên được miễn trách nhiệm.</p>
+
+<h3>ĐIỀU 9: ĐIỀU KHOẢN CHUNG</h3>
+<p>- Hai bên cam kết thực hiện đúng hợp đồng, không đơn phương thay đổi hoặc hủy bỏ.<br>
+- Mọi sửa đổi phải được lập phụ lục bằng văn bản có chữ ký hai bên.<br>
+- Tranh chấp giải quyết bằng thương lượng, nếu không thống nhất đưa ra Tòa án nhân dân có thẩm quyền.<br>
+- Hợp đồng có hiệu lực từ ngày ký, tự thanh lý sau khi hai bên hoàn thành nghĩa vụ.<br>
+- Lập thành 04 bản, mỗi bên giữ 02 bản có giá trị pháp lý như nhau.</p>
+
+<table style="width:100%;margin-top:40px">
+<tbody>
+<tr>
+<td style="width:50%;text-align:center"><strong>ĐẠI DIỆN BÊN A</strong><br><em>(Ký, ghi rõ họ tên, đóng dấu)</em><br><br><br><br><br></td>
+<td style="width:50%;text-align:center"><strong>ĐẠI DIỆN BÊN B</strong><br><em>(Ký, ghi rõ họ tên, đóng dấu)</em><br><br><br><br><br></td>
+</tr>
+</tbody>
+</table>

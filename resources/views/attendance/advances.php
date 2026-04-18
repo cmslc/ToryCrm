@@ -45,7 +45,7 @@ $hasFilter = $fStatus || $fMonth || $fYear;
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Nhân viên</th><th class="text-end">Số tiền</th><th>% Lương</th><th>Tháng</th><th>Lý do</th><th>Trạng thái</th><th>Người duyệt</th><th>Ngày tạo</th><?php if ($_role !== 'staff'): ?><th>Thao tác</th><?php endif; ?></tr></thead>

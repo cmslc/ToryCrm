@@ -1,286 +1,529 @@
 <?php
-$pageTitle = 'Hợp đồng ' . $contract['contract_number'];
-$sc = ['draft' => 'secondary', 'sent' => 'info', 'signed' => 'primary', 'active' => 'success', 'expired' => 'danger', 'cancelled' => 'dark'];
-$sl = ['draft' => 'Nháp', 'sent' => 'Đã gửi', 'signed' => 'Đã ký', 'active' => 'Hoạt động', 'expired' => 'Hết hạn', 'cancelled' => 'Đã hủy'];
-$tc = ['service' => 'Dịch vụ', 'product' => 'Sản phẩm', 'rental' => 'Cho thuê', 'maintenance' => 'Bảo trì', 'other' => 'Khác'];
-$rcl = ['monthly' => 'Hàng tháng', 'quarterly' => 'Hàng quý', 'yearly' => 'Hàng năm'];
-
-// Days remaining
-$daysRemaining = null;
-if (!empty($contract['end_date'])) {
-    $end = new DateTime($contract['end_date']);
-    $now = new DateTime();
-    $diff = $now->diff($end);
-    $daysRemaining = $end > $now ? $diff->days : -$diff->days;
-}
-
-// Timeline steps
-$steps = ['draft', 'sent', 'signed', 'active', 'expired'];
-$stepLabels = ['draft' => 'Nháp', 'sent' => 'Đã gửi', 'signed' => 'Đã ký', 'active' => 'Hoạt động', 'expired' => 'Hết hạn'];
-$currentStepIndex = array_search($contract['status'], $steps);
-if ($currentStepIndex === false) $currentStepIndex = 0;
+$pageTitle = 'Chi tiết hợp đồng ' . $contract['contract_number'];
+$sc = ['pending' => 'warning', 'approved' => 'info', 'in_progress' => 'primary', 'renewed' => 'success', 'auto_renewed' => 'success', 'completed' => 'secondary', 'cancelled' => 'danger',
+       'draft' => 'secondary', 'sent' => 'info', 'signed' => 'primary', 'active' => 'success', 'expired' => 'danger'];
+$sl = ['pending' => 'Chờ duyệt', 'approved' => 'Đã duyệt', 'in_progress' => 'Đang thực hiện', 'renewed' => 'Đã gia hạn', 'auto_renewed' => 'Tự động gia hạn', 'completed' => 'Đã kết thúc', 'cancelled' => 'Đã hủy',
+       'draft' => 'Nháp', 'sent' => 'Đã gửi', 'signed' => 'Đã ký', 'active' => 'Hoạt động', 'expired' => 'Hết hạn'];
+$pmethods = ['bank_transfer'=>'chuyển khoản','cash'=>'tiền mặt','credit_card'=>'thẻ tín dụng','other'=>'khác'];
+$usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
 ?>
 
-        <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">
-                <?= e($contract['contract_number']) ?> - <?= e($contract['title']) ?>
-                <span class="badge bg-<?= $sc[$contract['status']] ?? 'secondary' ?> ms-2"><?= $sl[$contract['status']] ?? '' ?></span>
-            </h4>
-            <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="<?= url('contracts') ?>">Hợp đồng</a></li>
-                <li class="breadcrumb-item active"><?= e($contract['contract_number']) ?></li>
-            </ol>
-        </div>
+<!-- Header -->
+<div class="page-title-box d-flex align-items-center justify-content-between">
+    <div>
+        <span class="text-muted">Quản lý hợp đồng / Chi tiết hợp đồng bán</span><br>
+        <h4 class="mb-0">
+            <span class="text-primary">Số: <?= e($contract['contract_number']) ?></span>
+            <?php if (!empty($contract['title'])): ?> - <?= e($contract['title']) ?><?php endif; ?>
+            <a href="<?= url('contracts/' . $contract['id'] . '/edit') ?>" class="text-muted ms-1"><i class="ri-pencil-line"></i></a>
+            <span class="badge bg-<?= $sc[$contract['status']] ?? 'secondary' ?> ms-2"><?= $sl[$contract['status']] ?? $contract['status'] ?></span>
+        </h4>
+    </div>
+    <div class="d-flex gap-2">
+        <?php if (!in_array($contract['status'], ['cancelled', 'completed'])): ?>
+        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/cancel') ?>" class="d-inline" data-confirm="Hủy hợp đồng này?">
+            <?= csrf_field() ?><button class="btn btn-soft-secondary">Hủy</button>
+        </form>
+        <?php endif; ?>
 
-        <!-- Info Cards -->
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1">Giá trị</p>
-                        <h5 class="mb-0 text-primary"><?= format_money($contract['value']) ?></h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1">Thời hạn</p>
-                        <h5 class="mb-0">
-                            <?= !empty($contract['start_date']) ? format_date($contract['start_date']) : '?' ?>
-                            - <?= !empty($contract['end_date']) ? format_date($contract['end_date']) : '?' ?>
-                        </h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1">Định kỳ</p>
-                        <h5 class="mb-0">
-                            <?php if ($contract['recurring_value'] > 0): ?>
-                                <?= format_money($contract['recurring_value']) ?> / <?= $rcl[$contract['recurring_cycle']] ?? '-' ?>
-                            <?php else: ?>
-                                <span class="text-muted">Không</span>
-                            <?php endif; ?>
-                        </h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-animate">
-                    <div class="card-body text-center">
-                        <p class="text-muted mb-1">Còn lại</p>
-                        <h5 class="mb-0 <?= $daysRemaining !== null && $daysRemaining < 30 ? ($daysRemaining < 0 ? 'text-danger' : 'text-warning') : 'text-success' ?>">
-                            <?php if ($daysRemaining !== null): ?>
-                                <?= $daysRemaining >= 0 ? $daysRemaining . ' ngày' : abs($daysRemaining) . ' ngày trước' ?>
-                            <?php else: ?>
-                                <span class="text-muted">-</span>
-                            <?php endif; ?>
-                        </h5>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <a href="mailto:?subject=<?= urlencode('Hợp đồng ' . $contract['contract_number']) ?>" class="btn btn-primary">Gửi email</a>
 
-        <!-- Timeline -->
-        <div class="card mb-3">
+        <?php if (in_array($contract['status'], ['approved', 'in_progress'])): ?>
+        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/create-order') ?>" class="d-inline" data-confirm="Tạo đơn hàng bán từ hợp đồng này?">
+            <?= csrf_field() ?><button class="btn btn-success">Tạo đơn hàng bán</button>
+        </form>
+        <?php endif; ?>
+
+        <?php if ($contract['status'] === 'pending'): ?>
+        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt hợp đồng này?">
+            <?= csrf_field() ?><button class="btn btn-info">Duyệt</button>
+        </form>
+        <?php endif; ?>
+
+        <?php if ($contract['status'] === 'approved'): ?>
+        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/start') ?>" class="d-inline" data-confirm="Bắt đầu thực hiện hợp đồng?">
+            <?= csrf_field() ?><button class="btn btn-primary">Thực hiện</button>
+        </form>
+        <?php endif; ?>
+
+        <?php if ($contract['status'] === 'in_progress'): ?>
+        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/complete') ?>" class="d-inline" data-confirm="Hoàn thành hợp đồng?">
+            <?= csrf_field() ?><button class="btn btn-warning">Hoàn thành</button>
+        </form>
+        <?php endif; ?>
+
+        <?php if (in_array($contract['status'], ['completed', 'in_progress'])): ?>
+        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/renew') ?>" class="d-inline" data-confirm="Gia hạn hợp đồng? Sẽ tạo hợp đồng mới.">
+            <?= csrf_field() ?><button class="btn btn-soft-warning">Gia hạn</button>
+        </form>
+        <?php endif; ?>
+
+        <a href="<?= url('contracts/' . $contract['id'] . '/print') ?>" class="btn btn-dark" target="_blank">In hợp đồng</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- MAIN CONTENT -->
+    <div class="col-lg-9">
+        <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center position-relative" style="padding: 0 40px;">
-                    <div class="position-absolute" style="top:50%;left:60px;right:60px;height:3px;background:#e9ecef;transform:translateY(-50%);z-index:0;"></div>
-                    <?php foreach ($steps as $idx => $step): ?>
-                        <?php
-                        $isActive = $idx <= $currentStepIndex;
-                        $isCurrent = $idx === $currentStepIndex;
-                        ?>
-                        <div class="text-center position-relative" style="z-index:1;">
-                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-1"
-                                 style="width:36px;height:36px;border:3px solid <?= $isActive ? '#0ab39c' : '#e9ecef' ?>;background:<?= $isCurrent ? '#0ab39c' : ($isActive ? '#d1f5ef' : '#fff') ?>;color:<?= $isCurrent ? '#fff' : ($isActive ? '#0ab39c' : '#adb5bd') ?>;">
-                                <?php if ($isActive && !$isCurrent): ?>
-                                    <i class="ri-check-line"></i>
-                                <?php else: ?>
-                                    <?= $idx + 1 ?>
-                                <?php endif; ?>
-                            </div>
-                            <div class="<?= $isCurrent ? 'fw-bold text-success' : ($isActive ? 'text-success' : 'text-muted') ?>" style="font-size:12px;"><?= $stepLabels[$step] ?></div>
+
+                <!-- Contract Title -->
+                <h3 class="text-center fw-bold mb-4" style="text-transform:uppercase">HỢP ĐỒNG KINH TẾ</h3>
+
+                <!-- BÊN A -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <strong class="text-primary">Bên A: <?= e($contract['party_a_name'] ?? '-') ?></strong>
+                        <span>Mã số thuế: <?= e($contract['party_a_tax_code'] ?? '') ?></span>
+                    </div>
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr>
+                            <td colspan="2"><strong>Địa chỉ:</strong> <?= e($contract['party_a_address'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Điện thoại:</strong> <?= e($contract['party_a_phone'] ?? '') ?></td>
+                            <td><strong>Fax:</strong> <?= e($contract['party_a_fax'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Người đại diện:</strong> <?= e($contract['party_a_representative'] ?? '') ?></td>
+                            <td><strong>Chức vụ:</strong> <?= e($contract['party_a_position'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tài khoản số:</strong> <?= e($contract['party_a_bank_account'] ?? '') ?></td>
+                            <td><strong>Ngân hàng:</strong> <?= e($contract['party_a_bank_name'] ?? '') ?></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- BÊN B -->
+                <div class="mb-4">
+                    <?php
+                    $partyBName = $contract['party_b_name'] ?? trim(($contract['contact_first_name'] ?? '') . ' ' . ($contract['contact_last_name'] ?? ''));
+                    ?>
+                    <div class="d-flex justify-content-between mb-1">
+                        <strong>Bên B: <?= e($partyBName ?: '-') ?></strong>
+                        <span>Mã số thuế: <?= e($contract['party_b_tax_code'] ?? '') ?></span>
+                    </div>
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr>
+                            <td colspan="2"><strong>Địa chỉ:</strong> <?= e($contract['party_b_address'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Điện thoại:</strong> <?= e($contract['party_b_phone'] ?? $contract['contact_phone'] ?? '') ?></td>
+                            <td><strong>Fax:</strong> <?= e($contract['party_b_fax'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Người đại diện:</strong> <?= e($contract['party_b_representative'] ?? '') ?></td>
+                            <td><strong>Chức vụ:</strong> <?= e($contract['party_b_position'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tài khoản số:</strong> <?= e($contract['party_b_bank_account'] ?? '') ?></td>
+                            <td><strong>Ngân hàng:</strong> <?= e($contract['party_b_bank_name'] ?? '') ?></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Hiệu lực -->
+                <p class="mb-3">
+                    <em>Hợp đồng có hiệu lực từ ngày: <strong><?= !empty($contract['start_date']) ? date('d/m/Y', strtotime($contract['start_date'])) : '—' ?></strong>
+                    tới ngày: <strong><?= !empty($contract['end_date']) ? date('d/m/Y', strtotime($contract['end_date'])) : '—' ?></strong></em>
+                </p>
+
+                <!-- PRODUCTS TABLE -->
+                <?php if (!empty($items)): ?>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Tên sản phẩm</th>
+                                <th style="width:70px">Đơn vị</th>
+                                <th style="width:80px" class="text-end">Số lượng</th>
+                                <th style="width:110px" class="text-end">Đơn giá</th>
+                                <th style="width:80px" class="text-end">Chiết khấu %</th>
+                                <th style="width:100px" class="text-end">CK thành tiền</th>
+                                <th style="width:80px" class="text-end">Thuế VAT %</th>
+                                <th style="width:120px" class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($items as $i => $item): ?>
+                            <tr>
+                                <td><?= $i + 1 ?></td>
+                                <td>
+                                    <?php if (!empty($item['product_sku'])): ?>
+                                        <span class="text-primary"><?= e($item['product_sku']) ?></span> -
+                                    <?php endif; ?>
+                                    <?= e($item['product_name']) ?>
+                                </td>
+                                <td><?= e($item['unit'] ?? '') ?></td>
+                                <td class="text-end"><?= number_format((float)$item['quantity'], 2) ?></td>
+                                <td class="text-end"><?= number_format((float)$item['unit_price']) ?></td>
+                                <td class="text-end"><?= number_format((float)($item['discount_percent'] ?? 0), 2) ?></td>
+                                <td class="text-end"><?= number_format((float)($item['discount'] ?? 0)) ?></td>
+                                <td class="text-end"><?= number_format((float)($item['tax_rate'] ?? 0), 2) ?></td>
+                                <td class="text-end text-primary fw-medium"><?= number_format((float)$item['total']) ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="8" class="text-end fw-medium">Tổng tiền hàng</td>
+                                <td class="text-end text-primary fw-medium"><?= number_format((float)($contract['subtotal'] ?? 0)) ?></td>
+                            </tr>
+                            <tr>
+                                <td colspan="8" class="text-end">Phí vận chuyển <?= ($contract['shipping_after_tax'] ?? 0) ? 'sau' : 'trước' ?> thuế <?= number_format((float)($contract['shipping_fee_percent'] ?? 0), 2) ?>%</td>
+                                <td class="text-end text-primary"><?= number_format((float)($contract['shipping_fee'] ?? 0)) ?></td>
+                            </tr>
+                            <tr>
+                                <td colspan="8" class="text-end">Chiết khấu <?= ($contract['discount_after_tax'] ?? 0) ? 'sau' : 'trước' ?> thuế <?= number_format((float)($contract['discount_percent'] ?? 0), 2) ?> %</td>
+                                <td class="text-end text-primary"><?= number_format((float)($contract['discount_amount'] ?? 0)) ?></td>
+                            </tr>
+                            <tr>
+                                <td colspan="8" class="text-end">Thuế VAT <?= number_format((float)($contract['vat_percent'] ?? 0), 2) ?> %</td>
+                                <td class="text-end text-primary"><?= number_format((float)($contract['vat_amount'] ?? 0)) ?></td>
+                            </tr>
+                            <tr>
+                                <td colspan="8" class="text-end">Phí lắp đặt <?= number_format((float)($contract['installation_fee_percent'] ?? 0), 2) ?>%</td>
+                                <td class="text-end text-primary"><?= number_format((float)($contract['installation_fee'] ?? 0)) ?></td>
+                            </tr>
+                            <tr class="table-light">
+                                <td colspan="8" class="text-end fw-bold">Tổng tiền thanh toán</td>
+                                <td class="text-end fw-bold text-primary fs-5"><?= number_format((float)($contract['value'] ?? 0)) ?></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <?php endif; ?>
+
+                <!-- KỲ THANH TOÁN -->
+                <h6 class="fw-bold mb-2">Kỳ thanh toán</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tiêu đề</th>
+                                <th style="width:80px" class="text-end">%</th>
+                                <th style="width:120px" class="text-end">Thành tiền</th>
+                                <th style="width:120px">Ngày</th>
+                                <th>Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($paymentSchedules)): ?>
+                                <?php foreach ($paymentSchedules as $ps): ?>
+                                <tr>
+                                    <td><?= e($ps['title'] ?? '') ?></td>
+                                    <td class="text-end"><?= number_format((float)($ps['percent'] ?? 0), 2) ?> %</td>
+                                    <td class="text-end"><?= number_format((float)($ps['amount'] ?? 0)) ?></td>
+                                    <td><?= !empty($ps['due_date']) ? date('d/m/Y', strtotime($ps['due_date'])) : '' ?></td>
+                                    <td><?= e($ps['description'] ?? '') ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                            <tr class="table-light">
+                                <td class="fw-medium">Tổng</td>
+                                <td class="text-end fw-medium">0.00 %</td>
+                                <td class="text-end fw-medium">0</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- TERMS (điều khoản) -->
+                <?php if (!empty($contract['terms'])): ?>
+                <div class="mb-4">
+                    <div class="text-muted" style="white-space:pre-wrap"><?= nl2br(e($contract['terms'])) ?></div>
+                </div>
+                <?php endif; ?>
+
+                <!-- THÔNG TIN HỢP ĐỒNG -->
+                <h6 class="fw-bold mb-2">Thông tin hợp đồng</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm mb-0">
+                        <tr>
+                            <td style="width:33%"><strong>Số hợp đồng:</strong> <?= e($contract['contract_number']) ?></td>
+                            <td style="width:33%"><strong>Kiểu hợp đồng:</strong> <?= e($contract['type'] ?? '') ?></td>
+                            <td style="width:34%"><strong>Báo giá:</strong> <?= e($contract['quote_number'] ?? '') ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hình thức thanh toán:</strong> <?= $pmethods[$contract['payment_method'] ?? ''] ?? ($contract['payment_method'] ?? '') ?></td>
+                            <td><strong>Thời gian thực tế bắt đầu:</strong> <?= !empty($contract['actual_start_date']) ? date('d/m/Y', strtotime($contract['actual_start_date'])) : '' ?></td>
+                            <td><strong>Thời gian thực tế kết thúc:</strong> <?= !empty($contract['actual_end_date']) ? date('d/m/Y', strtotime($contract['actual_end_date'])) : '' ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hợp đồng sử dụng:</strong> <?= $usageTypes[$contract['usage_type'] ?? ''] ?? ($contract['usage_type'] ?? '') ?></td>
+                            <td><strong>Giá trị thực hiện:</strong> <?= number_format((float)($contract['executed_amount'] ?? 0)) ?></td>
+                            <td><strong>Đã thực hiện:</strong> <?= number_format((float)($contract['actual_value'] ?? 0)) ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dự án:</strong> <?= e($contract['project'] ?? '') ?></td>
+                            <td><strong>Địa điểm:</strong> <?= e($contract['location'] ?? '') ?></td>
+                            <td><strong>Hợp đồng gốc:</strong> <?= e($contract['parent_contract_number'] ?? '') ?></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- HỢP ĐỒNG LIÊN QUAN -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0">Hợp đồng liên quan</h6>
+                </div>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên hợp đồng</th>
+                                <th>Số hợp đồng</th>
+                                <th>Trạng thái</th>
+                                <th>Kiểu hợp đồng</th>
+                                <th>Ngày có hiệu lực</th>
+                                <th>Ngày hết hiệu lực</th>
+                                <th>Khách hàng</th>
+                                <th>Người phụ trách</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($relatedContracts)): ?>
+                                <?php foreach ($relatedContracts as $rc): ?>
+                                <tr>
+                                    <td><a href="<?= url('contracts/' . $rc['id']) ?>"><?= e($rc['title']) ?></a></td>
+                                    <td><?= e($rc['contract_number']) ?></td>
+                                    <td><span class="badge bg-<?= $sc[$rc['status']] ?? 'secondary' ?>"><?= $sl[$rc['status']] ?? $rc['status'] ?></span></td>
+                                    <td><?= e($rc['type']) ?></td>
+                                    <td><?= !empty($rc['start_date']) ? date('d/m/Y', strtotime($rc['start_date'])) : '' ?></td>
+                                    <td><?= !empty($rc['end_date']) ? date('d/m/Y', strtotime($rc['end_date'])) : '' ?></td>
+                                    <td><?= e($rc['contact_name'] ?? '') ?></td>
+                                    <td><?= e($rc['owner_name'] ?? '') ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="8" class="text-center text-muted">Không có hợp đồng liên quan</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- CÁC THÔNG TIN BỔ TRỢ -->
+                <h6 class="fw-bold mb-2">Các thông tin bổ trợ</h6>
+                <div class="mb-3">
+                    <?php if (!empty($contract['installation_address'])): ?>
+                    <p><strong>Địa chỉ lắp đặt:</strong> <?= e($contract['installation_address']) ?></p>
+                    <?php endif; ?>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled <?= ($contract['auto_renew'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label">Tự động gia hạn hợp đồng</label>
                         </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled <?= ($contract['auto_create_order'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label">Tự động tạo đơn hàng</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled <?= ($contract['auto_notify_expiry'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label">Tự động báo động sắp hết hạn hợp đồng</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled <?= ($contract['auto_send_sms'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label">Tự động gửi SMS thông báo</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" disabled <?= ($contract['auto_send_email'] ?? 0) ? 'checked' : '' ?>>
+                            <label class="form-check-label">Tự động gửi email hợp đồng mới</label>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (!empty($contract['notes'])): ?>
+                <div class="mb-3">
+                    <h6 class="fw-bold mb-1">Ghi chú</h6>
+                    <div class="border rounded p-3 bg-light"><?= nl2br(e($contract['notes'])) ?></div>
+                </div>
+                <?php endif; ?>
+
+                <!-- COMMENT BOX -->
+                <div class="mb-4">
+                    <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/comment') ?>">
+                        <?= csrf_field() ?>
+                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="Nhập bình luận..."></textarea>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Gửi</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- COMMENTS / ACTIVITY -->
+                <?php
+                // Auto-generated activity entries
+                $activityItems = [];
+                // Contract creation
+                if (!empty($contract['created_at'])) {
+                    $activityItems[] = [
+                        'user_name' => $contract['created_by_name'] ?? '-',
+                        'user_avatar' => null,
+                        'content' => 'Tạo hợp đồng <span class="text-primary">Số: ' . e($contract['contract_number']) . '</span>',
+                        'created_at' => $contract['created_at'],
+                        'is_system' => true,
+                    ];
+                }
+                // Signed
+                if (!empty($contract['signed_date'])) {
+                    $activityItems[] = [
+                        'user_name' => $contract['owner_name'] ?? '-',
+                        'user_avatar' => null,
+                        'content' => 'Duyệt hợp đồng <span class="text-primary">Số: ' . e($contract['contract_number']) . '</span>',
+                        'created_at' => $contract['signed_date'] . ' 00:00:00',
+                        'is_system' => true,
+                    ];
+                }
+                // User comments
+                foreach ($comments ?? [] as $cm) {
+                    $activityItems[] = [
+                        'user_name' => $cm['user_name'] ?? '-',
+                        'user_avatar' => $cm['user_avatar'] ?? null,
+                        'content' => nl2br(e($cm['content'])),
+                        'created_at' => $cm['created_at'],
+                        'is_system' => false,
+                    ];
+                }
+                // Sort by date desc
+                usort($activityItems, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                ?>
+                <?php foreach ($activityItems as $act): ?>
+                <div class="d-flex gap-3 mb-3 p-3 <?= $act['is_system'] ? 'bg-light' : '' ?> rounded">
+                    <div class="flex-shrink-0">
+                        <?php if (!empty($act['user_avatar'])): ?>
+                            <img src="<?= e($act['user_avatar']) ?>" class="rounded-circle" width="40" height="40" alt="">
+                        <?php else: ?>
+                            <div class="avatar-xs">
+                                <div class="avatar-title rounded-circle bg-primary text-white" style="width:40px;height:40px;font-size:14px;display:flex;align-items:center;justify-content:center"><?= mb_substr($act['user_name'], 0, 1) ?></div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <strong><?= e($act['user_name']) ?></strong>
+                            <small class="text-muted"><?= date('d/m/Y H:i', strtotime($act['created_at'])) ?></small>
+                        </div>
+                        <div><?= $act['content'] ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-3">
+        <!-- Người liên quan -->
+        <div class="card">
+            <div class="card-header"><h6 class="card-title mb-0 fw-bold">NGƯỜI LIÊN QUAN</h6></div>
+            <div class="card-body">
+                <?php if (!empty($relatedUsers)): ?>
+                <div class="d-flex flex-wrap gap-2">
+                    <?php foreach ($relatedUsers as $ru): ?>
+                    <div class="text-center" style="width:42px" title="<?= e($ru['user_name'] ?? '') ?><?= ($ru['commission'] ?? 0) > 0 ? ' - HH: ' . number_format($ru['commission']) : '' ?>">
+                        <div class="avatar-xs">
+                            <div class="avatar-title rounded-circle bg-primary text-white" style="font-size:12px"><?= mb_substr($ru['user_name'] ?? '?', 0, 1) ?></div>
+                        </div>
+                    </div>
                     <?php endforeach; ?>
                 </div>
+                <?php else: ?>
+                    <p class="text-muted mb-0">Chưa có</p>
+                <?php endif; ?>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-8">
-                <!-- Contract Details -->
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Chi tiết hợp đồng</h5>
-                        <div class="d-flex gap-1 flex-wrap">
-                            <?php if (in_array($contract['status'], ['draft', 'sent', 'signed'])): ?>
-                                <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/sign') ?>" class="d-inline" data-confirm="Xác nhận ký hợp đồng?">
-                                    <?= csrf_field() ?><button class="btn btn-soft-success"><i class="ri-quill-pen-line me-1"></i>Ký hợp đồng</button>
-                                </form>
+        <!-- Đơn hàng liên quan -->
+        <div class="card">
+            <div class="card-header"><h6 class="card-title mb-0 fw-bold">ĐƠN HÀNG LIÊN QUAN</h6></div>
+            <div class="card-body p-2">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($orders)): ?>
+                                <?php
+                                $osc = ['draft'=>'secondary','sent'=>'info','confirmed'=>'primary','processing'=>'warning','completed'=>'success','cancelled'=>'danger',
+                                         'pending'=>'warning','approved'=>'info','unpaid'=>'danger','paid'=>'success','collected'=>'success'];
+                                $osl = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy',
+                                         'pending'=>'Chờ duyệt','approved'=>'Đã duyệt','unpaid'=>'Chưa TT','paid'=>'Đã TT','collected'=>'Đã thu'];
+                                foreach ($orders as $o):
+                                ?>
+                                <tr>
+                                    <td><a href="<?= url('orders/' . $o['id']) ?>"><?= e($o['order_number']) ?></a></td>
+                                    <td><span class="badge bg-<?= $osc[$o['status']] ?? 'secondary' ?>"><?= $osl[$o['status']] ?? $o['status'] ?></span></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="2" class="text-muted text-center">Chưa có</td></tr>
                             <?php endif; ?>
-                            <?php if (in_array($contract['status'], ['active', 'expired'])): ?>
-                                <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/renew') ?>" class="d-inline" data-confirm="Gia hạn hợp đồng? Sẽ tạo hợp đồng mới.">
-                                    <?= csrf_field() ?><button class="btn btn-soft-warning"><i class="ri-refresh-line me-1"></i>Gia hạn</button>
-                                </form>
-                            <?php endif; ?>
-                            <a href="<?= url('contracts/' . $contract['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
-                            <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa hợp đồng?">
-                                <?= csrf_field() ?><button class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xóa</button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <h6 class="text-muted mb-2">Khách hàng</h6>
-                                <?php $contactName = trim(($contract['contact_first_name'] ?? '') . ' ' . ($contract['contact_last_name'] ?? '')); ?>
-                                <?php if ($contactName): ?>
-                                    <p class="mb-1 fw-medium"><?= e($contactName) ?></p>
-                                    <?php if (!empty($contract['contact_email'])): ?><p class="mb-1 text-muted"><i class="ri-mail-line me-1"></i><?= e($contract['contact_email']) ?></p><?php endif; ?>
-                                    <?php if (!empty($contract['contact_phone'])): ?><p class="mb-0 text-muted"><i class="ri-phone-line me-1"></i><?= e($contract['contact_phone']) ?></p><?php endif; ?>
-                                <?php else: ?>
-                                    <p class="text-muted">-</p>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="text-muted mb-2">Công ty</h6>
-                                <p class="mb-0 fw-medium"><?= e($contract['company_name'] ?? '-') ?></p>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-1">Loại hợp đồng</h6>
-                                <p class="mb-0"><?= $tc[$contract['type']] ?? $contract['type'] ?></p>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-1">Người phụ trách</h6>
-                                <p class="mb-0"><?= e($contract['owner_name'] ?? '-') ?></p>
-                            </div>
-                            <div class="col-md-4">
-                                <h6 class="text-muted mb-1">Tự động gia hạn</h6>
-                                <p class="mb-0"><?= $contract['auto_renew'] ? '<span class="badge bg-success">Có</span>' : '<span class="badge bg-secondary">Không</span>' ?></p>
-                            </div>
-                        </div>
-
-                        <?php if (!empty($contract['signed_date'])): ?>
-                            <div class="mb-3">
-                                <h6 class="text-muted mb-1">Ngày ký</h6>
-                                <p class="mb-0"><?= format_date($contract['signed_date']) ?></p>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if (!empty($contract['notes'])): ?>
-                            <div class="mb-3">
-                                <h6 class="text-muted mb-1">Ghi chú</h6>
-                                <p class="mb-0"><?= nl2br(e($contract['notes'])) ?></p>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if (!empty($contract['terms'])): ?>
-                            <div class="mb-3">
-                                <h6 class="text-muted mb-1">Điều khoản</h6>
-                                <div class="border rounded p-3 bg-light"><?= nl2br(e($contract['terms'])) ?></div>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="text-muted mt-3">
-                            <small>Người tạo: <?= e($contract['created_by_name'] ?? '-') ?> | Ngày tạo: <?= !empty($contract['created_at']) ? format_datetime($contract['created_at']) : '-' ?></small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Related Orders -->
-                <?php if (!empty($orders)): ?>
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Đơn hàng liên quan</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table align-middle mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Mã đơn</th>
-                                            <th>Tổng tiền</th>
-                                            <th>Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $osc = ['draft'=>'secondary','sent'=>'info','confirmed'=>'primary','processing'=>'warning','completed'=>'success','cancelled'=>'danger'];
-                                        $osl = ['draft'=>'Nháp','sent'=>'Đã gửi','confirmed'=>'Xác nhận','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
-                                        foreach ($orders as $o):
-                                        ?>
-                                            <tr>
-                                                <td><a href="<?= url('orders/' . $o['id']) ?>" class="fw-medium"><?= e($o['order_number']) ?></a></td>
-                                                <td><?= format_money($o['total']) ?></td>
-                                                <td><span class="badge bg-<?= $osc[$o['status']] ?? 'secondary' ?>"><?= $osl[$o['status']] ?? '' ?></span></td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <div class="col-lg-4">
-                <!-- Related Deal -->
-                <?php if (!empty($contract['deal_title'])): ?>
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Cơ hội liên quan</h5>
-                        </div>
-                        <div class="card-body">
-                            <a href="<?= url('deals/' . $contract['deal_id']) ?>" class="fw-medium">
-                                <i class="ri-hand-coin-line me-1"></i><?= e($contract['deal_title']) ?>
-                            </a>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Quick Info -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Thông tin nhanh</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between px-0">
-                                <span class="text-muted">Số hợp đồng</span>
-                                <span class="fw-medium"><?= e($contract['contract_number']) ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between px-0">
-                                <span class="text-muted">Trạng thái</span>
-                                <span class="badge bg-<?= $sc[$contract['status']] ?? 'secondary' ?>"><?= $sl[$contract['status']] ?? '' ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between px-0">
-                                <span class="text-muted">Loại</span>
-                                <span><?= $tc[$contract['type']] ?? $contract['type'] ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between px-0">
-                                <span class="text-muted">Giá trị</span>
-                                <span class="fw-medium"><?= format_money($contract['value']) ?></span>
-                            </li>
-                            <?php if (!empty($contract['start_date'])): ?>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Bắt đầu</span>
-                                    <span><?= format_date($contract['start_date']) ?></span>
-                                </li>
-                            <?php endif; ?>
-                            <?php if (!empty($contract['end_date'])): ?>
-                                <li class="list-group-item d-flex justify-content-between px-0">
-                                    <span class="text-muted">Kết thúc</span>
-                                    <span class="<?= ($daysRemaining !== null && $daysRemaining < 30) ? 'text-danger fw-bold' : '' ?>"><?= format_date($contract['end_date']) ?></span>
-                                </li>
-                            <?php endif; ?>
-                        </ul>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
+        <!-- Cơ hội liên quan -->
+        <?php if (!empty($contract['deal_title'])): ?>
+        <div class="card">
+            <div class="card-header"><h6 class="card-title mb-0 fw-bold">CƠ HỘI LIÊN QUAN</h6></div>
+            <div class="card-body">
+                <a href="<?= url('deals/' . $contract['deal_id']) ?>" class="fw-medium">
+                    <i class="ri-hand-coin-line me-1"></i><?= e($contract['deal_title']) ?>
+                </a>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Tài liệu đính kèm -->
+        <div class="card">
+            <div class="card-header"><h6 class="card-title mb-0 fw-bold">TÀI LIỆU ĐÍNH KÈM</h6></div>
+            <div class="card-body">
+                <?php
+                $fileIcons = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary',
+                    'xls'=>'ri-file-excel-line text-success','xlsx'=>'ri-file-excel-line text-success',
+                    'jpg'=>'ri-image-line text-warning','jpeg'=>'ri-image-line text-warning','png'=>'ri-image-line text-warning','gif'=>'ri-image-line text-warning'];
+                ?>
+                <?php if (!empty($attachments)): ?>
+                    <?php foreach ($attachments as $att):
+                        $ext = strtolower(pathinfo($att['file_name'], PATHINFO_EXTENSION));
+                        $icon = $fileIcons[$ext] ?? 'ri-file-line text-muted';
+                        $size = $att['file_size'] > 1048576 ? round($att['file_size']/1048576,1).'MB' : round($att['file_size']/1024).'KB';
+                    ?>
+                    <div class="d-flex align-items-center gap-2 p-2 rounded mb-2" style="background:#f8f9fa">
+                        <i class="<?= $icon ?> fs-20"></i>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <a href="<?= asset($att['file_path']) ?>" target="_blank" class="d-block text-truncate fw-medium" style="font-size:13px"><?= e($att['file_name']) ?></a>
+                            <small class="text-muted"><?= $size ?></small>
+                        </div>
+                        <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/attachment/' . $att['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa file này?">
+                            <?= csrf_field() ?>
+                            <button class="btn btn-soft-danger btn-icon" style="width:28px;height:28px"><i class="ri-delete-bin-line" style="font-size:12px"></i></button>
+                        </form>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/attachment') ?>" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+                    <label class="d-flex align-items-center justify-content-center gap-2 p-3 rounded border-dashed text-muted" style="border:2px dashed #ddd;cursor:pointer;font-size:13px">
+                        <i class="ri-upload-cloud-line fs-18"></i>
+                        <span id="uploadLabel">Kéo thả hoặc bấm để chọn file</span>
+                        <input type="file" name="file" class="d-none" required onchange="document.getElementById('uploadLabel').textContent=this.files[0]?.name||'Chọn file';this.closest('form').querySelector('.btn-upload').style.display='inline-block'">
+                    </label>
+                    <button type="submit" class="btn btn-primary w-100 mt-2 btn-upload" style="display:none"><i class="ri-upload-line me-1"></i> Tải lên</button>
+                </form>
+                <small class="text-muted d-block mt-1">PDF, Word, Excel, hình ảnh. Tối đa 10MB</small>
+            </div>
+        </div>
+    </div>
+</div>

@@ -48,10 +48,7 @@ class CommissionController extends Controller
             $params[] = $entityType;
         }
 
-        if (!$this->isAdminOrManager()) {
-            $where .= " AND c.user_id = ?";
-            $params[] = $this->userId();
-        }
+        $where .= $this->getOwnerScopeSql('c.user_id');
 
         $total = (int) Database::fetch(
             "SELECT COUNT(*) as cnt FROM commissions c WHERE {$where}",
@@ -77,7 +74,7 @@ class CommissionController extends Controller
                 SUM(CASE WHEN status = 'approved' THEN amount ELSE 0 END) as approved,
                 SUM(CASE WHEN status = 'paid' THEN amount ELSE 0 END) as paid,
                 SUM(amount) as total
-             FROM commissions WHERE tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ?" . (!$this->isAdminOrManager() ? " AND user_id = " . (int)$this->userId() : ''),
+             FROM commissions WHERE tenant_id = ? AND DATE_FORMAT(created_at, '%Y-%m') = ?" . $this->getOwnerScopeSql('user_id'),
             [$tid, $currentMonth]
         );
 

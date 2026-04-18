@@ -306,6 +306,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('quotations/{id}/reject-approval', 'QuotationController@rejectApproval');
     Router::post('quotations/{id}/send', 'QuotationController@send');
     Router::post('quotations/{id}/convert', 'QuotationController@convertToOrder');
+    Router::post('quotations/{id}/create-contract', 'QuotationController@convertToContract');
     Router::post('quotations/{id}/delete', 'QuotationController@delete');
     Router::post('quotations/{id}/attachment', 'QuotationController@uploadAttachment');
     Router::post('quotations/{id}/attachment/{attachId}/delete', 'QuotationController@deleteAttachment');
@@ -359,9 +360,20 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('contracts/{id}', 'ContractController@show');
     Router::get('contracts/{id}/edit', 'ContractController@edit');
     Router::post('contracts/{id}/update', 'ContractController@update');
-    Router::post('contracts/{id}/sign', 'ContractController@sign');
+    Router::post('contracts/{id}/approve', 'ContractController@approve');
+    Router::post('contracts/{id}/start', 'ContractController@start');
+    Router::post('contracts/{id}/complete', 'ContractController@complete');
+    Router::post('contracts/{id}/cancel', 'ContractController@cancel');
+    Router::post('contracts/{id}/create-order', 'ContractController@createOrder');
     Router::post('contracts/{id}/renew', 'ContractController@renew');
+    Router::get('contracts/{id}/print', 'ContractController@print');
+    Router::get('contracts/{id}/pdf', 'ContractController@pdf');
+    Router::get('contracts/{id}/download-pdf', 'ContractController@downloadPdf');
+    Router::post('contracts/{id}/email-pdf', 'ContractController@emailPdf');
+    Router::post('contracts/{id}/attachment', 'ContractController@uploadAttachment');
+    Router::post('contracts/{id}/attachment/{attachId}/delete', 'ContractController@deleteAttachment');
     Router::post('contracts/{id}/delete', 'ContractController@delete');
+    Router::post('contracts/{id}/comment', 'ContractController@comment');
 
     // Fund (Quỹ)
     Router::get('fund', 'FundController@index');
@@ -724,6 +736,20 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/audit-log', 'SettingController@auditLog');
     Router::get('settings/white-label', 'WhiteLabelController@settings');
     Router::post('settings/white-label', 'WhiteLabelController@save');
+
+    // Company Profiles (Thông tin công ty)
+    Router::get('settings/company-profiles', 'CompanyProfileController@index');
+    Router::post('settings/company-profiles/store', 'CompanyProfileController@store');
+    Router::post('settings/company-profiles/{id}/update', 'CompanyProfileController@update');
+    Router::post('settings/company-profiles/{id}/delete', 'CompanyProfileController@delete');
+
+    // Document Templates (Mẫu báo giá, hợp đồng)
+    Router::get('settings/document-templates', 'DocumentTemplateController@index');
+    Router::get('settings/document-templates/create', 'DocumentTemplateController@create');
+    Router::post('settings/document-templates/store', 'DocumentTemplateController@store');
+    Router::get('settings/document-templates/{id}/edit', 'DocumentTemplateController@edit');
+    Router::post('settings/document-templates/{id}/update', 'DocumentTemplateController@update');
+    Router::post('settings/document-templates/{id}/delete', 'DocumentTemplateController@delete');
 
     // Contact Statuses
     Router::get('settings/contact-statuses', 'ContactStatusController@index');

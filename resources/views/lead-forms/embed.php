@@ -45,7 +45,7 @@
     <div class="col-lg-6">
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-eye-line me-2"></i> Xem trước</h5></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <iframe src="<?= url('form/' . $form['slug']) ?>" width="100%" height="500" frameborder="0" style="border:none"></iframe>
             </div>
         </div>

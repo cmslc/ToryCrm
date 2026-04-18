@@ -84,11 +84,7 @@ class ContactController extends Controller
         $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
         $statusCountsWhere = "is_deleted = 0 AND tenant_id = ?";
         $statusCountsParams = [Database::tenantId()];
-        if (!$this->isAdminOrManager()) {
-            $statusCountsWhere .= " AND owner_id = ?";
-            $statusCountsParams[] = $this->userId();
-        }
-        $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM contacts WHERE {$statusCountsWhere} GROUP BY status", $statusCountsParams);
+        $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM contacts WHERE {$statusCountsWhere}" . $this->getOwnerScopeSql('owner_id') . " GROUP BY status", $statusCountsParams);
 
         $totalPages = ceil($total / $perPage);
 

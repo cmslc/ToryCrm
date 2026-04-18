@@ -65,7 +65,7 @@
                                         <tr>
                                             <td colspan="3"></td>
                                             <td colspan="2" class="text-end fw-medium">Giảm giá:</td>
-                                            <td><input type="number" class="form-control form-control" name="discount_amount" value="<?= $order['discount_amount'] ?? 0 ?>" min="0" onchange="calcTotal()"></td>
+                                            <td><input type="number" class="form-control" name="discount_amount" value="<?= $order['discount_amount'] ?? 0 ?>" min="0" onchange="calcTotal()"></td>
                                             <td></td>
                                         </tr>
                                         <tr>
@@ -150,10 +150,10 @@
                 <td><select class="form-select form-select" onchange="selProd(this,${i})">${opts}</select>
                     <input type="hidden" name="items[${i}][product_id]" id="pid-${i}" value="${data ? data.product_id||'' : ''}">
                     <input type="hidden" name="items[${i}][product_name]" id="pn-${i}" value="${data ? data.product_name||'' : ''}"></td>
-                <td><input type="number" class="form-control form-control" name="items[${i}][quantity]" value="${data ? data.quantity : 1}" min="0.01" step="0.01" onchange="calcRow(${i})"></td>
-                <td><input type="text" class="form-control form-control" name="items[${i}][unit]" id="pu-${i}" value="${data ? data.unit : 'Cái'}"></td>
-                <td><input type="number" class="form-control form-control" name="items[${i}][unit_price]" id="pp-${i}" value="${data ? data.unit_price : 0}" min="0" onchange="calcRow(${i})"></td>
-                <td><input type="number" class="form-control form-control" name="items[${i}][tax_rate]" id="pt-${i}" value="${data ? data.tax_rate : 0}" min="0" max="100" step="0.01" onchange="calcRow(${i})"></td>
+                <td><input type="number" class="form-control" name="items[${i}][quantity]" value="${data ? data.quantity : 1}" min="0.01" step="0.01" onchange="calcRow(${i})"></td>
+                <td><input type="text" class="form-control" name="items[${i}][unit]" id="pu-${i}" value="${data ? data.unit : 'Cái'}"></td>
+                <td><input type="number" class="form-control" name="items[${i}][unit_price]" id="pp-${i}" value="${data ? data.unit_price : 0}" min="0" onchange="calcRow(${i})"></td>
+                <td><input type="number" class="form-control" name="items[${i}][tax_rate]" id="pt-${i}" value="${data ? data.tax_rate : 0}" min="0" max="100" step="0.01" onchange="calcRow(${i})"></td>
                 <td class="fw-medium" id="rt-${i}">0 ₫</td>
                 <td><button type="button" class="btn btn btn-soft-danger" onclick="document.getElementById('row-'+${i})?.remove();calcTotal()"><i class="ri-close-line"></i></button></td>`;
             tbody.appendChild(tr);

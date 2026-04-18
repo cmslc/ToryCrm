@@ -10,7 +10,7 @@
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div id="ganttChart" style="min-height:400px"></div>
     </div>
 </div>

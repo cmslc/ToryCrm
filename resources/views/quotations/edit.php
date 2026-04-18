@@ -70,7 +70,7 @@
                                 <i class="ri-add-line me-1"></i> Thêm dòng
                             </button>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-2">
                             <div class="table-responsive">
                                 <table class="table align-middle mb-0" id="itemsTable">
                                     <thead class="table-light">

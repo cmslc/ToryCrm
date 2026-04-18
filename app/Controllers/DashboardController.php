@@ -14,22 +14,11 @@ class DashboardController extends Controller
     {
         $tid = $this->tenantId();
         $uid = $this->userId();
-        $isAdmin = $this->isAdminOrManager();
+        $isAdmin = $this->isSystemAdmin();
 
-        // Build owner filter for non-admin users
-        $ownerWhere = '';
+        // Build owner filter based on department hierarchy
+        $ownerWhere = $this->getOwnerScopeSql('owner_id');
         $ownerParams = [];
-        if (!$isAdmin) {
-            $deptMembers = $this->getDeptMemberIds();
-            if ($deptMembers && count($deptMembers) > 0) {
-                $placeholders = implode(',', array_fill(0, count($deptMembers), '?'));
-                $ownerWhere = " AND owner_id IN ({$placeholders})";
-                $ownerParams = $deptMembers;
-            } else {
-                $ownerWhere = " AND owner_id = ?";
-                $ownerParams = [$uid];
-            }
-        }
 
         // Generate insights if none exist today
         try {

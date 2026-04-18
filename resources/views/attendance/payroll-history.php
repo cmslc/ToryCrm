@@ -14,7 +14,7 @@ $monthNames = ['','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Tháng</th><th class="text-end">Lương CB</th><th class="text-center">Công</th><th class="text-end">Gross</th><th class="text-end">BH</th><th class="text-end">Thuế</th><th class="text-end">Tạm ứng</th><th class="text-end fw-medium">Thực nhận</th><th>TT</th><th></th></tr></thead>

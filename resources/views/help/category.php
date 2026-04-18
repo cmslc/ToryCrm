@@ -23,7 +23,7 @@
         <?php endif; ?>
 
         <div class="card">
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <?php if (!empty($articles)): ?>
                     <div class="list-group list-group-flush">
                         <?php foreach ($articles as $article): ?>

@@ -324,12 +324,8 @@ document.querySelectorAll('.add-user-btn').forEach(function(btn) {
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('addUserModal'))?.hide();
                 loadGroupPanel(currentGroupId);
-                // Update user count badge in sidebar
-                var li = document.querySelector('[data-group-id="' + currentGroupId + '"]');
-                if (li) {
-                    var badge = li.querySelector('.badge');
-                    if (badge) badge.textContent = parseInt(badge.textContent) + 1;
-                }
+                // Reload panel to update user list
+                loadGroupPanel(currentGroupId);
             } else alert(data.error || 'Lỗi');
         });
     });

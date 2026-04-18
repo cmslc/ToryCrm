@@ -14,10 +14,10 @@ class CampaignController extends Controller
         $campaignModel = new Campaign();
         $page = max(1, (int) $this->input('page') ?: 1);
 
-        // Owner-based data scoping: staff only sees own campaigns
+        // Owner-based data scoping
         $ownerFilter = null;
-        if (!$this->isAdminOrManager()) {
-            $ownerFilter = $this->userId();
+        if (!$this->isSystemAdmin()) {
+            $ownerFilter = $this->getVisibleUserIds() ?: [$this->userId()];
         }
 
         $campaigns = $campaignModel->getWithRelations($page, 10, [

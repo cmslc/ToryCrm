@@ -32,7 +32,7 @@
     <div class="col-lg-7">
         <div class="card">
             <div class="card-header"><h6 class="card-title mb-0">Danh sách mẫu</h6></div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <?php if (!empty($templates)): ?>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">

@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Đơn hàng & Báo giá';
+$pageTitle = 'Đơn hàng bán';
 $currentStatus = $filters['status'] ?? '';
 $sc = ['pending'=>'warning','approved'=>'primary','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'dark','collected'=>'secondary'];
 $sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ'];
@@ -7,7 +7,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Đơn hàng & Báo giá</h4>
+            <h4 class="mb-0">Đơn hàng bán</h4>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
                 <a href="<?= url('orders/export?format=csv') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Export</a>
@@ -34,21 +34,49 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         <div class="card mb-3">
             <div class="card-header p-2">
                 <form method="GET" action="<?= url('orders') ?>" class="d-flex align-items-center gap-2 flex-wrap">
-                    <div class="search-box" style="min-width:200px;max-width:300px">
-                        <input type="text" class="form-control" name="search" placeholder="Tìm mã đơn, khách hàng..." value="<?= e($filters['search'] ?? '') ?>">
+                    <div class="search-box" style="min-width:160px;max-width:200px">
+                        <input type="text" class="form-control" name="search" placeholder="Tìm mã đơn, KH..." value="<?= e($filters['search'] ?? '') ?>">
                         <i class="ri-search-line search-icon"></i>
                     </div>
-                    <select name="type" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
-                        <option value="">Tất cả loại</option>
-                        <option value="order" <?= ($filters['type'] ?? '') === 'order' ? 'selected' : '' ?>>Đơn hàng</option>
-                        <option value="quote" <?= ($filters['type'] ?? '') === 'quote' ? 'selected' : '' ?>>Báo giá</option>
-                    </select>
-                    <select name="payment_status" class="form-select" style="width:auto;min-width:130px" onchange="this.form.submit()">
+                    <select name="payment_status" class="form-select" style="width:auto" onchange="this.form.submit()">
                         <option value="">Thanh toán</option>
                         <option value="unpaid" <?= ($filters['payment_status'] ?? '') === 'unpaid' ? 'selected' : '' ?>>Chưa TT</option>
                         <option value="partial" <?= ($filters['payment_status'] ?? '') === 'partial' ? 'selected' : '' ?>>Một phần</option>
                         <option value="paid" <?= ($filters['payment_status'] ?? '') === 'paid' ? 'selected' : '' ?>>Đã TT</option>
                     </select>
+                    <input type="hidden" name="owner_id" id="ownerIdInput" value="<?= e($filters['owner_id'] ?? '') ?>">
+                    <div class="position-relative" id="ownerDropdown">
+                        <div class="form-select d-flex align-items-center gap-2" style="cursor:pointer;width:auto;white-space:nowrap" id="ownerBtn">
+                            <?php
+                            $selectedOwner = null;
+                            foreach ($users ?? [] as $u) { if (($filters['owner_id'] ?? '') == $u['id']) $selectedOwner = $u; }
+                            ?>
+                            <?php if ($selectedOwner): ?>
+                                <?php if (!empty($selectedOwner['avatar'])): ?>
+                                <img src="<?= asset($selectedOwner['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                                <?php else: ?>
+                                <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:10px"><?= mb_substr($selectedOwner['name'], 0, 1) ?></span>
+                                <?php endif; ?>
+                                <span><?= e($selectedOwner['name']) ?></span>
+                            <?php else: ?>
+                                <span class="text-muted">Người phụ trách</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="border rounded bg-white shadow" id="ownerList" style="position:absolute;z-index:1060;min-width:220px;display:none;top:100%;left:0;margin-top:2px;max-height:280px;overflow-y:auto">
+                            <div class="owner-opt px-3 py-2 text-primary fw-medium" style="cursor:pointer" data-id="">Tất cả</div>
+                            <?php foreach ($users ?? [] as $u): ?>
+                            <div class="owner-opt d-flex align-items-center gap-2 px-3 py-2 <?= ($filters['owner_id'] ?? '') == $u['id'] ? 'bg-primary bg-opacity-10' : '' ?>" style="cursor:pointer" data-id="<?= $u['id'] ?>">
+                                <?php if (!empty($u['avatar'])): ?>
+                                <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                <?php else: ?>
+                                <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px"><?= mb_substr($u['name'], 0, 1) ?></span>
+                                <?php endif; ?>
+                                <span style="font-size:13px"><?= e($u['name']) ?></span>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <input type="hidden" name="type" value="<?= e($filters['type'] ?? '') ?>">
                     <?php $dp = $filters['date_period'] ?? ''; ?>
                     <select name="date_period" class="form-select" style="width:auto;min-width:140px" onchange="if(this.value==='custom'){document.getElementById('customDateRange').classList.remove('d-none')}else{this.form.submit()}">
                         <option value="">Thời gian</option>
@@ -113,7 +141,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         </div>
 
         <div class="card">
-            <div class="card-body p-0">
+            <div class="card-body p-2">
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -147,7 +175,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                             case 'type':
                                                 echo $val === 'quote'
                                                     ? '<span class="badge bg-info-subtle text-info">Báo giá</span>'
-                                                    : '<span class="badge bg-primary-subtle text-primary">Đơn hàng</span>';
+                                                    : '<span class="badge bg-primary-subtle text-primary">Đơn hàng bán</span>';
                                                 break;
                                             case 'contact_id':
                                                 $contactName = trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? ''));
@@ -253,6 +281,23 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         </div>
 
 <script>
+// Owner dropdown with avatars
+(function(){
+    var btn = document.getElementById('ownerBtn');
+    var list = document.getElementById('ownerList');
+    if (!btn || !list) return;
+    btn.addEventListener('click', function(e) { e.stopPropagation(); list.style.display = list.style.display === 'none' ? 'block' : 'none'; });
+    document.addEventListener('click', function(e) { if (!document.getElementById('ownerDropdown').contains(e.target)) list.style.display = 'none'; });
+    list.querySelectorAll('.owner-opt').forEach(function(opt) {
+        opt.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
+        opt.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+        opt.addEventListener('click', function() {
+            document.getElementById('ownerIdInput').value = this.dataset.id;
+            this.closest('form').submit();
+        });
+    });
+})();
+
 // Toggle column panel
 document.getElementById('toggleColumnPanel')?.addEventListener('click', function() {
     var panel = document.getElementById('columnPanel');

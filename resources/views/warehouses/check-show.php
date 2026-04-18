@@ -13,7 +13,7 @@
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <form method="POST" action="<?= url('warehouses/checks/' . $check['id'] . '/update') ?>">
             <?= csrf_field() ?>
             <div class="table-responsive">

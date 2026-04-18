@@ -104,7 +104,7 @@
             <div class="card-header">
                 <h6 class="card-title mb-0"><i class="ri-map-pin-line me-1"></i> Vị trí hiện tại</h6>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
                 <div id="miniMap" class="rounded-bottom bg-light d-flex align-items-center justify-content-center" style="height:200px">
                     <div class="text-center text-muted">
                         <i class="ri-map-pin-line fs-1"></i>

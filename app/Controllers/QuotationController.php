@@ -32,7 +32,7 @@ class QuotationController extends Controller
                 SUM(status = 'converted') as has_order,
                 SUM(status NOT IN ('draft','sent','accepted','converted','rejected') OR status IS NULL) as no_order,
                 SUM(status = 'rejected' OR status = 'expired') as deleted
-             FROM quotations WHERE tenant_id = ?" . (!$this->isAdminOrManager() && !$this->getDeptMemberIds() ? " AND owner_id = " . (int)$this->userId() : ($this->getDeptMemberIds() ? " AND owner_id IN (" . implode(',', $this->getDeptMemberIds()) . ")" : '')),
+             FROM quotations WHERE tenant_id = ?" . $this->getOwnerScopeSql('owner_id'),
             [$tid]
         );
 
@@ -43,7 +43,7 @@ class QuotationController extends Controller
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         if ($search) {
-            $where[] = "(q.quote_number LIKE ? OR q.title LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ?)";
+            $where[] = "(q.quote_number LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR c.company_name LIKE ?)";
             $s = "%{$search}%";
             $params = array_merge($params, [$s, $s, $s, $s]);
         }
@@ -56,6 +56,12 @@ class QuotationController extends Controller
         if ($contactId) {
             $where[] = "q.contact_id = ?";
             $params[] = $contactId;
+        }
+
+        $ownerId = $this->input('owner_id');
+        if ($ownerId) {
+            $where[] = "q.owner_id = ?";
+            $params[] = $ownerId;
         }
 
         switch ($datePeriod) {
@@ -120,11 +126,13 @@ class QuotationController extends Controller
                 'search' => $search,
                 'status' => $status,
                 'contact_id' => $contactId,
+                'owner_id' => $ownerId,
                 'date_period' => $datePeriod,
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,
                 'per_page' => $perPage,
             ],
+            'users' => $this->getVisibleUsersWithAvatar(),
         ]);
     }
 
@@ -614,9 +622,8 @@ class QuotationController extends Controller
                 ]);
             }
 
-            // Mark quotation as converted
+            // Link order to quotation (don't change status - user can still create contract)
             Database::update('quotations', [
-                'status' => 'accepted',
                 'converted_order_id' => $orderId,
             ], 'id = ?', [$id]);
 
@@ -636,6 +643,98 @@ class QuotationController extends Controller
 
         $this->setFlash('success', "Đã chuyển báo giá thành đơn hàng {$orderNumber}.");
         return $this->redirect('orders/' . $orderId);
+    }
+
+    public function convertToContract($id)
+    {
+        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+
+        $quotation = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$quotation) {
+            $this->setFlash('error', 'Báo giá không tồn tại.');
+            return $this->redirect('quotations');
+        }
+
+        $items = Database::fetchAll("SELECT * FROM quotation_items WHERE quotation_id = ? ORDER BY sort_order", [$id]);
+
+        Database::beginTransaction();
+        try {
+            $prefix = 'HD-' . date('ym');
+            $last = Database::fetch("SELECT contract_number FROM contracts WHERE contract_number LIKE ? ORDER BY id DESC LIMIT 1", [$prefix . '%']);
+            $seq = $last ? ((int) substr($last['contract_number'], -4)) + 1 : 1;
+            $contractNumber = $prefix . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+
+            $branding = \App\Services\BrandingService::get();
+
+            $contractId = Database::insert('contracts', [
+                'contract_number' => $contractNumber,
+                'title' => 'HĐ từ BG ' . $quotation['quote_number'],
+                'type' => 'Mới',
+                'status' => 'pending',
+                'value' => $quotation['total'],
+                'subtotal' => $quotation['subtotal'],
+                'tax_amount' => $quotation['tax_amount'],
+                'discount_amount' => $quotation['discount_amount'],
+                'discount_percent' => $quotation['discount_percent'],
+                'discount_after_tax' => $quotation['discount_after_tax'],
+                'shipping_fee' => $quotation['shipping_fee'],
+                'shipping_fee_percent' => $quotation['shipping_percent'] ?? 0,
+                'shipping_after_tax' => $quotation['shipping_after_tax'],
+                'installation_fee' => $quotation['installation_fee'],
+                'vat_percent' => $quotation['tax_rate'] ?? 0,
+                'vat_amount' => $quotation['tax_amount'],
+                'apply_vat' => $quotation['tax_amount'] > 0 ? 1 : 0,
+                'contact_id' => $quotation['contact_id'],
+                'company_id' => $quotation['company_id'],
+                'deal_id' => $quotation['deal_id'],
+                'quote_id' => $quotation['id'],
+                'owner_id' => $quotation['owner_id'],
+                'start_date' => date('Y-m-d'),
+                'end_date' => date('Y-m-d', strtotime('+1 year')),
+                'created_date' => date('Y-m-d'),
+                'payment_method' => 'bank_transfer',
+                'notes' => $quotation['notes'],
+                'terms' => $quotation['terms'],
+                'party_a_name' => $branding['name'] ?? '',
+                'party_a_address' => $branding['address'] ?? '',
+                'party_a_phone' => $branding['phone'] ?? '',
+                'party_a_fax' => $branding['fax'] ?? '',
+                'party_a_representative' => $branding['representative'] ?? '',
+                'party_a_position' => $branding['representative_title'] ?? '',
+                'party_a_bank_account' => $branding['bank_account'] ?? '',
+                'party_a_bank_name' => $branding['bank_name'] ?? '',
+                'party_a_tax_code' => $branding['tax_code'] ?? '',
+                'created_by' => $this->userId(),
+                'tenant_id' => Database::tenantId(),
+                'is_deleted' => 0,
+            ]);
+
+            foreach ($items as $item) {
+                Database::insert('contract_items', [
+                    'contract_id' => $contractId,
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'description' => $item['description'] ?? '',
+                    'quantity' => $item['quantity'],
+                    'unit' => $item['unit'],
+                    'unit_price' => $item['unit_price'],
+                    'tax_rate' => $item['tax_rate'],
+                    'discount_percent' => $item['discount_percent'] ?? 0,
+                    'discount' => $item['discount'],
+                    'total' => $item['total'],
+                    'sort_order' => $item['sort_order'],
+                ]);
+            }
+
+            Database::commit();
+        } catch (\Exception $e) {
+            Database::rollback();
+            $this->setFlash('error', 'Lỗi tạo hợp đồng: ' . $e->getMessage());
+            return $this->back();
+        }
+
+        $this->setFlash('success', "Đã tạo hợp đồng {$contractNumber} từ báo giá.");
+        return $this->redirect('contracts/' . $contractId);
     }
 
     /**

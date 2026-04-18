@@ -113,7 +113,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                     </select>
                 </form>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body p-2">
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">

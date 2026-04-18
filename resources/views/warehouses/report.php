@@ -26,7 +26,7 @@
 
 <!-- Table -->
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Sản phẩm</th><th>SKU</th><th>ĐVT</th><th class="text-end">Tồn kho</th><th class="text-end">Đơn giá</th><th class="text-end">Giá trị</th><th>Tối thiểu</th><th>Trạng thái</th></tr></thead>

@@ -558,7 +558,7 @@ class GetflySyncController extends Controller
     }
 
     /**
-     * Sync users (single call, small data)
+     * Sync users with departments (single call, small data)
      */
     private function syncUsers(array $config): int
     {
@@ -567,18 +567,63 @@ class GetflySyncController extends Controller
         if (!$result['success']) throw new \Exception($result['error']);
 
         $users = is_array($result['data']) && isset($result['data'][0]) ? $result['data'] : [];
+        $tid = Database::tenantId();
         $synced = 0;
+
+        // Build department map: sync departments first
+        $deptMap = [];
+        $existingDepts = Database::fetchAll("SELECT id, name FROM departments WHERE tenant_id = ?", [$tid]);
+        foreach ($existingDepts as $d) {
+            $deptMap[mb_strtolower(trim($d['name']))] = $d['id'];
+        }
 
         foreach ($users as $u) {
             $email = trim($u['email'] ?? '');
             if (empty($email)) continue;
 
+            $name = html_entity_decode(trim($u['name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $mobile = trim($u['mobile'] ?? '') ?: null;
+            $deptName = html_entity_decode(trim($u['dept_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            // Ensure department exists
+            $deptId = null;
+            if (!empty($deptName)) {
+                $deptKey = mb_strtolower($deptName);
+                if (isset($deptMap[$deptKey])) {
+                    $deptId = $deptMap[$deptKey];
+                } else {
+                    $deptId = Database::insert('departments', [
+                        'tenant_id' => $tid,
+                        'name' => $deptName,
+                    ]);
+                    $deptMap[$deptKey] = $deptId;
+                }
+            }
+
             $existing = Database::fetch("SELECT id FROM users WHERE email = ?", [$email]);
             if ($existing) {
                 Database::update('users', [
-                    'name' => html_entity_decode(trim($u['name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                    'mobile' => trim($u['mobile'] ?? '') ?: null,
+                    'name' => $name,
+                    'mobile' => $mobile,
+                    'department_id' => $deptId,
                 ], 'id = ?', [$existing['id']]);
+            } else {
+                // Create new user
+                try {
+                    Database::insert('users', [
+                        'tenant_id' => $tid,
+                        'name' => $name,
+                        'email' => $email,
+                        'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
+                        'mobile' => $mobile,
+                        'department_id' => $deptId,
+                        'role_id' => 2, // default staff role
+                        'is_active' => 1,
+                        'created_by' => $this->userId(),
+                    ]);
+                } catch (\Exception $e) {
+                    // skip duplicate or error
+                }
             }
             $synced++;
         }

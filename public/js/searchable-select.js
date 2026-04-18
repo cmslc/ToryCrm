@@ -46,17 +46,18 @@
         // Hide original select
         sel.style.display = 'none';
 
-        // Create wrapper
+        // Create wrapper - match native select sizing
         var wrapper = document.createElement('div');
-        wrapper.className = 'position-relative searchable-select-wrapper flex-grow-1';
-        wrapper.style.minWidth = sel.style.minWidth || '0';
+        wrapper.className = 'position-relative searchable-select-wrapper d-inline-block';
+        if (sel.style.width && sel.style.width !== 'auto') {
+            wrapper.style.width = sel.style.width;
+        }
         if (sel.style.maxWidth) wrapper.style.maxWidth = sel.style.maxWidth;
-        if (sel.style.width) wrapper.style.width = sel.style.width;
         sel.parentNode.insertBefore(wrapper, sel.nextSibling);
 
         // Display button
         var btn = document.createElement('div');
-        btn.className = 'form-select d-flex align-items-center';
+        btn.className = 'form-select d-flex align-items-center text-nowrap';
         btn.style.cursor = 'pointer';
         btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>') + '</span>';
         wrapper.appendChild(btn);
@@ -64,7 +65,7 @@
         // Dropdown
         var dd = document.createElement('div');
         dd.className = 'border rounded bg-white shadow';
-        dd.style.cssText = 'position:absolute;z-index:1060;width:100%;display:none;top:100%;left:0;margin-top:2px';
+        dd.style.cssText = 'position:absolute;z-index:1060;min-width:220px;width:max-content;max-width:350px;display:none;top:100%;left:0;margin-top:2px';
         wrapper.appendChild(dd);
 
         // Search input
@@ -88,7 +89,10 @@
             var filtered = items.filter(function(o) {
                 if (o.value === '' && !q) return true;
                 if (o.value === '' && q) return false;
-                return !q || o.text.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+                if (!q) return true;
+                var text = o.text.toLowerCase();
+                var words = q.toLowerCase().trim().split(/\s+/);
+                return words.every(function(w) { return text.indexOf(w) !== -1; });
             });
 
             if (filtered.length === 0) {
@@ -148,8 +152,15 @@
             if (dd.style.display === 'none') open(); else close();
         });
 
-        searchInput.addEventListener('input', function() {
+        var isComposing = false;
+        searchInput.addEventListener('compositionstart', function() { isComposing = true; });
+        searchInput.addEventListener('compositionend', function() {
+            isComposing = false;
             renderOptions(this.value);
+        });
+
+        searchInput.addEventListener('input', function() {
+            if (!isComposing) renderOptions(this.value);
         });
 
         searchInput.addEventListener('keydown', function(e) {

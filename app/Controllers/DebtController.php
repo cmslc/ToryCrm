@@ -71,12 +71,8 @@ class DebtController extends Controller
         $totalPages = ceil($total / $perPage);
 
         // Summary cards (same scope as list)
-        $summaryWhere = "1=1";
+        $summaryWhere = "1=1" . $this->getOwnerScopeSql('created_by');
         $summaryParams = [];
-        if (!$this->isAdminOrManager()) {
-            $summaryWhere = "created_by = ?";
-            $summaryParams = [$this->userId()];
-        }
         $summary = Database::fetch(
             "SELECT
                 COALESCE(SUM(CASE WHEN type = 'receivable' THEN amount - paid_amount ELSE 0 END), 0) as total_receivable,

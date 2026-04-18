@@ -15,10 +15,11 @@ class TicketController extends Controller
         $ticketModel = new Ticket();
         $page = max(1, (int) $this->input('page') ?: 1);
 
-        // Owner-based data scoping: staff only sees own tickets
+        // Owner-based data scoping
         $assignedToFilter = $this->input('assigned_to');
-        if (!$this->isAdminOrManager()) {
-            $assignedToFilter = $this->userId();
+        if (!$this->isSystemAdmin()) {
+            $visibleIds = $this->getVisibleUserIds();
+            $assignedToFilter = $assignedToFilter ?: ($visibleIds ?: [$this->userId()]);
         }
 
         $tickets = $ticketModel->getWithRelations($page, 10, [

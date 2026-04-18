@@ -47,7 +47,7 @@ foreach ($statusCounts as $sc) { $countMap[$sc['status']] = $sc['count']; $total
 
 <!-- Table -->
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Mã kiện</th><th>Tracking</th><th>Sản phẩm</th><th>Khách hàng</th><th>Cân nặng</th><th>Số khối</th><th>SL</th><th>Trạng thái</th><th>Người nhận</th><th>Cập nhật</th></tr></thead>

@@ -187,7 +187,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                         <form method="POST" action="<?= url('orders/' . $order['id'] . '/payment') ?>">
                             <?= csrf_field() ?>
                             <div class="mb-2">
-                                <input type="number" class="form-control form-control" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
+                                <input type="number" class="form-control" name="amount" placeholder="Số tiền" required min="1" value="<?= max(0, $order['total'] - $order['paid_amount']) ?>">
                             </div>
                             <div class="mb-2">
                                 <select name="payment_method" class="form-select form-select">
@@ -197,10 +197,10 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                                 </select>
                             </div>
                             <div class="mb-2">
-                                <input type="date" class="form-control form-control" name="pay_date" value="<?= date('Y-m-d') ?>">
+                                <input type="date" class="form-control" name="pay_date" value="<?= date('Y-m-d') ?>">
                             </div>
                             <div class="mb-2">
-                                <input type="text" class="form-control form-control" name="description" placeholder="Ghi chú thanh toán">
+                                <input type="text" class="form-control" name="description" placeholder="Ghi chú thanh toán">
                             </div>
                             <button type="submit" class="btn btn-success btn w-100"><i class="ri-money-dollar-circle-line me-1"></i> Ghi nhận thanh toán</button>
                         </form>

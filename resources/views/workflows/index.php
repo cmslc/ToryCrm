@@ -24,7 +24,7 @@ $autoTriggerLabels = ['created'=>'Khi tạo mới','updated'=>'Khi cập nhật'
 <!-- Workflow Tab -->
 <div class="tab-pane <?= $tab !== 'automation' ? 'active' : '' ?>" id="tabWorkflows">
     <div class="card">
-        <div class="card-body p-0">
+        <div class="card-body p-2">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light"><tr><th>Tên workflow</th><th>Trigger</th><th>Trạng thái</th><th>Đã chạy</th><th>Lần chạy cuối</th><th>Thao tác</th></tr></thead>
@@ -66,7 +66,7 @@ $autoTriggerLabels = ['created'=>'Khi tạo mới','updated'=>'Khi cập nhật'
 <!-- Automation Tab -->
 <div class="tab-pane <?= $tab === 'automation' ? 'active' : '' ?>" id="tabAutomation">
     <div class="card">
-        <div class="card-body p-0">
+        <div class="card-body p-2">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light"><tr><th>Tên</th><th>Module</th><th>Trigger</th><th>Actions</th><th>Trạng thái</th><th>Đã chạy</th><th>Lần chạy cuối</th><th>Người tạo</th><th>Thao tác</th></tr></thead>

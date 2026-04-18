@@ -9,7 +9,7 @@
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light"><tr><th>Mã phiếu</th><th>Kho</th><th>Số SP</th><th>Người kiểm</th><th>Trạng thái</th><th>Ngày</th><th></th></tr></thead>

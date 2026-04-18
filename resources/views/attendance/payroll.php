@@ -64,7 +64,7 @@ $fmt = function($v) { return $v > 0 ? number_format($v) : '-'; };
 </div>
 
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 fs-12">
                 <thead class="table-light">
