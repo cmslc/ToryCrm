@@ -192,7 +192,10 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 
                 <?php if (($products['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
-                        <div class="text-muted fs-13">Hiển thị <strong><?= (($products['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($products['page'] * ($filters['per_page'] ?? 20), $products['total']) ?></strong> / <strong><?= number_format($products['total']) ?></strong></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fs-13">Hiển thị <strong><?= (($products['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($products['page'] * ($filters['per_page'] ?? 20), $products['total']) ?></strong> / <strong><?= number_format($products['total']) ?></strong></span>
+                            <?php $currentPerPage = $filters['per_page'] ?? 20; include __DIR__ . '/../components/per-page-select.php'; ?>
+                        </div>
                         <nav><ul class="pagination mb-0">
                             <?php
                             $curPage = $products['page'];

@@ -127,7 +127,10 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 
                 <?php if (($deals['total_pages'] ?? 0) > 1): ?>
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted">Hiển thị <?= count($deals['items']) ?> / <?= $deals['total'] ?></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fs-13">Hiển thị <strong><?= (($deals['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($deals['page'] * ($filters['per_page'] ?? 20), $deals['total']) ?></strong> / <strong><?= number_format($deals['total']) ?></strong></span>
+                            <?php $currentPerPage = $filters['per_page'] ?? 20; include __DIR__ . '/../components/per-page-select.php'; ?>
+                        </div>
                         <nav><ul class="pagination mb-0">
                             <?php for ($i = 1; $i <= $deals['total_pages']; $i++): ?>
                                 <li class="page-item <?= $i === $deals['page'] ? 'active' : '' ?>">

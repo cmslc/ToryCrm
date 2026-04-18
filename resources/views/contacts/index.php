@@ -343,10 +343,15 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         </div>
 
         <!-- Bottom Pagination -->
-        <?php if (($contacts['total_pages'] ?? 0) > 1): ?>
+        <?php if (($contacts['total'] ?? 0) > 0): ?>
         <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
-            <div class="text-muted fs-13">
-                Hiển thị <strong><?= (($contacts['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($contacts['page'] * ($filters['per_page'] ?? 20), $contacts['total']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted fs-13">Hiển thị <strong><?= (($contacts['page'] - 1) * ($filters['per_page'] ?? 20)) + 1 ?> - <?= min($contacts['page'] * ($filters['per_page'] ?? 20), $contacts['total']) ?></strong> / <strong><?= number_format($contacts['total']) ?></strong> khách hàng</span>
+                <select onchange="location.href='<?= url('contacts') ?>?<?= http_build_query(array_merge(array_filter($filters ?? []), ['page'=>1])) ?>&per_page='+this.value" class="form-select" style="width:auto">
+                    <?php foreach ([10,20,50,100] as $pp): ?>
+                    <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 20) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <nav>
                 <?php
