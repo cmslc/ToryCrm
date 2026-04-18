@@ -23,7 +23,7 @@ class DataDefinitionController extends Controller
 
     private array $fieldLabels = [
         // Contacts
-        'first_name' => 'Họ', 'last_name' => 'Tên', 'full_name' => 'Họ tên',
+        'first_name' => 'Họ (hệ thống)', 'last_name' => 'Tên (hệ thống)', 'full_name' => 'Họ tên',
         'email' => 'Email', 'phone' => 'Điện thoại', 'mobile' => 'Di động',
         'account_code' => 'Mã KH', 'position' => 'Chức vụ', 'gender' => 'Giới tính',
         'date_of_birth' => 'Ngày sinh', 'address' => 'Địa chỉ', 'city' => 'Thành phố',
@@ -258,7 +258,8 @@ class DataDefinitionController extends Controller
             'id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at',
             'created_by', 'owner_id', 'last_activity_at', 'sort_order',
             'avatar', 'logo', 'image', 'featured_image', 'currency',
-            // Contacts
+            // Contacts (first_name/last_name merged into full_name)
+            'first_name', 'last_name',
             'portal_token', 'portal_password', 'portal_active',
             'total_revenue', 'bonus_points', 'score', 'relation_id', 'industry_id', 'referrer_type',
             // Orders
