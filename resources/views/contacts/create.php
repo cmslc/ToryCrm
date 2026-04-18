@@ -52,8 +52,13 @@
                                 <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Tên khách hàng (công ty) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" required>
+                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" placeholder="VD: Nguyễn Văn A hoặc Công ty TNHH ABC" required>
+                                <small class="text-muted">Nhập tên cá nhân hoặc tên công ty</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tên công ty</label>
+                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="Bỏ trống nếu là KH cá nhân">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Điện thoại</label>

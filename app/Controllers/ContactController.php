@@ -146,25 +146,29 @@ class ContactController extends Controller
 
     private function buildContactData(array $data): array
     {
-        // Derive first_name/last_name from company_name or full_name
+        // Derive first_name/last_name/full_name from input
         $companyName = trim($data['company_name'] ?? '');
         if (!empty($data['full_name'])) {
-            $parts = explode(' ', trim($data['full_name']), 2);
+            $fullName = trim($data['full_name']);
+            $parts = explode(' ', $fullName, 2);
             $firstName = $parts[0];
             $lastName = $parts[1] ?? '';
         } elseif (!empty($data['first_name'])) {
             $firstName = trim($data['first_name']);
             $lastName = trim($data['last_name'] ?? '');
+            $fullName = trim($firstName . ' ' . $lastName);
         } else {
             // Use company_name as display name
             $parts = explode(' ', $companyName, 2);
             $firstName = $parts[0];
             $lastName = $parts[1] ?? '';
+            $fullName = $companyName;
         }
 
         return [
             'first_name' => $firstName,
             'last_name' => $lastName,
+            'full_name' => $fullName ?: null,
             'company_name' => trim($data['company_name'] ?? '') ?: null,
             'company_phone' => trim($data['company_phone'] ?? '') ?: null,
             'company_email' => trim($data['company_email'] ?? '') ?: null,
