@@ -48,6 +48,14 @@
                             });
                             </script>
                             <div class="mb-3">
+                                <label class="form-label">Mã số thuế (KH cá nhân nhập SĐT)</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
+                                    <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
+                                </div>
+                                <div class="form-text text-success d-none" id="taxLookupStatus"></div>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Mã KH</label>
                                 <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
                             </div>
@@ -79,14 +87,6 @@
                             <div class="mb-3">
                                 <label class="form-label">Mô tả</label>
                                 <textarea name="description" class="form-control" rows="3"><?= old('description') ?></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Mã số thuế (KH cá nhân nhập SĐT)</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
-                                    <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
-                                </div>
-                                <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
