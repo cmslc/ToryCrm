@@ -53,11 +53,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                     <?php if (!empty(array_filter($filters ?? []))): ?>
                         <a href="<?= url('deals') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
                     <?php endif; ?>
-                    <select name="per_page" class="form-select ms-auto" style="width:auto;min-width:90px" onchange="this.form.submit()">
-                        <?php foreach ([10,20,50,100] as $pp): ?>
-                        <option value="<?= $pp ?>" <?= ($filters['per_page'] ?? 20) == $pp ? 'selected' : '' ?>><?= $pp ?> dòng</option>
-                        <?php endforeach; ?>
-                    </select>
+                    <input type="hidden" name="per_page" value="<?= e($filters['per_page'] ?? 20) ?>">
                 </form>
             </div>
             <div class="card-body p-2">
