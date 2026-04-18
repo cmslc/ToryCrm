@@ -10,8 +10,7 @@ class ColumnService
         'contacts' => [
             'account_code' => 'Mã KH',
             'tax_code' => 'Mã số thuế',
-            'first_name' => 'Họ',
-            'last_name' => 'Tên',
+            'full_name' => 'Họ tên',
             'company_name' => 'Tên công ty',
             'company_phone' => 'ĐT công ty',
             'company_email' => 'Email công ty',
