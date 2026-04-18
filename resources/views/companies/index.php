@@ -92,15 +92,14 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <thead class="text-muted table-light">
                     <tr>
                         <th class="ps-3" style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
-                        <th class="col-company">Doanh nghiệp</th>
-                        <th class="col-contact">Liên hệ</th>
+                        <th class="col-name">Doanh nghiệp</th>
+                        <th class="col-email">Liên hệ</th>
                         <th class="col-industry">Ngành nghề</th>
-                        <th class="col-size">Quy mô</th>
-                        <th class="col-customers">KH</th>
-                        <th class="col-deals">Cơ hội</th>
-                        <th class="col-revenue">Doanh thu</th>
-                        <th class="col-owner">Phụ trách</th>
-                        <th class="col-lastact">Liên hệ cuối</th>
+                        <th class="col-companysize">Quy mô</th>
+                        <th class="col-address">Địa chỉ</th>
+                        <th class="col-taxcode">MST</th>
+                        <th class="col-ownerid">Phụ trách</th>
+                        <th class="col-createdat">Ngày tạo</th>
                         <th style="width:50px"></th>
                     </tr>
                 </thead>
@@ -109,7 +108,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                         <?php foreach ($companies['items'] as $c): ?>
                         <tr>
                             <td class="ps-3"><input type="checkbox" class="form-check-input row-check" value="<?= $c['id'] ?>"></td>
-                            <td class="col-company">
+                            <td class="col-name">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-xs flex-shrink-0 me-2">
                                         <?php if (!empty($c['logo']) && file_exists(BASE_PATH . '/public/uploads/logos/' . $c['logo'])): ?>
@@ -118,15 +117,10 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                             <span class="avatar-title bg-info-subtle text-info rounded-circle fs-13"><?= strtoupper(substr($c['name'], 0, 1)) ?></span>
                                         <?php endif; ?>
                                     </div>
-                                    <div>
-                                        <a href="<?= url('companies/' . $c['id']) ?>" class="fw-medium text-dark"><?= e($c['name']) ?></a>
-                                        <?php if ($c['city']): ?>
-                                            <div class="text-muted fs-12"><i class="ri-map-pin-line me-1"></i><?= e($c['city']) ?></div>
-                                        <?php endif; ?>
-                                    </div>
+                                    <a href="<?= url('companies/' . $c['id']) ?>" class="fw-medium text-dark"><?= e($c['name']) ?></a>
                                 </div>
                             </td>
-                            <td class="col-contact">
+                            <td class="col-email">
                                 <?php if ($c['email']): ?><div class="fs-12"><i class="ri-mail-line me-1 text-muted"></i><?= e($c['email']) ?></div><?php endif; ?>
                                 <?php if ($c['phone']): ?><div class="fs-12"><i class="ri-phone-line me-1 text-muted"></i><?= e($c['phone']) ?></div><?php endif; ?>
                             </td>
@@ -137,12 +131,11 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="col-size text-muted fs-13"><?= e($c['company_size'] ?? '-') ?></td>
-                            <td class="col-customers"><span class="badge bg-primary-subtle text-primary"><?= $c['contact_count'] ?? 0 ?></span></td>
-                            <td class="col-deals"><span class="badge bg-warning-subtle text-warning"><?= $c['deal_count'] ?? 0 ?></span></td>
-                            <td class="col-revenue fw-medium"><?= ($c['total_revenue'] ?? 0) > 0 ? format_money($c['total_revenue']) : '-' ?></td>
-                            <td class="col-owner"><?= user_avatar($c['owner_name'] ?? null) ?></td>
-                            <td class="col-lastact text-muted fs-12"><?= !empty($c['last_activity_at']) ? time_ago($c['last_activity_at']) : '-' ?></td>
+                            <td class="col-companysize text-muted fs-13"><?= e($c['company_size'] ?? '-') ?></td>
+                            <td class="col-address text-muted fs-12"><?= e($c['address'] ?? $c['city'] ?? '-') ?></td>
+                            <td class="col-taxcode text-muted fs-12"><?= e($c['tax_code'] ?? '-') ?></td>
+                            <td class="col-ownerid"><?= user_avatar($c['owner_name'] ?? null) ?></td>
+                            <td class="col-createdat text-muted fs-12"><?= !empty($c['created_at']) ? time_ago($c['created_at']) : '-' ?></td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
@@ -228,7 +221,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
 (function() {
     var STORAGE_KEY = 'torycrm_companies_columns';
     var allColumns = <?= json_encode($colKeys) ?>;
-    var defaultVisible = ['col-name','col-email','col-phone','col-industry','col-companysize','col-city','col-ownerid'];
+    var defaultVisible = allColumns.slice();
 
     function getVisible() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultVisible; }
