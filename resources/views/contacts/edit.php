@@ -209,7 +209,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                     </div>
                     <div class="mb-3">
                         <label class="form-label"><?= $fl["status"] ?? "Mối quan hệ" ?><?= isset($req["status"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                        <select name="status" class="form-select">
+                        <select name="status" class="form-select" required>
                             <?php foreach ($contactStatuses ?? [] as $st): ?>
                             <option value="<?= e($st['slug']) ?>" <?= ($c['status'] ?? '') === $st['slug'] ? 'selected' : '' ?>><?= e($st['name']) ?></option>
                             <?php endforeach; ?>
@@ -217,12 +217,14 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                     </div>
                     <div class="mb-3">
                         <label class="form-label"><?= $fl["source_id"] ?? "Nguồn KH" ?><?= isset($req["source_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                        <select name="source_id" class="form-select">
-                            <option value="">Vui lòng chọn</option>
-                            <?php foreach ($sources ?? [] as $source): ?>
-                                <option value="<?= $source['id'] ?>" <?= ($c['source_id'] ?? '') == $source['id'] ? 'selected' : '' ?>><?= e($source['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="d-flex gap-2">
+                            <select name="source_id" class="form-select flex-grow-1" required>
+                                <option value="">Vui lòng chọn</option>
+                                <?php foreach ($sources ?? [] as $source): ?>
+                                    <option value="<?= $source['id'] ?>" <?= ($c['source_id'] ?? '') == $source['id'] ? 'selected' : '' ?>><?= e($source['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label"><?= $fl["owner_id"] ?? "Phụ trách" ?><?= isset($req["owner_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
@@ -233,12 +235,12 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                             $deptGrouped[$deptName][] = $u;
                         }
                         ?>
-                        <select name="owner_id" class="form-select searchable-select">
+                        <select name="owner_id" class="form-select searchable-select" required>
                             <option value="">Chọn</option>
                             <?php foreach ($deptGrouped as $dept => $deptUsers): ?>
                             <optgroup label="<?= e($dept) ?>">
                                 <?php foreach ($deptUsers as $u): ?>
-                                <option value="<?= $u['id'] ?>" <?= ($c['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                <option value="<?= $u['id'] ?>" data-avatar="<?= e($u['avatar'] ?? '') ?>" <?= ($c['owner_id'] ?? '') == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?></option>
                                 <?php endforeach; ?>
                             </optgroup>
                             <?php endforeach; ?>
@@ -247,7 +249,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                     <div class="mb-3">
                         <label class="form-label"><?= $fl["customer_group"] ?? "Nhóm KH" ?><?= isset($req["customer_group"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <?php $cg = $c['customer_group'] ?? ''; ?>
-                        <select name="customer_group" class="form-select">
+                        <select name="customer_group" class="form-select" required>
                             <option value="">Vui lòng chọn</option>
                             <option value="Khách Lẻ" <?= $cg === 'Khách Lẻ' ? 'selected' : '' ?>>Khách Lẻ</option>
                             <option value="Khách Dự Án" <?= $cg === 'Khách Dự Án' ? 'selected' : '' ?>>Khách Dự Án</option>
