@@ -7,7 +7,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <div>
-        <h4 class="mb-0"><i class="ri-file-list-3-line me-2"></i>Quản lý báo giá \ Tạo báo giá</h4>
+        <h4 class="mb-0">Tạo báo giá</h4>
     </div>
     <div class="d-flex gap-2">
         <a href="<?= url('quotations') ?>" class="btn btn-soft-secondary">Quay lại</a>
