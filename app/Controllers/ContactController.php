@@ -327,6 +327,32 @@ class ContactController extends Controller
         return $this->json(['found' => false]);
     }
 
+    /**
+     * Check if a phone exists in contact_persons of a specific contact.
+     */
+    public function checkPersonPhone()
+    {
+        $contactId = (int)($this->input('contact_id') ?? 0);
+        $phone = trim($this->input('phone') ?? '');
+
+        if (!$contactId || empty($phone)) return $this->json(['exists' => false]);
+
+        $exists = Database::fetch(
+            "SELECT id FROM contact_persons WHERE contact_id = ? AND phone = ?",
+            [$contactId, $phone]
+        );
+
+        // Also check main contact phone
+        if (!$exists) {
+            $exists = Database::fetch(
+                "SELECT id FROM contacts WHERE id = ? AND phone = ?",
+                [$contactId, $phone]
+            );
+        }
+
+        return $this->json(['exists' => (bool)$exists]);
+    }
+
     public function store()
     {
         if (!$this->isPost()) {

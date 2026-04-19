@@ -228,7 +228,7 @@
                                 <div class="row">
                                     <div class="col-6 mb-2">
                                         <label class="form-label">Điện thoại</label>
-                                        <input type="text" class="form-control" name="cp_phone[]">
+                                        <input type="text" class="form-control cp-phone-input" name="cp_phone[]">
                                     </div>
                                     <div class="col-6 mb-2">
                                         <label class="form-label">Email</label>
@@ -397,6 +397,7 @@ document.getElementById('btnLookupTax')?.addEventListener('click', function() {
         var existing = document.getElementById(alertId);
         if (existing) existing.remove();
         if (dupData && dupData.found) {
+            duplicateContactId = dupData.existing_id || dupData.id || null;
             var input = document.getElementById('taxCodeInput');
             var alert = document.createElement('div');
             alert.id = alertId;
@@ -462,6 +463,37 @@ function checkDuplicate(field, value) {
         });
     }, 500);
 }
+
+// Track duplicate contact ID when MST matches
+var duplicateContactId = null;
+
+// Check person phone against existing contact's persons
+document.addEventListener('blur', function(e) {
+    if (!e.target.classList.contains('cp-phone-input')) return;
+    if (!duplicateContactId) return;
+    var phone = e.target.value.trim();
+    if (!phone || phone.length < 8) return;
+
+    // Remove old alert
+    var old = e.target.closest('.col-6')?.querySelector('.cp-phone-alert');
+    if (old) old.remove();
+
+    fetch('<?= url("contacts/check-person-phone") ?>?contact_id=' + duplicateContactId + '&phone=' + encodeURIComponent(phone))
+    .then(r => r.json())
+    .then(function(data) {
+        var alertDiv = document.createElement('div');
+        alertDiv.className = 'cp-phone-alert mt-1';
+        alertDiv.style.fontSize = '12px';
+        if (data.exists) {
+            alertDiv.className += ' text-danger';
+            alertDiv.innerHTML = '<i class="ri-close-circle-line me-1"></i>SĐT đã tồn tại trong DN này. Không thể tạo trùng.';
+        } else {
+            alertDiv.className += ' text-success';
+            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có. Có thể gửi yêu cầu thêm người LH.';
+        }
+        e.target.closest('.col-6')?.appendChild(alertDiv);
+    });
+}, true);
 
 // Submit merge request
 function submitMergeRequest(contactId) {
