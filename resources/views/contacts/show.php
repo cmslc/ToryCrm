@@ -448,33 +448,71 @@
 
                             <!-- Tab: Trao đổi -->
                             <div class="tab-pane active" id="tab-exchange" role="tabpanel">
-                                <!-- Compose Area -->
-                                <form method="POST" action="<?= url('activities/store') ?>">
+                                <!-- Compose Area (Getfly style) -->
+                                <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="contact_id" value="<?= $contact['id'] ?>">
                                     <input type="hidden" name="type" value="note" id="activityType">
-                                    <div class="mb-3 position-relative">
-                                        <textarea name="title" class="form-control" rows="3" placeholder="Nhập nội dung trao đổi, ghi chú... Gõ @ để tag người" required id="activityTextarea"></textarea>
-                                        <div id="tagDropdown" class="border rounded bg-white shadow" style="position:absolute;z-index:1060;display:none;max-height:200px;overflow-y:auto;width:250px;bottom:100%;left:0;margin-bottom:4px">
+                                    <input type="hidden" name="tagged_users" id="taggedUsers" value="">
+                                    <input type="hidden" name="latitude" id="checkinLat">
+                                    <input type="hidden" name="longitude" id="checkinLng">
+
+                                    <div class="border rounded mb-3">
+                                        <textarea name="title" class="form-control border-0" rows="4" placeholder="Nhập nội dung trao đổi, ghi chú..." required id="activityTextarea" style="resize:none"></textarea>
+                                        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top bg-light" style="border-radius:0 0 6px 6px">
+                                            <div class="d-flex gap-3">
+                                                <label class="text-muted" style="cursor:pointer" title="Đính kèm file">
+                                                    <i class="ri-attachment-2 fs-18"></i>
+                                                    <input type="file" name="attachment" class="d-none" onchange="document.getElementById('attachName').textContent=this.files[0]?.name||'';document.getElementById('attachBadge').style.display=this.files[0]?'inline':'none';">
+                                                </label>
+                                                <span class="text-muted" style="cursor:pointer" title="Tag nhân viên" onclick="document.getElementById('tagPanel').style.display=document.getElementById('tagPanel').style.display==='none'?'block':'none'">
+                                                    <i class="ri-price-tag-3-line fs-18"></i>
+                                                </span>
+                                                <span class="text-muted" style="cursor:pointer" title="Check-in vị trí" id="btnCheckin">
+                                                    <i class="ri-map-pin-line fs-18"></i>
+                                                </span>
+                                                <span class="text-muted" style="cursor:pointer" title="Emoji" onclick="var ta=document.getElementById('activityTextarea');ta.value+=' 😊';ta.focus();">
+                                                    <i class="ri-emotion-happy-line fs-18"></i>
+                                                </span>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary px-4">Gửi</button>
                                         </div>
-                                        <input type="hidden" name="tagged_users" id="taggedUsers" value="">
+                                        <div id="attachBadge" style="display:none" class="px-3 py-1 border-top bg-light">
+                                            <small class="text-primary"><i class="ri-file-line me-1"></i><span id="attachName"></span></small>
+                                        </div>
                                     </div>
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-soft-secondary" title="Tag người dùng" onclick="var ta=document.getElementById('activityTextarea');ta.value+=' @';ta.focus();showTagDropdown('');">
-                                                <i class="ri-at-line"></i> Tag
-                                            </button>
-                                            <label class="btn btn-soft-secondary mb-0" title="Đính kèm file">
-                                                <i class="ri-attachment-2"></i> File
-                                                <input type="file" name="attachment" class="d-none" onchange="this.closest('label').querySelector('span')?.remove();var s=document.createElement('span');s.className='ms-1 badge bg-primary';s.textContent=this.files[0].name;this.closest('label').appendChild(s);">
-                                            </label>
-                                            <button type="button" class="btn btn-soft-secondary" title="Check-in vị trí" id="btnCheckin">
-                                                <i class="ri-map-pin-line"></i> Check-in
-                                            </button>
-                                            <input type="hidden" name="latitude" id="checkinLat">
-                                            <input type="hidden" name="longitude" id="checkinLng">
+
+                                    <!-- Tag Panel (Getfly style - grouped by dept) -->
+                                    <div id="tagPanel" style="display:none" class="mb-3">
+                                        <div class="border rounded">
+                                            <div class="p-2 border-bottom">
+                                                <input type="text" class="form-control" placeholder="Chọn nhân viên" id="tagSearch">
+                                            </div>
+                                            <div style="max-height:250px;overflow-y:auto" id="tagUserList">
+                                                <?php
+                                                $deptUsers = [];
+                                                foreach ($allUsers ?? [] as $u) { $deptUsers[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+                                                ?>
+                                                <?php foreach ($deptUsers as $dept => $members): ?>
+                                                <div class="tag-dept-group">
+                                                    <div class="d-flex justify-content-between px-3 py-1 bg-light border-bottom">
+                                                        <small class="text-muted text-uppercase fw-medium"><?= e($dept) ?></small>
+                                                        <small class="text-muted"><?= count($members) ?></small>
+                                                    </div>
+                                                    <?php foreach ($members as $u): ?>
+                                                    <div class="tag-user-item d-flex align-items-center gap-2 px-3 py-2 border-bottom" style="cursor:pointer" data-id="<?= $u['id'] ?>" data-name="<?= e($u['name']) ?>">
+                                                        <?php if (!empty($u['avatar'])): ?>
+                                                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="28" height="28" style="object-fit:cover">
+                                                        <?php else: ?>
+                                                        <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px"><?= mb_substr($u['name'], 0, 1) ?></span>
+                                                        <?php endif; ?>
+                                                        <span style="font-size:13px"><?= e($u['name']) ?></span>
+                                                    </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary"><i class="ri-send-plane-fill me-1"></i> Gửi</button>
                                     </div>
                                 </form>
 
@@ -1329,74 +1367,40 @@
 
 <script>
 // Check-in GPS
-// Tag user autocomplete
+// Tag panel (Getfly style)
 (function(){
-    var users = <?= json_encode(array_map(function($u){ return ['id'=>$u['id'],'name'=>$u['name'],'avatar'=>$u['avatar']??null]; }, $allUsers ?? [])) ?>;
-    var ta = document.getElementById('activityTextarea');
-    var dd = document.getElementById('tagDropdown');
-    var taggedInput = document.getElementById('taggedUsers');
     var tagged = [];
+    var taggedInput = document.getElementById('taggedUsers');
+    var ta = document.getElementById('activityTextarea');
+    var searchInput = document.getElementById('tagSearch');
 
-    if (!ta || !dd) return;
-
-    ta.addEventListener('input', function() {
-        var val = this.value;
-        var cursor = this.selectionStart;
-        var before = val.substring(0, cursor);
-        var atMatch = before.match(/@(\S*)$/);
-        if (atMatch) {
-            showTagDropdown(atMatch[1]);
-        } else {
-            dd.style.display = 'none';
-        }
-    });
-
-    ta.addEventListener('keydown', function(e) {
-        if (dd.style.display === 'none') return;
-        if (e.key === 'Escape') { dd.style.display = 'none'; e.preventDefault(); }
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!dd.contains(e.target) && e.target !== ta) dd.style.display = 'none';
-    });
-
-    window.showTagDropdown = function(query) {
-        var q = (query || '').toLowerCase();
-        var filtered = users.filter(function(u) { return u.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 8);
-
-        if (filtered.length === 0) { dd.style.display = 'none'; return; }
-
-        dd.innerHTML = filtered.map(function(u) {
-            var initial = u.name.charAt(0).toUpperCase();
-            var avatarHtml = u.avatar
-                ? '<img src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">'
-                : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
-            return '<div class="d-flex align-items-center gap-2 px-3 py-2 tag-option" style="cursor:pointer" data-id="' + u.id + '" data-name="' + u.name + '">'
-                + avatarHtml + '<span style="font-size:13px">' + u.name + '</span></div>';
-        }).join('');
-
-        dd.style.display = 'block';
-
-        dd.querySelectorAll('.tag-option').forEach(function(opt) {
-            opt.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
-            opt.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
-            opt.addEventListener('click', function() {
-                var name = this.dataset.name;
-                var id = this.dataset.id;
-                var val = ta.value;
-                var cursor = ta.selectionStart;
-                var before = val.substring(0, cursor);
-                var after = val.substring(cursor);
-                var newBefore = before.replace(/@\S*$/, '@' + name + ' ');
-                ta.value = newBefore + after;
-                ta.selectionStart = ta.selectionEnd = newBefore.length;
-                ta.focus();
-                dd.style.display = 'none';
-                if (!tagged.includes(id)) tagged.push(id);
-                taggedInput.value = tagged.join(',');
-            });
+    // Search filter
+    searchInput?.addEventListener('input', function() {
+        var q = this.value.toLowerCase();
+        document.querySelectorAll('.tag-user-item').forEach(function(el) {
+            el.style.display = el.dataset.name.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
         });
-    };
+        document.querySelectorAll('.tag-dept-group').forEach(function(g) {
+            var visible = g.querySelectorAll('.tag-user-item[style=""],.tag-user-item:not([style])').length;
+            g.style.display = visible > 0 ? '' : 'none';
+        });
+    });
+
+    // Click to tag
+    document.querySelectorAll('.tag-user-item').forEach(function(el) {
+        el.addEventListener('click', function() {
+            var id = this.dataset.id;
+            var name = this.dataset.name;
+            if (tagged.includes(id)) return;
+            tagged.push(id);
+            taggedInput.value = tagged.join(',');
+            ta.value += (ta.value ? ' ' : '') + '@' + name;
+            this.style.backgroundColor = '#e8f0fe';
+            this.style.pointerEvents = 'none';
+        });
+        el.addEventListener('mouseenter', function() { if (!tagged.includes(this.dataset.id)) this.style.backgroundColor = '#f3f6f9'; });
+        el.addEventListener('mouseleave', function() { if (!tagged.includes(this.dataset.id)) this.style.backgroundColor = ''; });
+    });
 })();
 
 document.getElementById('btnCheckin')?.addEventListener('click', function() {
