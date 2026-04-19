@@ -455,7 +455,7 @@
                                     <input type="hidden" name="type" value="note" id="activityType">
                                     <div class="mb-3 position-relative">
                                         <textarea name="title" class="form-control" rows="3" placeholder="Nhập nội dung trao đổi, ghi chú... Gõ @ để tag người" required id="activityTextarea"></textarea>
-                                        <div id="tagDropdown" class="border rounded bg-white shadow" style="position:absolute;z-index:1060;display:none;max-height:200px;overflow-y:auto;width:250px">
+                                        <div id="tagDropdown" class="border rounded bg-white shadow" style="position:absolute;z-index:1060;display:none;max-height:200px;overflow-y:auto;width:250px;bottom:100%;left:0;margin-bottom:4px">
                                         </div>
                                         <input type="hidden" name="tagged_users" id="taggedUsers" value="">
                                     </div>
@@ -1376,11 +1376,6 @@
         }).join('');
 
         dd.style.display = 'block';
-        // Position near cursor
-        var rect = ta.getBoundingClientRect();
-        dd.style.left = '10px';
-        dd.style.bottom = (rect.height + 5) + 'px';
-        dd.style.top = 'auto';
 
         dd.querySelectorAll('.tag-option').forEach(function(opt) {
             opt.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
