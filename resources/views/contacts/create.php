@@ -486,7 +486,7 @@ document.addEventListener('blur', function(e) {
         alertDiv.style.fontSize = '12px';
         if (data.exists) {
             alertDiv.className += ' text-warning';
-            alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ có thể đã tồn tại.';
+            alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ đã tồn tại.';
         } else {
             alertDiv.className += ' text-success';
             alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. Có thể gửi yêu cầu thêm người LH.';
