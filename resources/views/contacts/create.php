@@ -22,6 +22,17 @@
                             <h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5>
                         </div>
                         <div class="card-body">
+                            <!-- Loại KH toggle -->
+                            <input type="hidden" name="contact_type" id="contactType" value="business">
+                            <div class="d-flex gap-2 mb-3">
+                                <button type="button" class="btn btn-primary flex-grow-1 ct-type-btn active" data-type="business" onclick="switchContactType('business')">
+                                    <i class="ri-building-line me-1"></i> Doanh nghiệp
+                                </button>
+                                <button type="button" class="btn btn-soft-secondary flex-grow-1 ct-type-btn" data-type="personal" onclick="switchContactType('personal')">
+                                    <i class="ri-user-line me-1"></i> Cá nhân
+                                </button>
+                            </div>
+
                             <!-- Avatar -->
                             <div class="mb-3 d-flex align-items-center gap-3">
                                 <div class="position-relative">
@@ -46,19 +57,44 @@
                                     reader.readAsDataURL(this.files[0]);
                                 }
                             });
+
+                            function switchContactType(type) {
+                                document.getElementById('contactType').value = type;
+                                document.querySelectorAll('.ct-type-btn').forEach(function(b) {
+                                    b.classList.remove('btn-primary','active');
+                                    b.classList.add('btn-soft-secondary');
+                                });
+                                document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.remove('btn-soft-secondary');
+                                document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.add('btn-primary','active');
+
+                                var biz = document.querySelectorAll('.field-business');
+                                var per = document.querySelectorAll('.field-personal');
+
+                                if (type === 'business') {
+                                    biz.forEach(function(el) { el.style.display = ''; });
+                                    per.forEach(function(el) { el.style.display = 'none'; });
+                                } else {
+                                    biz.forEach(function(el) { el.style.display = 'none'; });
+                                    per.forEach(function(el) { el.style.display = ''; });
+                                }
+                            }
                             </script>
-                            <div class="mb-3">
-                                <label class="form-label">Mã số thuế (KH cá nhân nhập SĐT) <span class="text-danger">*</span></label>
+
+                            <!-- Doanh nghiệp fields -->
+                            <div class="mb-3 field-business">
+                                <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="VD: Công ty TNHH ABC">
+                            </div>
+                            <div class="mb-3 field-business">
+                                <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu" required>
+                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
                                     <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
                                 </div>
                                 <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Mã KH</label>
-                                <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
-                            </div>
+
+                            <!-- Chung cho cả 2 loại -->
                             <div class="mb-3">
                                 <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
                                 <select name="title" class="form-select" required>
@@ -71,15 +107,16 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" placeholder="VD: Nguyễn Văn A hoặc Công ty TNHH ABC" required>
-                                <small class="text-muted">Nhập tên cá nhân hoặc tên công ty</small>
+                                <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Tên khách hàng (công ty) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="Tên công ty hoặc tên KH cá nhân" required>
+                                <label class="form-label">Mã KH</label>
+                                <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
                             </div>
+
+                            <!-- Cá nhân: SĐT bắt buộc -->
                             <div class="mb-3">
-                                <label class="form-label">Điện thoại</label>
+                                <label class="form-label">Điện thoại <span class="text-danger field-personal" style="display:none">*</span></label>
                                 <input type="text" class="form-control" name="phone" value="<?= old('phone') ?>">
                             </div>
                             <div class="mb-3">
@@ -89,10 +126,6 @@
                             <div class="mb-3">
                                 <label class="form-label">Địa chỉ</label>
                                 <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Số CF</label>
-                                <input type="text" class="form-control" name="referrer_code" value="<?= old('referrer_code') ?>">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Mô tả</label>
