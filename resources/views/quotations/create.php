@@ -296,10 +296,32 @@ document.getElementById('contactPersonSelect')?.addEventListener('change', funct
 
 // Pre-fill nếu có contact_id
 <?php if ($preContactId): ?>
-setTimeout(function() {
-    var sel = document.querySelector('[name="contact_id"]');
-    if (sel && sel.value) onContactChange(sel);
-}, 300);
+(function prefill() {
+    var sel = document.getElementById('contactSelect');
+    if (!sel) return;
+    // Select gốc đã có selected từ PHP, chỉ cần fill data
+    var opt = sel.querySelector('option[value="<?= (int)$preContactId ?>"]');
+    if (opt) {
+        document.getElementById('qAddress').value = opt.dataset.address || '';
+        document.getElementById('qPhone').value = opt.dataset.phone || '';
+        document.getElementById('qEmail').value = opt.dataset.email || '';
+        // Load persons
+        fetch('<?= url("contacts") ?>/<?= (int)$preContactId ?>/persons')
+            .then(r => r.json())
+            .then(function(persons) {
+                var cpSel = document.getElementById('contactPersonSelect');
+                cpSel.innerHTML = '<option value="">Chọn người liên hệ</option>';
+                (persons || []).forEach(function(p) {
+                    var o = document.createElement('option');
+                    o.value = p.id;
+                    o.textContent = (p.title ? p.title + ' ' : '') + p.full_name + (p.position ? ' - ' + p.position : '');
+                    o.dataset.phone = p.phone || '';
+                    o.dataset.email = p.email || '';
+                    cpSel.appendChild(o);
+                });
+            }).catch(function(){});
+    }
+})();
 <?php endif; ?>
 
 // === Sản phẩm ===
