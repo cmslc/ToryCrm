@@ -490,7 +490,7 @@ function checkCpPhone(btn) {
             alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ đã tồn tại.';
         } else {
             alertDiv.className += ' text-success';
-            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. Có thể gửi yêu cầu thêm người LH.';
+            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. <button type="button" class="btn btn-success py-0 px-2 ms-1" style="font-size:12px" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người LH</button>';
         }
         input.closest('.mb-2')?.appendChild(alertDiv);
     });
@@ -526,13 +526,44 @@ document.addEventListener('blur', function(e) {
             alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ đã tồn tại.';
         } else {
             alertDiv.className += ' text-success';
-            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. Có thể gửi yêu cầu thêm người LH.';
+            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. <button type="button" class="btn btn-success py-0 px-2 ms-1" style="font-size:12px" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người LH</button>';
         }
         e.target.closest('.col-6')?.appendChild(alertDiv);
     });
 }, true);
 
-// Submit merge request
+// Send merge from person form (inline button)
+function sendMergeFromPerson(btn) {
+    if (!duplicateContactId) { alert('Không tìm thấy KH trùng'); return; }
+    var personItem = btn.closest('.contact-person-item');
+    if (!personItem) { alert('Không tìm thấy thông tin người LH'); return; }
+    var title = personItem.querySelector('[name="cp_title[]"]')?.value || '';
+    var name = personItem.querySelector('[name="cp_name[]"]')?.value?.trim() || '';
+    var phone = personItem.querySelector('[name="cp_phone[]"]')?.value?.trim() || '';
+    var email = personItem.querySelector('[name="cp_email[]"]')?.value?.trim() || '';
+    var position = personItem.querySelector('[name="cp_position[]"]')?.value?.trim() || '';
+    if (!name) { alert('Vui lòng nhập họ tên người liên hệ'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i>Đang gửi...';
+    fetch('<?= url("merge-requests/store") ?>', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: JSON.stringify({ existing_contact_id: duplicateContactId, cp_title: title, cp_name: name, cp_phone: phone, cp_email: email, cp_position: position })
+    }).then(r => r.json()).then(function(data) {
+        var alertEl = btn.closest('.cp-phone-alert');
+        if (data.success) {
+            alertEl.className = 'cp-phone-alert mt-1 text-success';
+            alertEl.style.fontSize = '12px';
+            alertEl.innerHTML = '<i class="ri-check-double-line me-1"></i>Đã gửi yêu cầu! Chờ người phụ trách duyệt.';
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người LH';
+            alert(data.error || 'Lỗi');
+        }
+    }).catch(function() { btn.disabled = false; btn.innerHTML = '<i class="ri-send-plane-line me-1"></i>Gửi lại'; });
+}
+
+// Submit merge request (from MST duplicate alert - legacy)
 function submitMergeRequest(contactId) {
     var name = document.getElementById('mrName')?.value.trim();
     var phone = document.getElementById('mrPhone')?.value.trim();
