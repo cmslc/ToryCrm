@@ -560,7 +560,7 @@
                                                 <?php endif; ?>
 
                                                 <!-- Actions: Like / Dislike / Reply -->
-                                                <div class="d-flex align-items-center gap-3 mt-2" style="font-size:16px">
+                                                <div class="d-flex align-items-center gap-3 mt-2" style="font-size:13px">
                                                     <span class="act-btn <?= ($act['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $act['id'] ?>,'like',this)">
                                                         <i class="ri-thumb-up-<?= ($act['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i><?php if (($act['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['likes'] ?></span><?php endif; ?>
                                                     </span>
@@ -591,7 +591,7 @@
                                                             <strong style="font-size:13px"><?= e($rName) ?></strong>
                                                             <small class="text-muted ms-1"><?= date('d/m H:i', strtotime($reply['created_at'])) ?></small>
                                                             <div style="font-size:13px"><?= $rContent ?></div>
-                                                            <div class="d-flex align-items-center gap-3 mt-1" style="font-size:15px">
+                                                            <div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">
                                                                 <span class="act-btn <?= ($reply['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $reply['id'] ?>,'like',this)">
                                                                     <i class="ri-thumb-up-<?= ($reply['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i><?php if (($reply['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['likes'] ?></span><?php endif; ?>
                                                                 </span>
@@ -1522,7 +1522,7 @@ function submitReply(id) {
         var r = data.reply;
         var initial = (r.user_name||'?').charAt(0).toUpperCase();
         var avatar = r.user_avatar ? '<img src="/' + r.user_avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px">' + initial + '</div>';
-        var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:15px">'
+        var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">'
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'like\',this)"><i class="ri-thumb-up-line"></i></span>'
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i></span>'
             + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i> Trả lời</span>'
