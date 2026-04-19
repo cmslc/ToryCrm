@@ -81,7 +81,7 @@ class ContactController extends Controller
         );
 
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
-        $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
         $statusCountsWhere = "is_deleted = 0 AND tenant_id = ?";
         $statusCountsParams = [Database::tenantId()];
         $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM contacts WHERE {$statusCountsWhere}" . $this->getOwnerScopeSql('owner_id') . " GROUP BY status", $statusCountsParams);
@@ -128,7 +128,7 @@ class ContactController extends Controller
     {
         $this->authorize('contacts', 'create');
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
-        $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
         $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order", [Database::tenantId()]);
         $industries = Database::fetchAll("SELECT DISTINCT industry FROM contacts WHERE industry IS NOT NULL AND industry != '' ORDER BY industry");
 
@@ -433,7 +433,7 @@ class ContactController extends Controller
         }
 
         $sources = Database::fetchAll("SELECT * FROM contact_sources ORDER BY sort_order, name");
-        $users = Database::fetchAll("SELECT u.id, u.name, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, u.role, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
         $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order", [Database::tenantId()]);
         $industries = Database::fetchAll("SELECT DISTINCT industry FROM contacts WHERE industry IS NOT NULL AND industry != '' ORDER BY industry");
         $contactPersons = Database::fetchAll(

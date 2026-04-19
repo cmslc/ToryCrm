@@ -25,10 +25,10 @@
         var placeholderText = '';
 
         function addOption(opt, group) {
-            var item = { value: opt.value, text: opt.textContent.trim(), group: group || null };
+            var item = { value: opt.value, text: opt.textContent.trim(), group: group || null, avatar: opt.dataset.avatar || '' };
             items.push(item);
             if (opt.value === '' && !placeholderText) placeholderText = opt.textContent.trim();
-            if (opt.value === selectedValue && opt.value !== '') selectedText = opt.textContent.trim();
+            if (opt.value === selectedValue && opt.value !== '') { selectedText = opt.textContent.trim(); }
         }
 
         for (var i = 0; i < sel.children.length; i++) {
@@ -55,11 +55,27 @@
         if (sel.style.maxWidth) wrapper.style.maxWidth = sel.style.maxWidth;
         sel.parentNode.insertBefore(wrapper, sel.nextSibling);
 
+        function avatarHtml(avatar, name, size) {
+            size = size || 22;
+            if (avatar) return '<img src="/' + avatar + '" class="rounded-circle" width="' + size + '" height="' + size + '" style="object-fit:cover">';
+            if (!name) return '';
+            return '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:' + size + 'px;height:' + size + 'px;font-size:' + (size * 0.45) + 'px">' + name.charAt(0).toUpperCase() + '</span>';
+        }
+
+        function btnContent(text, avatar, name) {
+            var av = avatar ? avatarHtml(avatar, name) : '';
+            if (!text) return '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>';
+            return (av ? '<span class="me-2 flex-shrink-0">' + av + '</span>' : '') + '<span class="flex-grow-1 text-truncate">' + text + '</span>';
+        }
+
+        var selectedAvatar = '';
+        items.forEach(function(o) { if (o.value === selectedValue && o.value !== '') selectedAvatar = o.avatar; });
+
         // Display button
         var btn = document.createElement('div');
         btn.className = 'form-select d-flex align-items-center text-nowrap';
         btn.style.cursor = 'pointer';
-        btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>') + '</span>';
+        btn.innerHTML = btnContent(selectedText, selectedAvatar, selectedText);
         wrapper.appendChild(btn);
 
         // Dropdown
@@ -112,9 +128,11 @@
                 }
 
                 var item = document.createElement('div');
-                item.className = 'px-3 py-2 fs-13' + (o.value === selectedValue ? ' bg-primary text-white' : '');
+                item.className = 'px-3 py-2 fs-13 d-flex align-items-center gap-2' + (o.value === selectedValue ? ' bg-primary text-white' : '');
                 item.style.cursor = 'pointer';
-                item.textContent = o.text || placeholderText || 'Chọn...';
+                var hasAvatars = items.some(function(i) { return i.avatar; });
+                var avEl = (hasAvatars && o.value) ? avatarHtml(o.avatar, o.text, 24) : '';
+                item.innerHTML = (avEl ? '<span class="flex-shrink-0">' + avEl + '</span>' : '') + '<span>' + (o.text || placeholderText || 'Chọn...') + '</span>';
                 item.dataset.value = o.value;
 
                 item.addEventListener('mouseenter', function() {
@@ -128,7 +146,8 @@
                     sel.value = o.value;
                     selectedValue = o.value;
                     selectedText = o.value ? o.text : '';
-                    btn.innerHTML = '<span class="flex-grow-1 text-truncate">' + (selectedText || '<span class="text-muted">' + (placeholderText || 'Chọn...') + '</span>') + '</span>';
+                    selectedAvatar = o.avatar || '';
+                    btn.innerHTML = btnContent(selectedText, selectedAvatar, selectedText);
                     close();
                     sel.dispatchEvent(new Event('change', { bubbles: true }));
                 });

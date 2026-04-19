@@ -218,7 +218,7 @@
                                     <?php foreach ($deptGrouped as $dept => $deptUsers): ?>
                                     <optgroup label="<?= e($dept) ?>">
                                         <?php foreach ($deptUsers as $u): ?>
-                                        <option value="<?= $u['id'] ?>" <?= $u['id'] == ($_SESSION['user']['id'] ?? 0) ? 'selected' : '' ?>><?= e($u['name']) ?></option>
+                                        <option value="<?= $u['id'] ?>" data-avatar="<?= e($u['avatar'] ?? '') ?>" <?= $u['id'] == ($_SESSION['user']['id'] ?? 0) ? 'selected' : '' ?>><?= e($u['name']) ?></option>
                                         <?php endforeach; ?>
                                     </optgroup>
                                     <?php endforeach; ?>
