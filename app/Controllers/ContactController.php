@@ -140,6 +140,46 @@ class ContactController extends Controller
         ]);
     }
 
+    /**
+     * Find existing company by MST or name, or create new one.
+     */
+    private function findOrCreateCompany(array $contactData): int
+    {
+        $tid = Database::tenantId();
+
+        // Try find by tax_code first
+        if (!empty($contactData['tax_code'])) {
+            $existing = Database::fetch("SELECT id FROM companies WHERE tax_code = ? AND is_deleted = 0 AND tenant_id = ?", [$contactData['tax_code'], $tid]);
+            if ($existing) return (int)$existing['id'];
+        }
+
+        // Try find by exact company name
+        if (!empty($contactData['company_name'])) {
+            $existing = Database::fetch("SELECT id FROM companies WHERE name = ? AND is_deleted = 0 AND tenant_id = ?", [$contactData['company_name'], $tid]);
+            if ($existing) return (int)$existing['id'];
+        }
+
+        // Create new company
+        return Database::insert('companies', [
+            'tenant_id' => $tid,
+            'name' => $contactData['company_name'],
+            'phone' => $contactData['company_phone'] ?? $contactData['phone'] ?? null,
+            'email' => $contactData['company_email'] ?? $contactData['email'] ?? null,
+            'address' => $contactData['address'] ?? null,
+            'city' => $contactData['city'] ?? null,
+            'province' => $contactData['province'] ?? null,
+            'district' => $contactData['district'] ?? null,
+            'country' => $contactData['country'] ?? null,
+            'tax_code' => $contactData['tax_code'] ?? null,
+            'website' => $contactData['website'] ?? null,
+            'fax' => $contactData['fax'] ?? null,
+            'industry' => $contactData['industry'] ?? null,
+            'company_size' => $contactData['company_size'] ?? null,
+            'owner_id' => $contactData['owner_id'] ?? $this->userId(),
+            'created_by' => $this->userId(),
+        ]);
+    }
+
     private function buildContactData(array $data): array
     {
         // Derive first_name/last_name/full_name from input
@@ -396,6 +436,12 @@ class ContactController extends Controller
             $maxCode = Database::fetch("SELECT MAX(CAST(SUBSTRING(account_code, 3) AS UNSIGNED)) as max_num FROM contacts WHERE account_code LIKE 'KH%'");
             $nextNum = ($maxCode['max_num'] ?? 0) + 1;
             $contactData['account_code'] = 'KH' . $nextNum;
+        }
+
+        // Auto-create or link company for business contacts
+        if (!empty($contactData['company_name'])) {
+            $companyId = $this->findOrCreateCompany($contactData);
+            $contactData['company_id'] = $companyId;
         }
 
         $contactId = Database::insert('contacts', $contactData);

@@ -147,10 +147,11 @@ class MergeRequestController extends Controller
         $maxCode = Database::fetch("SELECT MAX(CAST(SUBSTRING(account_code, 3) AS UNSIGNED)) as max_num FROM contacts WHERE account_code LIKE 'KH%'");
         $accountCode = 'KH' . (($maxCode['max_num'] ?? 0) + 1);
 
-        // Create new contact for Sale 2 (copy DN info)
+        // Create new contact for Sale 2 (copy DN info, link same company)
         $newContactId = Database::insert('contacts', [
             'tenant_id' => $existingContact['tenant_id'],
             'account_code' => $accountCode,
+            'company_id' => $existingContact['company_id'],
             'company_name' => $existingContact['company_name'],
             'tax_code' => $existingContact['tax_code'],
             'company_phone' => $existingContact['company_phone'],
