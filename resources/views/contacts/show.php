@@ -490,8 +490,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- @mention dropdown (shared, positioned dynamically) -->
-                                    <div id="mentionDropdown" class="border rounded bg-white shadow" style="position:fixed;z-index:1070;display:none;max-height:350px;overflow-y:auto;width:280px"></div>
                                 </form>
 
                                 <!-- Activity Feed (Facebook style) -->
@@ -1516,8 +1514,27 @@ function submitReply(id) {
 // @mention autocomplete (works on any input/textarea)
 (function(){
     var users = <?= json_encode(array_map(function($u){ return ['id'=>$u['id'],'name'=>$u['name'],'avatar'=>$u['avatar']??null,'dept'=>$u['dept_name']??'']; }, $allUsers ?? [])) ?>;
-    var dd = document.getElementById('mentionDropdown');
+    // Create dropdown in body for correct positioning
+    var dd = document.createElement('div');
+    dd.className = 'border rounded bg-white shadow';
+    dd.style.cssText = 'position:fixed;z-index:1070;display:none;max-height:350px;overflow-y:auto;width:280px';
+    document.body.appendChild(dd);
     var activeInput = null;
+
+    function updateDropdownPos() {
+        if (!activeInput || dd.style.display === 'none') return;
+        var rect = activeInput.getBoundingClientRect();
+        var spaceBelow = window.innerHeight - rect.bottom;
+        if (spaceBelow > 200) {
+            dd.style.top = rect.bottom + 4 + 'px';
+            dd.style.bottom = 'auto';
+        } else {
+            dd.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+            dd.style.top = 'auto';
+        }
+        dd.style.left = rect.left + 'px';
+    }
+    window.addEventListener('scroll', updateDropdownPos, true);
 
     function showMention(input, query) {
         activeInput = input;
@@ -1549,11 +1566,8 @@ function submitReply(id) {
         });
         dd.innerHTML = html;
 
-        // Position near input
-        var rect = input.getBoundingClientRect();
-        dd.style.left = rect.left + 'px';
-        dd.style.top = (rect.bottom + 4) + 'px';
         dd.style.display = 'block';
+        updateDropdownPos();
 
         dd.querySelectorAll('.mention-opt').forEach(function(opt) {
             opt.onmouseenter = function() { this.style.backgroundColor = '#f3f6f9'; };
