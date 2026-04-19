@@ -228,7 +228,7 @@
                                 <label class="form-label">Nhóm khách hàng <span class="text-danger">*</span></label>
                                 <select name="customer_group" class="form-select">
                                     <option value="">Vui lòng chọn</option>
-                                    <option value="Khách Lẻ">Khách Lẻ</option>
+                                    <option value="Khách Lẻ" selected>Khách Lẻ</option>
                                     <option value="Khách Dự Án">Khách Dự Án</option>
                                     <option value="Khách Đại Lý">Khách Đại Lý</option>
                                     <option value="Doanh Nghiệp">Doanh Nghiệp</option>
