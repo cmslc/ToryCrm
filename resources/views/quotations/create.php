@@ -332,10 +332,7 @@ function addItem(data) {
         <td><input type="number" class="form-control" name="items[${idx}][discount]" id="item-discount-${idx}" value="${data?.discount || 0}" min="0" onchange="calculateRow(${idx})"></td>
         <td><input type="number" class="form-control" name="items[${idx}][tax_rate]" id="item-tax-${idx}" value="${data?.tax_rate || 0}" min="0" max="100" step="0.01" onchange="calculateRow(${idx})"></td>
         <td class="fw-medium text-end" id="item-total-${idx}">0.00</td>
-        <td class="text-center">
-            <button type="button" class="btn btn-soft-danger btn-icon" onclick="removeItem(${idx})"><i class="ri-delete-bin-line"></i></button>
-            <button type="button" class="btn btn-soft-primary btn-icon" onclick="addItem()"><i class="ri-add-line"></i></button>
-        </td>
+        <td><div class="d-flex gap-1"><button type="button" class="btn btn-soft-danger btn-icon" onclick="removeItem(${idx})"><i class="ri-delete-bin-line"></i></button><button type="button" class="btn btn-soft-primary btn-icon" onclick="addItem()"><i class="ri-add-line"></i></button></div></td>
     `;
     tbody.appendChild(tr);
     if (data) calculateRow(idx);
