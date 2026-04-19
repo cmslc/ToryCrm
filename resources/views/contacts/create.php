@@ -136,7 +136,10 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Điện thoại <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="phone" value="<?= old('phone') ?>">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="phone" id="phoneInput" value="<?= old('phone') ?>" placeholder="Nhập SĐT để kiểm tra trùng">
+                                        <button type="button" class="btn btn-soft-info" onclick="checkDuplicate('phone',document.getElementById('phoneInput').value.trim())"><i class="ri-search-line"></i></button>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Email</label>
@@ -423,10 +426,10 @@ function checkDuplicate(field, value) {
 document.getElementById('taxCodeInput')?.addEventListener('blur', function() {
     checkDuplicate('tax_code', this.value.trim());
 });
-// Phone blur check
-document.querySelectorAll('[name="phone"]').forEach(function(el) {
-    el.addEventListener('blur', function() { checkDuplicate('phone', this.value.trim()); });
-});
+// Phone check: blur + Enter + paste
+document.getElementById('phoneInput')?.addEventListener('blur', function() { checkDuplicate('phone', this.value.trim()); });
+document.getElementById('phoneInput')?.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); checkDuplicate('phone', this.value.trim()); } });
+document.getElementById('phoneInput')?.addEventListener('paste', function() { var el = this; setTimeout(function() { checkDuplicate('phone', el.value.trim()); }, 100); });
 // Email blur check
 document.querySelectorAll('[name="email"]').forEach(function(el) {
     el.addEventListener('blur', function() { checkDuplicate('email', this.value.trim()); });
