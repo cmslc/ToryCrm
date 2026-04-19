@@ -25,8 +25,15 @@ class CsrfMiddleware
             return true;
         }
 
-        // Validate CSRF token
-        $token       = $_POST['_token'] ?? '';
+        // Validate CSRF token (form POST, X-CSRF-TOKEN header, or JSON body)
+        $token = $_POST['_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (empty($token)) {
+            $rawBody = file_get_contents('php://input');
+            if ($rawBody) {
+                $json = json_decode($rawBody, true);
+                if ($json && isset($json['_token'])) $token = $json['_token'];
+            }
+        }
         $sessionToken = $_SESSION['csrf_token'] ?? '';
 
         if (empty($token) || empty($sessionToken) || !hash_equals($sessionToken, $token)) {
