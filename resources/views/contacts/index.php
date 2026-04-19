@@ -291,9 +291,6 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                 case 'website':
                                     echo $val ? '<a href="' . e($val) . '" target="_blank" class="text-truncate d-inline-block" style="max-width:120px">' . e($val) . '</a>' : '-';
                                     break;
-                                case 'is_private':
-                                    echo $val ? '<span class="badge bg-warning">Có</span>' : '-';
-                                    break;
                                 case 'created_at': case 'updated_at': case 'last_activity_at':
                                     echo $val ? '<span class="text-muted">' . time_ago($val) . '</span>' : '-';
                                     break;

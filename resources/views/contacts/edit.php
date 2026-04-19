@@ -297,12 +297,6 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_private" value="1" id="isPrivate" <?= ($c['is_private'] ?? 0) ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="isPrivate">KH riêng tư (chỉ người phụ trách xem)</label>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

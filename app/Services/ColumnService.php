@@ -44,7 +44,6 @@ class ColumnService
             'status' => 'Mối quan hệ',
             'customer_group' => 'Nhóm KH',
             'total_revenue' => 'Tổng doanh thu',
-            'is_private' => 'Riêng tư',
             'owner_id' => 'Phụ trách',
             'created_by' => 'Người tạo',
             'last_activity_at' => 'LH lần cuối',

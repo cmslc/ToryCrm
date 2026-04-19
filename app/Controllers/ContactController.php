@@ -190,7 +190,6 @@ class ContactController extends Controller
             'status' => $data['status'] ?? 'new',
             'customer_group' => $data['customer_group'] ?? null ?: null,
             'referrer_code' => trim($data['referrer_code'] ?? '') ?: null,
-            'is_private' => isset($data['is_private']) ? 1 : 0,
             'gender' => $data['gender'] ?? null ?: null,
             'date_of_birth' => !empty($data['date_of_birth']) ? $data['date_of_birth'] : null,
             'owner_id' => (!empty($data['owner_id']) ? $data['owner_id'] : null),

@@ -30,7 +30,7 @@ class DataDefinitionController extends Controller
         'province' => 'Tỉnh/TP', 'district' => 'Quận/Huyện', 'ward' => 'Phường/Xã',
         'country' => 'Quốc gia', 'description' => 'Mô tả', 'status' => 'Mối quan hệ',
         'customer_group' => 'Nhóm KH', 'referrer_code' => 'Người giới thiệu',
-        'is_private' => 'Riêng tư', 'avatar' => 'Ảnh đại diện',
+        'avatar' => 'Ảnh đại diện',
         'tax_code' => 'Mã số thuế', 'website' => 'Website', 'fax' => 'Fax',
         'latitude' => 'Kinh độ', 'longitude' => 'Vĩ độ',
         'company_name' => 'Tên công ty', 'company_phone' => 'ĐT công ty', 'company_email' => 'Email công ty',
@@ -258,8 +258,8 @@ class DataDefinitionController extends Controller
             'id', 'tenant_id', 'is_deleted', 'deleted_at', 'created_at', 'updated_at',
             'created_by', 'owner_id', 'last_activity_at', 'sort_order',
             'avatar', 'logo', 'image', 'featured_image', 'currency',
-            // Contacts (first_name/last_name merged into full_name)
-            'first_name', 'last_name',
+            // Contacts (first_name/last_name merged into full_name, is_private removed)
+            'first_name', 'last_name', 'is_private',
             'portal_token', 'portal_password', 'portal_active',
             'total_revenue', 'bonus_points', 'score', 'relation_id', 'industry_id', 'referrer_type',
             // Orders
