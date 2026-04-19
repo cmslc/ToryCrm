@@ -480,10 +480,15 @@ function checkCpPhone(btn) {
         alertDiv.style.fontSize = '12px';
         if (data.exists) {
             alertDiv.className += ' text-warning';
-            alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ đã tồn tại.';
+            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
+            alertDiv.style.fontSize = '13px';
+            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này <strong>đã có</strong> trong doanh nghiệp. Người liên hệ đã tồn tại, không cần thêm.</span></div>';
         } else {
             alertDiv.className += ' text-success';
-            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. <button type="button" class="btn btn-success py-0 px-2 ms-1" style="font-size:12px" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người LH</button>';
+            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded bg-light';
+            alertDiv.style.fontSize = '13px';
+            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2 mb-2"><i class="ri-check-circle-line text-success fs-18"></i><span>SĐT này <strong>chưa có</strong> trong doanh nghiệp. Bạn có thể gửi yêu cầu để được thêm người liên hệ này.</span></div>'
+                + '<button type="button" class="btn btn-success w-100" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người liên hệ</button>';
         }
         input.closest('.mb-2')?.appendChild(alertDiv);
     });
@@ -516,10 +521,15 @@ document.addEventListener('blur', function(e) {
         alertDiv.style.fontSize = '12px';
         if (data.exists) {
             alertDiv.className += ' text-warning';
-            alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ đã tồn tại.';
+            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
+            alertDiv.style.fontSize = '13px';
+            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này <strong>đã có</strong> trong doanh nghiệp. Người liên hệ đã tồn tại, không cần thêm.</span></div>';
         } else {
             alertDiv.className += ' text-success';
-            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. <button type="button" class="btn btn-success py-0 px-2 ms-1" style="font-size:12px" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người LH</button>';
+            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded bg-light';
+            alertDiv.style.fontSize = '13px';
+            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2 mb-2"><i class="ri-check-circle-line text-success fs-18"></i><span>SĐT này <strong>chưa có</strong> trong doanh nghiệp. Bạn có thể gửi yêu cầu để được thêm người liên hệ này.</span></div>'
+                + '<button type="button" class="btn btn-success w-100" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người liên hệ</button>';
         }
         e.target.closest('.col-6')?.appendChild(alertDiv);
     });
