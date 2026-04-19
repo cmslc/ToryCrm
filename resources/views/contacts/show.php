@@ -1436,6 +1436,7 @@ function previewAttach(input) {
             html += '<i class="' + (icons[ext] || 'ri-file-line text-muted') + ' fs-18"></i>';
         }
         html += '<span style="font-size:13px" class="flex-grow-1">' + file.name + ' <small class="text-muted">(' + size + ')</small></span>';
+        html += '<span class="text-danger" style="cursor:pointer;font-size:12px" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
         html += '</div>';
     });
     html += '<div class="mt-1"><button type="button" class="btn btn-link text-danger p-0" onclick="clearAttach()" style="font-size:12px"><i class="ri-close-line me-1"></i>Xóa tất cả</button></div>';
@@ -1453,8 +1454,25 @@ function previewAttach(input) {
     });
 }
 function clearAttach() {
-    document.querySelector('input[name="attachments[]"]').value = '';
+    var input = document.querySelector('input[name="attachments[]"]');
+    input.value = '';
+    input._filteredFiles = null;
     document.getElementById('attachBadge').style.display = 'none';
+}
+function removeAttachFile(idx) {
+    var input = document.querySelector('input[name="attachments[]"]');
+    var dt = new DataTransfer();
+    var files = input._filteredFiles || input.files;
+    for (var i = 0; i < files.length; i++) {
+        if (i !== idx) dt.items.add(files[i]);
+    }
+    input.files = dt.files;
+    input._filteredFiles = dt.files;
+    if (dt.files.length === 0) {
+        clearAttach();
+    } else {
+        previewAttach(input);
+    }
 }
 
 // React & Reply
