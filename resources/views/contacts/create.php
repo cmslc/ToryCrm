@@ -192,20 +192,30 @@
                                     </div>
                                     <button type="button" class="btn btn-soft-danger btn-icon btn-remove-person d-none"><i class="ri-delete-bin-line"></i></button>
                                 </div>
-                                <div class="row">
-                                    <div class="col-4 mb-2">
-                                        <label class="form-label">Danh xưng</label>
-                                        <select name="cp_title[]" class="form-select">
-                                            <option value="">Chọn</option>
-                                            <option value="anh">Anh</option>
-                                            <option value="chị">Chị</option>
-                                            <option value="ông">Ông</option>
-                                            <option value="bà">Bà</option>
-                                        </select>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <div class="position-relative flex-shrink-0">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center cp-avatar-placeholder" style="width:48px;height:48px"><i class="ri-user-line text-muted fs-20"></i></div>
+                                        <img src="" class="rounded-circle cp-avatar-preview d-none" style="width:48px;height:48px;object-fit:cover">
+                                        <label class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:20px;height:20px;cursor:pointer">
+                                            <i class="ri-camera-line" style="font-size:10px"></i>
+                                            <input type="file" name="cp_avatar[]" accept="image/*" class="d-none" onchange="var p=this.closest('.position-relative');var img=p.querySelector('.cp-avatar-preview');var ph=p.querySelector('.cp-avatar-placeholder');if(this.files[0]){var r=new FileReader();r.onload=function(e){img.src=e.target.result;img.classList.remove('d-none');ph.classList.add('d-none')};r.readAsDataURL(this.files[0])}">
+                                        </label>
                                     </div>
-                                    <div class="col-8 mb-2">
-                                        <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="cp_name[]" required>
+                                    <div class="flex-grow-1">
+                                        <div class="row">
+                                            <div class="col-5">
+                                                <select name="cp_title[]" class="form-select">
+                                                    <option value="">Danh xưng</option>
+                                                    <option value="anh">Anh</option>
+                                                    <option value="chị">Chị</option>
+                                                    <option value="ông">Ông</option>
+                                                    <option value="bà">Bà</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-7">
+                                                <input type="text" class="form-control" name="cp_name[]" placeholder="Họ và tên *" required>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="mb-2">
