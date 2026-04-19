@@ -18,17 +18,6 @@
                     <h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5>
                 </div>
                 <div class="card-body">
-                    <?php $isBusiness = !empty($c['company_name']) || !empty($c['tax_code']); ?>
-                    <!-- Loại KH toggle -->
-                    <input type="hidden" name="contact_type" id="contactType" value="<?= $isBusiness ? 'business' : 'personal' ?>">
-                    <div class="d-flex gap-2 mb-3">
-                        <button type="button" class="btn <?= $isBusiness ? 'btn-primary' : 'btn-soft-secondary' ?> flex-grow-1 ct-type-btn <?= $isBusiness ? 'active' : '' ?>" data-type="business" onclick="switchContactType('business')">
-                            <i class="ri-building-line me-1"></i> Doanh nghiệp
-                        </button>
-                        <button type="button" class="btn <?= !$isBusiness ? 'btn-primary' : 'btn-soft-secondary' ?> flex-grow-1 ct-type-btn <?= !$isBusiness ? 'active' : '' ?>" data-type="personal" onclick="switchContactType('personal')">
-                            <i class="ri-user-line me-1"></i> Cá nhân
-                        </button>
-                    </div>
 
                     <!-- Avatar -->
                     <div class="mb-3 d-flex align-items-center gap-3">
@@ -59,23 +48,12 @@
                             reader.readAsDataURL(this.files[0]);
                         }
                     });
-                    function switchContactType(type) {
-                        document.getElementById('contactType').value = type;
-                        document.querySelectorAll('.ct-type-btn').forEach(function(b) {
-                            b.classList.remove('btn-primary','active');
-                            b.classList.add('btn-soft-secondary');
-                        });
-                        document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.remove('btn-soft-secondary');
-                        document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.add('btn-primary','active');
-                        document.querySelectorAll('.field-business').forEach(function(el) { el.style.display = type === 'business' ? '' : 'none'; });
-                        document.querySelectorAll('.field-personal').forEach(function(el) { el.style.display = type === 'personal' ? '' : 'none'; });
-                    }
                     </script>
 
                     <!-- === DOANH NGHIỆP === -->
-                    <div class="field-business" <?= !$isBusiness ? 'style="display:none"' : '' ?>>
+                    <div>
                         <div class="mb-3">
-                            <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
+                            <label class="form-label">Mã số thuế</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= e($c['tax_code'] ?? '') ?>" placeholder="Nhập MST rồi bấm tra cứu">
                                 <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
@@ -83,7 +61,7 @@
                             <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                            <label class="form-label">Tên công ty</label>
                             <input type="text" class="form-control" name="company_name" id="companyNameInput" value="<?= e($c['company_name'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
@@ -111,9 +89,9 @@
                     </div>
 
                     <!-- === CÁ NHÂN === -->
-                    <div class="field-personal" <?= $isBusiness ? 'style="display:none"' : '' ?>>
+                    <div>
                         <div class="mb-3">
-                            <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
+                            <label class="form-label">Danh xưng</label>
                             <select name="title" class="form-select">
                                 <option value="">Chọn</option>
                                 <option value="anh" <?= ($c['title'] ?? '') === 'anh' ? 'selected' : '' ?>>Anh</option>
@@ -123,11 +101,11 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <label class="form-label">Họ và tên</label>
                             <input type="text" class="form-control" name="full_name" value="<?= e($c['full_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''))) ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Điện thoại <span class="text-danger">*</span></label>
+                            <label class="form-label">Điện thoại</label>
                             <input type="text" class="form-control" name="phone" value="<?= e($c['phone'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
@@ -172,7 +150,7 @@
         </div>
 
         <!-- CỘT GIỮA: Thông tin người liên hệ (chỉ DN) -->
-        <div class="col-lg-4 field-business" <?= !$isBusiness ? 'style="display:none"' : '' ?>>
+        <div class="col-lg-4">>
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Thông tin người liên hệ</h5>
@@ -203,7 +181,7 @@
                                     </select>
                                 </div>
                                 <div class="col-8 mb-2">
-                                    <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                    <label class="form-label">Họ và tên</label>
                                     <input type="text" class="form-control" name="cp_name[]" value="<?= e($cp['full_name'] ?? '') ?>" required>
                                 </div>
                             </div>
@@ -252,7 +230,7 @@
                                     </select>
                                 </div>
                                 <div class="col-8 mb-2">
-                                    <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                    <label class="form-label">Họ và tên</label>
                                     <input type="text" class="form-control" name="cp_name[]">
                                 </div>
                             </div>

@@ -22,19 +22,6 @@
                             <h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5>
                         </div>
                         <div class="card-body">
-                            <!-- Loại KH toggle (tùy chọn, mặc định hiện tất cả) -->
-                            <input type="hidden" name="contact_type" id="contactType" value="all">
-                            <div class="d-flex gap-2 mb-3">
-                                <button type="button" class="btn btn-primary flex-grow-1 ct-type-btn active" data-type="all" onclick="switchContactType('all')">
-                                    <i class="ri-list-check me-1"></i> Tất cả
-                                </button>
-                                <button type="button" class="btn btn-soft-secondary flex-grow-1 ct-type-btn" data-type="business" onclick="switchContactType('business')">
-                                    <i class="ri-building-line me-1"></i> Doanh nghiệp
-                                </button>
-                                <button type="button" class="btn btn-soft-secondary flex-grow-1 ct-type-btn" data-type="personal" onclick="switchContactType('personal')">
-                                    <i class="ri-user-line me-1"></i> Cá nhân
-                                </button>
-                            </div>
 
                             <!-- Avatar -->
                             <div class="mb-3 d-flex align-items-center gap-3">
