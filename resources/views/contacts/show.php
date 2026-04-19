@@ -465,8 +465,8 @@
                                                     <i class="ri-attachment-2 fs-18"></i>
                                                     <input type="file" name="attachment" class="d-none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.dwg,.dxf,.cad,.dwf,.skp,.3ds,.obj,.stl,.step,.stp,.iges,.igs" onchange="previewAttach(this)">
                                                 </label>
-                                                <span class="text-muted" style="cursor:pointer" title="Tag nhân viên" onclick="document.getElementById('tagPanel').style.display=document.getElementById('tagPanel').style.display==='none'?'block':'none'">
-                                                    <i class="ri-price-tag-3-line fs-18"></i>
+                                                <span class="text-muted" style="cursor:pointer" title="Tag @người dùng" onclick="var ta=document.getElementById('activityTextarea');ta.value+=' @';ta.focus();ta.dispatchEvent(new Event('input'));">
+                                                    <i class="ri-at-line fs-18"></i>
                                                 </span>
                                                 <span class="text-muted" style="cursor:pointer" title="Check-in vị trí" id="btnCheckin">
                                                     <i class="ri-map-pin-line fs-18"></i>
@@ -490,38 +490,8 @@
                                         </div>
                                     </div>
 
-                                    <!-- Tag Panel (Getfly style - grouped by dept) -->
-                                    <div id="tagPanel" style="display:none" class="mb-3">
-                                        <div class="border rounded">
-                                            <div class="p-2 border-bottom">
-                                                <input type="text" class="form-control" placeholder="Chọn nhân viên" id="tagSearch">
-                                            </div>
-                                            <div style="max-height:250px;overflow-y:auto" id="tagUserList">
-                                                <?php
-                                                $deptUsers = [];
-                                                foreach ($allUsers ?? [] as $u) { $deptUsers[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
-                                                ?>
-                                                <?php foreach ($deptUsers as $dept => $members): ?>
-                                                <div class="tag-dept-group">
-                                                    <div class="d-flex justify-content-between px-3 py-1 bg-light border-bottom">
-                                                        <small class="text-muted text-uppercase fw-medium"><?= e($dept) ?></small>
-                                                        <small class="text-muted"><?= count($members) ?></small>
-                                                    </div>
-                                                    <?php foreach ($members as $u): ?>
-                                                    <div class="tag-user-item d-flex align-items-center gap-2 px-3 py-2 border-bottom" style="cursor:pointer" data-id="<?= $u['id'] ?>" data-name="<?= e($u['name']) ?>">
-                                                        <?php if (!empty($u['avatar'])): ?>
-                                                        <img src="<?= asset($u['avatar']) ?>" class="rounded-circle" width="28" height="28" style="object-fit:cover">
-                                                        <?php else: ?>
-                                                        <span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px"><?= mb_substr($u['name'], 0, 1) ?></span>
-                                                        <?php endif; ?>
-                                                        <span style="font-size:13px"><?= e($u['name']) ?></span>
-                                                    </div>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <!-- @mention dropdown (shared, positioned dynamically) -->
+                                    <div id="mentionDropdown" class="border rounded bg-white shadow" style="position:fixed;z-index:1070;display:none;max-height:220px;overflow-y:auto;width:260px"></div>
                                 </form>
 
                                 <!-- Activity Feed (Facebook style) -->
@@ -1543,39 +1513,86 @@ function submitReply(id) {
     });
 }
 
-// Tag panel (Getfly style)
+// @mention autocomplete (works on any input/textarea)
 (function(){
-    var tagged = [];
-    var taggedInput = document.getElementById('taggedUsers');
-    var ta = document.getElementById('activityTextarea');
-    var searchInput = document.getElementById('tagSearch');
+    var users = <?= json_encode(array_map(function($u){ return ['id'=>$u['id'],'name'=>$u['name'],'avatar'=>$u['avatar']??null,'dept'=>$u['dept_name']??'']; }, $allUsers ?? [])) ?>;
+    var dd = document.getElementById('mentionDropdown');
+    var activeInput = null;
 
-    // Search filter
-    searchInput?.addEventListener('input', function() {
-        var q = this.value.toLowerCase();
-        document.querySelectorAll('.tag-user-item').forEach(function(el) {
-            el.style.display = el.dataset.name.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+    function showMention(input, query) {
+        activeInput = input;
+        var q = (query || '').toLowerCase();
+        var words = q.split(/\s+/);
+        var filtered = users.filter(function(u) {
+            var name = u.name.toLowerCase();
+            return words.every(function(w) { return name.indexOf(w) !== -1; });
+        }).slice(0, 8);
+
+        if (!filtered.length) { dd.style.display = 'none'; return; }
+
+        dd.innerHTML = filtered.map(function(u) {
+            var initial = u.name.charAt(0).toUpperCase();
+            var av = u.avatar ? '<img src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
+            return '<div class="mention-opt d-flex align-items-center gap-2 px-3 py-2" style="cursor:pointer" data-id="' + u.id + '" data-name="' + u.name + '">' + av + '<div><div style="font-size:13px">' + u.name + '</div>' + (u.dept ? '<small class="text-muted">' + u.dept + '</small>' : '') + '</div></div>';
+        }).join('');
+
+        // Position near input
+        var rect = input.getBoundingClientRect();
+        dd.style.left = rect.left + 'px';
+        dd.style.top = (rect.bottom + 4) + 'px';
+        dd.style.display = 'block';
+
+        dd.querySelectorAll('.mention-opt').forEach(function(opt) {
+            opt.onmouseenter = function() { this.style.backgroundColor = '#f3f6f9'; };
+            opt.onmouseleave = function() { this.style.backgroundColor = ''; };
+            opt.onmousedown = function(e) {
+                e.preventDefault();
+                var name = this.dataset.name;
+                var val = input.value;
+                var cursor = input.selectionStart;
+                var before = val.substring(0, cursor).replace(/@[^@]*$/, '@' + name + ' ');
+                input.value = before + val.substring(cursor);
+                input.selectionStart = input.selectionEnd = before.length;
+                input.focus();
+                dd.style.display = 'none';
+                // Track tagged user IDs
+                var tagInput = document.getElementById('taggedUsers');
+                if (tagInput) {
+                    var ids = tagInput.value ? tagInput.value.split(',') : [];
+                    if (ids.indexOf(this.dataset.id) === -1) ids.push(this.dataset.id);
+                    tagInput.value = ids.join(',');
+                }
+            };
         });
-        document.querySelectorAll('.tag-dept-group').forEach(function(g) {
-            var visible = g.querySelectorAll('.tag-user-item[style=""],.tag-user-item:not([style])').length;
-            g.style.display = visible > 0 ? '' : 'none';
-        });
+    }
+
+    function checkMention(e) {
+        var input = e.target;
+        var val = input.value;
+        var cursor = input.selectionStart;
+        var before = val.substring(0, cursor);
+        var match = before.match(/@([^@]*)$/);
+        if (match) {
+            showMention(input, match[1]);
+        } else {
+            dd.style.display = 'none';
+        }
+    }
+
+    // Attach to main textarea
+    var mainTa = document.getElementById('activityTextarea');
+    if (mainTa) {
+        mainTa.addEventListener('input', checkMention);
+        mainTa.addEventListener('keydown', function(e) { if (e.key === 'Escape') dd.style.display = 'none'; });
+    }
+
+    // Attach to all reply inputs (delegate)
+    document.addEventListener('input', function(e) {
+        if (e.target.id && e.target.id.startsWith('replyInput-')) checkMention(e);
     });
 
-    // Click to tag
-    document.querySelectorAll('.tag-user-item').forEach(function(el) {
-        el.addEventListener('click', function() {
-            var id = this.dataset.id;
-            var name = this.dataset.name;
-            if (tagged.includes(id)) return;
-            tagged.push(id);
-            taggedInput.value = tagged.join(',');
-            ta.value += (ta.value ? ' ' : '') + '@' + name;
-            this.style.backgroundColor = '#e8f0fe';
-            this.style.pointerEvents = 'none';
-        });
-        el.addEventListener('mouseenter', function() { if (!tagged.includes(this.dataset.id)) this.style.backgroundColor = '#f3f6f9'; });
-        el.addEventListener('mouseleave', function() { if (!tagged.includes(this.dataset.id)) this.style.backgroundColor = ''; });
+    document.addEventListener('click', function(e) {
+        if (!dd.contains(e.target) && e.target !== activeInput) dd.style.display = 'none';
     });
 })();
 
