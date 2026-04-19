@@ -447,9 +447,9 @@
                         <div class="tab-content">
 
                             <!-- Tab: Trao đổi -->
-                            <div class="tab-pane active d-flex flex-column" id="tab-exchange" role="tabpanel">
-                                <!-- Compose Area -->
-                                <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" style="order:2">
+                            <div class="tab-pane fade show active" id="tab-exchange" role="tabpanel">
+                                <!-- Compose Area (below feed) -->
+                                <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="composeForm" style="display:none">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="contact_id" value="<?= $contact['id'] ?>">
                                     <input type="hidden" name="type" value="note" id="activityType">
@@ -493,7 +493,7 @@
                                 </form>
 
                                 <!-- Activity Feed (Facebook style) -->
-                                <div id="activityFeed" style="order:1">
+                                <div id="activityFeed">
                                     <?php if (!empty($activities)): ?>
                                         <?php
                                         // Build user avatar map
@@ -1408,6 +1408,16 @@
 
 <script>
 // Check-in GPS
+// Move compose form below feed
+(function(){
+    var form = document.getElementById('composeForm');
+    var feed = document.getElementById('activityFeed');
+    if (form && feed) {
+        feed.parentNode.insertBefore(feed, form);
+        form.style.display = '';
+    }
+})();
+
 // Attachment preview
 function previewAttach(input) {
     var badge = document.getElementById('attachBadge');
