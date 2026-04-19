@@ -23,7 +23,7 @@ class DataDefinitionController extends Controller
 
     private array $fieldLabels = [
         // Contacts
-        'first_name' => 'Họ (hệ thống)', 'last_name' => 'Tên (hệ thống)', 'full_name' => 'Họ tên',
+        'first_name' => 'Họ (hệ thống)', 'last_name' => 'Tên (hệ thống)', 'full_name' => 'Họ và tên',
         'email' => 'Email', 'phone' => 'Điện thoại', 'mobile' => 'Di động',
         'account_code' => 'Mã KH', 'position' => 'Chức vụ', 'gender' => 'Giới tính',
         'date_of_birth' => 'Ngày sinh', 'address' => 'Địa chỉ', 'city' => 'Thành phố',
@@ -33,7 +33,7 @@ class DataDefinitionController extends Controller
         'avatar' => 'Ảnh đại diện',
         'tax_code' => 'Mã số thuế', 'website' => 'Website', 'fax' => 'Fax',
         'latitude' => 'Kinh độ', 'longitude' => 'Vĩ độ',
-        'company_name' => 'Tên công ty', 'company_phone' => 'ĐT công ty', 'company_email' => 'Email công ty',
+        'company_name' => 'Tên công ty', 'company_phone' => 'Điện thoại công ty', 'company_email' => 'Email công ty',
         'industry' => 'Ngành KD', 'company_size' => 'Quy mô',
         'company_id' => 'Công ty', 'source_id' => 'Nguồn KH', 'owner_id' => 'Người phụ trách',
         'created_by' => 'Người tạo', 'created_at' => 'Ngày tạo', 'updated_at' => 'Ngày cập nhật',
