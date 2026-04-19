@@ -560,17 +560,15 @@
                                                 <?php endif; ?>
 
                                                 <!-- Actions: Like / Dislike / Reply -->
-                                                <div class="d-flex align-items-center gap-3 mt-2" style="font-size:13px">
+                                                <div class="d-flex align-items-center gap-3 mt-2" style="font-size:16px">
                                                     <span class="act-btn <?= ($act['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $act['id'] ?>,'like',this)">
-                                                        <i class="ri-thumb-up-<?= ($act['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i>
-                                                        Thích<?php if (($act['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['likes'] ?></span><?php endif; ?>
+                                                        <i class="ri-thumb-up-<?= ($act['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i><?php if (($act['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['likes'] ?></span><?php endif; ?>
                                                     </span>
                                                     <span class="act-btn <?= ($act['my_reaction'] ?? '') === 'dislike' ? 'text-danger fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $act['id'] ?>,'dislike',this)">
-                                                        <i class="ri-thumb-down-<?= ($act['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i>
-                                                        Không thích<?php if (($act['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['dislikes'] ?></span><?php endif; ?>
+                                                        <i class="ri-thumb-down-<?= ($act['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i><?php if (($act['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['dislikes'] ?></span><?php endif; ?>
                                                     </span>
                                                     <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
-                                                        <i class="ri-reply-line"></i> Trả lời
+                                                        <i class="ri-reply-line"></i>
                                                     </span>
                                                 </div>
 
@@ -593,15 +591,15 @@
                                                             <strong style="font-size:13px"><?= e($rName) ?></strong>
                                                             <small class="text-muted ms-1"><?= date('d/m H:i', strtotime($reply['created_at'])) ?></small>
                                                             <div style="font-size:13px"><?= $rContent ?></div>
-                                                            <div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">
+                                                            <div class="d-flex align-items-center gap-3 mt-1" style="font-size:15px">
                                                                 <span class="act-btn <?= ($reply['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $reply['id'] ?>,'like',this)">
-                                                                    <i class="ri-thumb-up-<?= ($reply['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i> Thích<?php if (($reply['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['likes'] ?></span><?php endif; ?>
+                                                                    <i class="ri-thumb-up-<?= ($reply['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i><?php if (($reply['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['likes'] ?></span><?php endif; ?>
                                                                 </span>
                                                                 <span class="act-btn <?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'text-danger fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $reply['id'] ?>,'dislike',this)">
-                                                                    <i class="ri-thumb-down-<?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i> Không thích<?php if (($reply['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['dislikes'] ?></span><?php endif; ?>
+                                                                    <i class="ri-thumb-down-<?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i><?php if (($reply['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['dislikes'] ?></span><?php endif; ?>
                                                                 </span>
                                                                 <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
-                                                                    <i class="ri-reply-line"></i> Trả lời
+                                                                    <i class="ri-reply-line"></i>
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -1493,10 +1491,10 @@ function reactActivity(id, type, el) {
         var btns = row.querySelectorAll('.act-btn');
         // Rebuild like button
         btns[0].className = 'act-btn ' + (data.my === 'like' ? 'text-primary fw-medium' : 'text-muted');
-        btns[0].innerHTML = '<i class="ri-thumb-up-' + (data.my === 'like' ? 'fill' : 'line') + '"></i> Thích' + (data.likes > 0 ? ' <span class="react-count">' + data.likes + '</span>' : '');
+        btns[0].innerHTML = '<i class="ri-thumb-up-' + (data.my === 'like' ? 'fill' : 'line') + '"></i>' + (data.likes > 0 ? ' <span class="react-count">' + data.likes + '</span>' : '');
         // Rebuild dislike button
         btns[1].className = 'act-btn ' + (data.my === 'dislike' ? 'text-danger fw-medium' : 'text-muted');
-        btns[1].innerHTML = '<i class="ri-thumb-down-' + (data.my === 'dislike' ? 'fill' : 'line') + '"></i> Không thích' + (data.dislikes > 0 ? ' <span class="react-count">' + data.dislikes + '</span>' : '');
+        btns[1].innerHTML = '<i class="ri-thumb-down-' + (data.my === 'dislike' ? 'fill' : 'line') + '"></i>' + (data.dislikes > 0 ? ' <span class="react-count">' + data.dislikes + '</span>' : '');
     });
 }
 
@@ -1524,10 +1522,10 @@ function submitReply(id) {
         var r = data.reply;
         var initial = (r.user_name||'?').charAt(0).toUpperCase();
         var avatar = r.user_avatar ? '<img src="/' + r.user_avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px">' + initial + '</div>';
-        var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">'
-            + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'like\',this)"><i class="ri-thumb-up-line"></i> Thích</span>'
-            + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i> Không thích</span>'
-            + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i> Trả lời</span>'
+        var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:15px">'
+            + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'like\',this)"><i class="ri-thumb-up-line"></i></span>'
+            + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i></span>'
+            + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i></span>'
             + '</div>';
         var attachHtml = '';
         if (r.attachment) {
