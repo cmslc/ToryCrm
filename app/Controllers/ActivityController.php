@@ -165,7 +165,7 @@ class ActivityController extends Controller
         if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
             $file = $_FILES['attachment'];
             $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar'];
+            $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar','dwg','dxf','cad','dwf','skp','3ds','obj','stl','step','stp','iges','igs'];
             if (in_array($ext, $allowed) && $file['size'] <= 10 * 1024 * 1024) {
                 $dir = 'uploads/activities/' . date('Y/m');
                 if (!is_dir(BASE_PATH . '/public/' . $dir)) mkdir(BASE_PATH . '/public/' . $dir, 0755, true);

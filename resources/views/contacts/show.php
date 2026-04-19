@@ -463,7 +463,7 @@
                                             <div class="d-flex gap-3">
                                                 <label class="text-muted" style="cursor:pointer" title="Đính kèm file">
                                                     <i class="ri-attachment-2 fs-18"></i>
-                                                    <input type="file" name="attachment" class="d-none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar" onchange="previewAttach(this)">
+                                                    <input type="file" name="attachment" class="d-none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.dwg,.dxf,.cad,.dwf,.skp,.3ds,.obj,.stl,.step,.stp,.iges,.igs" onchange="previewAttach(this)">
                                                 </label>
                                                 <span class="text-muted" style="cursor:pointer" title="Tag nhân viên" onclick="document.getElementById('tagPanel').style.display=document.getElementById('tagPanel').style.display==='none'?'block':'none'">
                                                     <i class="ri-price-tag-3-line fs-18"></i>
@@ -568,7 +568,7 @@
                                                     $isImage = in_array($aExt, ['jpg','jpeg','png','gif','webp']);
                                                     $aName = $act['attachment_name'] ?? basename($act['attachment']);
                                                     $aSize = ($act['attachment_size'] ?? 0) > 1048576 ? round(($act['attachment_size'] ?? 0)/1048576,1).'MB' : round(($act['attachment_size'] ?? 0)/1024).'KB';
-                                                    $fileIcons = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary','xls'=>'ri-file-excel-line text-success','xlsx'=>'ri-file-excel-line text-success','ppt'=>'ri-file-ppt-line text-warning','pptx'=>'ri-file-ppt-line text-warning','zip'=>'ri-file-zip-line text-info','rar'=>'ri-file-zip-line text-info'];
+                                                    $fileIcons = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary','xls'=>'ri-file-excel-line text-success','xlsx'=>'ri-file-excel-line text-success','ppt'=>'ri-file-ppt-line text-warning','pptx'=>'ri-file-ppt-line text-warning','zip'=>'ri-file-zip-line text-info','rar'=>'ri-file-zip-line text-info','dwg'=>'ri-draft-line text-dark','dxf'=>'ri-draft-line text-dark','cad'=>'ri-draft-line text-dark','dwf'=>'ri-draft-line text-dark','skp'=>'ri-shape-line text-info','3ds'=>'ri-shape-line text-info','obj'=>'ri-shape-line text-info','stl'=>'ri-shape-line text-info','step'=>'ri-shape-line text-info','stp'=>'ri-shape-line text-info'];
                                                     $fIcon = $fileIcons[$aExt] ?? 'ri-file-line text-muted';
                                                 ?>
                                                 <div class="mt-2">
@@ -1452,7 +1452,7 @@ function previewAttach(input) {
         preview.style.display = 'none';
         icon.style.display = 'block';
         var ext = file.name.split('.').pop().toLowerCase();
-        var icons = {pdf:'ri-file-pdf-line text-danger',doc:'ri-file-word-line text-primary',docx:'ri-file-word-line text-primary',xls:'ri-file-excel-line text-success',xlsx:'ri-file-excel-line text-success'};
+        var icons = {pdf:'ri-file-pdf-line text-danger',doc:'ri-file-word-line text-primary',docx:'ri-file-word-line text-primary',xls:'ri-file-excel-line text-success',xlsx:'ri-file-excel-line text-success',dwg:'ri-draft-line text-dark',dxf:'ri-draft-line text-dark',cad:'ri-draft-line text-dark',skp:'ri-shape-line text-info',stl:'ri-shape-line text-info'};
         icon.className = (icons[ext] || 'ri-file-line text-muted') + ' fs-20';
     }
 }
