@@ -1424,22 +1424,29 @@ function previewAttach(input) {
     var badge = document.getElementById('attachBadge');
     if (!input.files || !input.files.length) { badge.style.display = 'none'; return; }
     var icons = {pdf:'ri-file-pdf-line text-danger',doc:'ri-file-word-line text-primary',docx:'ri-file-word-line text-primary',xls:'ri-file-excel-line text-success',xlsx:'ri-file-excel-line text-success',dwg:'ri-draft-line text-dark',dxf:'ri-draft-line text-dark',cad:'ri-draft-line text-dark',skp:'ri-shape-line text-info',stl:'ri-shape-line text-info'};
-    var html = '';
+    var html = '<div class="d-flex flex-wrap gap-2">';
     Array.from(input.files).forEach(function(file, i) {
         var size = file.size > 1048576 ? (file.size/1048576).toFixed(1) + 'MB' : Math.round(file.size/1024) + 'KB';
         var ext = file.name.split('.').pop().toLowerCase();
         var isImg = file.type.startsWith('image/');
-        html += '<div class="d-flex align-items-center gap-2 py-1">';
+        var shortName = file.name.length > 20 ? file.name.substring(0, 17) + '...' + ext : file.name;
         if (isImg) {
-            html += '<img src="" class="rounded border attach-thumb" data-idx="' + i + '" style="max-height:40px">';
+            html += '<div class="position-relative border rounded" style="width:80px;height:80px;overflow:hidden">';
+            html += '<img src="" class="attach-thumb" data-idx="' + i + '" style="width:100%;height:100%;object-fit:cover">';
+            html += '<span class="position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width:18px;height:18px;cursor:pointer;font-size:10px" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
+            html += '</div>';
         } else {
-            html += '<i class="' + (icons[ext] || 'ri-file-line text-muted') + ' fs-18"></i>';
+            html += '<div class="border rounded p-2 d-flex align-items-center gap-2 position-relative" style="max-width:180px">';
+            html += '<i class="' + (icons[ext] || 'ri-file-line text-muted') + ' fs-20"></i>';
+            html += '<div style="min-width:0"><div class="text-truncate" style="font-size:12px;max-width:120px" title="' + file.name + '">' + shortName + '</div><small class="text-muted">' + size + '</small></div>';
+            html += '<span class="text-danger" style="cursor:pointer;font-size:14px;margin-left:auto" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
+            html += '</div>';
         }
-        html += '<span style="font-size:13px" class="flex-grow-1">' + file.name + ' <small class="text-muted">(' + size + ')</small></span>';
-        html += '<span class="text-danger" style="cursor:pointer;font-size:12px" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
-        html += '</div>';
     });
-    html += '<div class="mt-1"><button type="button" class="btn btn-link text-danger p-0" onclick="clearAttach()" style="font-size:12px"><i class="ri-close-line me-1"></i>Xóa tất cả</button></div>';
+    html += '</div>';
+    if (input.files.length > 1) {
+        html += '<div class="mt-1"><button type="button" class="btn btn-link text-danger p-0" onclick="clearAttach()" style="font-size:12px"><i class="ri-close-line me-1"></i>Xóa tất cả (' + input.files.length + ')</button></div>';
+    }
     badge.innerHTML = html;
     badge.style.display = 'block';
     // Load image thumbnails
