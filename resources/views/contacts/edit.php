@@ -434,10 +434,16 @@ function checkDuplicate(field, value) {
                 var input = document.querySelector('[name="' + field + '"]') || document.getElementById('taxCodeInput');
                 var alert = document.createElement('div');
                 alert.id = alertId;
-                alert.className = 'alert alert-warning py-1 px-2 mt-1 d-flex align-items-center justify-content-between';
+                alert.className = 'alert alert-warning py-1 px-2 mt-1';
                 alert.style.fontSize = '13px';
-                alert.innerHTML = '<span><i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> ' + data.name + (data.account_code ? ' (' + data.account_code + ')' : '') + '</span>'
-                    + '<a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a>';
+                if (data.can_see) {
+                    alert.innerHTML = '<div class="d-flex align-items-center justify-content-between">'
+                        + '<span><i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> ' + data.name + (data.account_code ? ' (' + data.account_code + ')' : '') + ' - PT: ' + (data.owner_name || '') + '</span>'
+                        + '<a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a>'
+                        + '</div>';
+                } else {
+                    alert.innerHTML = '<i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> KH với thông tin này đã tồn tại, phụ trách: <strong>' + (data.owner_name || 'N/A') + '</strong>. Liên hệ quản lý để xử lý.';
+                }
                 input.closest('.mb-3, .input-group')?.parentNode.insertBefore(alert, input.closest('.mb-3, .input-group').nextSibling);
             }
         });

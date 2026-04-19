@@ -271,26 +271,56 @@ class ContactController extends Controller
         }
 
         $tid = Database::tenantId();
-        $where = "tenant_id = ? AND is_deleted = 0 AND {$field} = ?";
+        $where = "c.tenant_id = ? AND c.is_deleted = 0 AND c.{$field} = ?";
         $params = [$tid, $value];
 
         if ($excludeId) {
-            $where .= " AND id != ?";
+            $where .= " AND c.id != ?";
             $params[] = $excludeId;
         }
 
-        $existing = Database::fetch("SELECT id, first_name, last_name, company_name, phone, tax_code, account_code FROM contacts WHERE {$where} LIMIT 1", $params);
+        $existing = Database::fetch(
+            "SELECT c.id, c.first_name, c.last_name, c.company_name, c.phone, c.tax_code, c.account_code, c.owner_id, u.name as owner_name, u.department_id as owner_dept_id
+             FROM contacts c
+             LEFT JOIN users u ON c.owner_id = u.id
+             WHERE {$where} LIMIT 1",
+            $params
+        );
 
         if ($existing) {
             $name = $existing['company_name'] ?: trim($existing['first_name'] . ' ' . ($existing['last_name'] ?? ''));
-            return $this->json([
-                'found' => true,
-                'id' => $existing['id'],
-                'name' => $name,
-                'account_code' => $existing['account_code'],
-                'phone' => $existing['phone'],
-                'tax_code' => $existing['tax_code'],
-            ]);
+
+            // Check if current user can see this contact's details
+            $canSeeDetails = false;
+            if ($this->isSystemAdmin()) {
+                $canSeeDetails = true;
+            } elseif ($existing['owner_id'] == $this->userId()) {
+                $canSeeDetails = true;
+            } else {
+                $visibleIds = $this->getVisibleUserIds();
+                if ($visibleIds && in_array($existing['owner_id'], $visibleIds)) {
+                    $canSeeDetails = true;
+                }
+            }
+
+            if ($canSeeDetails) {
+                return $this->json([
+                    'found' => true,
+                    'can_see' => true,
+                    'id' => $existing['id'],
+                    'name' => $name,
+                    'account_code' => $existing['account_code'],
+                    'phone' => $existing['phone'],
+                    'tax_code' => $existing['tax_code'],
+                    'owner_name' => $existing['owner_name'],
+                ]);
+            } else {
+                return $this->json([
+                    'found' => true,
+                    'can_see' => false,
+                    'owner_name' => $existing['owner_name'],
+                ]);
+            }
         }
 
         return $this->json(['found' => false]);
