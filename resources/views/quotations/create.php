@@ -163,17 +163,17 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
         <table class="table table-bordered align-middle mb-0" id="itemsTable">
             <thead class="table-light">
                 <tr>
-                    <th style="width:40px">#</th>
-                    <th style="width:140px">Mã sản phẩm</th>
-                    <th style="min-width:200px">Tên sản phẩm</th>
-                    <th style="width:70px">Đơn vị</th>
-                    <th style="width:90px">Số lượng</th>
-                    <th style="width:130px">Đơn giá</th>
-                    <th style="width:80px">CK (%)</th>
-                    <th style="width:110px">CK</th>
-                    <th style="width:80px">VAT (%)</th>
-                    <th style="width:140px">Thành tiền</th>
-                    <th style="width:70px"></th>
+                    <th style="width:30px">#</th>
+                    <th style="width:120px">Mã sản phẩm</th>
+                    <th>Tên sản phẩm</th>
+                    <th style="width:65px">Đơn vị</th>
+                    <th style="width:80px">Số lượng</th>
+                    <th style="width:110px">Đơn giá</th>
+                    <th style="width:70px">CK (%)</th>
+                    <th style="width:100px">CK</th>
+                    <th style="width:70px">VAT (%)</th>
+                    <th style="width:120px">Thành tiền</th>
+                    <th style="width:60px"></th>
                 </tr>
             </thead>
             <tbody id="itemsBody"></tbody>
