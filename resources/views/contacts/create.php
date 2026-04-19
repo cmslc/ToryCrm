@@ -445,12 +445,52 @@ function checkDuplicate(field, value) {
                         + '<a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a>'
                         + '</div>';
                 } else {
-                    alert.innerHTML = '<i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> KH với thông tin này đã tồn tại, phụ trách: <strong>' + (data.owner_name || 'N/A') + '</strong>. Liên hệ quản lý để xử lý.';
+                    alert.innerHTML = '<div><i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> KH với thông tin này đã tồn tại, phụ trách: <strong>' + (data.owner_name || 'N/A') + '</strong></div>'
+                        + '<div class="mt-2 p-2 bg-white rounded border">'
+                        + '<p class="mb-2" style="font-size:12px">Nhập người liên hệ để gửi yêu cầu thêm vào doanh nghiệp này:</p>'
+                        + '<div class="row g-2">'
+                        + '<div class="col-4"><select class="form-select" id="mrTitle" style="font-size:12px"><option value="">Danh xưng</option><option value="anh">Anh</option><option value="chị">Chị</option><option value="ông">Ông</option><option value="bà">Bà</option></select></div>'
+                        + '<div class="col-8"><input type="text" class="form-control" id="mrName" placeholder="Họ và tên *" style="font-size:12px"></div>'
+                        + '<div class="col-6"><input type="text" class="form-control" id="mrPhone" placeholder="SĐT *" style="font-size:12px"></div>'
+                        + '<div class="col-6"><input type="text" class="form-control" id="mrEmail" placeholder="Email" style="font-size:12px"></div>'
+                        + '<div class="col-8"><input type="text" class="form-control" id="mrPosition" placeholder="Chức vụ" style="font-size:12px"></div>'
+                        + '<div class="col-4"><button type="button" class="btn btn-primary w-100" style="font-size:12px" onclick="submitMergeRequest(' + (data.existing_id || 0) + ')"><i class="ri-send-plane-line me-1"></i>Gửi</button></div>'
+                        + '</div></div>';
                 }
                 input.closest('.mb-3, .input-group')?.parentNode.insertBefore(alert, input.closest('.mb-3, .input-group').nextSibling);
             }
         });
     }, 500);
+}
+
+// Submit merge request
+function submitMergeRequest(contactId) {
+    var name = document.getElementById('mrName')?.value.trim();
+    var phone = document.getElementById('mrPhone')?.value.trim();
+    if (!name) { alert('Vui lòng nhập họ tên'); return; }
+    if (!phone) { alert('Vui lòng nhập số điện thoại'); return; }
+    fetch('<?= url("merge-requests/store") ?>', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: JSON.stringify({
+            existing_contact_id: contactId,
+            cp_title: document.getElementById('mrTitle')?.value || '',
+            cp_name: name,
+            cp_phone: phone,
+            cp_email: document.getElementById('mrEmail')?.value.trim() || '',
+            cp_position: document.getElementById('mrPosition')?.value.trim() || '',
+        })
+    }).then(r => r.json()).then(function(data) {
+        if (data.success) {
+            var alertEl = document.getElementById('dup-alert-tax_code');
+            if (alertEl) alertEl.innerHTML = '<i class="ri-check-line me-1 text-success"></i><strong>Đã gửi yêu cầu!</strong> ' + data.message;
+            alertEl.className = 'alert alert-success py-2 px-3 mt-1';
+        } else if (data.phone_exists) {
+            alert(data.error);
+        } else {
+            alert(data.error || 'Lỗi');
+        }
+    });
 }
 
 // MST: no separate blur check - already checked in lookup button

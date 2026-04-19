@@ -46,8 +46,24 @@ class ApprovalController extends Controller
             $item['entity_title'] = $this->getEntityTitle($item['entity_type'], $item['entity_id']);
         }
 
+        // Merge requests
+        $tid = Database::tenantId();
+        $uid = $this->userId();
+        $mergeRequests = Database::fetchAll(
+            "SELECT mr.*, c.company_name, c.first_name, c.last_name, c.account_code, u.name as requester_name, u.avatar as requester_avatar
+             FROM contact_merge_requests mr JOIN contacts c ON mr.existing_contact_id = c.id JOIN users u ON mr.requested_by = u.id
+             WHERE mr.tenant_id = ? AND mr.status = 'pending' AND c.owner_id = ? ORDER BY mr.created_at DESC", [$tid, $uid]
+        );
+        $myMergeRequests = Database::fetchAll(
+            "SELECT mr.*, c.company_name, c.first_name, c.last_name, c.account_code
+             FROM contact_merge_requests mr JOIN contacts c ON mr.existing_contact_id = c.id
+             WHERE mr.tenant_id = ? AND mr.requested_by = ? ORDER BY mr.created_at DESC LIMIT 50", [$tid, $uid]
+        );
+
         return $this->view('approvals.pending', [
             'pending' => $pending,
+            'requests' => $mergeRequests,
+            'myRequests' => $myMergeRequests,
         ]);
     }
 

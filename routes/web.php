@@ -680,6 +680,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // Approvals
     Router::get('approvals', 'ApprovalController@index');
     Router::get('approvals/pending', 'ApprovalController@pending');
+    // Merge requests (thêm người LH vào KH trùng)
+    Router::post('merge-requests/store', 'MergeRequestController@store');
+    Router::post('merge-requests/{id}/approve', 'MergeRequestController@approve');
+    Router::post('merge-requests/{id}/reject', 'MergeRequestController@reject');
     Router::get('approvals/create', 'ApprovalController@create');
     Router::post('approvals/store', 'ApprovalController@store');
     Router::post('approvals/{id}/approve', 'ApprovalController@approve');

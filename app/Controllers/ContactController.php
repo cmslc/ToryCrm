@@ -318,6 +318,7 @@ class ContactController extends Controller
                 return $this->json([
                     'found' => true,
                     'can_see' => false,
+                    'existing_id' => $existing['id'],
                     'owner_name' => $existing['owner_name'],
                 ]);
             }
