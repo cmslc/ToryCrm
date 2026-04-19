@@ -485,11 +485,11 @@ document.addEventListener('blur', function(e) {
         alertDiv.className = 'cp-phone-alert mt-1';
         alertDiv.style.fontSize = '12px';
         if (data.exists) {
-            alertDiv.className += ' text-danger';
-            alertDiv.innerHTML = '<i class="ri-close-circle-line me-1"></i>SĐT đã tồn tại trong DN này. Không thể tạo trùng.';
+            alertDiv.className += ' text-warning';
+            alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ có thể đã tồn tại.';
         } else {
             alertDiv.className += ' text-success';
-            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có. Có thể gửi yêu cầu thêm người LH.';
+            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. Có thể gửi yêu cầu thêm người LH.';
         }
         e.target.closest('.col-6')?.appendChild(alertDiv);
     });
