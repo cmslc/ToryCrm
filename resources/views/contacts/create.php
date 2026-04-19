@@ -368,26 +368,51 @@ document.getElementById('btnLookupTax')?.addEventListener('click', function() {
     btn.disabled = true;
     btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i>';
     status.classList.add('d-none');
-    fetch('<?= url("api/tax-lookup") ?>?tax_code=' + encodeURIComponent(taxCode))
-        .then(r => r.json())
-        .then(data => {
-            if (data.success && data.data) {
-                var d = data.data;
-                var nameEl = document.querySelector('[name="company_name"]');
-                var addrEl = document.querySelector('[name="address"]');
-                if (nameEl && d.name) nameEl.value = d.name;
-                if (addrEl && d.address) addrEl.value = d.address;
-                status.textContent = '✓ Đã tìm thấy: ' + (d.name || '');
-                status.classList.remove('d-none', 'text-danger');
-                status.classList.add('text-success');
+    // Gọi song song: tra cứu MST + check trùng
+    Promise.all([
+        fetch('<?= url("api/tax-lookup") ?>?tax_code=' + encodeURIComponent(taxCode)).then(r => r.json()).catch(() => null),
+        fetch('<?= url("contacts/check-duplicate") ?>?field=tax_code&value=' + encodeURIComponent(taxCode)).then(r => r.json()).catch(() => null)
+    ]).then(function(results) {
+        var taxData = results[0];
+        var dupData = results[1];
+
+        // Fill thông tin từ tra cứu MST
+        if (taxData && taxData.success && taxData.data) {
+            var d = taxData.data;
+            var nameEl = document.getElementById('companyNameInput') || document.querySelector('[name="company_name"]');
+            var addrEl = document.querySelector('[name="address"]');
+            if (nameEl && d.name) nameEl.value = d.name;
+            if (addrEl && d.address) addrEl.value = d.address;
+            status.textContent = '✓ Đã tìm thấy: ' + (d.name || '');
+            status.classList.remove('d-none', 'text-danger');
+            status.classList.add('text-success');
+        } else {
+            status.textContent = 'Không tìm thấy doanh nghiệp với MST này';
+            status.classList.remove('d-none', 'text-success');
+            status.classList.add('text-danger');
+        }
+
+        // Hiện cảnh báo trùng
+        var alertId = 'dup-alert-tax_code';
+        var existing = document.getElementById(alertId);
+        if (existing) existing.remove();
+        if (dupData && dupData.found) {
+            var input = document.getElementById('taxCodeInput');
+            var alert = document.createElement('div');
+            alert.id = alertId;
+            alert.className = 'alert alert-warning py-1 px-2 mt-1';
+            alert.style.fontSize = '13px';
+            if (dupData.can_see) {
+                alert.innerHTML = '<div class="d-flex align-items-center justify-content-between">'
+                    + '<span><i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> ' + dupData.name + (dupData.account_code ? ' (' + dupData.account_code + ')' : '') + ' - PT: ' + (dupData.owner_name || '') + '</span>'
+                    + '<a href="<?= url("contacts") ?>/' + dupData.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a>'
+                    + '</div>';
             } else {
-                status.textContent = 'Không tìm thấy doanh nghiệp với MST này';
-                status.classList.remove('d-none', 'text-success');
-                status.classList.add('text-danger');
+                alert.innerHTML = '<i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> KH với MST này đã tồn tại, phụ trách: <strong>' + (dupData.owner_name || 'N/A') + '</strong>. Liên hệ quản lý để xử lý.';
             }
-        })
-        .catch(() => { status.textContent = 'Lỗi kết nối'; status.classList.remove('d-none', 'text-success'); status.classList.add('text-danger'); })
-        .finally(() => { btn.disabled = false; btn.innerHTML = '<i class="ri-search-line"></i>'; });
+            input.closest('.mb-3')?.parentNode.insertBefore(alert, input.closest('.mb-3').nextSibling);
+        }
+    }).finally(() => { btn.disabled = false; btn.innerHTML = '<i class="ri-search-line"></i>'; });
 });
 document.getElementById('taxCodeInput')?.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnLookupTax').click(); }
@@ -428,10 +453,7 @@ function checkDuplicate(field, value) {
     }, 500);
 }
 
-// MST blur check
-document.getElementById('taxCodeInput')?.addEventListener('blur', function() {
-    checkDuplicate('tax_code', this.value.trim());
-});
+// MST: no separate blur check - already checked in lookup button
 // Phone check: blur + Enter + paste
 document.getElementById('phoneInput')?.addEventListener('blur', function() { checkDuplicate('phone', this.value.trim()); });
 document.getElementById('phoneInput')?.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); checkDuplicate('phone', this.value.trim()); } });
