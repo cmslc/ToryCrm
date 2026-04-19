@@ -458,8 +458,7 @@ class ContactController extends Controller
         // Log activity
         Database::insert('activities', [
             'type' => 'system',
-            'title' => "Contact created: {$displayName}",
-            'description' => "New contact {$displayName} was created.",
+            'title' => "Đã tạo khách hàng: {$displayName}",
             'user_id' => $this->userId(),
             'contact_id' => $contactId,
         ]);
@@ -650,15 +649,15 @@ class ContactController extends Controller
         $this->saveContactPersons($id, $data);
 
         // Log activity
+        $name = trim($contactData['company_name'] ?? $contactData['full_name'] ?? '');
         Database::insert('activities', [
             'type' => 'system',
-            'title' => "Contact updated: {$contactData['first_name']} {$contactData['last_name']}",
-            'description' => "Contact {$contactData['first_name']} {$contactData['last_name']} was updated.",
+            'title' => "Đã cập nhật khách hàng: {$name}",
             'user_id' => $this->userId(),
             'contact_id' => $id,
         ]);
 
-        $this->setFlash('success', 'Contact updated successfully.');
+        $this->setFlash('success', 'Cập nhật khách hàng thành công.');
         return $this->redirect('contacts/' . $id);
     }
 
