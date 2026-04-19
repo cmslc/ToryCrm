@@ -124,47 +124,63 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                     <button type="button" class="btn btn-soft-primary" id="btnAddPerson"><i class="ri-add-line me-1"></i> Thêm người liên hệ</button>
                 </div>
                 <div class="card-body" id="contactPersonsContainer">
-                    <?php if (!empty($contactPersons)): ?>
-                        <?php foreach ($contactPersons as $idx => $cp): ?>
+                    <?php
+                    $personList = !empty($contactPersons) ? $contactPersons : [null];
+                    foreach ($personList as $idx => $cp):
+                    ?>
                         <div class="contact-person-item border rounded p-3 mb-3" data-index="<?= $idx ?>">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="cp_primary[]" value="<?= $idx ?>" <?= ($cp['is_primary'] ?? 0) ? 'checked' : '' ?>>
+                                    <input class="form-check-input" type="radio" name="cp_primary[]" value="<?= $idx ?>" <?= ($cp === null && $idx === 0) || ($cp['is_primary'] ?? 0) ? 'checked' : '' ?>>
                                     <label class="form-check-label fw-medium">Liên hệ chính</label>
                                 </div>
-                                <?php if ($idx > 0): ?>
-                                <button type="button" class="btn btn-soft-danger btn-icon btn-remove-person"><i class="ri-delete-bin-line"></i></button>
-                                <?php endif; ?>
+                                <button type="button" class="btn btn-soft-danger btn-icon btn-remove-person <?= $idx === 0 ? 'd-none' : '' ?>"><i class="ri-delete-bin-line"></i></button>
                             </div>
-                            <div class="row">
-                                <div class="col-4 mb-2">
-                                    <label class="form-label">Danh xưng</label>
-                                    <select name="cp_title[]" class="form-select">
-                                        <option value="">Chọn</option>
-                                        <option value="anh" <?= ($cp['title'] ?? '') === 'anh' ? 'selected' : '' ?>>Anh</option>
-                                        <option value="chị" <?= ($cp['title'] ?? '') === 'chị' ? 'selected' : '' ?>>Chị</option>
-                                        <option value="ông" <?= ($cp['title'] ?? '') === 'ông' ? 'selected' : '' ?>>Ông</option>
-                                        <option value="bà" <?= ($cp['title'] ?? '') === 'bà' ? 'selected' : '' ?>>Bà</option>
-                                    </select>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="position-relative flex-shrink-0">
+                                    <?php if (!empty($cp['avatar'])): ?>
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center cp-avatar-placeholder d-none" style="width:48px;height:48px"><i class="ri-user-line text-muted fs-20"></i></div>
+                                    <img src="<?= asset($cp['avatar']) ?>" class="rounded-circle cp-avatar-preview" style="width:48px;height:48px;object-fit:cover">
+                                    <?php else: ?>
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center cp-avatar-placeholder" style="width:48px;height:48px"><i class="ri-user-line text-muted fs-20"></i></div>
+                                    <img src="" class="rounded-circle cp-avatar-preview d-none" style="width:48px;height:48px;object-fit:cover">
+                                    <?php endif; ?>
+                                    <label class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:20px;height:20px;cursor:pointer">
+                                        <i class="ri-camera-line" style="font-size:10px"></i>
+                                        <input type="file" name="cp_avatar[]" accept="image/*" class="d-none" onchange="var p=this.closest('.position-relative');var img=p.querySelector('.cp-avatar-preview');var ph=p.querySelector('.cp-avatar-placeholder');if(this.files[0]){var r=new FileReader();r.onload=function(e){img.src=e.target.result;img.classList.remove('d-none');ph.classList.add('d-none')};r.readAsDataURL(this.files[0])}">
+                                    </label>
                                 </div>
-                                <div class="col-8 mb-2">
-                                    <label class="form-label">Họ và tên</label>
-                                    <input type="text" class="form-control" name="cp_name[]" value="<?= e($cp['full_name'] ?? '') ?>" required>
+                                <div class="flex-grow-1">
+                                    <div class="row">
+                                        <div class="col-5">
+                                            <select name="cp_title[]" class="form-select">
+                                                <option value="">Danh xưng</option>
+                                                <option value="anh" <?= ($cp['title'] ?? '') === 'anh' ? 'selected' : '' ?>>Anh</option>
+                                                <option value="chị" <?= ($cp['title'] ?? '') === 'chị' ? 'selected' : '' ?>>Chị</option>
+                                                <option value="ông" <?= ($cp['title'] ?? '') === 'ông' ? 'selected' : '' ?>>Ông</option>
+                                                <option value="bà" <?= ($cp['title'] ?? '') === 'bà' ? 'selected' : '' ?>>Bà</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-7">
+                                            <input type="text" class="form-control" name="cp_name[]" placeholder="Họ và tên *" value="<?= e($cp['full_name'] ?? '') ?>" required>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mb-2">
                                 <label class="form-label">Vị trí</label>
                                 <input type="text" class="form-control" name="cp_position[]" value="<?= e($cp['position'] ?? '') ?>">
                             </div>
-                            <div class="row">
-                                <div class="col-6 mb-2">
-                                    <label class="form-label">Điện thoại</label>
-                                    <input type="text" class="form-control" name="cp_phone[]" value="<?= e($cp['phone'] ?? '') ?>">
+                            <div class="mb-2">
+                                <label class="form-label">Điện thoại</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control cp-phone-input" name="cp_phone[]" value="<?= e($cp['phone'] ?? '') ?>">
+                                    <button type="button" class="btn btn-soft-info cp-phone-check-btn" onclick="checkCpPhone(this)"><i class="ri-search-line"></i></button>
                                 </div>
-                                <div class="col-6 mb-2">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="cp_email[]" value="<?= e($cp['email'] ?? '') ?>">
-                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="cp_email[]" value="<?= e($cp['email'] ?? '') ?>">
                             </div>
                             <div class="mb-2">
                                 <label class="form-label">Sinh nhật</label>
@@ -175,56 +191,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                 <textarea name="cp_note[]" class="form-control" rows="2"><?= e($cp['note'] ?? '') ?></textarea>
                             </div>
                         </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <!-- Empty template -->
-                        <div class="contact-person-item border rounded p-3 mb-3" data-index="0">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="cp_primary[]" value="0" checked>
-                                    <label class="form-check-label fw-medium">Liên hệ chính</label>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-4 mb-2">
-                                    <label class="form-label">Danh xưng</label>
-                                    <select name="cp_title[]" class="form-select">
-                                        <option value="">Chọn</option>
-                                        <option value="anh">Anh</option>
-                                        <option value="chị">Chị</option>
-                                        <option value="ông">Ông</option>
-                                        <option value="bà">Bà</option>
-                                    </select>
-                                </div>
-                                <div class="col-8 mb-2">
-                                    <label class="form-label">Họ và tên</label>
-                                    <input type="text" class="form-control" name="cp_name[]">
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">Vị trí</label>
-                                <input type="text" class="form-control" name="cp_position[]">
-                            </div>
-                            <div class="row">
-                                <div class="col-6 mb-2">
-                                    <label class="form-label">Điện thoại</label>
-                                    <input type="text" class="form-control" name="cp_phone[]">
-                                </div>
-                                <div class="col-6 mb-2">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="cp_email[]">
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">Sinh nhật</label>
-                                <input type="date" class="form-control" name="cp_dob[]">
-                            </div>
-                            <div class="mb-0">
-                                <label class="form-label">Ghi chú</label>
-                                <textarea name="cp_note[]" class="form-control" rows="2"></textarea>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
@@ -397,4 +364,31 @@ function checkDuplicate(field, value) {
 document.getElementById('taxCodeInput')?.addEventListener('blur', function() { checkDuplicate('tax_code', this.value.trim()); });
 document.querySelectorAll('[name="phone"]').forEach(function(el) { el.addEventListener('blur', function() { checkDuplicate('phone', this.value.trim()); }); });
 document.querySelectorAll('[name="email"]').forEach(function(el) { el.addEventListener('blur', function() { checkDuplicate('email', this.value.trim()); }); });
+
+// Check SĐT người liên hệ
+function checkCpPhone(btn) {
+    var input = btn.closest('.input-group').querySelector('.cp-phone-input');
+    var phone = input.value.trim();
+    if (!phone) { input.focus(); return; }
+    var old = input.closest('.mb-2')?.querySelector('.cp-phone-alert');
+    if (old) old.remove();
+    fetch('<?= url("contacts/check-duplicate") ?>?field=phone&value=' + encodeURIComponent(phone) + '&exclude_id=<?= $c['id'] ?>')
+    .then(r => r.json())
+    .then(function(data) {
+        var alertDiv = document.createElement('div');
+        alertDiv.style.fontSize = '13px';
+        if (data.found) {
+            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
+            if (data.can_see) {
+                alertDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between"><span><i class="ri-error-warning-line text-warning me-1"></i>SĐT đã tồn tại: <strong>' + data.name + '</strong>' + (data.account_code ? ' (' + data.account_code + ')' : '') + '</span><a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a></div>';
+            } else {
+                alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này đã tồn tại trong hệ thống, phụ trách: <strong>' + (data.owner_name || 'N/A') + '</strong></span></div>';
+            }
+        } else {
+            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded bg-success-subtle';
+            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-check-circle-line text-success fs-18"></i><span>SĐT chưa có trong hệ thống.</span></div>';
+        }
+        input.closest('.mb-2')?.appendChild(alertDiv);
+    });
+}
 </script>
