@@ -377,6 +377,38 @@ class ColumnService
     ];
 
     /**
+     * Get field label for a specific field, respecting DB overrides.
+     */
+    public static function getLabel(string $module, string $field): string
+    {
+        static $cache = [];
+        if (!isset($cache[$module])) {
+            $cache[$module] = self::getLabels($module);
+        }
+        return $cache[$module][$field] ?? ucfirst(str_replace('_', ' ', $field));
+    }
+
+    /**
+     * Get all field labels for a module, with DB overrides applied.
+     */
+    public static function getLabels(string $module): array
+    {
+        $labels = self::$defaultLabels[$module] ?? [];
+        try {
+            $overrides = Database::fetchAll(
+                "SELECT field_name, label FROM field_label_overrides WHERE tenant_id = ? AND table_name = ? AND label IS NOT NULL AND label != ''",
+                [Database::tenantId(), $module]
+            );
+            foreach ($overrides as $ov) {
+                if ($ov['label'] !== $ov['field_name']) {
+                    $labels[$ov['field_name']] = $ov['label'];
+                }
+            }
+        } catch (\Exception $e) {}
+        return $labels;
+    }
+
+    /**
      * Get displayable columns for a module.
      */
     public static function getColumns(string $module): array
