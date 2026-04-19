@@ -22,10 +22,13 @@
                             <h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5>
                         </div>
                         <div class="card-body">
-                            <!-- Loại KH toggle -->
-                            <input type="hidden" name="contact_type" id="contactType" value="business">
+                            <!-- Loại KH toggle (tùy chọn, mặc định hiện tất cả) -->
+                            <input type="hidden" name="contact_type" id="contactType" value="all">
                             <div class="d-flex gap-2 mb-3">
-                                <button type="button" class="btn btn-primary flex-grow-1 ct-type-btn active" data-type="business" onclick="switchContactType('business')">
+                                <button type="button" class="btn btn-primary flex-grow-1 ct-type-btn active" data-type="all" onclick="switchContactType('all')">
+                                    <i class="ri-list-check me-1"></i> Tất cả
+                                </button>
+                                <button type="button" class="btn btn-soft-secondary flex-grow-1 ct-type-btn" data-type="business" onclick="switchContactType('business')">
                                     <i class="ri-building-line me-1"></i> Doanh nghiệp
                                 </button>
                                 <button type="button" class="btn btn-soft-secondary flex-grow-1 ct-type-btn" data-type="personal" onclick="switchContactType('personal')">
@@ -70,7 +73,10 @@
                                 var biz = document.querySelectorAll('.field-business');
                                 var per = document.querySelectorAll('.field-personal');
 
-                                if (type === 'business') {
+                                if (type === 'all') {
+                                    biz.forEach(function(el) { el.style.display = ''; });
+                                    per.forEach(function(el) { el.style.display = ''; });
+                                } else if (type === 'business') {
                                     biz.forEach(function(el) { el.style.display = ''; });
                                     per.forEach(function(el) { el.style.display = 'none'; });
                                 } else {
@@ -80,10 +86,10 @@
                             }
                             </script>
 
-                            <!-- === DOANH NGHIỆP === -->
+                            <!-- === DOANH NGHIỆP (hiện mặc định) === -->
                             <div class="field-business">
                                 <div class="mb-3">
-                                    <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
+                                    <label class="form-label">Mã số thuế</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
                                         <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
@@ -91,7 +97,7 @@
                                     <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                    <label class="form-label">Tên công ty</label>
                                     <input type="text" class="form-control" name="company_name" id="companyNameInput" value="<?= old('company_name') ?>" placeholder="Tự động điền khi tra cứu MST">
                                 </div>
                                 <div class="mb-3">
@@ -118,8 +124,8 @@
                                 </div>
                             </div>
 
-                            <!-- === CÁ NHÂN === -->
-                            <div class="field-personal" style="display:none">
+                            <!-- === CÁ NHÂN (hiện mặc định) === -->
+                            <div class="field-personal">
                                 <div class="mb-3">
                                     <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
                                     <select name="title" class="form-select">
@@ -135,7 +141,7 @@
                                     <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>">
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Điện thoại <span class="text-danger">*</span></label>
+                                    <label class="form-label">Điện thoại</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" name="phone" id="phoneInput" value="<?= old('phone') ?>" placeholder="Nhập SĐT để kiểm tra trùng">
                                         <button type="button" class="btn btn-soft-info" onclick="checkDuplicate('phone',document.getElementById('phoneInput').value.trim())"><i class="ri-search-line"></i></button>
@@ -178,7 +184,7 @@
                     </div>
                 </div>
 
-                <!-- CỘT GIỮA: Thông tin người liên hệ (chỉ hiện khi Doanh nghiệp) -->
+                <!-- CỘT GIỮA: Thông tin người liên hệ -->
                 <div class="col-lg-4 field-business" id="colContactPersons">
                     <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between">
