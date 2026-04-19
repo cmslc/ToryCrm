@@ -330,9 +330,15 @@ document.getElementById('btnAddPerson')?.addEventListener('click', function() {
     var template = items[0].cloneNode(true);
     template.setAttribute('data-index', idx);
     // Clear values
-    template.querySelectorAll('input:not([type=radio])').forEach(el => el.value = '');
+    template.querySelectorAll('input:not([type=radio]):not([type=file])').forEach(el => el.value = '');
+    template.querySelectorAll('input[type=file]').forEach(el => el.value = '');
     template.querySelectorAll('textarea').forEach(el => el.value = '');
     template.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+    // Reset avatar
+    var avImg = template.querySelector('.cp-avatar-preview');
+    var avPh = template.querySelector('.cp-avatar-placeholder');
+    if (avImg) { avImg.classList.add('d-none'); avImg.src = ''; }
+    if (avPh) { avPh.classList.remove('d-none'); }
     // Update radio
     var radio = template.querySelector('input[type=radio]');
     radio.value = idx;

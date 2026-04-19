@@ -18,11 +18,23 @@
                     <h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5>
                 </div>
                 <div class="card-body">
+                    <?php $isBusiness = !empty($c['company_name']) || !empty($c['tax_code']); ?>
+                    <!-- Loại KH toggle -->
+                    <input type="hidden" name="contact_type" id="contactType" value="<?= $isBusiness ? 'business' : 'personal' ?>">
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn <?= $isBusiness ? 'btn-primary' : 'btn-soft-secondary' ?> flex-grow-1 ct-type-btn <?= $isBusiness ? 'active' : '' ?>" data-type="business" onclick="switchContactType('business')">
+                            <i class="ri-building-line me-1"></i> Doanh nghiệp
+                        </button>
+                        <button type="button" class="btn <?= !$isBusiness ? 'btn-primary' : 'btn-soft-secondary' ?> flex-grow-1 ct-type-btn <?= !$isBusiness ? 'active' : '' ?>" data-type="personal" onclick="switchContactType('personal')">
+                            <i class="ri-user-line me-1"></i> Cá nhân
+                        </button>
+                    </div>
+
                     <!-- Avatar -->
                     <div class="mb-3 d-flex align-items-center gap-3">
                         <div class="position-relative">
-                            <?php if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])): ?>
-                            <img src="<?= url('uploads/avatars/' . $c['avatar']) ?>" class="rounded-circle" id="avatarPreview" style="width:64px;height:64px;object-fit:cover">
+                            <?php if (!empty($c['avatar'])): ?>
+                            <img src="<?= asset($c['avatar']) ?>" class="rounded-circle" id="avatarPreview" style="width:64px;height:64px;object-fit:cover">
                             <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center d-none" style="width:64px;height:64px;font-size:24px" id="avatarInitial"><?= strtoupper(mb_substr($c['company_name'] ?? $c['first_name'] ?? '?', 0, 1)) ?></div>
                             <?php else: ?>
                             <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:24px" id="avatarInitial"><?= strtoupper(mb_substr($c['company_name'] ?? $c['first_name'] ?? '?', 0, 1)) ?></div>
@@ -47,65 +59,109 @@
                             reader.readAsDataURL(this.files[0]);
                         }
                     });
+                    function switchContactType(type) {
+                        document.getElementById('contactType').value = type;
+                        document.querySelectorAll('.ct-type-btn').forEach(function(b) {
+                            b.classList.remove('btn-primary','active');
+                            b.classList.add('btn-soft-secondary');
+                        });
+                        document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.remove('btn-soft-secondary');
+                        document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.add('btn-primary','active');
+                        document.querySelectorAll('.field-business').forEach(function(el) { el.style.display = type === 'business' ? '' : 'none'; });
+                        document.querySelectorAll('.field-personal').forEach(function(el) { el.style.display = type === 'personal' ? '' : 'none'; });
+                    }
                     </script>
-                    <div class="mb-3">
-                        <label class="form-label">Mã số thuế (KH cá nhân nhập SĐT)</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= e($c['tax_code'] ?? '') ?>" placeholder="Nhập MST rồi bấm tra cứu">
-                            <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
+
+                    <!-- === DOANH NGHIỆP === -->
+                    <div class="field-business" <?= !$isBusiness ? 'style="display:none"' : '' ?>>
+                        <div class="mb-3">
+                            <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= e($c['tax_code'] ?? '') ?>" placeholder="Nhập MST rồi bấm tra cứu">
+                                <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
+                            </div>
+                            <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                         </div>
-                        <div class="form-text text-success d-none" id="taxLookupStatus"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="company_name" id="companyNameInput" value="<?= e($c['company_name'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ĐT công ty</label>
+                            <input type="text" class="form-control" name="company_phone" value="<?= e($c['company_phone'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email công ty</label>
+                            <input type="email" class="form-control" name="company_email" value="<?= e($c['company_email'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Website</label>
+                                <input type="text" class="form-control" name="website" value="<?= e($c['website'] ?? '') ?>" placeholder="https://">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Fax</label>
+                                <input type="text" class="form-control" name="fax" value="<?= e($c['fax'] ?? '') ?>">
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- === CÁ NHÂN === -->
+                    <div class="field-personal" <?= $isBusiness ? 'style="display:none"' : '' ?>>
+                        <div class="mb-3">
+                            <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
+                            <select name="title" class="form-select">
+                                <option value="">Chọn</option>
+                                <option value="anh" <?= ($c['title'] ?? '') === 'anh' ? 'selected' : '' ?>>Anh</option>
+                                <option value="chị" <?= ($c['title'] ?? '') === 'chị' ? 'selected' : '' ?>>Chị</option>
+                                <option value="ông" <?= ($c['title'] ?? '') === 'ông' ? 'selected' : '' ?>>Ông</option>
+                                <option value="bà" <?= ($c['title'] ?? '') === 'bà' ? 'selected' : '' ?>>Bà</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="full_name" value="<?= e($c['full_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''))) ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Điện thoại <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="phone" value="<?= e($c['phone'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" value="<?= e($c['email'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" class="form-control" name="date_of_birth" value="<?= e($c['date_of_birth'] ?? '') ?>">
+                        </div>
+                    </div>
+
+                    <!-- Chung -->
                     <div class="mb-3">
                         <label class="form-label">Mã KH</label>
                         <input type="text" class="form-control" name="account_code" value="<?= e($c['account_code'] ?? '') ?>">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="full_name" value="<?= e($c['full_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''))) ?>" placeholder="VD: Nguyễn Văn A hoặc Công ty TNHH ABC" required>
-                        <small class="text-muted">Nhập tên cá nhân hoặc tên công ty</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tên công ty</label>
-                        <input type="text" class="form-control" name="company_name" value="<?= e($c['company_name'] ?? '') ?>" placeholder="Bỏ trống nếu là KH cá nhân">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Điện thoại</label>
-                        <input type="text" class="form-control" name="phone" value="<?= e($c['phone'] ?? '') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" value="<?= e($c['email'] ?? '') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Địa chỉ</label>
-                        <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Số CF</label>
-                        <input type="text" class="form-control" name="referrer_code" value="<?= e($c['referrer_code'] ?? '') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả</label>
-                        <textarea name="description" class="form-control" rows="3"><?= e($c['description'] ?? '') ?></textarea>
-                    </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tỉnh/thành phố</label>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Tỉnh/TP</label>
                             <input type="text" class="form-control" name="province" value="<?= e($c['province'] ?? '') ?>">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Quận/huyện</label>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Quận/Huyện</label>
                             <input type="text" class="form-control" name="district" value="<?= e($c['district'] ?? '') ?>">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Website</label>
-                        <input type="text" class="form-control" name="website" value="<?= e($c['website'] ?? '') ?>" placeholder="https://">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fax</label>
-                        <input type="text" class="form-control" name="fax" value="<?= e($c['fax'] ?? '') ?>">
+                        <label class="form-label">Mô tả</label>
+                        <textarea name="description" class="form-control" rows="2"><?= e($c['description'] ?? '') ?></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Sinh nhật</label>
@@ -115,8 +171,8 @@
             </div>
         </div>
 
-        <!-- CỘT GIỮA: Thông tin người liên hệ -->
-        <div class="col-lg-4">
+        <!-- CỘT GIỮA: Thông tin người liên hệ (chỉ DN) -->
+        <div class="col-lg-4 field-business" <?= !$isBusiness ? 'style="display:none"' : '' ?>>
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Thông tin người liên hệ</h5>
