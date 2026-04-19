@@ -80,85 +80,103 @@
                             }
                             </script>
 
-                            <!-- Doanh nghiệp fields -->
-                            <div class="mb-3 field-business">
-                                <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="VD: Công ty TNHH ABC">
-                            </div>
-                            <div class="mb-3 field-business">
-                                <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
-                                    <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
+                            <!-- === DOANH NGHIỆP === -->
+                            <div class="field-business">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="VD: Công ty TNHH ABC">
                                 </div>
-                                <div class="form-text text-success d-none" id="taxLookupStatus"></div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
+                                        <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
+                                    </div>
+                                    <div class="form-text text-success d-none" id="taxLookupStatus"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Điện thoại công ty</label>
+                                    <input type="text" class="form-control" name="company_phone" value="<?= old('company_phone') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email công ty</label>
+                                    <input type="email" class="form-control" name="company_email" value="<?= old('company_email') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
+                                </div>
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Website</label>
+                                        <input type="text" class="form-control" name="website" value="<?= old('website') ?>" placeholder="https://">
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Fax</label>
+                                        <input type="text" class="form-control" name="fax" value="<?= old('fax') ?>">
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Chung cho cả 2 loại -->
-                            <div class="mb-3">
-                                <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
-                                <select name="title" class="form-select" required>
-                                    <option value="">Chọn</option>
-                                    <option value="anh">Anh</option>
-                                    <option value="chị">Chị</option>
-                                    <option value="ông">Ông</option>
-                                    <option value="bà">Bà</option>
-                                </select>
+                            <!-- === CÁ NHÂN === -->
+                            <div class="field-personal" style="display:none">
+                                <div class="mb-3">
+                                    <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
+                                    <select name="title" class="form-select">
+                                        <option value="">Chọn</option>
+                                        <option value="anh">Anh</option>
+                                        <option value="chị">Chị</option>
+                                        <option value="ông">Ông</option>
+                                        <option value="bà">Bà</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Điện thoại <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="phone" value="<?= old('phone') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" value="<?= old('email') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày sinh</label>
+                                    <input type="date" class="form-control" name="date_of_birth" value="<?= old('date_of_birth') ?>">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" required>
-                            </div>
+
+                            <!-- Chung -->
                             <div class="mb-3">
                                 <label class="form-label">Mã KH</label>
                                 <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
                             </div>
-
-                            <!-- Cá nhân: SĐT bắt buộc -->
-                            <div class="mb-3">
-                                <label class="form-label">Điện thoại <span class="text-danger field-personal" style="display:none">*</span></label>
-                                <input type="text" class="form-control" name="phone" value="<?= old('phone') ?>">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" value="<?= old('email') ?>">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Địa chỉ</label>
-                                <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Mô tả</label>
-                                <textarea name="description" class="form-control" rows="3"><?= old('description') ?></textarea>
-                            </div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Tỉnh/thành phố</label>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Tỉnh/TP</label>
                                     <input type="text" class="form-control" name="province" value="<?= old('province') ?>">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Quận/huyện</label>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Quận/Huyện</label>
                                     <input type="text" class="form-control" name="district" value="<?= old('district') ?>">
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Website</label>
-                                <input type="text" class="form-control" name="website" value="<?= old('website') ?>" placeholder="https://">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Fax</label>
-                                <input type="text" class="form-control" name="fax" value="<?= old('fax') ?>">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Sinh nhật</label>
-                                <input type="date" class="form-control" name="date_of_birth" value="<?= old('date_of_birth') ?>">
+                                <label class="form-label">Mô tả</label>
+                                <textarea name="description" class="form-control" rows="2"><?= old('description') ?></textarea>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CỘT GIỮA: Thông tin người liên hệ -->
-                <div class="col-lg-4">
+                <!-- CỘT GIỮA: Thông tin người liên hệ (chỉ hiện khi Doanh nghiệp) -->
+                <div class="col-lg-4 field-business" id="colContactPersons">
                     <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between">
                             <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Thông tin người liên hệ</h5>
