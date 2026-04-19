@@ -159,29 +159,29 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
             <h5 class="card-title mb-0"><i class="ri-shopping-bag-line me-1"></i> Sản phẩm</h5>
         </div>
         <div class="card-body p-2">
-    <div class="table-responsive">
-        <table class="table table-bordered align-middle mb-0" id="itemsTable">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Mã sản phẩm</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Đơn vị</th>
-                    <th>Số lượng</th>
-                    <th>Đơn giá</th>
-                    <th>CK (%)</th>
-                    <th>CK</th>
-                    <th>VAT (%)</th>
-                    <th>Thành tiền</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="itemsBody"></tbody>
-        </table>
-    </div>
-    <div class="mt-2 mb-2 ms-2">
-        <a href="javascript:void(0)" class="text-primary" onclick="addItem()"><i class="ri-add-line me-1"></i>Thêm mới sản phẩm</a>
-    </div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0" id="itemsTable" style="min-width:900px">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:35px">#</th>
+                            <th style="width:12%">Mã SP</th>
+                            <th style="width:22%">Tên sản phẩm</th>
+                            <th style="width:6%">ĐVT</th>
+                            <th style="width:8%">SL</th>
+                            <th style="width:11%">Đơn giá</th>
+                            <th style="width:7%">CK(%)</th>
+                            <th style="width:9%">CK</th>
+                            <th style="width:7%">VAT(%)</th>
+                            <th style="width:11%">Thành tiền</th>
+                            <th style="width:70px"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody"></tbody>
+                </table>
+            </div>
+            <div class="mt-2 mb-2 ms-2">
+                <a href="javascript:void(0)" class="text-primary" onclick="addItem()"><i class="ri-add-line me-1"></i>Thêm mới sản phẩm</a>
+            </div>
         </div>
     </div>
 
@@ -190,43 +190,42 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
         <div class="col-lg-6"></div>
         <div class="col-lg-6">
             <div class="card">
-            <div class="card-body" style="background:#e8f0fe">
-                <h6 class="fw-bold mb-3"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h6>
-                <table class="table table-borderless mb-0">
-                    <tr>
-                        <td>Phí vận chuyển sau thuế</td>
-                        <td colspan="2"><input class="form-check-input" type="checkbox" name="shipping_after_tax" value="1" id="shippingAfterTax"></td>
-                    </tr>
-                    <tr>
-                        <td>Phí vận chuyển</td>
-                        <td><div class="input-group"><input type="number" class="form-control" name="shipping_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'shipping')"><span class="input-group-text">%</span></div></td>
-                        <td><input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()"></td>
-                    </tr>
-                    <tr>
-                        <td>Chiết khấu</td>
-                        <td><div class="input-group"><input type="number" class="form-control" name="discount_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'discount')"><span class="input-group-text">%</span></div></td>
-                        <td><input type="number" class="form-control" name="discount_amount" value="0" min="0" onchange="calculateTotal()"></td>
-                    </tr>
-                    <tr>
-                        <td>Chiết khấu sau thuế</td>
-                        <td colspan="2"><input class="form-check-input" type="checkbox" name="discount_after_tax" value="1" id="discountAfterTax"></td>
-                    </tr>
-                    <tr>
-                        <td>Thuế VAT</td>
-                        <td><div class="input-group"><input type="number" class="form-control" name="tax_rate" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'tax')"><span class="input-group-text">%</span></div></td>
-                        <td><input type="number" class="form-control" name="tax_amount" value="0" readonly style="background:#dce6f5"></td>
-                    </tr>
-                    <tr>
-                        <td>Phí lắp đặt</td>
-                        <td><div class="input-group"><input type="number" class="form-control" name="installation_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'installation')"><span class="input-group-text">%</span></div></td>
-                        <td><input type="number" class="form-control" name="installation_fee" value="0" min="0" onchange="calculateTotal()"></td>
-                    </tr>
-                    <tr class="fw-bold">
-                        <td>Tổng cộng</td>
-                        <td colspan="2"><div class="form-control-plaintext text-end fs-5 text-primary" id="grandTotalDisplay">0.00</div></td>
-                    </tr>
-                </table>
-            </div>
+                <div class="card-body" style="background:#e8f0fe">
+                    <h6 class="fw-bold mb-3"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h6>
+                    <div class="mb-2 d-flex align-items-center justify-content-between">
+                        <span>Phí vận chuyển sau thuế</span>
+                        <input class="form-check-input" type="checkbox" name="shipping_after_tax" value="1" id="shippingAfterTax">
+                    </div>
+                    <div class="mb-2 d-flex align-items-center gap-2">
+                        <span class="flex-shrink-0" style="width:140px">Phí vận chuyển</span>
+                        <div class="input-group" style="width:120px"><input type="number" class="form-control" name="shipping_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'shipping')"><span class="input-group-text">%</span></div>
+                        <input type="number" class="form-control" name="shipping_fee" value="0" min="0" onchange="calculateTotal()" style="width:120px">
+                    </div>
+                    <div class="mb-2 d-flex align-items-center gap-2">
+                        <span class="flex-shrink-0" style="width:140px">Chiết khấu</span>
+                        <div class="input-group" style="width:120px"><input type="number" class="form-control" name="discount_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'discount')"><span class="input-group-text">%</span></div>
+                        <input type="number" class="form-control" name="discount_amount" value="0" min="0" onchange="calculateTotal()" style="width:120px">
+                    </div>
+                    <div class="mb-2 d-flex align-items-center justify-content-between">
+                        <span>Chiết khấu sau thuế</span>
+                        <input class="form-check-input" type="checkbox" name="discount_after_tax" value="1" id="discountAfterTax">
+                    </div>
+                    <div class="mb-2 d-flex align-items-center gap-2">
+                        <span class="flex-shrink-0" style="width:140px">Thuế VAT</span>
+                        <div class="input-group" style="width:120px"><input type="number" class="form-control" name="tax_rate" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'tax')"><span class="input-group-text">%</span></div>
+                        <input type="number" class="form-control" name="tax_amount" value="0" readonly style="width:120px;background:#dce6f5">
+                    </div>
+                    <div class="mb-2 d-flex align-items-center gap-2">
+                        <span class="flex-shrink-0" style="width:140px">Phí lắp đặt</span>
+                        <div class="input-group" style="width:120px"><input type="number" class="form-control" name="installation_percent" value="0" min="0" step="0.01" onchange="calcPaymentRow(this,'installation')"><span class="input-group-text">%</span></div>
+                        <input type="number" class="form-control" name="installation_fee" value="0" min="0" onchange="calculateTotal()" style="width:120px">
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="fw-bold fs-5">Tổng cộng</span>
+                        <span class="fw-bold fs-5 text-primary" id="grandTotalDisplay">0.00</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
