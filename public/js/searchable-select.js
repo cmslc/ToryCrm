@@ -82,7 +82,7 @@
         // Dropdown
         var dd = document.createElement('div');
         dd.className = 'border rounded bg-white shadow';
-        dd.style.cssText = 'position:absolute;z-index:1060;min-width:220px;width:max-content;max-width:350px;display:none;top:100%;left:0;margin-top:2px';
+        dd.style.cssText = 'position:absolute;z-index:1060;min-width:220px;width:100%;display:none;top:100%;left:0;margin-top:2px';
         wrapper.appendChild(dd);
 
         // Search input
