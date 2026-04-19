@@ -661,6 +661,22 @@ class ContactController extends Controller
         return $this->redirect('contacts/' . $id);
     }
 
+    public function searchAjax()
+    {
+        $q = trim($this->input('q') ?? '');
+        if (strlen($q) < 1) return $this->json([]);
+        $tid = Database::tenantId();
+        $like = '%' . $q . '%';
+        $results = Database::fetchAll(
+            "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+             FROM contacts WHERE tenant_id = ? AND is_deleted = 0
+             AND (company_name LIKE ? OR full_name LIKE ? OR first_name LIKE ? OR account_code LIKE ? OR phone LIKE ? OR company_phone LIKE ? OR tax_code LIKE ?)
+             ORDER BY company_name, full_name LIMIT 20",
+            [$tid, $like, $like, $like, $like, $like, $like, $like]
+        );
+        return $this->json($results);
+    }
+
     public function persons($id)
     {
         $persons = Database::fetchAll(

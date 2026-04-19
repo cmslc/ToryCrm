@@ -145,30 +145,20 @@ class QuotationController extends Controller
         $quoteNumber = $this->generateQuoteNumber();
         $preContactId = (int)($this->input('contact_id') ?: ($_GET['contact_id'] ?? 0));
 
-        $contacts = Database::fetchAll(
-            "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
-             FROM contacts WHERE tenant_id = ? AND is_deleted = 0
-             ORDER BY company_name, full_name, first_name LIMIT 500", [$tid]
-        );
-
-        // Đảm bảo contact được chọn luôn có trong list
+        // Chỉ load contact nếu có preContactId
+        $preContact = null;
         if ($preContactId) {
-            $found = false;
-            foreach ($contacts as $c) { if ((int)$c['id'] === $preContactId) { $found = true; break; } }
-            if (!$found) {
-                $extra = Database::fetch(
-                    "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
-                     FROM contacts WHERE id = ? AND tenant_id = ?", [$preContactId, $tid]
-                );
-                if ($extra) array_unshift($contacts, $extra);
-            }
+            $preContact = Database::fetch(
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                 FROM contacts WHERE id = ? AND tenant_id = ?", [$preContactId, $tid]
+            );
         }
 
         $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('quotations.create', [
             'quoteNumber' => $quoteNumber,
-            'contacts' => $contacts,
+            'preContact' => $preContact,
             'users' => $users,
             'preContactId' => $preContactId,
         ]);

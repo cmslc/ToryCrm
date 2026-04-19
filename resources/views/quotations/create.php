@@ -1,6 +1,12 @@
 <?php
 $pageTitle = 'Tạo báo giá';
 $preContactId = $preContactId ?? 0;
+$pc = $preContact ?? null;
+$pcName = '';
+if ($pc) {
+    $pcName = $pc['company_name'] ?: ($pc['full_name'] ?: trim(($pc['first_name'] ?? '') . ' ' . ($pc['last_name'] ?? '')));
+    if (!empty($pc['account_code'])) $pcName .= ' (' . $pc['account_code'] . ')';
+}
 $deptGrouped = [];
 foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
 ?>
@@ -30,20 +36,11 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
             <div class="mb-3">
                 <label class="form-label">Tìm khách hàng</label>
                 <div class="d-flex gap-2">
-                    <select name="contact_id" class="form-select searchable-select" style="width:100%" id="contactSelect" onchange="onContactChange(this)">
-                        <option value="">Vui lòng nhập và ấn enter</option>
-                        <?php foreach ($contacts ?? [] as $c):
-                            $cName = $c['company_name'] ?: ($c['full_name'] ?: trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? '')));
-                            if (!empty($c['account_code'])) $cName .= ' (' . $c['account_code'] . ')';
-                        ?>
-                            <option value="<?= $c['id'] ?>"
-                                data-address="<?= e($c['address'] ?? '') ?>"
-                                data-phone="<?= e($c['company_phone'] ?? $c['phone'] ?? '') ?>"
-                                data-email="<?= e($c['company_email'] ?? $c['email'] ?? '') ?>"
-                                <?= $preContactId == $c['id'] ? 'selected' : '' ?>
-                            ><?= e($cName) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="flex-grow-1 position-relative">
+                        <input type="hidden" name="contact_id" id="contactIdInput" value="<?= $preContactId ?>">
+                        <input type="text" class="form-control" id="contactSearchInput" placeholder="Nhập tên, mã KH, SĐT, MST..." value="<?= e($pcName) ?>" autocomplete="off">
+                        <div class="border rounded bg-white shadow" id="contactDropdown" style="position:absolute;z-index:1060;width:100%;display:none;top:100%;left:0;margin-top:2px;max-height:250px;overflow-y:auto"></div>
+                    </div>
                     <a href="<?= url('contacts/create') ?>" class="btn btn-soft-primary" title="Tạo KH mới"><i class="ri-add-line"></i></a>
                 </div>
             </div>
@@ -260,29 +257,66 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 </style>
 
 <script>
-// Auto-fill khi chọn khách hàng
-function onContactChange(sel) {
-    var opt = sel.options[sel.selectedIndex];
-    if (opt && opt.value) {
-        document.getElementById('qAddress').value = opt.dataset.address || '';
-        document.getElementById('qPhone').value = opt.dataset.phone || '';
-        document.getElementById('qEmail').value = opt.dataset.email || '';
-        // Load contact persons
-        fetch('<?= url("contacts") ?>/' + opt.value + '/persons')
+// AJAX search khách hàng
+var csTimer = null;
+var csInput = document.getElementById('contactSearchInput');
+var csDrop = document.getElementById('contactDropdown');
+
+csInput?.addEventListener('input', function() {
+    var q = this.value.trim();
+    if (q.length < 1) { csDrop.style.display = 'none'; return; }
+    clearTimeout(csTimer);
+    csTimer = setTimeout(function() {
+        fetch('<?= url("contacts/search-ajax") ?>?q=' + encodeURIComponent(q))
             .then(r => r.json())
-            .then(function(persons) {
-                var cpSel = document.getElementById('contactPersonSelect');
-                cpSel.innerHTML = '<option value="">Chọn người liên hệ</option>';
-                (persons || []).forEach(function(p) {
-                    var o = document.createElement('option');
-                    o.value = p.id;
-                    o.textContent = (p.title ? p.title + ' ' : '') + p.full_name + (p.position ? ' - ' + p.position : '');
-                    o.dataset.phone = p.phone || '';
-                    o.dataset.email = p.email || '';
-                    cpSel.appendChild(o);
-                });
-            }).catch(function(){});
-    }
+            .then(function(results) {
+                if (!results.length) {
+                    csDrop.innerHTML = '<div class="px-3 py-2 text-muted">Không tìm thấy</div>';
+                    csDrop.style.display = 'block';
+                    return;
+                }
+                csDrop.innerHTML = results.map(function(c) {
+                    var name = c.company_name || c.full_name || ((c.first_name || '') + ' ' + (c.last_name || '')).trim();
+                    var sub = [c.account_code, c.phone || c.company_phone].filter(Boolean).join(' - ');
+                    return '<div class="px-3 py-2 border-bottom" style="cursor:pointer" onmousedown="pickContact(' + JSON.stringify(c).replace(/"/g, '&quot;') + ')">'
+                        + '<div class="fw-medium">' + name + '</div>'
+                        + (sub ? '<small class="text-muted">' + sub + '</small>' : '')
+                        + '</div>';
+                }).join('');
+                csDrop.style.display = 'block';
+            });
+    }, 300);
+});
+
+csInput?.addEventListener('blur', function() { setTimeout(function() { csDrop.style.display = 'none'; }, 200); });
+
+function pickContact(c) {
+    var name = c.company_name || c.full_name || ((c.first_name || '') + ' ' + (c.last_name || '')).trim();
+    if (c.account_code) name += ' (' + c.account_code + ')';
+    document.getElementById('contactIdInput').value = c.id;
+    document.getElementById('contactSearchInput').value = name;
+    document.getElementById('qAddress').value = c.address || '';
+    document.getElementById('qPhone').value = c.company_phone || c.phone || '';
+    document.getElementById('qEmail').value = c.company_email || c.email || '';
+    csDrop.style.display = 'none';
+    loadPersons(c.id);
+}
+
+function loadPersons(contactId) {
+    fetch('<?= url("contacts") ?>/' + contactId + '/persons')
+        .then(r => r.json())
+        .then(function(persons) {
+            var cpSel = document.getElementById('contactPersonSelect');
+            cpSel.innerHTML = '<option value="">Chọn người liên hệ</option>';
+            (persons || []).forEach(function(p) {
+                var o = document.createElement('option');
+                o.value = p.id;
+                o.textContent = (p.title ? p.title + ' ' : '') + p.full_name + (p.position ? ' - ' + p.position : '');
+                o.dataset.phone = p.phone || '';
+                o.dataset.email = p.email || '';
+                cpSel.appendChild(o);
+            });
+        }).catch(function(){});
 }
 
 // Auto-fill khi chọn người liên hệ
@@ -295,32 +329,12 @@ document.getElementById('contactPersonSelect')?.addEventListener('change', funct
 });
 
 // Pre-fill nếu có contact_id
-<?php if ($preContactId): ?>
-(function prefill() {
-    var sel = document.getElementById('contactSelect');
-    if (!sel) return;
-    // Select gốc đã có selected từ PHP, chỉ cần fill data
-    var opt = sel.querySelector('option[value="<?= (int)$preContactId ?>"]');
-    if (opt) {
-        document.getElementById('qAddress').value = opt.dataset.address || '';
-        document.getElementById('qPhone').value = opt.dataset.phone || '';
-        document.getElementById('qEmail').value = opt.dataset.email || '';
-        // Load persons
-        fetch('<?= url("contacts") ?>/<?= (int)$preContactId ?>/persons')
-            .then(r => r.json())
-            .then(function(persons) {
-                var cpSel = document.getElementById('contactPersonSelect');
-                cpSel.innerHTML = '<option value="">Chọn người liên hệ</option>';
-                (persons || []).forEach(function(p) {
-                    var o = document.createElement('option');
-                    o.value = p.id;
-                    o.textContent = (p.title ? p.title + ' ' : '') + p.full_name + (p.position ? ' - ' + p.position : '');
-                    o.dataset.phone = p.phone || '';
-                    o.dataset.email = p.email || '';
-                    cpSel.appendChild(o);
-                });
-            }).catch(function(){});
-    }
+<?php if ($preContactId && $pc): ?>
+(function() {
+    document.getElementById('qAddress').value = '<?= e($pc['address'] ?? '') ?>';
+    document.getElementById('qPhone').value = '<?= e($pc['company_phone'] ?? $pc['phone'] ?? '') ?>';
+    document.getElementById('qEmail').value = '<?= e($pc['company_email'] ?? $pc['email'] ?? '') ?>';
+    loadPersons(<?= (int)$preContactId ?>);
 })();
 <?php endif; ?>
 
