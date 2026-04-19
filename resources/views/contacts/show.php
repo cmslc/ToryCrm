@@ -463,7 +463,7 @@
                                             <div class="d-flex gap-3">
                                                 <label class="text-muted" style="cursor:pointer" title="Đính kèm file">
                                                     <i class="ri-attachment-2 fs-18"></i>
-                                                    <input type="file" name="attachment" class="d-none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.dwg,.dxf,.cad,.dwf,.skp,.3ds,.obj,.stl,.step,.stp,.iges,.igs" onchange="previewAttach(this)">
+                                                    <input type="file" name="attachments[]" class="d-none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.dwg,.dxf,.cad,.dwf,.skp,.3ds,.obj,.stl,.step,.stp,.iges,.igs" multiple onchange="previewAttach(this)">
                                                 </label>
                                                 <span class="text-muted" style="cursor:pointer" title="Tag @người dùng" onclick="var ta=document.getElementById('activityTextarea');ta.value+=' @';ta.focus();ta.dispatchEvent(new Event('input'));">
                                                     <i class="ri-at-line fs-18"></i>
@@ -532,29 +532,30 @@
                                                 <div class="mt-1"><i class="ri-price-tag-3-line text-muted me-1"></i><span class="text-primary" style="font-size:13px"><?= e($act['tagged_users_display']) ?></span></div>
                                                 <?php endif; ?>
                                                 <?php if (!empty($act['attachment'])):
-                                                    $aExt = strtolower(pathinfo($act['attachment'], PATHINFO_EXTENSION));
-                                                    $isImage = in_array($aExt, ['jpg','jpeg','png','gif','webp']);
-                                                    $aName = $act['attachment_name'] ?? basename($act['attachment']);
-                                                    $aSize = ($act['attachment_size'] ?? 0) > 1048576 ? round(($act['attachment_size'] ?? 0)/1048576,1).'MB' : round(($act['attachment_size'] ?? 0)/1024).'KB';
+                                                    $attPaths = explode('|', $act['attachment']);
+                                                    $attNames = explode('|', $act['attachment_name'] ?? '');
                                                     $fileIcons = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary','xls'=>'ri-file-excel-line text-success','xlsx'=>'ri-file-excel-line text-success','ppt'=>'ri-file-ppt-line text-warning','pptx'=>'ri-file-ppt-line text-warning','zip'=>'ri-file-zip-line text-info','rar'=>'ri-file-zip-line text-info','dwg'=>'ri-draft-line text-dark','dxf'=>'ri-draft-line text-dark','cad'=>'ri-draft-line text-dark','dwf'=>'ri-draft-line text-dark','skp'=>'ri-shape-line text-info','3ds'=>'ri-shape-line text-info','obj'=>'ri-shape-line text-info','stl'=>'ri-shape-line text-info','step'=>'ri-shape-line text-info','stp'=>'ri-shape-line text-info'];
-                                                    $fIcon = $fileIcons[$aExt] ?? 'ri-file-line text-muted';
                                                 ?>
-                                                <div class="mt-2">
-                                                    <?php if ($isImage): ?>
-                                                    <a href="<?= asset($act['attachment']) ?>" target="_blank">
-                                                        <img src="<?= asset($act['attachment']) ?>" class="rounded border" style="max-width:300px;max-height:200px;object-fit:cover">
-                                                    </a>
-                                                    <div class="mt-1"><small class="text-muted"><?= e($aName) ?> (<?= $aSize ?>)</small></div>
-                                                    <?php else: ?>
-                                                    <a href="<?= asset($act['attachment']) ?>" target="_blank" class="d-flex align-items-center gap-2 p-2 bg-light rounded text-decoration-none" style="max-width:300px">
-                                                        <i class="<?= $fIcon ?> fs-24"></i>
-                                                        <div>
-                                                            <div class="text-dark fw-medium" style="font-size:13px"><?= e($aName) ?></div>
-                                                            <small class="text-muted"><?= $aSize ?></small>
-                                                        </div>
-                                                        <i class="ri-download-line text-muted ms-auto"></i>
-                                                    </a>
-                                                    <?php endif; ?>
+                                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                                    <?php foreach ($attPaths as $ai => $aPath):
+                                                        $aPath = trim($aPath);
+                                                        if (!$aPath) continue;
+                                                        $aExt = strtolower(pathinfo($aPath, PATHINFO_EXTENSION));
+                                                        $isImage = in_array($aExt, ['jpg','jpeg','png','gif','webp']);
+                                                        $aName = trim($attNames[$ai] ?? basename($aPath));
+                                                    ?>
+                                                        <?php if ($isImage): ?>
+                                                        <a href="<?= asset($aPath) ?>" target="_blank">
+                                                            <img src="<?= asset($aPath) ?>" class="rounded border" style="max-width:200px;max-height:150px;object-fit:cover">
+                                                        </a>
+                                                        <?php else: ?>
+                                                        <a href="<?= asset($aPath) ?>" target="_blank" class="d-flex align-items-center gap-2 p-2 bg-light rounded text-decoration-none">
+                                                            <i class="<?= $fileIcons[$aExt] ?? 'ri-file-line text-muted' ?> fs-20"></i>
+                                                            <span class="text-dark" style="font-size:13px"><?= e($aName) ?></span>
+                                                            <i class="ri-download-line text-muted"></i>
+                                                        </a>
+                                                        <?php endif; ?>
+                                                    <?php endforeach; ?>
                                                 </div>
                                                 <?php endif; ?>
 
@@ -1418,31 +1419,41 @@
     }
 })();
 
-// Attachment preview
+// Attachment preview (multiple files)
 function previewAttach(input) {
     var badge = document.getElementById('attachBadge');
-    var preview = document.getElementById('attachPreview');
-    var icon = document.getElementById('attachIcon');
-    if (!input.files || !input.files[0]) { badge.style.display = 'none'; return; }
-    var file = input.files[0];
-    document.getElementById('attachName').textContent = file.name;
-    var size = file.size > 1048576 ? (file.size/1048576).toFixed(1) + 'MB' : Math.round(file.size/1024) + 'KB';
-    document.getElementById('attachSize').textContent = size;
-    badge.style.display = 'block';
-    if (file.type.startsWith('image/')) {
-        var reader = new FileReader();
-        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; icon.style.display = 'none'; };
-        reader.readAsDataURL(file);
-    } else {
-        preview.style.display = 'none';
-        icon.style.display = 'block';
+    if (!input.files || !input.files.length) { badge.style.display = 'none'; return; }
+    var icons = {pdf:'ri-file-pdf-line text-danger',doc:'ri-file-word-line text-primary',docx:'ri-file-word-line text-primary',xls:'ri-file-excel-line text-success',xlsx:'ri-file-excel-line text-success',dwg:'ri-draft-line text-dark',dxf:'ri-draft-line text-dark',cad:'ri-draft-line text-dark',skp:'ri-shape-line text-info',stl:'ri-shape-line text-info'};
+    var html = '';
+    Array.from(input.files).forEach(function(file, i) {
+        var size = file.size > 1048576 ? (file.size/1048576).toFixed(1) + 'MB' : Math.round(file.size/1024) + 'KB';
         var ext = file.name.split('.').pop().toLowerCase();
-        var icons = {pdf:'ri-file-pdf-line text-danger',doc:'ri-file-word-line text-primary',docx:'ri-file-word-line text-primary',xls:'ri-file-excel-line text-success',xlsx:'ri-file-excel-line text-success',dwg:'ri-draft-line text-dark',dxf:'ri-draft-line text-dark',cad:'ri-draft-line text-dark',skp:'ri-shape-line text-info',stl:'ri-shape-line text-info'};
-        icon.className = (icons[ext] || 'ri-file-line text-muted') + ' fs-20';
-    }
+        var isImg = file.type.startsWith('image/');
+        html += '<div class="d-flex align-items-center gap-2 py-1">';
+        if (isImg) {
+            html += '<img src="" class="rounded border attach-thumb" data-idx="' + i + '" style="max-height:40px">';
+        } else {
+            html += '<i class="' + (icons[ext] || 'ri-file-line text-muted') + ' fs-18"></i>';
+        }
+        html += '<span style="font-size:13px" class="flex-grow-1">' + file.name + ' <small class="text-muted">(' + size + ')</small></span>';
+        html += '</div>';
+    });
+    html += '<div class="mt-1"><button type="button" class="btn btn-link text-danger p-0" onclick="clearAttach()" style="font-size:12px"><i class="ri-close-line me-1"></i>Xóa tất cả</button></div>';
+    badge.innerHTML = html;
+    badge.style.display = 'block';
+    // Load image thumbnails
+    Array.from(input.files).forEach(function(file, i) {
+        if (!file.type.startsWith('image/')) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = badge.querySelector('.attach-thumb[data-idx="' + i + '"]');
+            if (img) img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
 }
 function clearAttach() {
-    document.querySelector('input[name="attachment"]').value = '';
+    document.querySelector('input[name="attachments[]"]').value = '';
     document.getElementById('attachBadge').style.display = 'none';
 }
 

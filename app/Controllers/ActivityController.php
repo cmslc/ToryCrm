@@ -158,24 +158,32 @@ class ActivityController extends Controller
 
         $contactId = $data['contact_id'] ?? null;
 
-        // Handle file upload
-        $attachPath = null;
-        $attachName = null;
-        $attachSize = null;
-        if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-            $file = $_FILES['attachment'];
-            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar','dwg','dxf','cad','dwf','skp','3ds','obj','stl','step','stp','iges','igs'];
-            if (in_array($ext, $allowed) && $file['size'] <= 10 * 1024 * 1024) {
-                $dir = 'uploads/activities/' . date('Y/m');
-                if (!is_dir(BASE_PATH . '/public/' . $dir)) mkdir(BASE_PATH . '/public/' . $dir, 0755, true);
-                $fileName = uniqid() . '.' . $ext;
-                move_uploaded_file($file['tmp_name'], BASE_PATH . '/public/' . $dir . '/' . $fileName);
-                $attachPath = $dir . '/' . $fileName;
-                $attachName = $file['name'];
-                $attachSize = $file['size'];
+        // Handle file uploads (single or multiple)
+        $attachPaths = [];
+        $attachNames = [];
+        $totalSize = 0;
+        $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar','dwg','dxf','cad','dwf','skp','3ds','obj','stl','step','stp','iges','igs'];
+        $files = $_FILES['attachments'] ?? $_FILES['attachment'] ?? null;
+        if ($files && !empty($files['name'])) {
+            $names = is_array($files['name']) ? $files['name'] : [$files['name']];
+            $tmps = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
+            $sizes = is_array($files['size']) ? $files['size'] : [$files['size']];
+            $errors = is_array($files['error']) ? $files['error'] : [$files['error']];
+            $dir = 'uploads/activities/' . date('Y/m');
+            if (!is_dir(BASE_PATH . '/public/' . $dir)) mkdir(BASE_PATH . '/public/' . $dir, 0755, true);
+            for ($i = 0; $i < count($names); $i++) {
+                if ($errors[$i] !== UPLOAD_ERR_OK || empty($names[$i])) continue;
+                $ext = strtolower(pathinfo($names[$i], PATHINFO_EXTENSION));
+                if (!in_array($ext, $allowed) || $sizes[$i] > 10 * 1024 * 1024) continue;
+                $fileName = uniqid() . '_' . $i . '.' . $ext;
+                move_uploaded_file($tmps[$i], BASE_PATH . '/public/' . $dir . '/' . $fileName);
+                $attachPaths[] = $dir . '/' . $fileName;
+                $attachNames[] = $names[$i];
+                $totalSize += $sizes[$i];
             }
         }
+        $attachPath = !empty($attachPaths) ? implode('|', $attachPaths) : null;
+        $attachName = !empty($attachNames) ? implode('|', $attachNames) : null;
 
         $activityId = Database::insert('activities', [
             'type' => $type,
@@ -183,7 +191,7 @@ class ActivityController extends Controller
             'description' => trim($data['description'] ?? ''),
             'attachment' => $attachPath,
             'attachment_name' => $attachName,
-            'attachment_size' => $attachSize,
+            'attachment_size' => $totalSize ?: null,
             'user_id' => $this->userId(),
             'contact_id' => $contactId,
             'deal_id' => $data['deal_id'] ?? null,
