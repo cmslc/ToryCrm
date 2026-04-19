@@ -20,10 +20,12 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
     <input type="hidden" name="action" id="formAction" value="draft">
 
     <!-- ROW 1: 2 cột thông tin -->
-    <div class="row">
-        <!-- CỘT TRÁI: Thông tin khách hàng -->
-        <div class="col-lg-6">
-            <h6 class="fw-bold mb-3"><i class="ri-menu-line me-1"></i> Thông tin khách hàng</h6>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <!-- CỘT TRÁI: Thông tin khách hàng -->
+                <div class="col-lg-6">
+                    <h6 class="fw-bold mb-3"><i class="ri-menu-line me-1"></i> Thông tin khách hàng</h6>
 
             <div class="mb-3">
                 <label class="form-label">Tìm khách hàng</label>
@@ -118,37 +120,45 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                     <label class="form-label">Địa điểm</label>
                     <input type="text" class="form-control" name="location">
                 </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <!-- Nội dung -->
+            <div class="mb-3">
+                <label class="form-label">Nội dung</label>
+                <textarea name="content" id="quoteContent" class="form-control" rows="6"></textarea>
+            </div>
+
+            <!-- Tài liệu đính kèm -->
+            <div class="mb-3">
+                <label class="form-label">Tài liệu đính kèm</label>
+                <input type="file" name="attachments[]" class="form-control" multiple>
+            </div>
+
+            <!-- Chiến dịch -->
+            <div class="mb-3" style="max-width:400px">
+                <label class="form-label">Chiến dịch</label>
+                <select name="campaign_id" class="form-select">
+                    <option value="">Mới chọn</option>
+                    <?php foreach ($campaigns ?? [] as $camp): ?>
+                    <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
         </div>
     </div>
 
-    <!-- Nội dung -->
-    <div class="mb-3">
-        <label class="form-label">Nội dung</label>
-        <textarea name="content" id="quoteContent" class="form-control" rows="6"></textarea>
-    </div>
-
-    <!-- Tài liệu đính kèm -->
-    <div class="mb-3">
-        <label class="form-label">Tài liệu đính kèm</label>
-        <input type="file" name="attachments[]" class="form-control" multiple>
-    </div>
-
-    <!-- Chiến dịch -->
-    <div class="mb-3" style="max-width:400px">
-        <label class="form-label">Chiến dịch</label>
-        <select name="campaign_id" class="form-select">
-            <option value="">Mới chọn</option>
-            <?php foreach ($campaigns ?? [] as $camp): ?>
-            <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
-            <?php endforeach; ?>
-        </select>
-    </div>
-
-    <hr>
-
     <!-- SẢN PHẨM -->
-    <h6 class="fw-bold mb-3"><i class="ri-shopping-bag-line me-1"></i> Sản phẩm</h6>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="ri-shopping-bag-line me-1"></i> Sản phẩm</h5>
+        </div>
+        <div class="card-body p-2">
     <div class="table-responsive">
         <table class="table table-bordered align-middle mb-0" id="itemsTable">
             <thead class="table-light">
@@ -169,15 +179,18 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
             <tbody id="itemsBody"></tbody>
         </table>
     </div>
-    <div class="mt-2 mb-4">
+    <div class="mt-2 mb-2 ms-2">
         <a href="javascript:void(0)" class="text-primary" onclick="addItem()"><i class="ri-add-line me-1"></i>Thêm mới sản phẩm</a>
+    </div>
+        </div>
     </div>
 
     <!-- THANH TOÁN (bên phải) -->
     <div class="row">
         <div class="col-lg-6"></div>
         <div class="col-lg-6">
-            <div class="p-3 rounded" style="background:#e8f0fe">
+            <div class="card">
+            <div class="card-body" style="background:#e8f0fe">
                 <h6 class="fw-bold mb-3"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h6>
                 <table class="table table-borderless mb-0">
                     <tr>
@@ -214,18 +227,23 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                     </tr>
                 </table>
             </div>
+            </div>
         </div>
     </div>
 
     <!-- Ghi chú & Điều khoản -->
-    <div class="row mt-3">
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Ghi chú</label>
-            <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú nội bộ hoặc cho khách hàng..."></textarea>
-        </div>
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Điều khoản</label>
-            <textarea name="terms" class="form-control" rows="3" placeholder="Điều khoản thanh toán, bảo hành..."></textarea>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú nội bộ hoặc cho khách hàng..."></textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Điều khoản</label>
+                    <textarea name="terms" class="form-control" rows="3" placeholder="Điều khoản thanh toán, bảo hành..."></textarea>
+                </div>
+            </div>
         </div>
     </div>
 </form>
