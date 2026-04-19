@@ -30,7 +30,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
             <div class="mb-3">
                 <label class="form-label">Tìm khách hàng</label>
                 <div class="d-flex gap-2">
-                    <select name="contact_id" class="form-select searchable-select flex-grow-1" id="contactSelect" onchange="onContactChange(this)">
+                    <select name="contact_id" class="form-select searchable-select" style="width:100%" id="contactSelect" onchange="onContactChange(this)">
                         <option value="">Vui lòng nhập và ấn enter</option>
                         <?php foreach ($contacts ?? [] as $c):
                             $cName = $c['company_name'] ?: trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
