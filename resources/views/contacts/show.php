@@ -384,7 +384,7 @@
 
                 <div class="card">
                     <div class="card-header p-2">
-                        <ul class="nav nav-tabs nav-tabs-custom" role="tablist">
+                        <ul class="nav nav-tabs arrow-navtabs nav-primary" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" data-bs-toggle="tab" href="#tab-exchange" role="tab">
                                     <i class="ri-chat-3-line me-1"></i> Trao đổi
