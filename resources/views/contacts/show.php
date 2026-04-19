@@ -1407,14 +1407,12 @@ function reactActivity(id, type, el) {
         if (!data.likes && data.likes !== 0) return;
         var row = el.closest('.d-flex.align-items-center.gap-3');
         var btns = row.querySelectorAll('.act-btn');
-        // Like button
+        // Rebuild like button
         btns[0].className = 'act-btn ' + (data.my === 'like' ? 'text-primary fw-medium' : 'text-muted');
-        btns[0].querySelector('i').className = 'ri-thumb-up-' + (data.my === 'like' ? 'fill' : 'line');
-        btns[0].innerHTML = btns[0].querySelector('i').outerHTML + ' Thích' + (data.likes > 0 ? ' <span class="react-count">' + data.likes + '</span>' : '');
-        // Dislike button
+        btns[0].innerHTML = '<i class="ri-thumb-up-' + (data.my === 'like' ? 'fill' : 'line') + '"></i> Thích' + (data.likes > 0 ? ' <span class="react-count">' + data.likes + '</span>' : '');
+        // Rebuild dislike button
         btns[1].className = 'act-btn ' + (data.my === 'dislike' ? 'text-danger fw-medium' : 'text-muted');
-        btns[1].querySelector('i').className = 'ri-thumb-down-' + (data.my === 'dislike' ? 'fill' : 'line');
-        btns[1].innerHTML = btns[1].querySelector('i').outerHTML + ' Không thích' + (data.dislikes > 0 ? ' <span class="react-count">' + data.dislikes + '</span>' : '');
+        btns[1].innerHTML = '<i class="ri-thumb-down-' + (data.my === 'dislike' ? 'fill' : 'line') + '"></i> Không thích' + (data.dislikes > 0 ? ' <span class="react-count">' + data.dislikes + '</span>' : '');
     });
 }
 

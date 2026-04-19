@@ -47,14 +47,29 @@ class Controller
         exit;
     }
 
+    private static ?array $jsonBody = null;
+
+    private function getJsonBody(): array
+    {
+        if (self::$jsonBody === null) {
+            self::$jsonBody = [];
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            if (strpos($contentType, 'application/json') !== false) {
+                $raw = file_get_contents('php://input');
+                if ($raw) self::$jsonBody = json_decode($raw, true) ?: [];
+            }
+        }
+        return self::$jsonBody;
+    }
+
     protected function input(string $key, $default = null)
     {
-        return $_POST[$key] ?? $_GET[$key] ?? $default;
+        return $_POST[$key] ?? $_GET[$key] ?? $this->getJsonBody()[$key] ?? $default;
     }
 
     protected function allInput(): array
     {
-        return array_merge($_GET, $_POST);
+        return array_merge($_GET, $_POST, $this->getJsonBody());
     }
 
     protected function isPost(): bool
