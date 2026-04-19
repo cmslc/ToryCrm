@@ -140,15 +140,56 @@ class MergeRequestController extends Controller
             return $this->redirect('approvals/pending');
         }
 
-        // Add contact person to existing contact
+        // Get existing contact full data
+        $existingContact = Database::fetch("SELECT * FROM contacts WHERE id = ?", [$req['existing_contact_id']]);
+
+        // Auto-generate account_code
+        $maxCode = Database::fetch("SELECT MAX(CAST(SUBSTRING(account_code, 3) AS UNSIGNED)) as max_num FROM contacts WHERE account_code LIKE 'KH%'");
+        $accountCode = 'KH' . (($maxCode['max_num'] ?? 0) + 1);
+
+        // Create new contact for Sale 2 (copy DN info)
+        $newContactId = Database::insert('contacts', [
+            'tenant_id' => $existingContact['tenant_id'],
+            'account_code' => $accountCode,
+            'company_name' => $existingContact['company_name'],
+            'tax_code' => $existingContact['tax_code'],
+            'company_phone' => $existingContact['company_phone'],
+            'company_email' => $existingContact['company_email'],
+            'address' => $existingContact['address'],
+            'province' => $existingContact['province'],
+            'district' => $existingContact['district'],
+            'ward' => $existingContact['ward'],
+            'city' => $existingContact['city'],
+            'country' => $existingContact['country'],
+            'website' => $existingContact['website'],
+            'fax' => $existingContact['fax'],
+            'industry' => $existingContact['industry'],
+            'company_size' => $existingContact['company_size'],
+            // Người LH mới làm thông tin chính
+            'first_name' => explode(' ', $req['cp_name'], 2)[0],
+            'last_name' => explode(' ', $req['cp_name'], 2)[1] ?? '',
+            'full_name' => $req['cp_name'],
+            'title' => $req['cp_title'],
+            'phone' => $req['cp_phone'],
+            'email' => $req['cp_email'],
+            'position' => $req['cp_position'],
+            // Assign to Sale 2
+            'owner_id' => $req['requested_by'],
+            'created_by' => $req['requested_by'],
+            'status' => $existingContact['status'] ?? 'new',
+            'customer_group' => $existingContact['customer_group'],
+            'source_id' => $existingContact['source_id'],
+        ]);
+
+        // Add as contact person too
         Database::insert('contact_persons', [
-            'contact_id' => $req['existing_contact_id'],
+            'contact_id' => $newContactId,
             'title' => $req['cp_title'],
             'full_name' => $req['cp_name'],
             'phone' => $req['cp_phone'],
             'email' => $req['cp_email'],
             'position' => $req['cp_position'] ?? null,
-            'is_primary' => 0,
+            'is_primary' => 1,
         ]);
 
         Database::update('contact_merge_requests', [
@@ -156,18 +197,18 @@ class MergeRequestController extends Controller
             'approved_by' => $this->userId(),
         ], 'id = ?', [$id]);
 
-        // Notify requester
+        // Notify requester with link to new contact
         Database::insert('notifications', [
             'tenant_id' => Database::tenantId(),
             'user_id' => $req['requested_by'],
             'type' => 'success',
-            'title' => 'Yêu cầu thêm người LH đã được duyệt',
-            'message' => $req['cp_name'] . ' đã được thêm vào doanh nghiệp.',
-            'link' => 'approvals/pending',
+            'title' => 'Yêu cầu đã được duyệt - KH mới đã tạo',
+            'message' => $req['cp_name'] . ' tại ' . ($existingContact['company_name'] ?? 'DN') . ' (' . $accountCode . ')',
+            'link' => 'contacts/' . $newContactId,
             'icon' => 'ri-check-line',
         ]);
 
-        $this->setFlash('success', 'Đã duyệt và thêm người liên hệ.');
+        $this->setFlash('success', 'Đã duyệt. KH mới ' . $accountCode . ' đã tạo cho người yêu cầu.');
         return $this->redirect('approvals/pending');
     }
 
