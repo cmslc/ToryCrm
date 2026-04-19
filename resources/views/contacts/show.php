@@ -809,7 +809,7 @@
                             <div class="tab-pane" id="tab-quotations" role="tabpanel">
                                 <div class="d-flex justify-content-between mb-3">
                                     <h6 class="mb-0">Báo giá</h6>
-                                    <a href="<?= url('orders/create?type=quote&contact_id=' . $contact['id']) ?>" class="btn btn-soft-primary"><i class="ri-add-line me-1"></i>Tạo báo giá</a>
+                                    <a href="<?= url('quotations/create?contact_id=' . $contact['id']) ?>" class="btn btn-soft-primary"><i class="ri-add-line me-1"></i>Tạo báo giá</a>
                                 </div>
                                 <?php
                                 $quotations = \Core\Database::fetchAll(
@@ -857,7 +857,7 @@
                             <div class="tab-pane" id="tab-contracts" role="tabpanel">
                                 <div class="d-flex justify-content-between mb-3">
                                     <h6 class="mb-0">Hợp đồng</h6>
-                                    <a href="<?= url('orders/create?type=contract&contact_id=' . $contact['id']) ?>" class="btn btn-soft-primary"><i class="ri-add-line me-1"></i>Tạo hợp đồng</a>
+                                    <a href="<?= url('contracts/create?contact_id=' . $contact['id']) ?>" class="btn btn-soft-primary"><i class="ri-add-line me-1"></i>Tạo hợp đồng</a>
                                 </div>
                                 <?php
                                 $contracts = \Core\Database::fetchAll(
