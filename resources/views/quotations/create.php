@@ -25,7 +25,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
             <div class="row">
                 <!-- CỘT TRÁI: Thông tin khách hàng -->
                 <div class="col-lg-6">
-                    <h6 class="fw-bold mb-3"><i class="ri-menu-line me-1"></i> Thông tin khách hàng</h6>
+                    <h5 class="card-title mb-3"><i class="ri-menu-line me-1"></i> Thông tin khách hàng</h5>
 
             <div class="mb-3">
                 <label class="form-label">Tìm khách hàng</label>
@@ -73,7 +73,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 
         <!-- CỘT PHẢI: Thông tin báo giá -->
         <div class="col-lg-6">
-            <h6 class="fw-bold mb-3"><i class="ri-menu-line me-1"></i> Thông tin báo giá</h6>
+            <h5 class="card-title mb-3"><i class="ri-menu-line me-1"></i> Thông tin báo giá</h5>
 
             <div class="row">
                 <div class="col-6 mb-3">
