@@ -465,33 +465,48 @@ function checkCpPhone(btn) {
     var input = btn.closest('.input-group').querySelector('.cp-phone-input');
     var phone = input.value.trim();
     if (!phone) { input.focus(); return; }
-    if (!duplicateContactId) {
-        // Also check general duplicate
-        checkDuplicate('phone', phone);
-        return;
-    }
     var old = input.closest('.mb-2')?.querySelector('.cp-phone-alert');
     if (old) old.remove();
-    fetch('<?= url("contacts/check-person-phone") ?>?contact_id=' + duplicateContactId + '&phone=' + encodeURIComponent(phone))
-    .then(r => r.json())
-    .then(function(data) {
-        var alertDiv = document.createElement('div');
-        alertDiv.className = 'cp-phone-alert mt-1';
-        alertDiv.style.fontSize = '12px';
-        if (data.exists) {
-            alertDiv.className += ' text-warning';
-            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
+
+    if (duplicateContactId) {
+        // Check against specific contact's persons
+        fetch('<?= url("contacts/check-person-phone") ?>?contact_id=' + duplicateContactId + '&phone=' + encodeURIComponent(phone))
+        .then(r => r.json())
+        .then(function(data) {
+            var alertDiv = document.createElement('div');
+            if (data.exists) {
+                alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
+                alertDiv.style.fontSize = '13px';
+                alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này <strong>đã có</strong> trong doanh nghiệp. Người liên hệ đã tồn tại, không cần thêm.</span></div>';
+            } else {
+                alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded bg-light';
+                alertDiv.style.fontSize = '13px';
+                alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2 mb-2"><i class="ri-check-circle-line text-success fs-18"></i><span>SĐT này <strong>chưa có</strong> trong doanh nghiệp. Bạn có thể gửi yêu cầu để được thêm người liên hệ này.</span></div>'
+                    + '<button type="button" class="btn btn-success w-100" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người liên hệ</button>';
+            }
+            input.closest('.mb-2')?.appendChild(alertDiv);
+        });
+    } else {
+        // Check general duplicate in all contacts
+        fetch('<?= url("contacts/check-duplicate") ?>?field=phone&value=' + encodeURIComponent(phone))
+        .then(r => r.json())
+        .then(function(data) {
+            var alertDiv = document.createElement('div');
             alertDiv.style.fontSize = '13px';
-            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này <strong>đã có</strong> trong doanh nghiệp. Người liên hệ đã tồn tại, không cần thêm.</span></div>';
-        } else {
-            alertDiv.className += ' text-success';
-            alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded bg-light';
-            alertDiv.style.fontSize = '13px';
-            alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2 mb-2"><i class="ri-check-circle-line text-success fs-18"></i><span>SĐT này <strong>chưa có</strong> trong doanh nghiệp. Bạn có thể gửi yêu cầu để được thêm người liên hệ này.</span></div>'
-                + '<button type="button" class="btn btn-success w-100" onclick="sendMergeFromPerson(this)"><i class="ri-send-plane-line me-1"></i>Gửi yêu cầu thêm người liên hệ</button>';
-        }
-        input.closest('.mb-2')?.appendChild(alertDiv);
-    });
+            if (data.found) {
+                alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
+                if (data.can_see) {
+                    alertDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between"><span><i class="ri-error-warning-line text-warning me-1"></i>SĐT đã tồn tại: <strong>' + data.name + '</strong>' + (data.account_code ? ' (' + data.account_code + ')' : '') + '</span><a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a></div>';
+                } else {
+                    alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này đã tồn tại trong hệ thống, phụ trách: <strong>' + (data.owner_name || 'N/A') + '</strong></span></div>';
+                }
+            } else {
+                alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded bg-success-subtle';
+                alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-check-circle-line text-success fs-18"></i><span>SĐT chưa có trong hệ thống. Có thể tạo mới.</span></div>';
+            }
+            input.closest('.mb-2')?.appendChild(alertDiv);
+        });
+    }
 }
 
 // Check person phone: blur + Enter + paste
