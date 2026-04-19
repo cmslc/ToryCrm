@@ -225,15 +225,13 @@
                                     <label class="form-label">Vị trí</label>
                                     <input type="text" class="form-control" name="cp_position[]">
                                 </div>
-                                <div class="row">
-                                    <div class="col-6 mb-2">
-                                        <label class="form-label">Điện thoại</label>
-                                        <input type="text" class="form-control cp-phone-input" name="cp_phone[]">
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" name="cp_email[]">
-                                    </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Điện thoại</label>
+                                    <input type="text" class="form-control cp-phone-input" name="cp_phone[]">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="cp_email[]">
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label">Sinh nhật</label>
@@ -475,7 +473,7 @@ document.addEventListener('blur', function(e) {
     if (!phone || phone.length < 8) return;
 
     // Remove old alert
-    var old = e.target.closest('.col-6')?.querySelector('.cp-phone-alert');
+    var old = e.target.closest('.mb-2')?.querySelector('.cp-phone-alert');
     if (old) old.remove();
 
     fetch('<?= url("contacts/check-person-phone") ?>?contact_id=' + duplicateContactId + '&phone=' + encodeURIComponent(phone))
