@@ -75,7 +75,7 @@
 
                                 if (type === 'all') {
                                     biz.forEach(function(el) { el.style.display = ''; });
-                                    per.forEach(function(el) { el.style.display = ''; });
+                                    per.forEach(function(el) { el.style.display = 'none'; });
                                 } else if (type === 'business') {
                                     biz.forEach(function(el) { el.style.display = ''; });
                                     per.forEach(function(el) { el.style.display = 'none'; });
@@ -124,8 +124,8 @@
                                 </div>
                             </div>
 
-                            <!-- === CÁ NHÂN (hiện mặc định) === -->
-                            <div class="field-personal">
+                            <!-- === CÁ NHÂN (ẩn mặc định, hiện khi chọn Cá nhân) === -->
+                            <div class="field-personal" style="display:none">
                                 <div class="mb-3">
                                     <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
                                     <select name="title" class="form-select">
