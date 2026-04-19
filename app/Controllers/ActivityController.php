@@ -222,7 +222,7 @@ class ActivityController extends Controller
                     'type' => 'info',
                     'title' => $currentUserName . ' đã nhắc đến bạn',
                     'message' => mb_substr($title, 0, 200),
-                    'link' => $contactId ? url('contacts/' . $contactId) : null,
+                    'link' => $contactId ? 'contacts/' . $contactId : null,
                     'icon' => 'ri-at-line',
                 ]);
             }
