@@ -518,76 +518,58 @@
 
                                 <hr>
 
-                                <!-- Filter Bar -->
-                                <div class="row g-2 mb-3">
-                                    <div class="col-md-4">
-                                        <div class="search-box">
-                                            <input type="text" class="form-control" placeholder="Tìm kiếm..." id="activitySearch">
-                                            <i class="ri-search-line search-icon"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <?php $deptGrouped = []; foreach ($allUsers ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
-                                        <select class="form-select" id="activityUserFilter">
-                                            <option value="">Tất cả nhân viên</option>
-                                            <?php foreach ($deptGrouped as $dept => $dUsers): ?>
-                                            <optgroup label="<?= e($dept) ?>">
-                                                <?php foreach ($dUsers as $u): ?>
-                                                <option value="<?= e($u['name']) ?>"><?= e($u['name']) ?></option>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select class="form-select" id="activityTypeFilter">
-                                            <option value="">Tất cả loại</option>
-                                            <option value="note">Ghi chú</option>
-                                            <option value="call">Cuộc gọi</option>
-                                            <option value="email">Email</option>
-                                            <option value="meeting">Cuộc họp</option>
-                                            <option value="feedback">KH phản hồi</option>
-                                            <option value="sms">SMS</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Activity Timeline -->
-                                <div class="activity-timeline" id="activityList" style="max-height: 500px; overflow-y: auto;">
+                                <!-- Activity Feed (Facebook style) -->
+                                <div id="activityFeed">
                                     <?php if (!empty($activities)): ?>
                                         <?php
-                                        $typeIcons = ['note' => 'ri-file-text-line', 'call' => 'ri-phone-line', 'email' => 'ri-mail-line', 'meeting' => 'ri-calendar-line', 'task' => 'ri-task-line'];
-                                        $typeColors = ['note' => 'primary', 'call' => 'success', 'email' => 'info', 'meeting' => 'warning', 'task' => 'danger'];
-                                        $typeLabels = ['note' => 'Ghi chú', 'call' => 'Cuộc gọi', 'email' => 'Email', 'meeting' => 'Cuộc họp', 'task' => 'Công việc'];
+                                        // Build user avatar map
+                                        $userAvatars = [];
+                                        foreach ($allUsers ?? [] as $u) { $userAvatars[$u['name']] = $u['avatar'] ?? null; }
                                         ?>
-                                        <?php foreach ($activities as $act): ?>
-                                            <div class="activity-item d-flex mb-3"
-                                                 data-type="<?= e($act['type']) ?>"
-                                                 data-user="<?= e($act['user_name'] ?? '') ?>"
-                                                 data-text="<?= e(strtolower($act['title'] . ' ' . ($act['description'] ?? ''))) ?>">
-                                                <div class="flex-shrink-0">
-                                                    <div class="avatar-xs">
-                                                        <div class="avatar-title rounded-circle bg-<?= $typeColors[$act['type']] ?? 'primary' ?>-subtle text-<?= $typeColors[$act['type']] ?? 'primary' ?>">
-                                                            <i class="<?= $typeIcons[$act['type']] ?? 'ri-file-text-line' ?>"></i>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="flex-grow-1 ms-3">
-                                                    <div class="d-flex align-items-center mb-1">
-                                                        <span class="badge bg-<?= $typeColors[$act['type']] ?? 'primary' ?>-subtle text-<?= $typeColors[$act['type']] ?? 'primary' ?> me-2"><?= $typeLabels[$act['type']] ?? $act['type'] ?></span>
-                                                        <small class="text-muted"><?= time_ago($act['created_at']) ?></small>
-                                                    </div>
-                                                    <p class="mb-0"><?= e($act['title']) ?></p>
-                                                    <?php if (!empty($act['description'])): ?>
-                                                        <p class="text-muted mb-0 fs-12"><?= e($act['description']) ?></p>
-                                                    <?php endif; ?>
-                                                    <small class="text-muted"><i class="ri-user-line me-1"></i><?= e($act['user_name'] ?? 'Hệ thống') ?></small>
-                                                </div>
+                                        <?php foreach ($activities as $act):
+                                            $userName = $act['user_name'] ?? 'Hệ thống';
+                                            $userAvatar = $userAvatars[$userName] ?? null;
+                                            $initial = mb_substr($userName, 0, 1);
+                                            $isSystem = in_array($act['type'], ['system','deal']);
+                                            // Highlight @mentions in text
+                                            $content = e($act['title']);
+                                            $content = preg_replace('/@([^\s,\.]+(?:\s[^\s,\.@]+)?)/', '<span class="text-primary fw-medium">@$1</span>', $content);
+                                            // Highlight links
+                                            $content = preg_replace('/(https?:\/\/\S+)/', '<a href="$1" target="_blank" class="text-primary">$1</a>', $content);
+                                        ?>
+                                        <div class="d-flex gap-3 py-3 <?= $isSystem ? 'bg-light rounded px-3' : '' ?>" style="border-bottom:1px solid #f3f3f3">
+                                            <div class="flex-shrink-0">
+                                                <?php if ($userAvatar): ?>
+                                                <img src="<?= asset($userAvatar) ?>" class="rounded-circle" width="40" height="40" style="object-fit:cover">
+                                                <?php else: ?>
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:40px;height:40px;font-size:14px"><?= strtoupper($initial) ?></div>
+                                                <?php endif; ?>
                                             </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <strong style="font-size:14px"><?= e($userName) ?></strong>
+                                                    <small class="text-muted"><?= !empty($act['created_at']) ? date('d/m/Y H:i', strtotime($act['created_at'])) : '' ?></small>
+                                                </div>
+                                                <div style="white-space:pre-wrap;word-break:break-word"><?= $content ?></div>
+                                                <?php if (!empty($act['description'])): ?>
+                                                <div class="text-muted mt-1" style="font-size:13px;white-space:pre-wrap"><?= e($act['description']) ?></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($act['tagged_users_display'])): ?>
+                                                <div class="mt-1"><i class="ri-price-tag-3-line text-muted me-1"></i><span class="text-primary" style="font-size:13px"><?= e($act['tagged_users_display']) ?></span></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($act['attachment'])): ?>
+                                                <div class="mt-2 p-2 bg-light rounded d-inline-block">
+                                                    <a href="<?= asset($act['attachment']) ?>" target="_blank" class="text-primary" style="font-size:13px">
+                                                        <i class="ri-file-line me-1"></i><?= e(basename($act['attachment'])) ?>
+                                                    </a>
+                                                </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <div class="text-center py-4">
-                                            <i class="ri-chat-3-line fs-36 text-muted"></i>
+                                        <div class="text-center py-5">
+                                            <i class="ri-chat-3-line fs-48 text-muted"></i>
                                             <p class="text-muted mt-2">Chưa có hoạt động trao đổi</p>
                                         </div>
                                     <?php endif; ?>
