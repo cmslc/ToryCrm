@@ -113,20 +113,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contacts/{id}/followers', 'ContactController@followers');
     Router::post('contacts/{id}/quick-update', 'ContactController@quickUpdate');
 
-    // Companies
-    Router::get('companies', 'CompanyController@index');
-    Router::get('companies/trash', 'CompanyController@trash');
-    Router::get('companies/create', 'CompanyController@create');
-    Router::post('companies/store', 'CompanyController@store');
-    Router::post('companies/quick-store', 'CompanyController@quickStore');
-    Router::get('companies/{id}', 'CompanyController@show');
-    Router::get('companies/{id}/edit', 'CompanyController@edit');
-    Router::post('companies/{id}/update', 'CompanyController@update');
-    Router::post('companies/{id}/avatar', 'CompanyController@updateLogo');
-    Router::post('companies/{id}/delete', 'CompanyController@delete');
-    Router::post('companies/{id}/restore', 'CompanyController@restore');
-    Router::post('companies/{id}/change-owner', 'CompanyController@changeOwner');
-    Router::post('companies/{id}/quick-update', 'CompanyController@quickUpdate');
 
     // Deals (Pipeline)
     Router::get('deals', 'DealController@index');
