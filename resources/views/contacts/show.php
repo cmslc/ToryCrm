@@ -564,6 +564,54 @@
                                                     </a>
                                                 </div>
                                                 <?php endif; ?>
+
+                                                <!-- Actions: Like / Dislike / Reply -->
+                                                <div class="d-flex align-items-center gap-3 mt-2" style="font-size:13px">
+                                                    <span class="act-btn <?= ($act['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $act['id'] ?>,'like',this)">
+                                                        <i class="ri-thumb-up-<?= ($act['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i>
+                                                        Thích<?php if (($act['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['likes'] ?></span><?php endif; ?>
+                                                    </span>
+                                                    <span class="act-btn <?= ($act['my_reaction'] ?? '') === 'dislike' ? 'text-danger fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $act['id'] ?>,'dislike',this)">
+                                                        <i class="ri-thumb-down-<?= ($act['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i>
+                                                        Không thích<?php if (($act['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['dislikes'] ?></span><?php endif; ?>
+                                                    </span>
+                                                    <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
+                                                        <i class="ri-reply-line"></i> Trả lời
+                                                    </span>
+                                                </div>
+
+                                                <!-- Replies -->
+                                                <?php if (!empty($act['replies'])): ?>
+                                                <div class="ms-4 mt-2 border-start ps-3">
+                                                    <?php foreach ($act['replies'] as $reply):
+                                                        $rAvatar = $reply['user_avatar'] ?? null;
+                                                        $rName = $reply['user_name'] ?? 'Hệ thống';
+                                                        $rContent = e($reply['title']);
+                                                        $rContent = preg_replace('/@([^\s,\.]+(?:\s[^\s,\.@]+)?)/', '<span class="text-primary fw-medium">@$1</span>', $rContent);
+                                                    ?>
+                                                    <div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">
+                                                        <?php if ($rAvatar): ?>
+                                                        <img src="<?= asset($rAvatar) ?>" class="rounded-circle" width="28" height="28" style="object-fit:cover">
+                                                        <?php else: ?>
+                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px"><?= mb_substr($rName, 0, 1) ?></div>
+                                                        <?php endif; ?>
+                                                        <div>
+                                                            <strong style="font-size:13px"><?= e($rName) ?></strong>
+                                                            <small class="text-muted ms-1"><?= date('d/m H:i', strtotime($reply['created_at'])) ?></small>
+                                                            <div style="font-size:13px"><?= $rContent ?></div>
+                                                        </div>
+                                                    </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                                <?php endif; ?>
+
+                                                <!-- Reply Box (hidden) -->
+                                                <div class="ms-4 mt-2 d-none" id="replyBox-<?= $act['id'] ?>">
+                                                    <div class="d-flex gap-2">
+                                                        <input type="text" class="form-control" placeholder="Viết trả lời..." id="replyInput-<?= $act['id'] ?>" onkeydown="if(event.key==='Enter'){event.preventDefault();submitReply(<?= $act['id'] ?>)}">
+                                                        <button class="btn btn-primary btn-sm" onclick="submitReply(<?= $act['id'] ?>)">Gửi</button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <?php endforeach; ?>
@@ -1349,6 +1397,60 @@
 
 <script>
 // Check-in GPS
+// React & Reply
+function reactActivity(id, type, el) {
+    fetch('<?= url("activities") ?>/' + id + '/react', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: JSON.stringify({type: type})
+    }).then(r => r.json()).then(function(data) {
+        if (!data.likes && data.likes !== 0) return;
+        var row = el.closest('.d-flex.align-items-center.gap-3');
+        var btns = row.querySelectorAll('.act-btn');
+        // Like button
+        btns[0].className = 'act-btn ' + (data.my === 'like' ? 'text-primary fw-medium' : 'text-muted');
+        btns[0].querySelector('i').className = 'ri-thumb-up-' + (data.my === 'like' ? 'fill' : 'line');
+        btns[0].innerHTML = btns[0].querySelector('i').outerHTML + ' Thích' + (data.likes > 0 ? ' <span class="react-count">' + data.likes + '</span>' : '');
+        // Dislike button
+        btns[1].className = 'act-btn ' + (data.my === 'dislike' ? 'text-danger fw-medium' : 'text-muted');
+        btns[1].querySelector('i').className = 'ri-thumb-down-' + (data.my === 'dislike' ? 'fill' : 'line');
+        btns[1].innerHTML = btns[1].querySelector('i').outerHTML + ' Không thích' + (data.dislikes > 0 ? ' <span class="react-count">' + data.dislikes + '</span>' : '');
+    });
+}
+
+function toggleReplyBox(id) {
+    var box = document.getElementById('replyBox-' + id);
+    box.classList.toggle('d-none');
+    if (!box.classList.contains('d-none')) document.getElementById('replyInput-' + id).focus();
+}
+
+function submitReply(id) {
+    var input = document.getElementById('replyInput-' + id);
+    var content = input.value.trim();
+    if (!content) return;
+    fetch('<?= url("activities") ?>/' + id + '/reply', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: JSON.stringify({content: content})
+    }).then(r => r.json()).then(function(data) {
+        if (!data.success) return;
+        var r = data.reply;
+        var initial = (r.user_name||'?').charAt(0).toUpperCase();
+        var avatar = r.user_avatar ? '<img src="/' + r.user_avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px">' + initial + '</div>';
+        var html = '<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">' + avatar + '<div><strong style="font-size:13px">' + r.user_name + '</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">' + r.title + '</div></div></div>';
+        var box = document.getElementById('replyBox-' + id);
+        var repliesDiv = box.previousElementSibling;
+        if (!repliesDiv || !repliesDiv.classList.contains('border-start')) {
+            var newDiv = document.createElement('div');
+            newDiv.className = 'ms-4 mt-2 border-start ps-3';
+            box.parentNode.insertBefore(newDiv, box);
+            repliesDiv = newDiv;
+        }
+        repliesDiv.insertAdjacentHTML('beforeend', html);
+        input.value = '';
+    });
+}
+
 // Tag panel (Getfly style)
 (function(){
     var tagged = [];

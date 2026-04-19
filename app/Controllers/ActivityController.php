@@ -217,6 +217,59 @@ class ActivityController extends Controller
         exit;
     }
 
+    public function react($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+
+        $type = $this->input('type') === 'dislike' ? 'dislike' : 'like';
+        $uid = $this->userId();
+
+        $existing = Database::fetch("SELECT id, type FROM activity_reactions WHERE activity_id = ? AND user_id = ?", [$id, $uid]);
+
+        if ($existing) {
+            if ($existing['type'] === $type) {
+                Database::delete('activity_reactions', 'id = ?', [$existing['id']]);
+            } else {
+                Database::update('activity_reactions', ['type' => $type], 'id = ?', [$existing['id']]);
+            }
+        } else {
+            Database::insert('activity_reactions', [
+                'activity_id' => $id,
+                'user_id' => $uid,
+                'type' => $type,
+            ]);
+        }
+
+        $likes = (int)Database::fetch("SELECT COUNT(*) as c FROM activity_reactions WHERE activity_id = ? AND type = 'like'", [$id])['c'];
+        $dislikes = (int)Database::fetch("SELECT COUNT(*) as c FROM activity_reactions WHERE activity_id = ? AND type = 'dislike'", [$id])['c'];
+        $myReaction = Database::fetch("SELECT type FROM activity_reactions WHERE activity_id = ? AND user_id = ?", [$id, $uid]);
+
+        return $this->json(['likes' => $likes, 'dislikes' => $dislikes, 'my' => $myReaction['type'] ?? null]);
+    }
+
+    public function reply($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+
+        $content = trim($this->input('content') ?? '');
+        if (empty($content)) return $this->json(['error' => 'Nội dung trống'], 422);
+
+        $parent = Database::fetch("SELECT id, contact_id FROM activities WHERE id = ?", [$id]);
+        if (!$parent) return $this->json(['error' => 'Không tồn tại'], 404);
+
+        $replyId = Database::insert('activities', [
+            'type' => 'note',
+            'title' => $content,
+            'user_id' => $this->userId(),
+            'contact_id' => $parent['contact_id'],
+            'parent_id' => $id,
+        ]);
+
+        $reply = Database::fetch("SELECT a.*, u.name as user_name, u.avatar as user_avatar FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.id = ?", [$replyId]);
+
+        return $this->json(['success' => true, 'reply' => $reply]);
+    }
+
     public function edit($id)
     {
         $activity = Database::fetch(

@@ -606,6 +606,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('activities/calendar', 'ActivityController@calendar');
     Router::get('activities', 'ActivityController@index');
     Router::post('activities/store', 'ActivityController@store');
+    Router::post('activities/{id}/react', 'ActivityController@react');
+    Router::post('activities/{id}/reply', 'ActivityController@reply');
     Router::get('activities/{id}/edit', 'ActivityController@edit');
     Router::post('activities/{id}/update', 'ActivityController@update');
     Router::post('activities/{id}/delete', 'ActivityController@delete');
