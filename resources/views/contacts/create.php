@@ -511,9 +511,9 @@ document.addEventListener('blur', function(e) {
     var phone = e.target.value.trim();
     if (!phone || phone.length < 8) return;
 
-    // Remove old alert
+    // Don't remove existing alert on blur - keep it visible
     var old = e.target.closest('.mb-2')?.querySelector('.cp-phone-alert');
-    if (old) old.remove();
+    if (old) return;
 
     fetch('<?= url("contacts/check-person-phone") ?>?contact_id=' + duplicateContactId + '&phone=' + encodeURIComponent(phone))
     .then(r => r.json())
