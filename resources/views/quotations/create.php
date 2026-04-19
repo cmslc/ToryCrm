@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Tạo báo giá';
-$preContactId = $_GET['contact_id'] ?? '';
+$preContactId = $preContactId ?? 0;
 $deptGrouped = [];
 foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
 ?>
