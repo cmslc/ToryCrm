@@ -112,7 +112,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contacts/{id}/change-owner', 'ContactController@changeOwner');
     Router::post('contacts/{id}/followers', 'ContactController@followers');
     Router::post('contacts/{id}/quick-update', 'ContactController@quickUpdate');
-
+    Router::get('contacts/{id}/persons', 'ContactController@persons');
 
     // Deals (Pipeline)
     Router::get('deals', 'DealController@index');

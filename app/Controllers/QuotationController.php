@@ -144,7 +144,7 @@ class QuotationController extends Controller
         $tid = Database::tenantId();
         $quoteNumber = $this->generateQuoteNumber();
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name LIMIT 500", [$tid]);
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name, company_phone, company_email, phone, email, address FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY company_name, first_name LIMIT 500", [$tid]);
         $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
@@ -342,7 +342,7 @@ class QuotationController extends Controller
             [$id]
         );
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name LIMIT 500", [$tid]);
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name, company_phone, company_email, phone, email, address FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY company_name, first_name LIMIT 500", [$tid]);
         $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
         $deals = Database::fetchAll("SELECT id, title FROM deals WHERE tenant_id = ? AND status = 'open' ORDER BY title", [$tid]);
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);

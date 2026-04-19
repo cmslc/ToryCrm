@@ -661,6 +661,15 @@ class ContactController extends Controller
         return $this->redirect('contacts/' . $id);
     }
 
+    public function persons($id)
+    {
+        $persons = Database::fetchAll(
+            "SELECT id, title, full_name, phone, email, position FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id",
+            [(int)$id]
+        );
+        return $this->json($persons);
+    }
+
     public function followers($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
