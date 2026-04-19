@@ -453,12 +453,15 @@
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="contact_id" value="<?= $contact['id'] ?>">
                                     <input type="hidden" name="type" value="note" id="activityType">
-                                    <div class="mb-3">
-                                        <textarea name="title" class="form-control" rows="3" placeholder="Nhập nội dung trao đổi, ghi chú..." required></textarea>
+                                    <div class="mb-3 position-relative">
+                                        <textarea name="title" class="form-control" rows="3" placeholder="Nhập nội dung trao đổi, ghi chú... Gõ @ để tag người" required id="activityTextarea"></textarea>
+                                        <div id="tagDropdown" class="border rounded bg-white shadow" style="position:absolute;z-index:1060;display:none;max-height:200px;overflow-y:auto;width:250px">
+                                        </div>
+                                        <input type="hidden" name="tagged_users" id="taggedUsers" value="">
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between mb-3">
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-soft-secondary" title="Tag người dùng" onclick="var ta=this.closest('form').querySelector('textarea');ta.value+=' @';ta.focus();">
+                                            <button type="button" class="btn btn-soft-secondary" title="Tag người dùng" onclick="var ta=document.getElementById('activityTextarea');ta.value+=' @';ta.focus();showTagDropdown('');">
                                                 <i class="ri-at-line"></i> Tag
                                             </button>
                                             <label class="btn btn-soft-secondary mb-0" title="Đính kèm file">
@@ -1326,6 +1329,81 @@
 
 <script>
 // Check-in GPS
+// Tag user autocomplete
+(function(){
+    var users = <?= json_encode(array_map(function($u){ return ['id'=>$u['id'],'name'=>$u['name'],'avatar'=>$u['avatar']??null]; }, $allUsers ?? [])) ?>;
+    var ta = document.getElementById('activityTextarea');
+    var dd = document.getElementById('tagDropdown');
+    var taggedInput = document.getElementById('taggedUsers');
+    var tagged = [];
+
+    if (!ta || !dd) return;
+
+    ta.addEventListener('input', function() {
+        var val = this.value;
+        var cursor = this.selectionStart;
+        var before = val.substring(0, cursor);
+        var atMatch = before.match(/@(\S*)$/);
+        if (atMatch) {
+            showTagDropdown(atMatch[1]);
+        } else {
+            dd.style.display = 'none';
+        }
+    });
+
+    ta.addEventListener('keydown', function(e) {
+        if (dd.style.display === 'none') return;
+        if (e.key === 'Escape') { dd.style.display = 'none'; e.preventDefault(); }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!dd.contains(e.target) && e.target !== ta) dd.style.display = 'none';
+    });
+
+    window.showTagDropdown = function(query) {
+        var q = (query || '').toLowerCase();
+        var filtered = users.filter(function(u) { return u.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 8);
+
+        if (filtered.length === 0) { dd.style.display = 'none'; return; }
+
+        dd.innerHTML = filtered.map(function(u) {
+            var initial = u.name.charAt(0).toUpperCase();
+            var avatarHtml = u.avatar
+                ? '<img src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">'
+                : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
+            return '<div class="d-flex align-items-center gap-2 px-3 py-2 tag-option" style="cursor:pointer" data-id="' + u.id + '" data-name="' + u.name + '">'
+                + avatarHtml + '<span style="font-size:13px">' + u.name + '</span></div>';
+        }).join('');
+
+        dd.style.display = 'block';
+        // Position near cursor
+        var rect = ta.getBoundingClientRect();
+        dd.style.left = '10px';
+        dd.style.bottom = (rect.height + 5) + 'px';
+        dd.style.top = 'auto';
+
+        dd.querySelectorAll('.tag-option').forEach(function(opt) {
+            opt.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f3f6f9'; });
+            opt.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+            opt.addEventListener('click', function() {
+                var name = this.dataset.name;
+                var id = this.dataset.id;
+                var val = ta.value;
+                var cursor = ta.selectionStart;
+                var before = val.substring(0, cursor);
+                var after = val.substring(cursor);
+                var newBefore = before.replace(/@\S*$/, '@' + name + ' ');
+                ta.value = newBefore + after;
+                ta.selectionStart = ta.selectionEnd = newBefore.length;
+                ta.focus();
+                dd.style.display = 'none';
+                if (!tagged.includes(id)) tagged.push(id);
+                taggedInput.value = tagged.join(',');
+            });
+        });
+    };
+})();
+
 document.getElementById('btnCheckin')?.addEventListener('click', function() {
     var btn = this;
     if (!navigator.geolocation) { alert('Trình duyệt không hỗ trợ GPS'); return; }
