@@ -493,7 +493,7 @@
                                 </form>
 
                                 <!-- Activity Feed (Facebook style) -->
-                                <div id="activityFeed">
+                                <div id="activityFeed" style="max-height:600px;overflow-y:auto">
                                     <?php if (!empty($activities)): ?>
                                         <?php
                                         // Build user avatar map
@@ -1718,5 +1718,8 @@ function uploadContactAvatar(input) {
             }
         });
 }
+// Auto-scroll activity feed to bottom (newest)
+var feed = document.getElementById('activityFeed');
+if (feed) feed.scrollTop = feed.scrollHeight;
 </script>
 
