@@ -491,7 +491,7 @@
                                     </div>
 
                                     <!-- @mention dropdown (shared, positioned dynamically) -->
-                                    <div id="mentionDropdown" class="border rounded bg-white shadow" style="position:fixed;z-index:1070;display:none;max-height:220px;overflow-y:auto;width:260px"></div>
+                                    <div id="mentionDropdown" class="border rounded bg-white shadow" style="position:fixed;z-index:1070;display:none;max-height:350px;overflow-y:auto;width:280px"></div>
                                 </form>
 
                                 <!-- Activity Feed (Facebook style) -->
@@ -1525,16 +1525,29 @@ function submitReply(id) {
         var words = q.split(/\s+/);
         var filtered = users.filter(function(u) {
             var name = u.name.toLowerCase();
-            return words.every(function(w) { return name.indexOf(w) !== -1; });
-        }).slice(0, 8);
+            return !q || words.every(function(w) { return name.indexOf(w) !== -1; });
+        });
 
         if (!filtered.length) { dd.style.display = 'none'; return; }
 
-        dd.innerHTML = filtered.map(function(u) {
-            var initial = u.name.charAt(0).toUpperCase();
-            var av = u.avatar ? '<img src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
-            return '<div class="mention-opt d-flex align-items-center gap-2 px-3 py-2" style="cursor:pointer" data-id="' + u.id + '" data-name="' + u.name + '">' + av + '<div><div style="font-size:13px">' + u.name + '</div>' + (u.dept ? '<small class="text-muted">' + u.dept + '</small>' : '') + '</div></div>';
-        }).join('');
+        // Group by department
+        var depts = {};
+        filtered.forEach(function(u) {
+            var d = u.dept || 'Khác';
+            if (!depts[d]) depts[d] = [];
+            depts[d].push(u);
+        });
+
+        var html = '';
+        Object.keys(depts).forEach(function(dept) {
+            html += '<div class="px-3 py-1 bg-light border-bottom d-flex justify-content-between"><small class="text-muted text-uppercase fw-medium">' + dept + '</small><small class="text-muted">' + depts[dept].length + '</small></div>';
+            depts[dept].forEach(function(u) {
+                var initial = u.name.charAt(0).toUpperCase();
+                var av = u.avatar ? '<img src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
+                html += '<div class="mention-opt d-flex align-items-center gap-2 px-3 py-2" style="cursor:pointer" data-id="' + u.id + '" data-name="' + u.name + '">' + av + '<span style="font-size:13px">' + u.name + '</span></div>';
+            });
+        });
+        dd.innerHTML = html;
 
         // Position near input
         var rect = input.getBoundingClientRect();
