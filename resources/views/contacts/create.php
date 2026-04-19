@@ -373,4 +373,7 @@ document.getElementById('btnLookupTax')?.addEventListener('click', function() {
 document.getElementById('taxCodeInput')?.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btnLookupTax').click(); }
 });
+document.getElementById('taxCodeInput')?.addEventListener('paste', function() {
+    setTimeout(function() { document.getElementById('btnLookupTax').click(); }, 100);
+});
 </script>
