@@ -250,7 +250,9 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 <style>
 .product-search-wrap { position: relative; }
 .product-search-wrap input { width: 100%; }
-.product-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 1050; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.product-dropdown { position: fixed; background: #fff; border: 1px solid #ddd; border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 1060; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.15); min-width: 250px; }
+#itemsTable td { overflow: visible; }
+.table-responsive { overflow: visible; }
 .product-dropdown .pd-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f3f3f3; }
 .product-dropdown .pd-item:hover { background: #f0f4ff; }
 .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
@@ -337,6 +339,13 @@ function addItem(data) {
     if (data) calculateRow(idx);
 }
 
+function positionDropdown(input, drop) {
+    var rect = input.getBoundingClientRect();
+    drop.style.top = (rect.bottom + 2) + 'px';
+    drop.style.left = rect.left + 'px';
+    drop.style.width = Math.max(rect.width, 250) + 'px';
+}
+
 function searchProduct(input, idx, type) {
     const q = input.value.trim();
     const dropId = type === 'sku' ? 'item-skudrop-' + idx : 'item-namedrop-' + idx;
@@ -347,13 +356,14 @@ function searchProduct(input, idx, type) {
         fetch('<?= url("products/search-ajax") ?>?q=' + encodeURIComponent(q))
             .then(r => r.json())
             .then(results => {
-                if (!results.length) { drop.innerHTML = '<div class="pd-item text-muted">Không tìm thấy</div>'; drop.style.display = 'block'; return; }
+                if (!results.length) { drop.innerHTML = '<div class="pd-item text-muted">Không tìm thấy</div>'; positionDropdown(input, drop); drop.style.display = 'block'; return; }
                 drop.innerHTML = results.map(p =>
                     `<div class="pd-item" onclick="pickProduct(${idx}, ${JSON.stringify(p).replace(/"/g, '&quot;')})">
                         <strong>${p.name}</strong> <span class="pd-sku">${p.sku || ''}</span>
                         <br><small class="text-muted">${Number(p.price).toLocaleString('vi-VN')} ₫ / ${p.unit || 'Cái'}</small>
                     </div>`
                 ).join('');
+                positionDropdown(input, drop);
                 drop.style.display = 'block';
             });
     }, 250);
