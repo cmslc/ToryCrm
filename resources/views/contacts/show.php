@@ -463,7 +463,7 @@
                                             <div class="d-flex gap-3">
                                                 <label class="text-muted" style="cursor:pointer" title="Đính kèm file">
                                                     <i class="ri-attachment-2 fs-18"></i>
-                                                    <input type="file" name="attachment" class="d-none" onchange="document.getElementById('attachName').textContent=this.files[0]?.name||'';document.getElementById('attachBadge').style.display=this.files[0]?'inline':'none';">
+                                                    <input type="file" name="attachment" class="d-none" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar" onchange="previewAttach(this)">
                                                 </label>
                                                 <span class="text-muted" style="cursor:pointer" title="Tag nhân viên" onclick="document.getElementById('tagPanel').style.display=document.getElementById('tagPanel').style.display==='none'?'block':'none'">
                                                     <i class="ri-price-tag-3-line fs-18"></i>
@@ -477,8 +477,16 @@
                                             </div>
                                             <button type="submit" class="btn btn-primary px-4">Gửi</button>
                                         </div>
-                                        <div id="attachBadge" style="display:none" class="px-3 py-1 border-top bg-light">
-                                            <small class="text-primary"><i class="ri-file-line me-1"></i><span id="attachName"></span></small>
+                                        <div id="attachBadge" style="display:none" class="px-3 py-2 border-top bg-light">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <img id="attachPreview" src="" class="rounded border" style="max-height:60px;display:none">
+                                                <i id="attachIcon" class="ri-file-line fs-20 text-muted" style="display:none"></i>
+                                                <div>
+                                                    <div class="text-dark fw-medium" style="font-size:13px"><span id="attachName"></span></div>
+                                                    <small class="text-muted" id="attachSize"></small>
+                                                </div>
+                                                <button type="button" class="btn btn-link text-danger p-0 ms-auto" onclick="clearAttach()"><i class="ri-close-line"></i></button>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -555,11 +563,30 @@
                                                 <?php if (!empty($act['tagged_users_display'])): ?>
                                                 <div class="mt-1"><i class="ri-price-tag-3-line text-muted me-1"></i><span class="text-primary" style="font-size:13px"><?= e($act['tagged_users_display']) ?></span></div>
                                                 <?php endif; ?>
-                                                <?php if (!empty($act['attachment'])): ?>
-                                                <div class="mt-2 p-2 bg-light rounded d-inline-block">
-                                                    <a href="<?= asset($act['attachment']) ?>" target="_blank" class="text-primary" style="font-size:13px">
-                                                        <i class="ri-file-line me-1"></i><?= e(basename($act['attachment'])) ?>
+                                                <?php if (!empty($act['attachment'])):
+                                                    $aExt = strtolower(pathinfo($act['attachment'], PATHINFO_EXTENSION));
+                                                    $isImage = in_array($aExt, ['jpg','jpeg','png','gif','webp']);
+                                                    $aName = $act['attachment_name'] ?? basename($act['attachment']);
+                                                    $aSize = ($act['attachment_size'] ?? 0) > 1048576 ? round(($act['attachment_size'] ?? 0)/1048576,1).'MB' : round(($act['attachment_size'] ?? 0)/1024).'KB';
+                                                    $fileIcons = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary','xls'=>'ri-file-excel-line text-success','xlsx'=>'ri-file-excel-line text-success','ppt'=>'ri-file-ppt-line text-warning','pptx'=>'ri-file-ppt-line text-warning','zip'=>'ri-file-zip-line text-info','rar'=>'ri-file-zip-line text-info'];
+                                                    $fIcon = $fileIcons[$aExt] ?? 'ri-file-line text-muted';
+                                                ?>
+                                                <div class="mt-2">
+                                                    <?php if ($isImage): ?>
+                                                    <a href="<?= asset($act['attachment']) ?>" target="_blank">
+                                                        <img src="<?= asset($act['attachment']) ?>" class="rounded border" style="max-width:300px;max-height:200px;object-fit:cover">
                                                     </a>
+                                                    <div class="mt-1"><small class="text-muted"><?= e($aName) ?> (<?= $aSize ?>)</small></div>
+                                                    <?php else: ?>
+                                                    <a href="<?= asset($act['attachment']) ?>" target="_blank" class="d-flex align-items-center gap-2 p-2 bg-light rounded text-decoration-none" style="max-width:300px">
+                                                        <i class="<?= $fIcon ?> fs-24"></i>
+                                                        <div>
+                                                            <div class="text-dark fw-medium" style="font-size:13px"><?= e($aName) ?></div>
+                                                            <small class="text-muted"><?= $aSize ?></small>
+                                                        </div>
+                                                        <i class="ri-download-line text-muted ms-auto"></i>
+                                                    </a>
+                                                    <?php endif; ?>
                                                 </div>
                                                 <?php endif; ?>
 
@@ -1406,6 +1433,34 @@
 
 <script>
 // Check-in GPS
+// Attachment preview
+function previewAttach(input) {
+    var badge = document.getElementById('attachBadge');
+    var preview = document.getElementById('attachPreview');
+    var icon = document.getElementById('attachIcon');
+    if (!input.files || !input.files[0]) { badge.style.display = 'none'; return; }
+    var file = input.files[0];
+    document.getElementById('attachName').textContent = file.name;
+    var size = file.size > 1048576 ? (file.size/1048576).toFixed(1) + 'MB' : Math.round(file.size/1024) + 'KB';
+    document.getElementById('attachSize').textContent = size;
+    badge.style.display = 'block';
+    if (file.type.startsWith('image/')) {
+        var reader = new FileReader();
+        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; icon.style.display = 'none'; };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+        icon.style.display = 'block';
+        var ext = file.name.split('.').pop().toLowerCase();
+        var icons = {pdf:'ri-file-pdf-line text-danger',doc:'ri-file-word-line text-primary',docx:'ri-file-word-line text-primary',xls:'ri-file-excel-line text-success',xlsx:'ri-file-excel-line text-success'};
+        icon.className = (icons[ext] || 'ri-file-line text-muted') + ' fs-20';
+    }
+}
+function clearAttach() {
+    document.querySelector('input[name="attachment"]').value = '';
+    document.getElementById('attachBadge').style.display = 'none';
+}
+
 // React & Reply
 function reactActivity(id, type, el) {
     fetch('<?= url("activities") ?>/' + id + '/react', {
