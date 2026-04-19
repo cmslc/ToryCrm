@@ -33,7 +33,8 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                     <select name="contact_id" class="form-select searchable-select" style="width:100%" id="contactSelect" onchange="onContactChange(this)">
                         <option value="">Vui lòng nhập và ấn enter</option>
                         <?php foreach ($contacts ?? [] as $c):
-                            $cName = $c['company_name'] ?: trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
+                            $cName = $c['company_name'] ?: ($c['full_name'] ?: trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? '')));
+                            if (!empty($c['account_code'])) $cName .= ' (' . $c['account_code'] . ')';
                         ?>
                             <option value="<?= $c['id'] ?>"
                                 data-address="<?= e($c['address'] ?? '') ?>"
