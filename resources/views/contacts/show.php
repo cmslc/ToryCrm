@@ -1430,17 +1430,16 @@ function previewAttach(input) {
         var ext = file.name.split('.').pop().toLowerCase();
         var isImg = file.type.startsWith('image/');
         var shortName = file.name.length > 20 ? file.name.substring(0, 17) + '...' + ext : file.name;
+        var xBtn = '<span class="position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width:18px;height:18px;cursor:pointer;font-size:10px;transform:translate(5px,-5px)" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
         if (isImg) {
             html += '<div class="position-relative border rounded" style="width:80px;height:80px;overflow:hidden">';
             html += '<img src="" class="attach-thumb" data-idx="' + i + '" style="width:100%;height:100%;object-fit:cover">';
-            html += '<span class="position-absolute top-0 end-0 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style="width:18px;height:18px;cursor:pointer;font-size:10px" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
-            html += '</div>';
+            html += xBtn + '</div>';
         } else {
             html += '<div class="border rounded p-2 d-flex align-items-center gap-2 position-relative" style="max-width:180px">';
             html += '<i class="' + (icons[ext] || 'ri-file-line text-muted') + ' fs-20"></i>';
             html += '<div style="min-width:0"><div class="text-truncate" style="font-size:12px;max-width:120px" title="' + file.name + '">' + shortName + '</div><small class="text-muted">' + size + '</small></div>';
-            html += '<span class="text-danger" style="cursor:pointer;font-size:14px;margin-left:auto" onclick="removeAttachFile(' + i + ')"><i class="ri-close-line"></i></span>';
-            html += '</div>';
+            html += xBtn + '</div>';
         }
     });
     html += '</div>';
