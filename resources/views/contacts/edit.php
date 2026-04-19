@@ -146,16 +146,12 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                         <label class="form-label"><?= $fl["description"] ?? "Mô tả" ?><?= isset($req["description"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <textarea name="description" class="form-control" rows="2"><?= e($c['description'] ?? '') ?></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                        <input type="date" class="form-control" name="date_of_birth" value="<?= e($c['date_of_birth'] ?? '') ?>">
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- CỘT GIỮA: Thông tin người liên hệ (chỉ DN) -->
-        <div class="col-lg-4">>
+        <!-- CỘT GIỮA: Thông tin người liên hệ -->
+        <div class="col-lg-4">
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Thông tin người liên hệ</h5>
@@ -205,7 +201,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
+                                <label class="form-label">Sinh nhật</label>
                                 <input type="date" class="form-control" name="cp_dob[]" value="<?= e($cp['date_of_birth'] ?? '') ?>">
                             </div>
                             <div class="mb-0">
@@ -254,7 +250,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
+                                <label class="form-label">Sinh nhật</label>
                                 <input type="date" class="form-control" name="cp_dob[]">
                             </div>
                             <div class="mb-0">
