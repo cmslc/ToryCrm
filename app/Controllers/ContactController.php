@@ -143,15 +143,16 @@ class ContactController extends Controller
     /**
      * Find existing company by MST or name, or create new one.
      */
-    private function findOrCreateCompany(array $contactData): int
+    private function findOrCreateCompany(array $contactData): ?int
     {
         $tid = Database::tenantId();
 
-        // Try find by tax_code first
-        if (!empty($contactData['tax_code'])) {
-            $existing = Database::fetch("SELECT id FROM companies WHERE tax_code = ? AND is_deleted = 0 AND tenant_id = ?", [$contactData['tax_code'], $tid]);
-            if ($existing) return (int)$existing['id'];
-        }
+        // Only create company if has MST
+        if (empty($contactData['tax_code'])) return null;
+
+        // Try find by tax_code
+        $existing = Database::fetch("SELECT id FROM companies WHERE tax_code = ? AND is_deleted = 0 AND tenant_id = ?", [$contactData['tax_code'], $tid]);
+        if ($existing) return (int)$existing['id'];
 
         // Try find by exact company name
         if (!empty($contactData['company_name'])) {
@@ -159,7 +160,7 @@ class ContactController extends Controller
             if ($existing) return (int)$existing['id'];
         }
 
-        // Create new company
+        // Create new company (only with MST)
         return Database::insert('companies', [
             'tenant_id' => $tid,
             'name' => $contactData['company_name'],
