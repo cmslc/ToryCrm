@@ -83,16 +83,16 @@
                             <!-- === DOANH NGHIỆP === -->
                             <div class="field-business">
                                 <div class="mb-3">
-                                    <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="VD: Công ty TNHH ABC">
-                                </div>
-                                <div class="mb-3">
                                     <label class="form-label">Mã số thuế <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
                                         <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
                                     </div>
                                     <div class="form-text text-success d-none" id="taxLookupStatus"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tên công ty <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="company_name" id="companyNameInput" value="<?= old('company_name') ?>" placeholder="Tự động điền khi tra cứu MST">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Điện thoại công ty</label>
