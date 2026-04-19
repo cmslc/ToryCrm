@@ -596,9 +596,7 @@ document.querySelectorAll('[name="email"]').forEach(function(el) {
     el.addEventListener('blur', function() { checkDuplicate('email', this.value.trim()); });
 });
 // Company name blur check
-document.querySelectorAll('[name="company_name"]').forEach(function(el) {
-    el.addEventListener('blur', function() { checkDuplicate('company_name', this.value.trim()); });
-});
+// company_name: no separate check - already checked via MST lookup
 
 <?php if (!empty($_SESSION['force_create_contact'])): ?>
 // Force create: add hidden input
