@@ -147,8 +147,11 @@ class ContactController extends Controller
     {
         $tid = Database::tenantId();
 
-        // Only create company if has MST
-        if (empty($contactData['tax_code'])) return null;
+        // Only create company if has valid MST (10 or 13 digits, not a phone number)
+        $taxCode = $contactData['tax_code'] ?? '';
+        if (empty($taxCode) || !preg_match('/^\d{10}(\d{3})?$/', $taxCode) || preg_match('/^0(9|3|7|8|5)\d{8}$/', $taxCode)) {
+            return null;
+        }
 
         // Try find by tax_code
         $existing = Database::fetch("SELECT id FROM companies WHERE tax_code = ? AND is_deleted = 0 AND tenant_id = ?", [$contactData['tax_code'], $tid]);
