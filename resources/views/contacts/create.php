@@ -227,7 +227,10 @@
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label">Điện thoại</label>
-                                    <input type="text" class="form-control cp-phone-input" name="cp_phone[]">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control cp-phone-input" name="cp_phone[]">
+                                        <button type="button" class="btn btn-soft-info cp-phone-check-btn" onclick="checkCpPhone(this)"><i class="ri-search-line"></i></button>
+                                    </div>
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label">Email</label>
@@ -465,7 +468,43 @@ function checkDuplicate(field, value) {
 // Track duplicate contact ID when MST matches
 var duplicateContactId = null;
 
-// Check person phone against existing contact's persons
+function checkCpPhone(btn) {
+    var input = btn.closest('.input-group').querySelector('.cp-phone-input');
+    var phone = input.value.trim();
+    if (!phone) { input.focus(); return; }
+    if (!duplicateContactId) {
+        // Also check general duplicate
+        checkDuplicate('phone', phone);
+        return;
+    }
+    var old = input.closest('.mb-2')?.querySelector('.cp-phone-alert');
+    if (old) old.remove();
+    fetch('<?= url("contacts/check-person-phone") ?>?contact_id=' + duplicateContactId + '&phone=' + encodeURIComponent(phone))
+    .then(r => r.json())
+    .then(function(data) {
+        var alertDiv = document.createElement('div');
+        alertDiv.className = 'cp-phone-alert mt-1';
+        alertDiv.style.fontSize = '12px';
+        if (data.exists) {
+            alertDiv.className += ' text-warning';
+            alertDiv.innerHTML = '<i class="ri-error-warning-line me-1"></i>SĐT này đã có trong DN. Người liên hệ đã tồn tại.';
+        } else {
+            alertDiv.className += ' text-success';
+            alertDiv.innerHTML = '<i class="ri-check-line me-1"></i>SĐT chưa có trong DN. Có thể gửi yêu cầu thêm người LH.';
+        }
+        input.closest('.mb-2')?.appendChild(alertDiv);
+    });
+}
+
+// Check person phone: blur + Enter + paste
+document.addEventListener('keydown', function(e) {
+    if (!e.target.classList.contains('cp-phone-input')) return;
+    if (e.key === 'Enter') { e.preventDefault(); checkCpPhone(e.target.closest('.input-group').querySelector('.cp-phone-check-btn')); }
+}, true);
+document.addEventListener('paste', function(e) {
+    if (!e.target.classList.contains('cp-phone-input')) return;
+    setTimeout(function() { checkCpPhone(e.target.closest('.input-group').querySelector('.cp-phone-check-btn')); }, 100);
+}, true);
 document.addEventListener('blur', function(e) {
     if (!e.target.classList.contains('cp-phone-input')) return;
     if (!duplicateContactId) return;
