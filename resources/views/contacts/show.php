@@ -1444,7 +1444,12 @@ function submitReply(id) {
         var r = data.reply;
         var initial = (r.user_name||'?').charAt(0).toUpperCase();
         var avatar = r.user_avatar ? '<img src="/' + r.user_avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px">' + initial + '</div>';
-        var html = '<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">' + avatar + '<div><strong style="font-size:13px">' + r.user_name + '</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">' + r.title + '</div></div></div>';
+        var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">'
+            + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'like\',this)"><i class="ri-thumb-up-line"></i> Thích</span>'
+            + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i> Không thích</span>'
+            + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i> Trả lời</span>'
+            + '</div>';
+        var html = '<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">' + avatar + '<div class="flex-grow-1"><strong style="font-size:13px">' + r.user_name + '</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">' + r.title + '</div>' + actions + '</div></div>';
         var box = document.getElementById('replyBox-' + id);
         var repliesDiv = box.previousElementSibling;
         if (!repliesDiv || !repliesDiv.classList.contains('border-start')) {
