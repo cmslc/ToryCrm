@@ -409,6 +409,22 @@ class ColumnService
     }
 
     /**
+     * Get list of required field names for a module (from DB overrides).
+     */
+    public static function getRequiredFields(string $module): array
+    {
+        try {
+            $rows = Database::fetchAll(
+                "SELECT field_name FROM field_label_overrides WHERE tenant_id = ? AND table_name = ? AND is_required = 1",
+                [Database::tenantId(), $module]
+            );
+            return array_column($rows, 'field_name');
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
      * Get displayable columns for a module.
      */
     public static function getColumns(string $module): array

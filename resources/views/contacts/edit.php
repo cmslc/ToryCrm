@@ -2,6 +2,7 @@
 $pageTitle = 'Sửa khách hàng';
 $c = $contact;
 $fl = \App\Services\ColumnService::getLabels('contacts');
+$req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -57,7 +58,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                     <!-- === DOANH NGHIỆP === -->
                     <div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["tax_code"] ?? "Mã số thuế" ?></label>
+                            <label class="form-label"><?= $fl["tax_code"] ?? "Mã số thuế" ?><?= isset($req["tax_code"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <div class="input-group">
                                 <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= e($c['tax_code'] ?? '') ?>" placeholder="Nhập MST rồi bấm tra cứu">
                                 <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
@@ -65,28 +66,28 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                             <div class="form-text text-success d-none" id="taxLookupStatus"></div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["company_name"] ?? "Tên công ty" ?></label>
+                            <label class="form-label"><?= $fl["company_name"] ?? "Tên công ty" ?><?= isset($req["company_name"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="company_name" id="companyNameInput" value="<?= e($c['company_name'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["company_phone"] ?? "Điện thoại công ty" ?></label>
+                            <label class="form-label"><?= $fl["company_phone"] ?? "Điện thoại công ty" ?><?= isset($req["company_phone"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="company_phone" value="<?= e($c['company_phone'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["company_email"] ?? "Email công ty" ?></label>
+                            <label class="form-label"><?= $fl["company_email"] ?? "Email công ty" ?><?= isset($req["company_email"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="email" class="form-control" name="company_email" value="<?= e($c['company_email'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?></label>
+                            <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?><?= isset($req["address"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
-                                <label class="form-label"><?= $fl["website"] ?? "Website" ?></label>
+                                <label class="form-label"><?= $fl["website"] ?? "Website" ?><?= isset($req["website"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                                 <input type="text" class="form-control" name="website" value="<?= e($c['website'] ?? '') ?>" placeholder="https://">
                             </div>
                             <div class="col-6 mb-3">
-                                <label class="form-label"><?= $fl["fax"] ?? "Fax" ?></label>
+                                <label class="form-label"><?= $fl["fax"] ?? "Fax" ?><?= isset($req["fax"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                                 <input type="text" class="form-control" name="fax" value="<?= e($c['fax'] ?? '') ?>">
                             </div>
                         </div>
@@ -95,7 +96,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                     <!-- === CÁ NHÂN === -->
                     <div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["title"] ?? "Danh xưng" ?></label>
+                            <label class="form-label"><?= $fl["title"] ?? "Danh xưng" ?><?= isset($req["title"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <select name="title" class="form-select">
                                 <option value="">Chọn</option>
                                 <option value="anh" <?= ($c['title'] ?? '') === 'anh' ? 'selected' : '' ?>>Anh</option>
@@ -105,48 +106,48 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["full_name"] ?? "Họ và tên" ?></label>
+                            <label class="form-label"><?= $fl["full_name"] ?? "Họ và tên" ?><?= isset($req["full_name"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="full_name" value="<?= e($c['full_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''))) ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["phone"] ?? "Điện thoại" ?></label>
+                            <label class="form-label"><?= $fl["phone"] ?? "Điện thoại" ?><?= isset($req["phone"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="phone" value="<?= e($c['phone'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["email"] ?? "Email" ?></label>
+                            <label class="form-label"><?= $fl["email"] ?? "Email" ?><?= isset($req["email"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="email" class="form-control" name="email" value="<?= e($c['email'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?></label>
+                            <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?><?= isset($req["address"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?></label>
+                            <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="date" class="form-control" name="date_of_birth" value="<?= e($c['date_of_birth'] ?? '') ?>">
                         </div>
                     </div>
 
                     <!-- Chung -->
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["account_code"] ?? "Mã KH" ?></label>
+                        <label class="form-label"><?= $fl["account_code"] ?? "Mã KH" ?><?= isset($req["account_code"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <input type="text" class="form-control" name="account_code" value="<?= e($c['account_code'] ?? '') ?>">
                     </div>
                     <div class="row">
                         <div class="col-6 mb-3">
-                            <label class="form-label"><?= $fl["province"] ?? "Tỉnh/TP" ?></label>
+                            <label class="form-label"><?= $fl["province"] ?? "Tỉnh/TP" ?><?= isset($req["province"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="province" value="<?= e($c['province'] ?? '') ?>">
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label"><?= $fl["district"] ?? "Quận/Huyện" ?></label>
+                            <label class="form-label"><?= $fl["district"] ?? "Quận/Huyện" ?><?= isset($req["district"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                             <input type="text" class="form-control" name="district" value="<?= e($c['district'] ?? '') ?>">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["description"] ?? "Mô tả" ?></label>
+                        <label class="form-label"><?= $fl["description"] ?? "Mô tả" ?><?= isset($req["description"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <textarea name="description" class="form-control" rows="2"><?= e($c['description'] ?? '') ?></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?></label>
+                        <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <input type="date" class="form-control" name="date_of_birth" value="<?= e($c['date_of_birth'] ?? '') ?>">
                     </div>
                 </div>
@@ -204,7 +205,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?></label>
+                                <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                                 <input type="date" class="form-control" name="cp_dob[]" value="<?= e($cp['date_of_birth'] ?? '') ?>">
                             </div>
                             <div class="mb-0">
@@ -253,7 +254,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?></label>
+                                <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                                 <input type="date" class="form-control" name="cp_dob[]">
                             </div>
                             <div class="mb-0">
@@ -274,11 +275,11 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["referrer_code"] ?? "Người giới thiệu" ?></label>
+                        <label class="form-label"><?= $fl["referrer_code"] ?? "Người giới thiệu" ?><?= isset($req["referrer_code"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <input type="text" class="form-control" name="referrer_code" value="<?= e($c['referrer_code'] ?? '') ?>" placeholder="Nhập tên khách hàng">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["status"] ?? "Mối quan hệ" ?> <span class="text-danger">*</span></label>
+                        <label class="form-label"><?= $fl["status"] ?? "Mối quan hệ" ?><?= isset($req["status"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <select name="status" class="form-select">
                             <?php foreach ($contactStatuses ?? [] as $st): ?>
                             <option value="<?= e($st['slug']) ?>" <?= ($c['status'] ?? '') === $st['slug'] ? 'selected' : '' ?>><?= e($st['name']) ?></option>
@@ -286,7 +287,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["source_id"] ?? "Nguồn KH" ?> <span class="text-danger">*</span></label>
+                        <label class="form-label"><?= $fl["source_id"] ?? "Nguồn KH" ?><?= isset($req["source_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <select name="source_id" class="form-select">
                             <option value="">Vui lòng chọn</option>
                             <?php foreach ($sources ?? [] as $source): ?>
@@ -295,7 +296,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["owner_id"] ?? "Phụ trách" ?> <span class="text-danger">*</span></label>
+                        <label class="form-label"><?= $fl["owner_id"] ?? "Phụ trách" ?><?= isset($req["owner_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <?php
                         $deptGrouped = [];
                         foreach ($users ?? [] as $u) {
@@ -315,7 +316,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["customer_group"] ?? "Nhóm KH" ?> <span class="text-danger">*</span></label>
+                        <label class="form-label"><?= $fl["customer_group"] ?? "Nhóm KH" ?><?= isset($req["customer_group"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <?php $cg = $c['customer_group'] ?? ''; ?>
                         <select name="customer_group" class="form-select">
                             <option value="">Vui lòng chọn</option>
@@ -327,7 +328,7 @@ $fl = \App\Services\ColumnService::getLabels('contacts');
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label"><?= $fl["industry"] ?? "Ngành KD" ?></label>
+                        <label class="form-label"><?= $fl["industry"] ?? "Ngành KD" ?><?= isset($req["industry"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                         <select name="industry" class="form-select">
                             <option value="">Vui lòng chọn</option>
                             <?php foreach ($industries ?? [] as $ind): ?>
