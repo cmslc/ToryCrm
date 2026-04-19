@@ -93,40 +93,6 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                         </div>
                     </div>
 
-                    <!-- === CÁ NHÂN === -->
-                    <div>
-                        <div class="mb-3">
-                            <label class="form-label"><?= $fl["title"] ?? "Danh xưng" ?><?= isset($req["title"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                            <select name="title" class="form-select">
-                                <option value="">Chọn</option>
-                                <option value="anh" <?= ($c['title'] ?? '') === 'anh' ? 'selected' : '' ?>>Anh</option>
-                                <option value="chị" <?= ($c['title'] ?? '') === 'chị' ? 'selected' : '' ?>>Chị</option>
-                                <option value="ông" <?= ($c['title'] ?? '') === 'ông' ? 'selected' : '' ?>>Ông</option>
-                                <option value="bà" <?= ($c['title'] ?? '') === 'bà' ? 'selected' : '' ?>>Bà</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label"><?= $fl["full_name"] ?? "Họ và tên" ?><?= isset($req["full_name"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                            <input type="text" class="form-control" name="full_name" value="<?= e($c['full_name'] ?? trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''))) ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label"><?= $fl["phone"] ?? "Điện thoại" ?><?= isset($req["phone"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                            <input type="text" class="form-control" name="phone" value="<?= e($c['phone'] ?? '') ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label"><?= $fl["email"] ?? "Email" ?><?= isset($req["email"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                            <input type="email" class="form-control" name="email" value="<?= e($c['email'] ?? '') ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?><?= isset($req["address"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                            <input type="text" class="form-control" name="address" value="<?= e($c['address'] ?? '') ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                            <input type="date" class="form-control" name="date_of_birth" value="<?= e($c['date_of_birth'] ?? '') ?>">
-                        </div>
-                    </div>
-
                     <!-- Chung -->
                     <div class="mb-3">
                         <label class="form-label"><?= $fl["account_code"] ?? "Mã KH" ?><?= isset($req["account_code"]) ? ' <span class="text-danger">*</span>' : '' ?></label>

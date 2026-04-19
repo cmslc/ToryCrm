@@ -52,33 +52,10 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                 }
                             });
 
-                            function switchContactType(type) {
-                                document.getElementById('contactType').value = type;
-                                document.querySelectorAll('.ct-type-btn').forEach(function(b) {
-                                    b.classList.remove('btn-primary','active');
-                                    b.classList.add('btn-soft-secondary');
-                                });
-                                document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.remove('btn-soft-secondary');
-                                document.querySelector('.ct-type-btn[data-type="' + type + '"]').classList.add('btn-primary','active');
-
-                                var biz = document.querySelectorAll('.field-business');
-                                var per = document.querySelectorAll('.field-personal');
-
-                                if (type === 'all') {
-                                    biz.forEach(function(el) { el.style.display = ''; });
-                                    per.forEach(function(el) { el.style.display = 'none'; });
-                                } else if (type === 'business') {
-                                    biz.forEach(function(el) { el.style.display = ''; });
-                                    per.forEach(function(el) { el.style.display = 'none'; });
-                                } else {
-                                    biz.forEach(function(el) { el.style.display = 'none'; });
-                                    per.forEach(function(el) { el.style.display = ''; });
-                                }
-                            }
                             </script>
 
-                            <!-- === DOANH NGHIỆP (hiện mặc định) === -->
-                            <div class="field-business">
+                            <!-- === Thông tin doanh nghiệp === -->
+                            <div>
                                 <div class="mb-3">
                                     <label class="form-label"><?= $fl["tax_code"] ?? "Mã số thuế" ?><?= isset($req["tax_code"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                                     <div class="input-group">
@@ -115,43 +92,6 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                 </div>
                             </div>
 
-                            <!-- === CÁ NHÂN (ẩn mặc định, hiện khi chọn Cá nhân) === -->
-                            <div class="field-personal" style="display:none">
-                                <div class="mb-3">
-                                    <label class="form-label"><?= $fl["title"] ?? "Danh xưng" ?><?= isset($req["title"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                    <select name="title" class="form-select">
-                                        <option value="">Chọn</option>
-                                        <option value="anh">Anh</option>
-                                        <option value="chị">Chị</option>
-                                        <option value="ông">Ông</option>
-                                        <option value="bà">Bà</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><?= $fl["full_name"] ?? "Họ và tên" ?><?= isset($req["full_name"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                    <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><?= $fl["phone"] ?? "Điện thoại" ?><?= isset($req["phone"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" name="phone" id="phoneInput" value="<?= old('phone') ?>" placeholder="Nhập SĐT để kiểm tra trùng">
-                                        <button type="button" class="btn btn-soft-info" onclick="checkDuplicate('phone',document.getElementById('phoneInput').value.trim())"><i class="ri-search-line"></i></button>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><?= $fl["email"] ?? "Email" ?><?= isset($req["email"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                    <input type="email" class="form-control" name="email" value="<?= old('email') ?>">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?><?= isset($req["address"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                    <input type="text" class="form-control" name="address" value="<?= old('address') ?>">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label"><?= $fl["date_of_birth"] ?? "Ngày sinh" ?><?= isset($req["date_of_birth"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
-                                    <input type="date" class="form-control" name="date_of_birth" value="<?= old('date_of_birth') ?>">
-                                </div>
-                            </div>
-
                             <!-- Chung -->
                             <div class="mb-3">
                                 <label class="form-label"><?= $fl["account_code"] ?? "Mã KH" ?><?= isset($req["account_code"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
@@ -176,7 +116,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                 </div>
 
                 <!-- CỘT GIỮA: Thông tin người liên hệ -->
-                <div class="col-lg-4 field-business" id="colContactPersons">
+                <div class="col-lg-4" id="colContactPersons">
                     <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between">
                             <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Thông tin người liên hệ</h5>
