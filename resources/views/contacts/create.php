@@ -48,9 +48,9 @@
                             });
                             </script>
                             <div class="mb-3">
-                                <label class="form-label">Mã số thuế (KH cá nhân nhập SĐT)</label>
+                                <label class="form-label">Mã số thuế (KH cá nhân nhập SĐT) <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu">
+                                    <input type="text" class="form-control" name="tax_code" id="taxCodeInput" value="<?= old('tax_code') ?>" placeholder="Nhập MST rồi bấm tra cứu" required>
                                     <button type="button" class="btn btn-soft-info" id="btnLookupTax"><i class="ri-search-line"></i></button>
                                 </div>
                                 <div class="form-text text-success d-none" id="taxLookupStatus"></div>
@@ -60,13 +60,23 @@
                                 <input type="text" class="form-control" name="account_code" value="<?= old('account_code') ?>" placeholder="Tự tạo nếu để trống">
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Danh xưng <span class="text-danger">*</span></label>
+                                <select name="title" class="form-select" required>
+                                    <option value="">Chọn</option>
+                                    <option value="anh">Anh</option>
+                                    <option value="chị">Chị</option>
+                                    <option value="ông">Ông</option>
+                                    <option value="bà">Bà</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="full_name" value="<?= old('full_name') ?>" placeholder="VD: Nguyễn Văn A hoặc Công ty TNHH ABC" required>
                                 <small class="text-muted">Nhập tên cá nhân hoặc tên công ty</small>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Tên công ty</label>
-                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="Bỏ trống nếu là KH cá nhân">
+                                <label class="form-label">Tên khách hàng (công ty) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="company_name" value="<?= old('company_name') ?>" placeholder="Tên công ty hoặc tên KH cá nhân" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Điện thoại</label>
@@ -187,7 +197,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Mối quan hệ <span class="text-danger">*</span></label>
-                                <select name="status" class="form-select">
+                                <select name="status" class="form-select" required>
                                     <?php foreach ($contactStatuses ?? [] as $st): ?>
                                     <option value="<?= e($st['slug']) ?>"><?= e($st['name']) ?></option>
                                     <?php endforeach; ?>
@@ -196,7 +206,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Nguồn khách hàng <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-2">
-                                    <select name="source_id" class="form-select flex-grow-1">
+                                    <select name="source_id" class="form-select flex-grow-1" required>
                                         <option value="">Vui lòng chọn</option>
                                         <?php foreach ($sources ?? [] as $source): ?>
                                             <option value="<?= $source['id'] ?>"><?= e($source['name']) ?></option>
@@ -213,7 +223,7 @@
                                     $deptGrouped[$deptName][] = $u;
                                 }
                                 ?>
-                                <select name="owner_id" class="form-select searchable-select">
+                                <select name="owner_id" class="form-select searchable-select" required>
                                     <option value="">Chọn</option>
                                     <?php foreach ($deptGrouped as $dept => $deptUsers): ?>
                                     <optgroup label="<?= e($dept) ?>">
@@ -226,7 +236,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Nhóm khách hàng <span class="text-danger">*</span></label>
-                                <select name="customer_group" class="form-select">
+                                <select name="customer_group" class="form-select" required>
                                     <option value="">Vui lòng chọn</option>
                                     <option value="Khách Lẻ" selected>Khách Lẻ</option>
                                     <option value="Khách Dự Án">Khách Dự Án</option>
