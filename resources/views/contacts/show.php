@@ -568,7 +568,7 @@
                                                         <i class="ri-thumb-down-<?= ($act['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i><?php if (($act['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $act['dislikes'] ?></span><?php endif; ?>
                                                     </span>
                                                     <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
-                                                        <i class="ri-reply-line"></i>
+                                                        <i class="ri-reply-line"></i> Trả lời
                                                     </span>
                                                 </div>
 
@@ -599,7 +599,7 @@
                                                                     <i class="ri-thumb-down-<?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i><?php if (($reply['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['dislikes'] ?></span><?php endif; ?>
                                                                 </span>
                                                                 <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
-                                                                    <i class="ri-reply-line"></i>
+                                                                    <i class="ri-reply-line"></i> Trả lời
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -1525,7 +1525,7 @@ function submitReply(id) {
         var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:15px">'
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'like\',this)"><i class="ri-thumb-up-line"></i></span>'
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i></span>'
-            + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i></span>'
+            + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i> Trả lời</span>'
             + '</div>';
         var attachHtml = '';
         if (r.attachment) {
