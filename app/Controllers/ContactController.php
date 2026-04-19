@@ -510,7 +510,7 @@ class ContactController extends Controller
              FROM activities a
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.contact_id = ? AND a.parent_id IS NULL
-             ORDER BY a.created_at DESC
+             ORDER BY a.created_at ASC
              LIMIT 50",
             [$this->userId(), $id]
         );
