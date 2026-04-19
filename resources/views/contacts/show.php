@@ -87,7 +87,7 @@
                 <div class="card">
                     <div class="card-header p-2"><h5 class="card-title mb-0"><i class="ri-team-line me-1"></i> Phụ trách & Theo dõi</h5></div>
                     <div class="card-body py-2">
-                        <?php $allUsers = \Core\Database::fetchAll("SELECT id, name FROM users WHERE is_active = 1 ORDER BY name"); ?>
+                        <?php $allUsers = \Core\Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name"); ?>
 
                         <!-- Phụ trách chính -->
                         <label class="text-muted fs-12">Phụ trách chính</label>
