@@ -274,17 +274,39 @@ class ActivityController extends Controller
         if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
 
         $content = trim($this->input('content') ?? '');
-        if (empty($content)) return $this->json(['error' => 'Nội dung trống'], 422);
+        if (empty($content) && empty($_FILES['attachment']['name'])) return $this->json(['error' => 'Nội dung trống'], 422);
 
         $parent = Database::fetch("SELECT id, contact_id FROM activities WHERE id = ?", [$id]);
         if (!$parent) return $this->json(['error' => 'Không tồn tại'], 404);
 
+        // Handle file upload
+        $attachPath = null;
+        $attachName = null;
+        $attachSize = null;
+        if (!empty($_FILES['attachment']['name']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['attachment'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar','dwg','dxf','cad','dwf','skp','3ds','obj','stl','step','stp','iges','igs'];
+            if (in_array($ext, $allowed) && $file['size'] <= 10 * 1024 * 1024) {
+                $dir = 'uploads/activities/' . date('Y/m');
+                if (!is_dir(BASE_PATH . '/public/' . $dir)) mkdir(BASE_PATH . '/public/' . $dir, 0755, true);
+                $fileName = uniqid() . '.' . $ext;
+                move_uploaded_file($file['tmp_name'], BASE_PATH . '/public/' . $dir . '/' . $fileName);
+                $attachPath = $dir . '/' . $fileName;
+                $attachName = $file['name'];
+                $attachSize = $file['size'];
+            }
+        }
+
         $replyId = Database::insert('activities', [
             'type' => 'note',
-            'title' => $content,
+            'title' => $content ?: ($attachName ? '📎 ' . $attachName : ''),
             'user_id' => $this->userId(),
             'contact_id' => $parent['contact_id'],
             'parent_id' => $id,
+            'attachment' => $attachPath,
+            'attachment_name' => $attachName,
+            'attachment_size' => $attachSize,
         ]);
 
         $reply = Database::fetch("SELECT a.*, u.name as user_name, u.avatar as user_avatar FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.id = ?", [$replyId]);

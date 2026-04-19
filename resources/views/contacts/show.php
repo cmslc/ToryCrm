@@ -643,9 +643,16 @@
 
                                                 <!-- Reply Box (hidden) -->
                                                 <div class="ms-4 mt-2 d-none" id="replyBox-<?= $act['id'] ?>">
-                                                    <div class="d-flex gap-2">
+                                                    <div class="d-flex gap-2 align-items-center">
                                                         <input type="text" class="form-control" placeholder="Viết trả lời..." id="replyInput-<?= $act['id'] ?>" onkeydown="if(event.key==='Enter'){event.preventDefault();submitReply(<?= $act['id'] ?>)}">
+                                                        <label class="btn btn-soft-secondary btn-sm mb-0" title="Đính kèm file">
+                                                            <i class="ri-attachment-2"></i>
+                                                            <input type="file" class="d-none" id="replyFile-<?= $act['id'] ?>" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.dwg,.dxf,.cad,.zip,.rar" onchange="this.closest('label').classList.toggle('btn-soft-primary',!!this.files[0]);this.closest('label').classList.toggle('btn-soft-secondary',!this.files[0])">
+                                                        </label>
                                                         <button class="btn btn-primary btn-sm" onclick="submitReply(<?= $act['id'] ?>)">Gửi</button>
+                                                    </div>
+                                                    <div class="reply-file-preview mt-1" id="replyFilePreview-<?= $act['id'] ?>" style="display:none">
+                                                        <small class="text-primary"><i class="ri-file-line me-1"></i><span></span></small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1488,12 +1495,17 @@ function toggleReplyBox(id) {
 
 function submitReply(id) {
     var input = document.getElementById('replyInput-' + id);
+    var fileInput = document.getElementById('replyFile-' + id);
     var content = input.value.trim();
-    if (!content) return;
+    if (!content && (!fileInput || !fileInput.files[0])) return;
+    var fd = new FormData();
+    fd.append('content', content);
+    fd.append('_token', '<?= csrf_token() ?>');
+    if (fileInput && fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
     fetch('<?= url("activities") ?>/' + id + '/reply', {
         method: 'POST',
-        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'<?= csrf_token() ?>'},
-        body: JSON.stringify({content: content})
+        headers: {'X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: fd
     }).then(r => r.json()).then(function(data) {
         if (!data.success) return;
         var r = data.reply;
@@ -1504,8 +1516,21 @@ function submitReply(id) {
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i> Không thích</span>'
             + '<span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(' + id + ')"><i class="ri-reply-line"></i> Trả lời</span>'
             + '</div>';
-        var html = '<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">' + avatar + '<div class="flex-grow-1"><strong style="font-size:13px">' + r.user_name + '</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">' + r.title + '</div>' + actions + '</div></div>';
+        var attachHtml = '';
+        if (r.attachment) {
+            var aExt = r.attachment.split('.').pop().toLowerCase();
+            var isImg = ['jpg','jpeg','png','gif','webp'].indexOf(aExt) !== -1;
+            var aName = r.attachment_name || r.attachment.split('/').pop();
+            if (isImg) {
+                attachHtml = '<div class="mt-1"><a href="/' + r.attachment + '" target="_blank"><img src="/' + r.attachment + '" class="rounded border" style="max-width:200px;max-height:120px"></a></div>';
+            } else {
+                attachHtml = '<div class="mt-1"><a href="/' + r.attachment + '" target="_blank" class="text-primary" style="font-size:12px"><i class="ri-file-line me-1"></i>' + aName + '</a></div>';
+            }
+        }
+        var html = '<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">' + avatar + '<div class="flex-grow-1"><strong style="font-size:13px">' + r.user_name + '</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">' + (r.title||'') + '</div>' + attachHtml + actions + '</div></div>';
         var box = document.getElementById('replyBox-' + id);
+        // Reset inputs
+        if (fileInput) { fileInput.value = ''; fileInput.closest('label').classList.remove('btn-soft-primary'); fileInput.closest('label').classList.add('btn-soft-secondary'); }
         var repliesDiv = box.previousElementSibling;
         if (!repliesDiv || !repliesDiv.classList.contains('border-start')) {
             var newDiv = document.createElement('div');
