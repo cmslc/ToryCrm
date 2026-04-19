@@ -48,7 +48,8 @@
 
         // Create wrapper - match native select sizing
         var wrapper = document.createElement('div');
-        wrapper.className = 'position-relative searchable-select-wrapper d-inline-block';
+        var hasAutoWidth = sel.style.width === 'auto';
+        wrapper.className = 'position-relative searchable-select-wrapper' + (hasAutoWidth ? ' d-inline-block' : '');
         if (sel.style.width && sel.style.width !== 'auto') {
             wrapper.style.width = sel.style.width;
         }
