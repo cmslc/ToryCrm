@@ -447,9 +447,9 @@
                         <div class="tab-content">
 
                             <!-- Tab: Trao đổi -->
-                            <div class="tab-pane active" id="tab-exchange" role="tabpanel">
-                                <!-- Compose Area (Getfly style) -->
-                                <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data">
+                            <div class="tab-pane active d-flex flex-column" id="tab-exchange" role="tabpanel">
+                                <!-- Compose Area -->
+                                <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" style="order:2">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="contact_id" value="<?= $contact['id'] ?>">
                                     <input type="hidden" name="type" value="note" id="activityType">
@@ -516,10 +516,8 @@
                                     </div>
                                 </form>
 
-                                <hr>
-
                                 <!-- Activity Feed (Facebook style) -->
-                                <div id="activityFeed">
+                                <div id="activityFeed" style="order:1">
                                     <?php if (!empty($activities)): ?>
                                         <?php
                                         // Build user avatar map
@@ -605,6 +603,9 @@
                                                                 </span>
                                                                 <span class="act-btn <?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'text-danger fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $reply['id'] ?>,'dislike',this)">
                                                                     <i class="ri-thumb-down-<?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i> Không thích<?php if (($reply['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['dislikes'] ?></span><?php endif; ?>
+                                                                </span>
+                                                                <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
+                                                                    <i class="ri-reply-line"></i> Trả lời
                                                                 </span>
                                                             </div>
                                                         </div>
