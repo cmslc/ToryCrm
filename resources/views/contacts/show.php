@@ -595,10 +595,18 @@
                                                         <?php else: ?>
                                                         <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px"><?= mb_substr($rName, 0, 1) ?></div>
                                                         <?php endif; ?>
-                                                        <div>
+                                                        <div class="flex-grow-1">
                                                             <strong style="font-size:13px"><?= e($rName) ?></strong>
                                                             <small class="text-muted ms-1"><?= date('d/m H:i', strtotime($reply['created_at'])) ?></small>
                                                             <div style="font-size:13px"><?= $rContent ?></div>
+                                                            <div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">
+                                                                <span class="act-btn <?= ($reply['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $reply['id'] ?>,'like',this)">
+                                                                    <i class="ri-thumb-up-<?= ($reply['my_reaction'] ?? '') === 'like' ? 'fill' : 'line' ?>"></i> Thích<?php if (($reply['likes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['likes'] ?></span><?php endif; ?>
+                                                                </span>
+                                                                <span class="act-btn <?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'text-danger fw-medium' : 'text-muted' ?>" style="cursor:pointer" onclick="reactActivity(<?= $reply['id'] ?>,'dislike',this)">
+                                                                    <i class="ri-thumb-down-<?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i> Không thích<?php if (($reply['dislikes'] ?? 0) > 0): ?> <span class="react-count"><?= $reply['dislikes'] ?></span><?php endif; ?>
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <?php endforeach; ?>

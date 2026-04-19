@@ -351,11 +351,16 @@ class ContactController extends Controller
             [$this->userId(), $id]
         );
 
-        // Load replies for each activity
+        // Load replies with reactions for each activity
+        $uid = $this->userId();
         foreach ($activities as &$act) {
             $act['replies'] = Database::fetchAll(
-                "SELECT a.*, u.name as user_name, u.avatar as user_avatar FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.parent_id = ? ORDER BY a.created_at ASC",
-                [$act['id']]
+                "SELECT a.*, u.name as user_name, u.avatar as user_avatar,
+                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'like') as likes,
+                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'dislike') as dislikes,
+                    (SELECT type FROM activity_reactions WHERE activity_id = a.id AND user_id = ? LIMIT 1) as my_reaction
+                 FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.parent_id = ? ORDER BY a.created_at ASC",
+                [$uid, $act['id']]
             );
         }
         unset($act);
