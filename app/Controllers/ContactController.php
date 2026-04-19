@@ -257,6 +257,45 @@ class ContactController extends Controller
         }
     }
 
+    /**
+     * AJAX check duplicate contact by MST, phone, email.
+     */
+    public function checkDuplicate()
+    {
+        $field = $this->input('field');
+        $value = trim($this->input('value') ?? '');
+        $excludeId = (int)($this->input('exclude_id') ?? 0);
+
+        if (empty($value) || !in_array($field, ['tax_code', 'phone', 'email', 'company_name'])) {
+            return $this->json(['found' => false]);
+        }
+
+        $tid = Database::tenantId();
+        $where = "tenant_id = ? AND is_deleted = 0 AND {$field} = ?";
+        $params = [$tid, $value];
+
+        if ($excludeId) {
+            $where .= " AND id != ?";
+            $params[] = $excludeId;
+        }
+
+        $existing = Database::fetch("SELECT id, first_name, last_name, company_name, phone, tax_code, account_code FROM contacts WHERE {$where} LIMIT 1", $params);
+
+        if ($existing) {
+            $name = $existing['company_name'] ?: trim($existing['first_name'] . ' ' . ($existing['last_name'] ?? ''));
+            return $this->json([
+                'found' => true,
+                'id' => $existing['id'],
+                'name' => $name,
+                'account_code' => $existing['account_code'],
+                'phone' => $existing['phone'],
+                'tax_code' => $existing['tax_code'],
+            ]);
+        }
+
+        return $this->json(['found' => false]);
+    }
+
     public function store()
     {
         if (!$this->isPost()) {
@@ -270,6 +309,26 @@ class ContactController extends Controller
         if (empty($contactData['company_name']) && empty($contactData['first_name'])) {
             $this->setFlash('error', 'Tên khách hàng không được để trống.');
             return $this->back();
+        }
+
+        // Server-side duplicate check
+        $tid = Database::tenantId();
+        if (!empty($contactData['tax_code'])) {
+            $dup = Database::fetch("SELECT id, company_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 AND tax_code = ?", [$tid, $contactData['tax_code']]);
+            if ($dup && empty($data['force_create'])) {
+                $this->setFlash('error', 'MST "' . $contactData['tax_code'] . '" đã tồn tại: ' . ($dup['company_name'] ?? 'KH #' . $dup['id']) . '. Nếu vẫn muốn tạo, bấm lưu lại.');
+                $_SESSION['force_create_contact'] = true;
+                return $this->back();
+            }
+        }
+        if (!empty($contactData['phone'])) {
+            $dup = Database::fetch("SELECT id, first_name, company_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 AND phone = ?", [$tid, $contactData['phone']]);
+            if ($dup && empty($data['force_create'])) {
+                $name = $dup['company_name'] ?: $dup['first_name'];
+                $this->setFlash('error', 'SĐT "' . $contactData['phone'] . '" đã tồn tại: ' . $name . '. Nếu vẫn muốn tạo, bấm lưu lại.');
+                $_SESSION['force_create_contact'] = true;
+                return $this->back();
+            }
         }
 
         $contactData['owner_id'] = $contactData['owner_id'] ?: $this->userId();

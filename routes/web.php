@@ -100,6 +100,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('contacts/trash', 'ContactController@trash');
     Router::get('contacts/create', 'ContactController@create');
     Router::post('contacts/bulk', 'ContactController@bulk');
+    Router::get('contacts/check-duplicate', 'ContactController@checkDuplicate');
     Router::post('contacts/store', 'ContactController@store');
     Router::get('contacts/{id}', 'ContactController@show');
     Router::get('contacts/{id}/edit', 'ContactController@edit');

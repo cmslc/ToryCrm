@@ -392,4 +392,54 @@ document.getElementById('taxCodeInput')?.addEventListener('keydown', function(e)
 document.getElementById('taxCodeInput')?.addEventListener('paste', function() {
     setTimeout(function() { document.getElementById('btnLookupTax').click(); }, 100);
 });
+
+// === Check trùng real-time ===
+var dupTimer = null;
+function checkDuplicate(field, value) {
+    if (!value || value.length < 3) return;
+    clearTimeout(dupTimer);
+    dupTimer = setTimeout(function() {
+        fetch('<?= url("contacts/check-duplicate") ?>?field=' + field + '&value=' + encodeURIComponent(value))
+        .then(r => r.json())
+        .then(function(data) {
+            var alertId = 'dup-alert-' + field;
+            var existing = document.getElementById(alertId);
+            if (existing) existing.remove();
+            if (data.found) {
+                var input = document.querySelector('[name="' + field + '"]') || document.getElementById('taxCodeInput');
+                var alert = document.createElement('div');
+                alert.id = alertId;
+                alert.className = 'alert alert-warning py-1 px-2 mt-1 d-flex align-items-center justify-content-between';
+                alert.style.fontSize = '13px';
+                alert.innerHTML = '<span><i class="ri-error-warning-line me-1"></i><strong>Trùng!</strong> ' + data.name + (data.account_code ? ' (' + data.account_code + ')' : '') + '</span>'
+                    + '<a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a>';
+                input.closest('.mb-3, .input-group')?.parentNode.insertBefore(alert, input.closest('.mb-3, .input-group').nextSibling);
+            }
+        });
+    }, 500);
+}
+
+// MST blur check
+document.getElementById('taxCodeInput')?.addEventListener('blur', function() {
+    checkDuplicate('tax_code', this.value.trim());
+});
+// Phone blur check
+document.querySelectorAll('[name="phone"]').forEach(function(el) {
+    el.addEventListener('blur', function() { checkDuplicate('phone', this.value.trim()); });
+});
+// Email blur check
+document.querySelectorAll('[name="email"]').forEach(function(el) {
+    el.addEventListener('blur', function() { checkDuplicate('email', this.value.trim()); });
+});
+// Company name blur check
+document.querySelectorAll('[name="company_name"]').forEach(function(el) {
+    el.addEventListener('blur', function() { checkDuplicate('company_name', this.value.trim()); });
+});
+
+<?php if (!empty($_SESSION['force_create_contact'])): ?>
+// Force create: add hidden input
+var fc = document.createElement('input');
+fc.type = 'hidden'; fc.name = 'force_create'; fc.value = '1';
+document.getElementById('contactForm').appendChild(fc);
+<?php unset($_SESSION['force_create_contact']); endif; ?>
 </script>
