@@ -174,6 +174,30 @@ class ActivityController extends Controller
             Database::update('contacts', ['last_activity_at' => date('Y-m-d H:i:s')], 'id = ?', [$contactId]);
         }
 
+        // Notify tagged users
+        $taggedUsers = trim($data['tagged_users'] ?? '');
+        if ($taggedUsers) {
+            $taggedIds = array_filter(array_map('intval', explode(',', $taggedUsers)));
+            $currentUserName = $_SESSION['user']['name'] ?? 'Ai đó';
+            $contactName = '';
+            if ($contactId) {
+                $c = Database::fetch("SELECT first_name, last_name, company_name FROM contacts WHERE id = ?", [$contactId]);
+                $contactName = $c ? trim(($c['company_name'] ?: '') ?: ($c['first_name'] . ' ' . ($c['last_name'] ?? ''))) : '';
+            }
+            foreach ($taggedIds as $uid) {
+                if ($uid == $this->userId()) continue;
+                Database::insert('notifications', [
+                    'tenant_id' => Database::tenantId(),
+                    'user_id' => $uid,
+                    'type' => 'info',
+                    'title' => $currentUserName . ' đã nhắc đến bạn',
+                    'message' => mb_substr($title, 0, 200),
+                    'link' => $contactId ? url('contacts/' . $contactId) : null,
+                    'icon' => 'ri-at-line',
+                ]);
+            }
+        }
+
         // AJAX request → return JSON
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
             $activity = Database::fetch(
