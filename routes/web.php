@@ -102,6 +102,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contacts/bulk', 'ContactController@bulk');
     Router::get('contacts/check-duplicate', 'ContactController@checkDuplicate');
     Router::get('contacts/check-person-phone', 'ContactController@checkPersonPhone');
+    Router::get('contacts/search-ajax', 'ContactController@searchAjax');
     Router::post('contacts/store', 'ContactController@store');
     Router::get('contacts/{id}', 'ContactController@show');
     Router::get('contacts/{id}/edit', 'ContactController@edit');
@@ -112,7 +113,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contacts/{id}/change-owner', 'ContactController@changeOwner');
     Router::post('contacts/{id}/followers', 'ContactController@followers');
     Router::post('contacts/{id}/quick-update', 'ContactController@quickUpdate');
-    Router::get('contacts/search-ajax', 'ContactController@searchAjax');
     Router::get('contacts/{id}/persons', 'ContactController@persons');
 
     // Deals (Pipeline)
