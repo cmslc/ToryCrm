@@ -604,7 +604,7 @@ class GetflySyncController extends Controller
             if ($existing) {
                 Database::update('users', [
                     'name' => $name,
-                    'mobile' => $mobile,
+                    'phone' => $mobile,
                     'department_id' => $deptId,
                 ], 'id = ?', [$existing['id']]);
             } else {
@@ -615,7 +615,7 @@ class GetflySyncController extends Controller
                         'name' => $name,
                         'email' => $email,
                         'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
-                        'mobile' => $mobile,
+                        'phone' => $mobile,
                         'department_id' => $deptId,
                         'role_id' => 2, // default staff role
                         'is_active' => 1,
