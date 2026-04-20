@@ -924,6 +924,7 @@ class QuotationController extends Controller
                     $row = str_replace('{{p.revenue}}', number_format((float)($item['total'] ?? 0)), $row);
                     $row = str_replace('{{p.discount}}', number_format((float)($item['discount'] ?? 0)), $row);
                     $row = str_replace('{{p.vat}}', number_format((float)($item['tax_rate'] ?? 0), 2) . '%', $row);
+                    $row = str_replace('{{p.vatp}}', number_format((float)($item['tax_rate'] ?? 0), 0) . '%', $row);
                     $row = preg_replace('/\{\{p\.avatar[^}]*\}\}/', '', $row);
                     $rowsHtml .= $row;
                 }
