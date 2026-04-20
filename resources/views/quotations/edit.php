@@ -91,9 +91,13 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
                     <label class="form-label"><?= $fl["quote_number"] ?? "Mã báo giá" ?></label>
                     <input type="text" class="form-control" value="<?= e($q['quote_number']) ?>" readonly>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label"><?= $fl["created_at"] ?? "Ngày tạo" ?></label>
                     <input type="date" class="form-control" name="created_date" value="<?= e(substr($q['created_at'] ?? '', 0, 10)) ?>">
+                </div>
+                <div class="col-3 mb-3">
+                    <label class="form-label"><?= $fl["valid_until"] ?? "Hiệu lực đến" ?></label>
+                    <input type="date" class="form-control" name="valid_until" value="<?= e($q['valid_until'] ?? '') ?>">
                 </div>
             </div>
 

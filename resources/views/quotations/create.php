@@ -92,9 +92,13 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
                     <label class="form-label"><?= $fl["quote_number"] ?? "Mã báo giá" ?></label>
                     <input type="text" class="form-control" name="quote_number" value="<?= e($quoteNumber) ?>">
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label"><?= $fl["created_at"] ?? "Ngày tạo" ?></label>
                     <input type="date" class="form-control" name="created_date" value="<?= date('Y-m-d') ?>">
+                </div>
+                <div class="col-3 mb-3">
+                    <label class="form-label"><?= $fl["valid_until"] ?? "Hiệu lực đến" ?></label>
+                    <input type="date" class="form-control" name="valid_until" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
                 </div>
             </div>
 
