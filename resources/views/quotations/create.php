@@ -303,8 +303,8 @@ function pickContact(c) {
 }
 
 function loadPersons(contactId) {
-    fetch('<?= url("contacts") ?>/' + contactId + '/persons')
-        .then(r => r.json())
+    fetch('<?= url("contacts") ?>/' + contactId + '/persons', { credentials: 'same-origin' })
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function(persons) {
             var cpSel = document.getElementById('contactPersonSelect');
             cpSel.innerHTML = '<option value="">Chọn người liên hệ</option>';

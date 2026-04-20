@@ -53,6 +53,16 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                 <label class="form-label">Người liên hệ</label>
                 <select class="form-select" name="contact_person_id" id="contactPersonSelect">
                     <option value="">Chọn người liên hệ</option>
+                    <?php if ($q['contact_id']):
+                        $cpList = \Core\Database::fetchAll("SELECT id, title, full_name, phone, email, position FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id", [$q['contact_id']]);
+                        foreach ($cpList as $cp):
+                    ?>
+                    <option value="<?= $cp['id'] ?>"
+                        data-phone="<?= e($cp['phone'] ?? '') ?>"
+                        data-email="<?= e($cp['email'] ?? '') ?>"
+                        <?= ($q['contact_person_id'] ?? '') == $cp['id'] ? 'selected' : '' ?>
+                    ><?= $cp['title'] ? e(ucfirst($cp['title'])) . ' ' : '' ?><?= e($cp['full_name']) ?><?= $cp['position'] ? ' - ' . e($cp['position']) : '' ?></option>
+                    <?php endforeach; endif; ?>
                 </select>
             </div>
 
@@ -325,8 +335,8 @@ function pickContact(c) {
 }
 
 function loadPersons(contactId, selectId) {
-    fetch('<?= url("contacts") ?>/' + contactId + '/persons')
-        .then(r => r.json())
+    fetch('<?= url("contacts") ?>/' + contactId + '/persons', { credentials: 'same-origin' })
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function(persons) {
             var cpSel = document.getElementById('contactPersonSelect');
             cpSel.innerHTML = '<option value="">Chọn người liên hệ</option>';
@@ -339,7 +349,7 @@ function loadPersons(contactId, selectId) {
                 if (selectId && String(p.id) === String(selectId)) o.selected = true;
                 cpSel.appendChild(o);
             });
-        }).catch(function(){});
+        }).catch(function(err){ console.error('loadPersons error:', err); });
 }
 
 document.getElementById('contactPersonSelect')?.addEventListener('change', function() {
