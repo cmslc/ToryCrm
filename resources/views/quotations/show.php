@@ -538,7 +538,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
 
 <!-- Modal gửi email báo giá -->
 <div class="modal fade" id="sendEmailModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/send') ?>">
             <?= csrf_field() ?>
             <div class="modal-content">
