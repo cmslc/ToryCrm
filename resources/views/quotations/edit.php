@@ -139,7 +139,18 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
 
     <div class="card">
         <div class="card-body">
-            <!-- Nội dung -->
+            <!-- Template + Nội dung -->
+            <?php if (!empty($templates)): ?>
+            <div class="mb-3">
+                <label class="form-label">Chọn mẫu báo giá</label>
+                <select class="form-select" id="templateSelect" onchange="loadTemplate(this.value)" style="max-width:400px">
+                    <option value="">-- Chọn mẫu --</option>
+                    <?php foreach ($templates as $tpl): ?>
+                    <option value="<?= $tpl['id'] ?>"><?= e($tpl['name']) ?><?= $tpl['is_default'] ? ' (Mặc định)' : '' ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
             <div class="mb-3">
                 <label class="form-label"><?= $fl["content"] ?? "Nội dung" ?></label>
                 <textarea name="content" id="quoteContent" class="form-control" rows="6"><?= e($q['content'] ?? '') ?></textarea>
@@ -526,5 +537,19 @@ if (existingItems.length > 0) {
 // CKEditor for content
 if (typeof CKEDITOR !== 'undefined') {
     CKEDITOR.replace('quoteContent', { height: 200 });
+}
+
+// Template data
+var templateData = <?= json_encode(array_column($templates ?? [], 'content', 'id'), JSON_UNESCAPED_UNICODE) ?>;
+
+function loadTemplate(id) {
+    if (!id || !templateData[id]) return;
+    if (!confirm('Áp dụng mẫu sẽ thay thế nội dung hiện tại. Tiếp tục?')) return;
+    var content = templateData[id];
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.quoteContent) {
+        CKEDITOR.instances.quoteContent.setData(content);
+    } else {
+        document.getElementById('quoteContent').value = content;
+    }
 }
 </script>

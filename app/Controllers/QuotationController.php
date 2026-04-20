@@ -156,11 +156,14 @@ class QuotationController extends Controller
 
         $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
+        $templates = Database::fetchAll("SELECT id, name, content, is_default FROM document_templates WHERE tenant_id = ? AND type = 'quotation' AND is_active = 1 ORDER BY is_default DESC, name", [$tid]);
+
         return $this->view('quotations.create', [
             'quoteNumber' => $quoteNumber,
             'preContact' => $preContact,
             'users' => $users,
             'preContactId' => $preContactId,
+            'templates' => $templates,
         ]);
     }
 
@@ -374,12 +377,15 @@ class QuotationController extends Controller
             [$id]
         );
 
+        $templates = Database::fetchAll("SELECT id, name, content, is_default FROM document_templates WHERE tenant_id = ? AND type = 'quotation' AND is_active = 1 ORDER BY is_default DESC, name", [$tid]);
+
         return $this->view('quotations.edit', [
             'quotation' => $quotation,
             'items' => $items,
             'editContact' => $editContact,
             'users' => $users,
             'attachments' => $attachments,
+            'templates' => $templates,
         ]);
     }
 

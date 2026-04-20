@@ -128,10 +128,24 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
 
     <div class="card">
         <div class="card-body">
-            <!-- Nội dung -->
+            <!-- Template + Nội dung -->
+            <?php if (!empty($templates)): ?>
+            <div class="mb-3">
+                <label class="form-label">Chọn mẫu báo giá</label>
+                <select class="form-select" id="templateSelect" onchange="loadTemplate(this.value)" style="max-width:400px">
+                    <option value="">-- Chọn mẫu --</option>
+                    <?php foreach ($templates as $tpl): ?>
+                    <option value="<?= $tpl['id'] ?>" <?= $tpl['is_default'] ? 'selected' : '' ?>><?= e($tpl['name']) ?><?= $tpl['is_default'] ? ' (Mặc định)' : '' ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
             <div class="mb-3">
                 <label class="form-label"><?= $fl["content"] ?? "Nội dung" ?></label>
-                <textarea name="content" id="quoteContent" class="form-control" rows="6"></textarea>
+                <textarea name="content" id="quoteContent" class="form-control" rows="6"><?php
+                    // Auto-fill template mặc định
+                    foreach ($templates ?? [] as $tpl) { if ($tpl['is_default']) { echo $tpl['content']; break; } }
+                ?></textarea>
             </div>
 
             <!-- Tài liệu đính kèm -->
@@ -497,4 +511,26 @@ addItem();
 if (typeof CKEDITOR !== 'undefined') {
     CKEDITOR.replace('quoteContent', { height: 200 });
 }
+
+// Template data
+var templateData = <?= json_encode(array_column($templates ?? [], 'content', 'id'), JSON_UNESCAPED_UNICODE) ?>;
+
+function loadTemplate(id) {
+    if (!id || !templateData[id]) return;
+    var content = templateData[id];
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.quoteContent) {
+        CKEDITOR.instances.quoteContent.setData(content);
+    } else {
+        document.getElementById('quoteContent').value = content;
+    }
+}
+
+// Auto-load default template on init
+<?php foreach ($templates ?? [] as $tpl): if ($tpl['is_default']): ?>
+setTimeout(function() {
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.quoteContent) {
+        CKEDITOR.instances.quoteContent.setData(templateData[<?= $tpl['id'] ?>] || '');
+    }
+}, 500);
+<?php break; endif; endforeach; ?>
 </script>
