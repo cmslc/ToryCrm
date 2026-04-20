@@ -235,7 +235,7 @@ class DataDefinitionController extends Controller
         $overrides = [];
         try {
             $ovRows = Database::fetchAll(
-                "SELECT field_name, label, is_required, check_duplicate FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
+                "SELECT field_name, label, is_required, check_duplicate, default_value FROM field_label_overrides WHERE tenant_id = ? AND table_name = ?",
                 [Database::tenantId(), $module]
             );
             foreach ($ovRows as $ov) $overrides[$ov['field_name']] = $ov;
@@ -302,6 +302,7 @@ class DataDefinitionController extends Controller
                 'required' => $ov ? (bool)$ov['is_required'] : (!$isNullable && $col['Default'] === null && $col['Field'] !== 'id'),
                 'check_duplicate' => $ov ? (bool)($ov['check_duplicate'] ?? 0) : false,
                 'default' => $col['Default'],
+                'default_value' => $ov['default_value'] ?? null,
                 'is_system' => $isSystem,
                 'is_custom' => false,
                 'show_in_list' => $showInList[$col['Field']] ?? ($isSystem ? false : true),
@@ -354,12 +355,14 @@ class DataDefinitionController extends Controller
             ], 'id = ? AND tenant_id = ?', [$cfId, Database::tenantId()]);
         }
 
-        // Save label override + check_duplicate
+        $defaultValue = trim($this->input('default_value') ?? '') ?: null;
+
+        // Save label override + check_duplicate + default_value
         Database::query(
-            "INSERT INTO field_label_overrides (tenant_id, table_name, field_name, label, is_required, check_duplicate)
-             VALUES (?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE label = VALUES(label), is_required = VALUES(is_required), check_duplicate = VALUES(check_duplicate)",
-            [Database::tenantId(), $module, $fieldName, $label, $required, $checkDuplicate]
+            "INSERT INTO field_label_overrides (tenant_id, table_name, field_name, label, is_required, check_duplicate, default_value)
+             VALUES (?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE label = VALUES(label), is_required = VALUES(is_required), check_duplicate = VALUES(check_duplicate), default_value = VALUES(default_value)",
+            [Database::tenantId(), $module, $fieldName, $label, $required, $checkDuplicate, $defaultValue]
         );
 
         $this->setFlash('success', 'Đã cập nhật thuộc tính.');

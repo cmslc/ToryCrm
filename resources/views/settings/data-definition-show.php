@@ -83,6 +83,7 @@
                                         data-label="<?= e($f['label']) ?>"
                                         data-required="<?= $f['required'] ? '1' : '0' ?>"
                                         data-duplicate="<?= !empty($f['check_duplicate']) ? '1' : '0' ?>"
+                                        data-default="<?= e($f['default_value'] ?? '') ?>"
                                         data-custom="<?= $f['is_custom'] ? '1' : '0' ?>"
                                         data-cfid="<?= $f['custom_field_id'] ?? '' ?>"
                                         title="Sửa"><i class="ri-pencil-line"></i></button>
@@ -236,6 +237,11 @@
                         </div>
                         <small class="text-muted">Cảnh báo khi giá trị đã tồn tại trong hệ thống</small>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giá trị mặc định</label>
+                        <textarea class="form-control" name="default_value" id="efDefault" rows="2" placeholder="Giá trị tự động điền khi tạo mới"></textarea>
+                        <small class="text-muted">Để trống nếu không cần giá trị mặc định</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -255,6 +261,7 @@ document.querySelectorAll('.edit-field-btn').forEach(function(btn) {
         document.getElementById('efLabel').value = this.dataset.label;
         document.getElementById('efRequired').checked = this.dataset.required === '1';
         document.getElementById('efDuplicate').checked = this.dataset.duplicate === '1';
+        document.getElementById('efDefault').value = this.dataset.default || '';
         document.getElementById('efIsCustom').value = this.dataset.custom;
         document.getElementById('efCfId').value = this.dataset.cfid;
         new bootstrap.Modal(document.getElementById('editFieldModal')).show();

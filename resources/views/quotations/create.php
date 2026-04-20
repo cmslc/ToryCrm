@@ -11,6 +11,7 @@ $deptGrouped = [];
 foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
 $fl = \App\Services\ColumnService::getLabels('quotations');
 $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
+$dv = \App\Services\ColumnService::getDefaultValues('quotations');
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -108,17 +109,17 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
 
             <div class="mb-3">
                 <label class="form-label"><?= $fl["description"] ?? "Mô tả" ?></label>
-                <input type="text" class="form-control" name="description">
+                <input type="text" class="form-control" name="description" value="<?= e($dv['description'] ?? '') ?>">
             </div>
 
             <div class="row">
                 <div class="col-6 mb-3">
                     <label class="form-label"><?= $fl["project"] ?? "Dự án" ?></label>
-                    <input type="text" class="form-control" name="project">
+                    <input type="text" class="form-control" name="project" value="<?= e($dv['project'] ?? '') ?>">
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label"><?= $fl["location"] ?? "Địa điểm" ?></label>
-                    <input type="text" class="form-control" name="location">
+                    <input type="text" class="form-control" name="location" value="<?= e($dv['location'] ?? '') ?>">
                 </div>
                 </div>
             </div>
@@ -131,7 +132,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
             <!-- Nội dung -->
             <div class="mb-3">
                 <label class="form-label"><?= $fl["content"] ?? "Nội dung" ?></label>
-                <textarea name="content" id="quoteContent" class="form-control" rows="6"></textarea>
+                <textarea name="content" id="quoteContent" class="form-control" rows="6"><?= $dv['content'] ?? '' ?></textarea>
             </div>
 
             <!-- Tài liệu đính kèm -->
@@ -236,11 +237,11 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label"><?= $fl["notes"] ?? "Ghi chú" ?></label>
-                    <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú nội bộ hoặc cho khách hàng..."></textarea>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú nội bộ hoặc cho khách hàng..."><?= e($dv['notes'] ?? '') ?></textarea>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label"><?= $fl["terms"] ?? "Điều khoản" ?></label>
-                    <textarea name="terms" class="form-control" rows="3" placeholder="Điều khoản thanh toán, bảo hành..."></textarea>
+                    <textarea name="terms" class="form-control" rows="3" placeholder="Điều khoản thanh toán, bảo hành..."><?= e($dv['terms'] ?? '') ?></textarea>
                 </div>
             </div>
         </div>

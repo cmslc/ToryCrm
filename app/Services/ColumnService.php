@@ -435,6 +435,24 @@ class ColumnService
     }
 
     /**
+     * Get default values for a module's fields (from DB overrides).
+     */
+    public static function getDefaultValues(string $module): array
+    {
+        try {
+            $rows = Database::fetchAll(
+                "SELECT field_name, default_value FROM field_label_overrides WHERE tenant_id = ? AND table_name = ? AND default_value IS NOT NULL AND default_value != ''",
+                [Database::tenantId(), $module]
+            );
+            $defaults = [];
+            foreach ($rows as $r) { $defaults[$r['field_name']] = $r['default_value']; }
+            return $defaults;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
      * Get displayable columns for a module.
      */
     public static function getColumns(string $module): array
