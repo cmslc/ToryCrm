@@ -148,6 +148,19 @@ class DocumentTemplateController extends Controller
         return $this->redirect('settings/document-templates');
     }
 
+    public function toggle($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $this->authorize('settings', 'manage');
+
+        $template = Database::fetch("SELECT id, is_active FROM document_templates WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$template) return $this->json(['error' => 'Not found'], 404);
+
+        $newStatus = $template['is_active'] ? 0 : 1;
+        Database::update('document_templates', ['is_active' => $newStatus], 'id = ?', [$id]);
+        return $this->json(['success' => true, 'is_active' => $newStatus]);
+    }
+
     private function getVariables(string $type): array
     {
         $common = [

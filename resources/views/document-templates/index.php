@@ -60,8 +60,9 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                                 </td>
                                 <td class="text-center"><?php if ($t['is_default'] ?? 0): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
                                 <td class="text-center">
-                                    <?php if ($t['is_active'] ?? 0): ?><span class="badge bg-success">Hoạt động</span>
-                                    <?php else: ?><span class="badge bg-secondary">Tắt</span><?php endif; ?>
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input" type="checkbox" <?= ($t['is_active'] ?? 0) ? 'checked' : '' ?> onchange="toggleTemplate(<?= $t['id'] ?>, this.checked)">
+                                    </div>
                                 </td>
                                 <td><?= e($t['creator_name'] ?? '-') ?></td>
                                 <td><?= !empty($t['created_at']) ? date('d/m/Y H:i', strtotime($t['created_at'])) : '-' ?></td>
@@ -112,8 +113,9 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                                 </td>
                                 <td class="text-center"><?php if ($t['is_default'] ?? 0): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
                                 <td class="text-center">
-                                    <?php if ($t['is_active'] ?? 0): ?><span class="badge bg-success">Hoạt động</span>
-                                    <?php else: ?><span class="badge bg-secondary">Tắt</span><?php endif; ?>
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input" type="checkbox" <?= ($t['is_active'] ?? 0) ? 'checked' : '' ?> onchange="toggleTemplate(<?= $t['id'] ?>, this.checked)">
+                                    </div>
                                 </td>
                                 <td><?= e($t['creator_name'] ?? '-') ?></td>
                                 <td><?= !empty($t['created_at']) ? date('d/m/Y H:i', strtotime($t['created_at'])) : '-' ?></td>
@@ -136,3 +138,14 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
         </div>
     </div>
 </div>
+
+<script>
+function toggleTemplate(id, active) {
+    fetch('<?= url("settings/document-templates") ?>/' + id + '/toggle', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-CSRF-TOKEN':'<?= csrf_token() ?>'}
+    }).then(r => r.json()).then(function(data) {
+        if (!data.success) alert(data.error || 'Lỗi');
+    }).catch(function() { location.reload(); });
+}
+</script>

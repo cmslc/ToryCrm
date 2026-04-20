@@ -745,6 +745,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('settings/document-templates/{id}/edit', 'DocumentTemplateController@edit');
     Router::post('settings/document-templates/{id}/update', 'DocumentTemplateController@update');
     Router::post('settings/document-templates/{id}/delete', 'DocumentTemplateController@delete');
+    Router::post('settings/document-templates/{id}/toggle', 'DocumentTemplateController@toggle');
 
     // Contact Statuses
     Router::get('settings/contact-statuses', 'ContactStatusController@index');
