@@ -343,9 +343,6 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
                 </div>
                 <?php endif; ?>
 
-                <!-- Người liên quan -->
-                <?php $rpEntityType = 'contract'; $rpEntityId = $contract['id']; $rpOwnerId = $contract['owner_id'] ?? 0; $rpOwnerName = $contract['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
-
                 <!-- Trao đổi (Plugin) -->
                 <?php if (function_exists('activity_exchange_render')) activity_exchange_render('contract', $contract['id']); ?>
 
@@ -356,24 +353,7 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
     <!-- SIDEBAR -->
     <div class="col-lg-3">
         <!-- Người liên quan -->
-        <div class="card">
-            <div class="card-header"><h6 class="card-title mb-0 fw-bold">NGƯỜI LIÊN QUAN</h6></div>
-            <div class="card-body">
-                <?php if (!empty($relatedUsers)): ?>
-                <div class="d-flex flex-wrap gap-2">
-                    <?php foreach ($relatedUsers as $ru): ?>
-                    <div class="text-center" style="width:42px" title="<?= e($ru['user_name'] ?? '') ?><?= ($ru['commission'] ?? 0) > 0 ? ' - HH: ' . number_format($ru['commission']) : '' ?>">
-                        <div class="avatar-xs">
-                            <div class="avatar-title rounded-circle bg-primary text-white" style="font-size:12px"><?= mb_substr($ru['user_name'] ?? '?', 0, 1) ?></div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <?php else: ?>
-                    <p class="text-muted mb-0">Chưa có</p>
-                <?php endif; ?>
-            </div>
-        </div>
+        <?php $rpEntityType = 'contract'; $rpEntityId = $contract['id']; $rpOwnerId = $contract['owner_id'] ?? 0; $rpOwnerName = $contract['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
 
         <!-- Đơn hàng liên quan -->
         <div class="card">
