@@ -313,6 +313,25 @@ class Controller
     }
 
     /**
+     * Check access via owner, department hierarchy, OR followers.
+     */
+    protected function canAccessEntity(string $entityType, int $entityId, ?int $ownerId): bool
+    {
+        if ($this->canAccessOwner($ownerId)) return true;
+
+        $table = $entityType . '_followers';
+        $column = $entityType . '_id';
+        try {
+            return (bool)Database::fetch(
+                "SELECT 1 FROM {$table} WHERE {$column} = ? AND user_id = ?",
+                [$entityId, $this->userId()]
+            );
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Get users list filtered by visibility (same dept / child depts).
      * Admin sees all, others see only their dept scope.
      */
