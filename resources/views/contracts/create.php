@@ -453,7 +453,7 @@
             </div>
             <?php endif; ?>
             <textarea name="terms" class="form-control" rows="6" id="contractTerms"><?= e($defaultTemplate ?? '') ?></textarea>
-            <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+            <script src="https://cdn.ckeditor.com/4.25.1/full/ckeditor.js"></script>
             <script>
             var _docTemplates = <?= json_encode(array_column($docTemplates ?? [], 'content', 'id')) ?>;
             if (typeof CKEDITOR !== 'undefined') {
