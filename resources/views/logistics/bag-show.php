@@ -159,16 +159,17 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
 </div>
 <?php endif; ?>
 
-<!-- Tabs -->
-<ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabPkgs"><i class="ri-box-3-line me-1"></i> Kiện hàng (<?= count($packages) ?>)</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabLogs"><i class="ri-history-line me-1"></i> Lịch sử quét</a></li>
-</ul>
-
-<div class="tab-content">
-    <!-- Packages Tab -->
-    <div class="tab-pane active" id="tabPkgs">
-        <div class="card border-top-0 rounded-top-0">
+<div class="card">
+    <div class="card-header p-0 border-0">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabPkgs"><i class="ri-box-3-line me-1"></i> Kiện hàng (<?= count($packages) ?>)</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabLogs"><i class="ri-history-line me-1"></i> Lịch sử quét</a></li>
+        </ul>
+    </div>
+    <div class="card-body p-0">
+        <div class="tab-content">
+            <div class="tab-pane active" id="tabPkgs">
+                <div>
             <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" id="pkgTable">
@@ -195,10 +196,8 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
         </div>
     </div>
 
-    <!-- Scan Logs Tab -->
-    <div class="tab-pane" id="tabLogs">
-        <div class="card border-top-0 rounded-top-0">
-            <div class="card-body p-2">
+            <!-- Scan Logs Tab -->
+            <div class="tab-pane" id="tabLogs">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light"><tr><th>Mã quét</th><th>Kết quả</th><th>Ghi chú</th><th>Người quét</th><th>Thời gian</th></tr></thead>
@@ -219,6 +218,7 @@ $pkgStColors = ['pending'=>'secondary','warehouse_cn'=>'info','packed'=>'primary
                         <?php if (empty($scanLogs)): ?><tr><td colspan="5" class="text-center text-muted py-4">Chưa có lịch sử quét</td></tr><?php endif; ?>
                         </tbody>
                     </table>
+                </div>
                 </div>
             </div>
         </div>

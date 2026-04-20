@@ -7,17 +7,17 @@
             </div>
         </div>
 
-        <!-- Tabs -->
-        <ul class="nav nav-tabs mb-3">
-            <li class="nav-item">
-                <a class="nav-link <?= ($type ?? 'receivable') === 'receivable' ? 'active' : '' ?>" href="<?= url('debts/by-contact?type=receivable') ?>">Phải thu</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link <?= ($type ?? '') === 'payable' ? 'active' : '' ?>" href="<?= url('debts/by-contact?type=payable') ?>">Phải trả</a>
-            </li>
-        </ul>
-
         <div class="card">
+            <div class="card-header p-0 border-0">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($type ?? 'receivable') === 'receivable' ? 'active' : '' ?>" href="<?= url('debts/by-contact?type=receivable') ?>">Phải thu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($type ?? '') === 'payable' ? 'active' : '' ?>" href="<?= url('debts/by-contact?type=payable') ?>">Phải trả</a>
+                    </li>
+                </ul>
+            </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">

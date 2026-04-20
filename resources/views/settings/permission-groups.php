@@ -67,14 +67,18 @@ function renderGroupTree($nodes, $selectedId, $level = 0) {
     <h4 class="mb-0">Phân quyền</h4>
 </div>
 
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a class="nav-link active" data-bs-toggle="tab" href="#tab-groups" role="tab"><i class="ri-shield-user-line me-1"></i>Nhóm quyền</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" data-bs-toggle="tab" href="#tab-userlist" role="tab"><i class="ri-group-line me-1"></i>Danh sách người dùng</a>
-    </li>
-</ul>
+<div class="card mb-0">
+    <div class="card-header p-0 border-0">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#tab-groups" role="tab"><i class="ri-shield-user-line me-1"></i>Nhóm quyền</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tab-userlist" role="tab"><i class="ri-group-line me-1"></i>Danh sách người dùng</a>
+            </li>
+        </ul>
+    </div>
+</div>
 
 <div class="tab-content">
 <!-- Tab 1: Nhóm quyền -->
