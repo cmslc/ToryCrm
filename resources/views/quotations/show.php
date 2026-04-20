@@ -14,7 +14,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
             </div>
             <div class="d-flex gap-2">
                 <a href="<?= url('quotations/' . $quotation['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
-                <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#pdfTemplateModal"><i class="ri-printer-line me-1"></i>PDF</button>
+                <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#pdfTemplateModal"><i class="ri-printer-line me-1"></i>In</button>
 
                 <?php if ($quotation['status'] === 'draft'): ?>
                     <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/submit') ?>" class="d-inline" data-confirm="Gửi duyệt báo giá này?">
