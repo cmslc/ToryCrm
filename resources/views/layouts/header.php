@@ -90,6 +90,7 @@
                                     <div class="col-auto">
                                         <form method="POST" action="<?= url('notifications/mark-all-read') ?>" class="d-inline">
                                             <?= csrf_field() ?>
+                                            <input type="hidden" name="redirect" value="1">
                                             <button type="submit" class="btn btn-link text-white p-0 fs-12">Đọc tất cả</button>
                                         </form>
                                     </div>
