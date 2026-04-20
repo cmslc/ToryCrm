@@ -93,9 +93,11 @@
                         <label class="text-muted fs-12">Phụ trách chính</label>
                         <div class="d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-xs me-2">
-                                    <span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(substr($contact['owner_name'] ?? 'N', 0, 1)) ?></span>
-                                </div>
+                                <?php if ($contact['owner_avatar'] ?? null): ?>
+                                <img src="<?= asset($contact['owner_avatar']) ?>" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover">
+                                <?php else: ?>
+                                <div class="avatar-xs me-2"><span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(mb_substr($contact['owner_name'] ?? 'N', 0, 1)) ?></span></div>
+                                <?php endif; ?>
                                 <span class="fw-medium" id="ownerName"><?= e($contact['owner_name'] ?? 'Chưa gán') ?></span>
                             </div>
                             <div class="position-relative">
@@ -119,7 +121,7 @@
                                 $shownIds[] = $f['user_id'];
                             ?>
                                 <?php $fAvatar = $allUsers ? array_column($allUsers, 'avatar', 'id')[$f['user_id']] ?? null : null; ?>
-                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" data-uid="<?= $f['user_id'] ?>">
+                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-13" data-uid="<?= $f['user_id'] ?>">
                                     <?php if ($fAvatar): ?><img src="<?= asset($fAvatar) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
                                     <?php else: ?><span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($f['name'], 0, 1)) ?></span><?php endif; ?>
                                     <?= e($f['name']) ?>
@@ -145,7 +147,7 @@
                                 );
                                 foreach ($autoUsers as $au):
                             ?>
-                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" title="<?= e($au['role_label']) ?>">
+                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-13" title="<?= e($au['role_label']) ?>">
                                     <?php if ($au['avatar'] ?? null): ?><img src="<?= asset($au['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
                                     <?php else: ?><span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($au['name'], 0, 1)) ?></span><?php endif; ?>
                                     <?= e($au['name']) ?>

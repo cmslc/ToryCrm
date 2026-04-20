@@ -32,10 +32,13 @@ try {
     <div class="card-body py-2">
         <!-- Phụ trách chính -->
         <label class="text-muted fs-12">Phụ trách chính</label>
+        <?php $rpOwnerAvatar = null; foreach ($rpUsers as $_u) { if ($_u['id'] == $rpOwnerId) { $rpOwnerAvatar = $_u['avatar'] ?? null; break; } } ?>
         <div class="d-flex align-items-center mb-3 p-2 bg-light rounded">
-            <div class="avatar-xs me-2">
-                <span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(mb_substr($rpOwnerName, 0, 1)) ?></span>
-            </div>
+            <?php if ($rpOwnerAvatar): ?>
+            <img src="<?= asset($rpOwnerAvatar) ?>" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover">
+            <?php else: ?>
+            <div class="avatar-xs me-2"><span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(mb_substr($rpOwnerName, 0, 1)) ?></span></div>
+            <?php endif; ?>
             <span class="fw-medium"><?= e($rpOwnerName) ?></span>
         </div>
 
@@ -51,7 +54,7 @@ try {
                 $rpShownIds[] = $f['user_id'];
             ?>
                 <?php $fAv = null; foreach ($rpUsers as $_u) { if ($_u['id'] == $f['user_id']) { $fAv = $_u['avatar'] ?? null; break; } } ?>
-                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" data-uid="<?= $f['user_id'] ?>">
+                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-13" data-uid="<?= $f['user_id'] ?>">
                     <?php if ($fAv): ?><img src="<?= asset($fAv) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
                     <?php else: ?><span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($f['name'], 0, 1)) ?></span><?php endif; ?>
                     <?= e($f['name']) ?>
@@ -79,7 +82,7 @@ try {
                 );
                 foreach ($rpAutoUsers as $au):
             ?>
-                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" title="<?= e($au['role_label']) ?>">
+                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-13" title="<?= e($au['role_label']) ?>">
                     <?php if ($au['avatar'] ?? null): ?><img src="<?= asset($au['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
                     <?php else: ?><span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($au['name'], 0, 1)) ?></span><?php endif; ?>
                     <?= e($au['name']) ?>
