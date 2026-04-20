@@ -288,10 +288,6 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1">Tạo báo giá <span class="fw-normal text-muted">#<?= e($quotation['quote_number']) ?></span></h6>
                                     <p class="mb-1"><small>Người tạo: <strong><?= e($quotation['created_by_name'] ?? '-') ?></strong></small></p>
-                                    <?php if ($quotation['contact_first_name']): ?>
-                                    <p class="mb-1"><small>Khách hàng: <a href="<?= url('contacts/' . $quotation['contact_id']) ?>"><?= e(trim($quotation['contact_first_name'] . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></a></small></p>
-                                    <?php endif; ?>
-                                    <p class="mb-0"><small>Tổng tiền: <strong class="text-primary"><?= format_money($quotation['total'] ?? 0) ?></strong></small></p>
                                     <p class="text-muted mb-0 mt-1"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['created_at']) ?></small></p>
                                 </div>
                             </div>
