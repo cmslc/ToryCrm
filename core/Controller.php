@@ -158,7 +158,11 @@ class Controller
             } catch (\Exception $e) {}
         }
 
-        if (!$deptId) { $visCache = false; return null; }
+        if (!$deptId) {
+            // Không có phòng ban → chỉ thấy dữ liệu của mình
+            $visCache = [$uid];
+            return $visCache;
+        }
 
         try {
             $dept = Database::fetch("SELECT manager_id, vice_manager_id FROM departments WHERE id = ?", [$deptId]);
@@ -184,8 +188,8 @@ class Controller
             return $visCache;
         } catch (\Exception $e) {}
 
-        $visCache = false;
-        return null;
+        $visCache = [$uid];
+        return $visCache;
     }
 
     protected function getDeptMemberIds(): ?array
