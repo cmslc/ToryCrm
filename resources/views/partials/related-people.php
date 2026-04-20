@@ -65,7 +65,7 @@ try {
             $rpPlaceholders = implode(',', array_map('intval', $rpShownIds));
             try {
                 $rpAutoUsers = \Core\Database::fetchAll(
-                    "SELECT DISTINCT u.id, u.name,
+                    "SELECT DISTINCT u.id, u.name, u.avatar,
                         CASE WHEN pg.is_system = 1 THEN 'Ban lãnh đạo' ELSE 'Xem tất cả' END as role_label
                      FROM users u
                      JOIN user_permission_groups upg ON u.id = upg.user_id
@@ -79,9 +79,8 @@ try {
                 );
                 foreach ($rpAutoUsers as $au):
             ?>
-                <?php $auAv = null; foreach ($rpUsers as $_u) { if ($_u['id'] == $au['id']) { $auAv = $_u['avatar'] ?? null; break; } } ?>
                 <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" title="<?= e($au['role_label']) ?>">
-                    <?php if ($auAv): ?><img src="<?= asset($auAv) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                    <?php if ($au['avatar'] ?? null): ?><img src="<?= asset($au['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
                     <?php else: ?><span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($au['name'], 0, 1)) ?></span><?php endif; ?>
                     <?= e($au['name']) ?>
                 </span>
