@@ -14,7 +14,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
             </div>
             <div class="d-flex gap-2">
                 <a href="<?= url('quotations/' . $quotation['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
-                <a href="<?= url('quotations/' . $quotation['id'] . '/pdf') ?>" class="btn btn-soft-info" target="_blank"><i class="ri-printer-line me-1"></i>PDF</a>
+                <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#pdfTemplateModal"><i class="ri-printer-line me-1"></i>PDF</button>
 
                 <?php if ($quotation['status'] === 'draft'): ?>
                     <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/submit') ?>" class="d-inline" data-confirm="Gửi duyệt báo giá này?">
@@ -497,6 +497,43 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                 </div>
             </div>
         </div>
+
+<!-- Modal chọn mẫu PDF -->
+<div class="modal fade" id="pdfTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ri-printer-line me-1"></i> Chọn mẫu báo giá</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <?php if (!empty($pdfTemplates)): ?>
+                <div class="list-group">
+                    <?php foreach ($pdfTemplates as $tpl): ?>
+                    <a href="<?= url('quotations/' . $quotation['id'] . '/pdf?template_id=' . $tpl['id']) ?>" target="_blank" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="ri-file-list-2-line me-2 text-primary"></i>
+                            <span class="fw-medium"><?= e($tpl['name']) ?></span>
+                            <?php if ($tpl['is_default']): ?><span class="badge bg-warning ms-2">Mặc định</span><?php endif; ?>
+                        </div>
+                        <i class="ri-arrow-right-s-line text-muted"></i>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+                <?php else: ?>
+                <div class="text-center text-muted py-4">
+                    <i class="ri-file-warning-line" style="font-size:36px"></i>
+                    <p class="mt-2 mb-0">Chưa có mẫu báo giá nào. <a href="<?= url('settings/document-templates/create?type=quotation') ?>">Tạo mẫu</a></p>
+                </div>
+                <?php endif; ?>
+                <hr>
+                <a href="<?= url('quotations/' . $quotation['id'] . '/pdf') ?>" target="_blank" class="btn btn-soft-secondary w-100">
+                    <i class="ri-file-line me-1"></i> In mẫu mặc định hệ thống
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal từ chối duyệt -->
 <div class="modal fade" id="rejectApprovalModal" tabindex="-1">

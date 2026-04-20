@@ -334,10 +334,16 @@ class QuotationController extends Controller
             [$id]
         );
 
+        $pdfTemplates = Database::fetchAll(
+            "SELECT id, name, is_default FROM document_templates WHERE tenant_id = ? AND type = 'quotation' AND is_active = 1 ORDER BY is_default DESC, name",
+            [Database::tenantId()]
+        );
+
         return $this->view('quotations.show', [
             'quotation' => $quotation,
             'items' => $items,
             'attachments' => $attachments,
+            'pdfTemplates' => $pdfTemplates,
         ]);
     }
 
