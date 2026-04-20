@@ -62,7 +62,7 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                     $initial = mb_substr($userName, 0, 1);
                     $isSystem = in_array($act['type'], ['system','deal']);
                     $content = e($act['title']);
-                    $content = preg_replace('/@([^\s,\.]+(?:\s[^\s,\.@]+)?)/', '<span class="text-primary fw-medium">@$1</span>', $content);
+                    $content = preg_replace('/@([^\s,\.]+(?:\s[^\s,\.@]+){0,4})/', '<span class="text-primary fw-medium">@$1</span>', $content);
                     $content = preg_replace('/(https?:\/\/\S+)/', '<a href="$1" target="_blank" class="text-primary">$1</a>', $content);
                 ?>
                 <div class="d-flex gap-3 py-3 <?= $isSystem ? 'bg-light rounded px-3' : '' ?>" style="border-bottom:1px solid #f3f3f3">
@@ -127,7 +127,7 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                                 $rAvatar = $reply['user_avatar'] ?? null;
                                 $rName = $reply['user_name'] ?? 'Hệ thống';
                                 $rContent = e($reply['title']);
-                                $rContent = preg_replace('/@([^\s,\.]+(?:\s[^\s,\.@]+)?)/', '<span class="text-primary fw-medium">@$1</span>', $rContent);
+                                $rContent = preg_replace('/@([^\s,\.]+(?:\s[^\s,\.@]+){0,4})/', '<span class="text-primary fw-medium">@$1</span>', $rContent);
                             ?>
                             <div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">
                                 <?php if ($rAvatar): ?>
