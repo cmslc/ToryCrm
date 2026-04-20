@@ -302,10 +302,11 @@ class Controller
      * Check if current user can access a record owned by $ownerId.
      * Admin/Manager: always. Dept head: if owner is in same dept. Staff: only own.
      */
-    protected function canAccessOwner(?int $ownerId): bool
+    protected function canAccessOwner(?int $ownerId, ?string $module = null): bool
     {
         $userId = $_SESSION['user']['id'] ?? 0;
         if (\App\Services\PermissionService::isInSystemGroup($userId)) return true;
+        if ($module && \App\Services\PermissionService::can($module, 'view_all')) return true;
         if ($ownerId == $this->userId()) return true;
         $visible = $this->getVisibleUserIds();
         if ($visible && in_array($ownerId, $visible)) return true;
@@ -317,7 +318,10 @@ class Controller
      */
     protected function canAccessEntity(string $entityType, int $entityId, ?int $ownerId): bool
     {
-        if ($this->canAccessOwner($ownerId)) return true;
+        // Map entity type to module name for permission check
+        $moduleMap = ['contact' => 'contacts', 'order' => 'orders', 'quotation' => 'quotations', 'contract' => 'contracts', 'deal' => 'deals'];
+        $module = $moduleMap[$entityType] ?? ($entityType . 's');
+        if ($this->canAccessOwner($ownerId, $module)) return true;
 
         $table = $entityType . '_followers';
         $column = $entityType . '_id';
