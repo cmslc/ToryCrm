@@ -9,6 +9,8 @@ if ($ec) {
 }
 $deptGrouped = [];
 foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
+$fl = \App\Services\ColumnService::getLabels('quotations');
+$req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -33,7 +35,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                     <h5 class="card-title mb-3"><i class="ri-menu-line me-1"></i> Thông tin khách hàng</h5>
 
             <div class="mb-3">
-                <label class="form-label">Tìm khách hàng</label>
+                <label class="form-label"><?= $fl["contact_id"] ?? "Tìm khách hàng" ?><?= isset($req["contact_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                 <div class="d-flex gap-2">
                     <div class="flex-grow-1 position-relative">
                         <input type="hidden" name="contact_id" id="contactIdInput" value="<?= $q['contact_id'] ?? '' ?>">
@@ -45,12 +47,12 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Địa chỉ</label>
+                <label class="form-label"><?= $fl["address"] ?? "Địa chỉ" ?><?= isset($req["address"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                 <input type="text" class="form-control" name="address" id="qAddress" value="<?= e($q['address'] ?? $ec['address'] ?? '') ?>">
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Người liên hệ</label>
+                <label class="form-label"><?= $fl["contact_person_id"] ?? "Người liên hệ" ?><?= isset($req["contact_person_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                 <select class="form-select" name="contact_person_id" id="contactPersonSelect">
                     <option value="">Chọn người liên hệ</option>
                     <?php if ($q['contact_id']):
@@ -70,11 +72,11 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label">Điện thoại</label>
+                    <label class="form-label"><?= $fl["contact_phone"] ?? "Điện thoại" ?><?= isset($req["contact_phone"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                     <input type="text" class="form-control" name="contact_phone" id="qPhone" value="<?= e($q['contact_phone'] ?? $ec['company_phone'] ?? $ec['phone'] ?? '') ?>">
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label">Email</label>
+                    <label class="form-label"><?= $fl["contact_email"] ?? "Email" ?><?= isset($req["contact_email"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                     <input type="text" class="form-control" name="contact_email" id="qEmail" value="<?= e($q['contact_email'] ?? $ec['company_email'] ?? $ec['email'] ?? '') ?>">
                 </div>
             </div>
@@ -86,18 +88,18 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label">Mã báo giá</label>
+                    <label class="form-label"><?= $fl["quote_number"] ?? "Mã báo giá" ?></label>
                     <input type="text" class="form-control" value="<?= e($q['quote_number']) ?>" readonly>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label">Ngày tạo</label>
+                    <label class="form-label"><?= $fl["created_at"] ?? "Ngày tạo" ?></label>
                     <input type="date" class="form-control" name="created_date" value="<?= e(substr($q['created_at'] ?? '', 0, 10)) ?>">
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label">Người thực hiện <span class="text-danger">*</span></label>
+                    <label class="form-label"><?= $fl["owner_id"] ?? "Người thực hiện" ?><?= isset($req["owner_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                     <select name="owner_id" class="form-select searchable-select" required>
                         <option value="">Chọn</option>
                         <?php foreach ($deptGrouped as $dept => $dUsers): ?>
@@ -110,23 +112,23 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                     </select>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label">Lần báo giá</label>
+                    <label class="form-label"><?= $fl["revision"] ?? "Lần báo giá" ?></label>
                     <input type="number" class="form-control" name="revision" value="<?= (int)($q['revision'] ?? 1) ?>" min="1">
                 </div>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Mô tả</label>
+                <label class="form-label"><?= $fl["description"] ?? "Mô tả" ?></label>
                 <input type="text" class="form-control" name="description" value="<?= e($q['description'] ?? '') ?>">
             </div>
 
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label">Dự án</label>
+                    <label class="form-label"><?= $fl["project"] ?? "Dự án" ?></label>
                     <input type="text" class="form-control" name="project" value="<?= e($q['project'] ?? '') ?>">
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label">Địa điểm</label>
+                    <label class="form-label"><?= $fl["location"] ?? "Địa điểm" ?></label>
                     <input type="text" class="form-control" name="location" value="<?= e($q['location'] ?? '') ?>">
                 </div>
                 </div>
@@ -139,7 +141,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
         <div class="card-body">
             <!-- Nội dung -->
             <div class="mb-3">
-                <label class="form-label">Nội dung</label>
+                <label class="form-label"><?= $fl["content"] ?? "Nội dung" ?></label>
                 <textarea name="content" id="quoteContent" class="form-control" rows="6"><?= e($q['content'] ?? '') ?></textarea>
             </div>
 
@@ -172,7 +174,7 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
 
             <!-- Chiến dịch -->
             <div class="mb-3" style="max-width:400px">
-                <label class="form-label">Chiến dịch</label>
+                <label class="form-label"><?= $fl["campaign_id"] ?? "Chiến dịch" ?></label>
                 <select name="campaign_id" class="form-select">
                     <option value="">Mới chọn</option>
                     <?php foreach ($campaigns ?? [] as $camp): ?>
@@ -265,11 +267,11 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Ghi chú</label>
+                    <label class="form-label"><?= $fl["notes"] ?? "Ghi chú" ?></label>
                     <textarea name="notes" class="form-control" rows="3"><?= e($q['notes'] ?? '') ?></textarea>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Điều khoản</label>
+                    <label class="form-label"><?= $fl["terms"] ?? "Điều khoản" ?></label>
                     <textarea name="terms" class="form-control" rows="3"><?= e($q['terms'] ?? '') ?></textarea>
                 </div>
             </div>
