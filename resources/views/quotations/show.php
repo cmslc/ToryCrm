@@ -149,17 +149,31 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                     </div>
                 </div>
 
-                <?php if ($quotation['notes']): ?>
+                <?php if ($quotation['content'] ?? null): ?>
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0">Ghi chú</h5></div>
-                    <div class="card-body"><?= nl2br(e($quotation['notes'])) ?></div>
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-file-text-line me-1"></i> Nội dung điều khoản</h5></div>
+                    <div class="card-body"><?= $quotation['content'] ?></div>
                 </div>
                 <?php endif; ?>
 
-                <?php if ($quotation['terms']): ?>
+                <?php if (($quotation['notes'] ?? null) || ($quotation['terms'] ?? null)): ?>
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0">Điều khoản</h5></div>
-                    <div class="card-body"><?= nl2br(e($quotation['terms'])) ?></div>
+                    <div class="card-body">
+                        <div class="row">
+                            <?php if ($quotation['notes']): ?>
+                            <div class="<?= $quotation['terms'] ? 'col-md-6' : 'col-12' ?>">
+                                <h6 class="text-muted mb-2"><i class="ri-sticky-note-line me-1"></i> Ghi chú</h6>
+                                <p class="mb-0"><?= nl2br(e($quotation['notes'])) ?></p>
+                            </div>
+                            <?php endif; ?>
+                            <?php if ($quotation['terms']): ?>
+                            <div class="<?= $quotation['notes'] ? 'col-md-6' : 'col-12' ?>">
+                                <h6 class="text-muted mb-2"><i class="ri-shield-check-line me-1"></i> Điều khoản</h6>
+                                <p class="mb-0"><?= nl2br(e($quotation['terms'])) ?></p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
                 <?php endif; ?>
 
