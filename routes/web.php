@@ -197,6 +197,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('orders/{id}', 'OrderController@show');
     Router::get('orders/{id}/edit', 'OrderController@edit');
     Router::post('orders/{id}/update', 'OrderController@update');
+    Router::post('orders/{id}/followers', 'OrderController@followers');
     Router::post('orders/{id}/delete', 'OrderController@delete');
     Router::post('orders/{id}/approve', 'OrderController@approve');
     Router::post('orders/{id}/cancel', 'OrderController@cancel');
@@ -296,6 +297,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('quotations/{id}/send', 'QuotationController@send');
     Router::post('quotations/{id}/convert', 'QuotationController@convertToOrder');
     Router::post('quotations/{id}/create-contract', 'QuotationController@convertToContract');
+    Router::post('quotations/{id}/followers', 'QuotationController@followers');
     Router::post('quotations/{id}/delete', 'QuotationController@delete');
     Router::post('quotations/{id}/attachment', 'QuotationController@uploadAttachment');
     Router::post('quotations/{id}/attachment/{attachId}/delete', 'QuotationController@deleteAttachment');
@@ -361,6 +363,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('contracts/{id}/email-pdf', 'ContractController@emailPdf');
     Router::post('contracts/{id}/attachment', 'ContractController@uploadAttachment');
     Router::post('contracts/{id}/attachment/{attachId}/delete', 'ContractController@deleteAttachment');
+    Router::post('contracts/{id}/followers', 'ContractController@followers');
     Router::post('contracts/{id}/delete', 'ContractController@delete');
     Router::post('contracts/{id}/comment', 'ContractController@comment');
 

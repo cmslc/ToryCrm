@@ -9,6 +9,12 @@ use App\Controllers\WarehouseController;
 
 class OrderController extends Controller
 {
+    use \App\Traits\HasFollowers;
+
+    public function followers($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleFollowers('order', (int)$id));
+    }
     public function index()
     {
         $this->authorize('orders', 'view');

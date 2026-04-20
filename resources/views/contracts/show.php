@@ -343,6 +343,9 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
                 </div>
                 <?php endif; ?>
 
+                <!-- Người liên quan -->
+                <?php $rpEntityType = 'contract'; $rpEntityId = $contract['id']; $rpOwnerId = $contract['owner_id'] ?? 0; $rpOwnerName = $contract['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
+
                 <!-- Trao đổi (Plugin) -->
                 <?php if (function_exists('activity_exchange_render')) activity_exchange_render('contract', $contract['id']); ?>
 

@@ -278,6 +278,9 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
         </div>
         <?php endif; ?>
 
+        <!-- Người liên quan -->
+        <?php $rpEntityType = 'order'; $rpEntityId = $order['id']; $rpOwnerId = $order['owner_id'] ?? 0; $rpOwnerName = $order['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
+
         <!-- Dòng thời gian -->
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-time-line me-1"></i> Dòng thời gian</h5></div>

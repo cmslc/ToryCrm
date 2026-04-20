@@ -356,6 +356,9 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                 </div>
                 <?php endif; ?>
 
+                <!-- Người liên quan -->
+                <?php $rpEntityType = 'quotation'; $rpEntityId = $quotation['id']; $rpOwnerId = $quotation['owner_id'] ?? 0; $rpOwnerName = $quotation['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
+
                 <!-- Dòng thời gian -->
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-time-line me-1"></i> Dòng thời gian</h5></div>

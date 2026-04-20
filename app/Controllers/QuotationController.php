@@ -7,6 +7,12 @@ use Core\Database;
 
 class QuotationController extends Controller
 {
+    use \App\Traits\HasFollowers;
+
+    public function followers($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleFollowers('quotation', (int)$id));
+    }
     /**
      * List quotations with filters and stats
      */

@@ -7,6 +7,13 @@ use Core\Database;
 
 class ContractController extends Controller
 {
+    use \App\Traits\HasFollowers;
+
+    public function followers($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleFollowers('contract', (int)$id));
+    }
+
     public function index()
     {
         $search = trim($this->input('search') ?? '');
