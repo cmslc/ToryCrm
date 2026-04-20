@@ -29,8 +29,8 @@
                             <h6 class="mb-1"><?= e($node['name']) ?></h6>
                             <?php if ($node['manager_name']): ?>
                             <div class="d-flex align-items-center mb-1">
-                                <?php if (!empty($node['manager_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $node['manager_avatar'])): ?>
-                                    <img src="<?= url('uploads/avatars/' . $node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:24px;height:24px;object-fit:cover">
+                                <?php if (!empty($node['manager_avatar'])): ?>
+                                    <img src="<?= asset($node['manager_avatar']) ?>" class="rounded-circle me-2" style="width:24px;height:24px;object-fit:cover">
                                 <?php else: ?>
                                     <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-2" style="width:24px;height:24px;font-size:10px"><?= mb_strtoupper(mb_substr($node['manager_name'], 0, 1)) ?></div>
                                 <?php endif; ?>
