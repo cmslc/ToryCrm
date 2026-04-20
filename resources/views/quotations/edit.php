@@ -145,42 +145,41 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
                 <textarea name="content" id="quoteContent" class="form-control" rows="6"><?= e($q['content'] ?? '') ?></textarea>
             </div>
 
-            <!-- Tài liệu đính kèm -->
-            <div class="mb-3">
-                <label class="form-label">Tài liệu đính kèm</label>
-                <?php if (!empty($attachments)): ?>
-                <div class="list-group list-group-flush mb-2">
-                    <?php foreach ($attachments as $att):
-                        $icon = 'ri-file-line';
-                        $mime = $att['mime_type'] ?? '';
-                        if (str_contains($mime, 'pdf')) $icon = 'ri-file-pdf-line text-danger';
-                        elseif (str_contains($mime, 'word') || str_contains($mime, 'document')) $icon = 'ri-file-word-line text-primary';
-                        elseif (str_contains($mime, 'sheet') || str_contains($mime, 'excel')) $icon = 'ri-file-excel-line text-success';
-                        elseif (str_contains($mime, 'image')) $icon = 'ri-image-line text-info';
-                        $size = $att['file_size'] < 1048576 ? round($att['file_size'] / 1024) . ' KB' : round($att['file_size'] / 1048576, 1) . ' MB';
-                    ?>
-                    <div class="list-group-item d-flex align-items-center px-0">
-                        <i class="<?= $icon ?> fs-4 me-3"></i>
-                        <div class="flex-grow-1">
-                            <a href="<?= url('uploads/quotations/' . $att['filename']) ?>" target="_blank" class="fw-medium"><?= e($att['original_name']) ?></a>
-                            <div class="text-muted fs-12"><?= $size ?> &middot; <?= date('d/m/Y H:i', strtotime($att['created_at'])) ?></div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tài liệu đính kèm</label>
+                    <?php if (!empty($attachments)): ?>
+                    <div class="list-group list-group-flush mb-2">
+                        <?php foreach ($attachments as $att):
+                            $icon = 'ri-file-line';
+                            $mime = $att['mime_type'] ?? '';
+                            if (str_contains($mime, 'pdf')) $icon = 'ri-file-pdf-line text-danger';
+                            elseif (str_contains($mime, 'word') || str_contains($mime, 'document')) $icon = 'ri-file-word-line text-primary';
+                            elseif (str_contains($mime, 'sheet') || str_contains($mime, 'excel')) $icon = 'ri-file-excel-line text-success';
+                            elseif (str_contains($mime, 'image')) $icon = 'ri-image-line text-info';
+                            $size = $att['file_size'] < 1048576 ? round($att['file_size'] / 1024) . ' KB' : round($att['file_size'] / 1048576, 1) . ' MB';
+                        ?>
+                        <div class="list-group-item d-flex align-items-center px-0">
+                            <i class="<?= $icon ?> fs-4 me-3"></i>
+                            <div class="flex-grow-1">
+                                <a href="<?= url('uploads/quotations/' . $att['filename']) ?>" target="_blank" class="fw-medium"><?= e($att['original_name']) ?></a>
+                                <div class="text-muted fs-12"><?= $size ?> &middot; <?= date('d/m/Y H:i', strtotime($att['created_at'])) ?></div>
+                            </div>
                         </div>
+                        <?php endforeach; ?>
                     </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
+                    <input type="file" name="attachments[]" class="form-control" multiple>
                 </div>
-                <?php endif; ?>
-                <input type="file" name="attachments[]" class="form-control" multiple>
-            </div>
-
-            <!-- Chiến dịch -->
-            <div class="mb-3" style="max-width:400px">
-                <label class="form-label"><?= $fl["campaign_id"] ?? "Chiến dịch" ?></label>
-                <select name="campaign_id" class="form-select">
-                    <option value="">Mới chọn</option>
-                    <?php foreach ($campaigns ?? [] as $camp): ?>
-                    <option value="<?= $camp['id'] ?>" <?= ($q['campaign_id'] ?? '') == $camp['id'] ? 'selected' : '' ?>><?= e($camp['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><?= $fl["campaign_id"] ?? "Chiến dịch" ?></label>
+                    <select name="campaign_id" class="form-select">
+                        <option value="">Mới chọn</option>
+                        <?php foreach ($campaigns ?? [] as $camp): ?>
+                        <option value="<?= $camp['id'] ?>" <?= ($q['campaign_id'] ?? '') == $camp['id'] ? 'selected' : '' ?>><?= e($camp['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
         </div>
     </div>

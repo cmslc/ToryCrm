@@ -135,21 +135,20 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
                 <textarea name="content" id="quoteContent" class="form-control" rows="6"><?= $dv['content'] ?? '' ?></textarea>
             </div>
 
-            <!-- Tài liệu đính kèm -->
-            <div class="mb-3">
-                <label class="form-label">Tài liệu đính kèm</label>
-                <input type="file" name="attachments[]" class="form-control" multiple>
-            </div>
-
-            <!-- Chiến dịch -->
-            <div class="mb-3" style="max-width:400px">
-                <label class="form-label"><?= $fl["campaign_id"] ?? "Chiến dịch" ?></label>
-                <select name="campaign_id" class="form-select">
-                    <option value="">Mới chọn</option>
-                    <?php foreach ($campaigns ?? [] as $camp): ?>
-                    <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tài liệu đính kèm</label>
+                    <input type="file" name="attachments[]" class="form-control" multiple>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label"><?= $fl["campaign_id"] ?? "Chiến dịch" ?></label>
+                    <select name="campaign_id" class="form-select">
+                        <option value="">Mới chọn</option>
+                        <?php foreach ($campaigns ?? [] as $camp): ?>
+                        <option value="<?= $camp['id'] ?>"><?= e($camp['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
