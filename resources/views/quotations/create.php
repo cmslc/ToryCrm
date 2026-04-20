@@ -269,6 +269,7 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
 .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
 </style>
 
+<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
 // AJAX search khách hàng
 var csTimer = null;
@@ -505,7 +506,7 @@ addItem();
 
 // CKEditor for content
 if (typeof CKEDITOR !== 'undefined') {
-    CKEDITOR.replace('quoteContent', { height: 200 });
+    CKEDITOR.replace('quoteContent', { language: 'vi', height: 250, allowedContent: true });
 }
 
 </script>

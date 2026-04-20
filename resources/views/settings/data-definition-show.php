@@ -204,7 +204,7 @@
 
 <!-- Modal sửa trường -->
 <div class="modal fade" id="editFieldModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <form method="POST" action="<?= url('settings/data-definition/' . $module . '/update-field') ?>" id="editFieldForm">
             <?= csrf_field() ?>
             <input type="hidden" name="field_name" id="efName">
@@ -239,7 +239,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Giá trị mặc định</label>
-                        <textarea class="form-control" name="default_value" id="efDefault" rows="2" placeholder="Giá trị tự động điền khi tạo mới"></textarea>
+                        <textarea class="form-control" name="default_value" id="efDefault" rows="4" placeholder="Giá trị tự động điền khi tạo mới"></textarea>
                         <small class="text-muted">Để trống nếu không cần giá trị mặc định</small>
                     </div>
                 </div>
@@ -252,6 +252,7 @@
     </div>
 </div>
 
+<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
 <script>
 // Edit field modal
 document.querySelectorAll('.edit-field-btn').forEach(function(btn) {
@@ -261,11 +262,36 @@ document.querySelectorAll('.edit-field-btn').forEach(function(btn) {
         document.getElementById('efLabel').value = this.dataset.label;
         document.getElementById('efRequired').checked = this.dataset.required === '1';
         document.getElementById('efDuplicate').checked = this.dataset.duplicate === '1';
-        document.getElementById('efDefault').value = this.dataset.default || '';
+        var defaultVal = this.dataset.default || '';
+        var fieldName = this.dataset.name;
+        var richFields = ['content', 'terms', 'notes', 'description'];
+
+        // Destroy existing CKEditor instance
+        if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.efDefault) {
+            CKEDITOR.instances.efDefault.destroy();
+        }
+
+        document.getElementById('efDefault').value = defaultVal;
         document.getElementById('efIsCustom').value = this.dataset.custom;
         document.getElementById('efCfId').value = this.dataset.cfid;
-        new bootstrap.Modal(document.getElementById('editFieldModal')).show();
+
+        var modal = new bootstrap.Modal(document.getElementById('editFieldModal'));
+        modal.show();
+
+        // Init CKEditor for rich text fields
+        if (richFields.includes(fieldName) && typeof CKEDITOR !== 'undefined') {
+            setTimeout(function() {
+                CKEDITOR.replace('efDefault', { language: 'vi', height: 200, allowedContent: true });
+            }, 300);
+        }
     });
+});
+
+// Sync CKEditor data before form submit
+document.getElementById('editFieldForm')?.addEventListener('submit', function() {
+    if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.efDefault) {
+        CKEDITOR.instances.efDefault.updateElement();
+    }
 });
 
 document.getElementById('activeCount').textContent = <?= $activeCount ?>;
