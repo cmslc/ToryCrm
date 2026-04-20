@@ -343,74 +343,14 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
                 </div>
                 <?php endif; ?>
 
-                <!-- COMMENT BOX -->
-                <div class="mb-4">
-                    <form method="POST" action="<?= url('contracts/' . $contract['id'] . '/comment') ?>">
-                        <?= csrf_field() ?>
-                        <textarea name="content" class="form-control mb-2" rows="3" placeholder="Nhập bình luận..."></textarea>
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Gửi</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- COMMENTS / ACTIVITY -->
-                <?php
-                // Auto-generated activity entries
-                $activityItems = [];
-                // Contract creation
-                if (!empty($contract['created_at'])) {
-                    $activityItems[] = [
-                        'user_name' => $contract['created_by_name'] ?? '-',
-                        'user_avatar' => null,
-                        'content' => 'Tạo hợp đồng <span class="text-primary">Số: ' . e($contract['contract_number']) . '</span>',
-                        'created_at' => $contract['created_at'],
-                        'is_system' => true,
-                    ];
-                }
-                // Signed
-                if (!empty($contract['signed_date'])) {
-                    $activityItems[] = [
-                        'user_name' => $contract['owner_name'] ?? '-',
-                        'user_avatar' => null,
-                        'content' => 'Duyệt hợp đồng <span class="text-primary">Số: ' . e($contract['contract_number']) . '</span>',
-                        'created_at' => $contract['signed_date'] . ' 00:00:00',
-                        'is_system' => true,
-                    ];
-                }
-                // User comments
-                foreach ($comments ?? [] as $cm) {
-                    $activityItems[] = [
-                        'user_name' => $cm['user_name'] ?? '-',
-                        'user_avatar' => $cm['user_avatar'] ?? null,
-                        'content' => nl2br(e($cm['content'])),
-                        'created_at' => $cm['created_at'],
-                        'is_system' => false,
-                    ];
-                }
-                // Sort by date desc
-                usort($activityItems, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
-                ?>
-                <?php foreach ($activityItems as $act): ?>
-                <div class="d-flex gap-3 mb-3 p-3 <?= $act['is_system'] ? 'bg-light' : '' ?> rounded">
-                    <div class="flex-shrink-0">
-                        <?php if (!empty($act['user_avatar'])): ?>
-                            <img src="<?= e($act['user_avatar']) ?>" class="rounded-circle" width="40" height="40" alt="">
-                        <?php else: ?>
-                            <div class="avatar-xs">
-                                <div class="avatar-title rounded-circle bg-primary text-white" style="width:40px;height:40px;font-size:14px;display:flex;align-items:center;justify-content:center"><?= mb_substr($act['user_name'], 0, 1) ?></div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <strong><?= e($act['user_name']) ?></strong>
-                            <small class="text-muted"><?= date('d/m/Y H:i', strtotime($act['created_at'])) ?></small>
-                        </div>
-                        <div><?= $act['content'] ?></div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
+                <!-- Trao đổi (Plugin) -->
+                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
+                    $entityType = 'contract';
+                    $entityId = $contract['id'];
+                    $activities = \App\Services\ActivityService::getActivities('contract', (int)$contract['id'], $_SESSION['user']['id'] ?? 0);
+                    $allUsers = \App\Services\ActivityService::getAllUsers();
+                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
+                endif; ?>
 
             </div>
         </div>

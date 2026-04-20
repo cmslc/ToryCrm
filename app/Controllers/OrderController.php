@@ -379,9 +379,18 @@ class OrderController extends Controller
             [$id]
         );
 
+        $activities = [];
+        $allUsers = [];
+        if (function_exists('plugin_active') && plugin_active('activity-exchange')) {
+            $activities = \App\Services\ActivityService::getActivities('order', (int)$id, $this->userId());
+            $allUsers = \App\Services\ActivityService::getAllUsers();
+        }
+
         return $this->view('orders.show', [
             'order' => $order,
             'items' => $items,
+            'activities' => $activities,
+            'allUsers' => $allUsers,
         ]);
     }
 

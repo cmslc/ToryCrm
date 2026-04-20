@@ -502,32 +502,13 @@ class ContactController extends Controller
             return $this->redirect('contacts');
         }
 
-        $activities = Database::fetchAll(
-            "SELECT a.*, u.name as user_name, u.avatar as user_avatar,
-                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'like') as likes,
-                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'dislike') as dislikes,
-                    (SELECT type FROM activity_reactions WHERE activity_id = a.id AND user_id = ? LIMIT 1) as my_reaction
-             FROM activities a
-             LEFT JOIN users u ON a.user_id = u.id
-             WHERE a.contact_id = ? AND a.parent_id IS NULL
-             ORDER BY a.created_at ASC
-             LIMIT 50",
-            [$this->userId(), $id]
-        );
-
-        // Load replies with reactions for each activity
-        $uid = $this->userId();
-        foreach ($activities as &$act) {
-            $act['replies'] = Database::fetchAll(
-                "SELECT a.*, u.name as user_name, u.avatar as user_avatar,
-                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'like') as likes,
-                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'dislike') as dislikes,
-                    (SELECT type FROM activity_reactions WHERE activity_id = a.id AND user_id = ? LIMIT 1) as my_reaction
-                 FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.parent_id = ? ORDER BY a.created_at ASC",
-                [$uid, $act['id']]
-            );
+        // Activities (via plugin)
+        $activities = [];
+        $allUsers = [];
+        if (function_exists('plugin_active') && plugin_active('activity-exchange')) {
+            $activities = \App\Services\ActivityService::getActivities('contact', (int)$id, $this->userId());
+            $allUsers = \App\Services\ActivityService::getAllUsers();
         }
-        unset($act);
 
         // Split view partial (no layout)
         if ($this->input('partial')) {

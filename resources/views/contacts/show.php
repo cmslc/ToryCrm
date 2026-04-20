@@ -448,7 +448,16 @@
 
                             <!-- Tab: Trao đổi -->
                             <div class="tab-pane fade show active" id="tab-exchange" role="tabpanel">
-                                <!-- Compose Area (below feed) -->
+                                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
+                                    $entityType = 'contact';
+                                    $entityId = $contact['id'];
+                                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
+                                else: ?>
+                                    <div class="text-center py-5"><i class="ri-chat-3-line fs-48 text-muted"></i><p class="text-muted mt-2">Plugin trao đổi chưa được bật</p></div>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if(false): /* OLD INLINE CODE REMOVED */ ?>
                                 <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="composeForm" style="display:none">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="contact_id" value="<?= $contact['id'] ?>">
@@ -634,6 +643,7 @@
                                 </div>
 
                             </div>
+                            <?php endif; /* END OLD INLINE CODE */ ?>
 
                             <!-- Tab: Cơ hội -->
                             <div class="tab-pane" id="tab-deals" role="tabpanel">
@@ -1406,11 +1416,10 @@
         </div>
 
 <script>
-// Check-in GPS
-// Move compose form below feed
-(function(){
-    var form = document.getElementById('composeForm');
-    var feed = document.getElementById('activityFeed');
+/* Activity exchange JS moved to partials/activity-exchange.php */
+if(false){
+    var form = document.getElementById('_removed');
+    var feed = document.getElementById('_removed');
     if (form && feed) {
         feed.parentNode.insertBefore(feed, form);
         form.style.display = '';
@@ -1718,8 +1727,6 @@ function uploadContactAvatar(input) {
             }
         });
 }
-// Auto-scroll activity feed to bottom (newest)
-var feed = document.getElementById('activityFeed');
-if (feed) feed.scrollTop = feed.scrollHeight;
+} /* end if(false) - old activity JS removed */
 </script>
 

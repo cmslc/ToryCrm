@@ -135,7 +135,11 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                 </div>
                 <?php endif; ?>
 
-                <?php $chatEntityType = 'order'; $chatEntityId = $order['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
+                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
+                    $entityType = 'order';
+                    $entityId = $order['id'];
+                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
+                endif; ?>
             </div>
 
             <div class="col-lg-4">

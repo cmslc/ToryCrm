@@ -197,6 +197,8 @@ class ActivityController extends Controller
             'deal_id' => $data['deal_id'] ?? null,
             'company_id' => $data['company_id'] ?? null,
             'quotation_id' => $data['quotation_id'] ?? null,
+            'order_id' => $data['order_id'] ?? null,
+            'contract_id' => $data['contract_id'] ?? null,
             'scheduled_at' => $data['scheduled_at'] ?? null,
         ]);
 
