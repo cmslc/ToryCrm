@@ -68,8 +68,9 @@
         /* Footer */
         .footer { text-align: center; padding: 15px 40px; border-top: 1px solid #eee; color: #aaa; font-size: 10px; }
 
+        @page { margin: 10mm 15mm; }
         @media print {
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
             .page { page-break-after: avoid; }
         }
     </style>
