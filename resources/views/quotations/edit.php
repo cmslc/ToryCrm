@@ -54,13 +54,15 @@ foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phò
                 <select class="form-select" name="contact_person_id" id="contactPersonSelect">
                     <option value="">Chọn người liên hệ</option>
                     <?php if ($q['contact_id']):
-                        $cpList = \Core\Database::fetchAll("SELECT id, title, full_name, phone, email, position FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id", [$q['contact_id']]);
+                        $cpList = \Core\Database::fetchAll("SELECT id, title, full_name, phone, email, position, is_primary FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id", [$q['contact_id']]);
+                        $savedCpId = $q['contact_person_id'] ?? null;
+                        if (!$savedCpId && !empty($cpList)) $savedCpId = $cpList[0]['id'];
                         foreach ($cpList as $cp):
                     ?>
                     <option value="<?= $cp['id'] ?>"
                         data-phone="<?= e($cp['phone'] ?? '') ?>"
                         data-email="<?= e($cp['email'] ?? '') ?>"
-                        <?= ($q['contact_person_id'] ?? '') == $cp['id'] ? 'selected' : '' ?>
+                        <?= $savedCpId == $cp['id'] ? 'selected' : '' ?>
                     ><?= $cp['title'] ? e(ucfirst($cp['title'])) . ' ' : '' ?><?= e($cp['full_name']) ?><?= $cp['position'] ? ' - ' . e($cp['position']) : '' ?></option>
                     <?php endforeach; endif; ?>
                 </select>
