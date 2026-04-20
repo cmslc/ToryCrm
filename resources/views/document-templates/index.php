@@ -56,11 +56,11 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                             <tr>
                                 <td>
                                     <a href="<?= url('settings/document-templates/' . $t['id'] . '/edit') ?>" class="fw-medium"><?= e($t['name']) ?></a>
-                                    <?php if ($t['description']): ?><br><small class="text-muted"><?= e($t['description']) ?></small><?php endif; ?>
+                                    <?php if ($t['description'] ?? null): ?><br><small class="text-muted"><?= e($t['description']) ?></small><?php endif; ?>
                                 </td>
-                                <td class="text-center"><?php if ($t['is_default']): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
+                                <td class="text-center"><?php if ($t['is_default'] ?? 0): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
                                 <td class="text-center">
-                                    <?php if ($t['is_active']): ?><span class="badge bg-success">Hoạt động</span>
+                                    <?php if ($t['is_active'] ?? 0): ?><span class="badge bg-success">Hoạt động</span>
                                     <?php else: ?><span class="badge bg-secondary">Tắt</span><?php endif; ?>
                                 </td>
                                 <td><?= e($t['creator_name'] ?? '-') ?></td>
@@ -108,11 +108,11 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                             <tr>
                                 <td>
                                     <a href="<?= url('settings/document-templates/' . $t['id'] . '/edit') ?>" class="fw-medium"><?= e($t['name']) ?></a>
-                                    <?php if ($t['description']): ?><br><small class="text-muted"><?= e($t['description']) ?></small><?php endif; ?>
+                                    <?php if ($t['description'] ?? null): ?><br><small class="text-muted"><?= e($t['description']) ?></small><?php endif; ?>
                                 </td>
-                                <td class="text-center"><?php if ($t['is_default']): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
+                                <td class="text-center"><?php if ($t['is_default'] ?? 0): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
                                 <td class="text-center">
-                                    <?php if ($t['is_active']): ?><span class="badge bg-success">Hoạt động</span>
+                                    <?php if ($t['is_active'] ?? 0): ?><span class="badge bg-success">Hoạt động</span>
                                     <?php else: ?><span class="badge bg-secondary">Tắt</span><?php endif; ?>
                                 </td>
                                 <td><?= e($t['creator_name'] ?? '-') ?></td>

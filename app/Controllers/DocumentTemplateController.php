@@ -31,7 +31,7 @@ class DocumentTemplateController extends Controller
         $whereClause = implode(' AND ', $where);
 
         $templates = Database::fetchAll(
-            "SELECT t.*, u.name as creator_name
+            "SELECT t.id, t.name, t.type, t.description, t.is_default, t.is_active, t.created_by, t.created_at, u.name as creator_name
              FROM document_templates t
              LEFT JOIN users u ON t.created_by = u.id
              WHERE {$whereClause}
