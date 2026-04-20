@@ -303,14 +303,12 @@ class QuotationController extends Controller
                     c.address as c_address, c.tax_code as c_tax_code, c.account_code as c_account_code,
                     u.name as owner_name,
                     d.title as deal_title,
-                    uc.name as created_by_name,
-                    ua.name as approved_by_name
+                    uc.name as created_by_name
              FROM quotations q
              LEFT JOIN contacts c ON q.contact_id = c.id
              LEFT JOIN users u ON q.owner_id = u.id
              LEFT JOIN deals d ON q.deal_id = d.id
              LEFT JOIN users uc ON q.created_by = uc.id
-             LEFT JOIN users ua ON q.approved_by = ua.id
              WHERE q.id = ? AND q.tenant_id = ?",
             [$id, Database::tenantId()]
         );
