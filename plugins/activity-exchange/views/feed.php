@@ -239,6 +239,11 @@ function reactActivity(id, type, el) {
     });
 }
 
+// Highlight @mentions in JS
+function highlightMentions(text) {
+    return text.replace(/@([^\s,\.]+(?:\s[^\s,\.@]+){0,4})/g, '<span class="text-primary fw-medium">@$1</span>');
+}
+
 // Reply
 function toggleReplyBox(id) { var box=document.getElementById('replyBox-'+id); box.classList.toggle('d-none'); if(!box.classList.contains('d-none'))document.getElementById('replyInput-'+id).focus(); }
 function submitReply(id) {
@@ -254,7 +259,7 @@ function submitReply(id) {
         var actions='<div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px"><span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity('+r.id+',\'like\',this)"><i class="ri-thumb-up-line"></i></span><span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity('+r.id+',\'dislike\',this)"><i class="ri-thumb-down-line"></i></span><span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox('+id+')"><i class="ri-reply-line"></i> Trả lời</span></div>';
         var attachHtml='';
         if(r.attachment){var aExt=r.attachment.split('.').pop().toLowerCase();var isImg=['jpg','jpeg','png','gif','webp'].indexOf(aExt)!==-1;if(isImg){attachHtml='<div class="mt-1"><a href="/'+r.attachment+'" target="_blank"><img src="/'+r.attachment+'" class="rounded border" style="max-width:200px;max-height:120px"></a></div>';}else{attachHtml='<div class="mt-1"><a href="/'+r.attachment+'" target="_blank" class="text-primary" style="font-size:12px"><i class="ri-file-line me-1"></i>'+(r.attachment_name||r.attachment.split('/').pop())+'</a></div>';}}
-        var html='<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">'+avatar+'<div class="flex-grow-1"><strong style="font-size:13px">'+r.user_name+'</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">'+(r.title||'')+'</div>'+attachHtml+actions+'</div></div>';
+        var html='<div class="d-flex gap-2 py-2" style="border-bottom:1px solid #f8f8f8">'+avatar+'<div class="flex-grow-1"><strong style="font-size:13px">'+r.user_name+'</strong> <small class="text-muted">vừa xong</small><div style="font-size:13px">'+highlightMentions(r.title||'')+'</div>'+attachHtml+actions+'</div></div>';
         var box=document.getElementById('replyBox-'+id);
         if(fileInput)fileInput.value='';
         var repliesDiv=box.previousElementSibling;
@@ -301,6 +306,14 @@ function submitReply(id) {
     document.addEventListener('keydown',function(e){if(e.key==='Escape')dd.style.display='none';});
     document.addEventListener('click',function(e){if(!dd.contains(e.target))dd.style.display='none';});
 })();
+
+// Enter to send (Shift+Enter for new line)
+document.getElementById('activityTextarea')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.closest('form').submit();
+    }
+});
 
 // Auto-scroll
 var _feed=document.getElementById('activityFeed');if(_feed)_feed.scrollTop=_feed.scrollHeight;
