@@ -1414,10 +1414,7 @@
         </div>
 
 <script>
-/* Activity exchange JS moved to partials/activity-exchange.php */
-if(false){
-    var form = document.getElementById('_removed');
-    var feed = document.getElementById('_removed');
+/*
     if (form && feed) {
         feed.parentNode.insertBefore(feed, form);
         form.style.display = '';
@@ -1725,6 +1722,6 @@ function uploadContactAvatar(input) {
             }
         });
 }
-} /* end if(false) - old activity JS removed */
+*/
 </script>
 
