@@ -13,25 +13,25 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
     </div>
 </div>
 
-<!-- Nav tabs -->
-<ul class="nav nav-tabs mb-3" role="tablist">
-    <li class="nav-item">
-        <a class="nav-link <?= $activeTab === 'quotation' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-quotation" role="tab">
-            <i class="ri-file-list-2-line me-1"></i> Mẫu báo giá <span class="badge bg-primary ms-1"><?= count($quotationTemplates) ?></span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link <?= $activeTab === 'contract' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-contract" role="tab">
-            <i class="ri-file-text-line me-1"></i> Mẫu hợp đồng <span class="badge bg-success ms-1"><?= count($contractTemplates) ?></span>
-        </a>
-    </li>
-</ul>
-
-<div class="tab-content">
-    <!-- Tab Báo giá -->
-    <div class="tab-pane <?= $activeTab === 'quotation' ? 'active show' : '' ?>" id="tab-quotation" role="tabpanel">
-        <div class="card">
-            <div class="card-body">
+<div class="card">
+    <div class="card-header p-0 border-0">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link <?= $activeTab === 'quotation' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-quotation" role="tab">
+                    <i class="ri-file-list-2-line me-1"></i> Mẫu báo giá <span class="badge bg-primary ms-1"><?= count($quotationTemplates) ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= $activeTab === 'contract' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-contract" role="tab">
+                    <i class="ri-file-text-line me-1"></i> Mẫu hợp đồng <span class="badge bg-success ms-1"><?= count($contractTemplates) ?></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Tab Báo giá -->
+            <div class="tab-pane <?= $activeTab === 'quotation' ? 'active show' : '' ?>" id="tab-quotation" role="tabpanel">
                 <?php if (empty($quotationTemplates)): ?>
                 <div class="text-center text-muted py-5">
                     <i class="ri-file-list-2-line" style="font-size:48px"></i>
@@ -81,13 +81,9 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                 </div>
                 <?php endif; ?>
             </div>
-        </div>
-    </div>
 
-    <!-- Tab Hợp đồng -->
-    <div class="tab-pane <?= $activeTab === 'contract' ? 'active show' : '' ?>" id="tab-contract" role="tabpanel">
-        <div class="card">
-            <div class="card-body">
+            <!-- Tab Hợp đồng -->
+            <div class="tab-pane <?= $activeTab === 'contract' ? 'active show' : '' ?>" id="tab-contract" role="tabpanel">
                 <?php if (empty($contractTemplates)): ?>
                 <div class="text-center text-muted py-5">
                     <i class="ri-file-text-line" style="font-size:48px"></i>
