@@ -29,3 +29,5 @@ body {
 select.searchable-select {
   display: none !important;
 }
+/* Hide CKEditor security notification */
+.cke_notification_warning { display: none !important; }
