@@ -362,11 +362,7 @@ document.getElementById('contactPersonSelect')?.addEventListener('change', funct
     }
 });
 
-// Load persons for existing contact and select the saved one
-<?php if ($q['contact_id']): ?>
-var savedPersonId = '<?= (int)($q['contact_person_id'] ?? 0) ?>';
-loadPersons(<?= (int)$q['contact_id'] ?>, savedPersonId);
-<?php endif; ?>
+// Persons already rendered by PHP, only use loadPersons when changing contact
 
 // === Sản phẩm ===
 let itemIndex = 0;
