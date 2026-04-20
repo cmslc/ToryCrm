@@ -269,7 +269,14 @@ function submitReply(id) {
     var users=<?= json_encode(array_map(function($u){return['id'=>$u['id'],'name'=>$u['name'],'avatar'=>$u['avatar']??null];}, $_allUsers)) ?>;
     var dd=document.createElement('div');dd.className='border rounded bg-white shadow';dd.style.cssText='position:fixed;z-index:1070;display:none;max-height:250px;overflow-y:auto;width:280px';document.body.appendChild(dd);
     var activeInput=null;
-    function updatePos(){if(!activeInput||dd.style.display==='none')return;var rect=activeInput.getBoundingClientRect();dd.style.top=(rect.bottom+4)+'px';dd.style.left=rect.left+'px';}
+    function updatePos(){
+        if(!activeInput||dd.style.display==='none')return;
+        var rect=activeInput.getBoundingClientRect();
+        var spaceBelow=window.innerHeight-rect.bottom;
+        if(spaceBelow>200){dd.style.top=(rect.bottom+4)+'px';dd.style.bottom='auto';}
+        else{dd.style.bottom=(window.innerHeight-rect.top+4)+'px';dd.style.top='auto';}
+        dd.style.left=Math.max(rect.left,10)+'px';
+    }
     window.addEventListener('scroll',updatePos,true);
     window.pickMention=function(name,id){
         if(!activeInput)return;var val=activeInput.value;var pos=activeInput.selectionStart;var before=val.substring(0,pos);var after=val.substring(pos);
