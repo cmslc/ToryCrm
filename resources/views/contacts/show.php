@@ -218,7 +218,8 @@
                         users.forEach(function(u) {
                             if (existing.includes(u.id)) return;
                             if (u.name.toLowerCase().indexOf(q) === -1) return;
-                            html += '<a class="dropdown-item" href="#" data-id="' + u.id + '" data-name="' + u.name + '">' + u.name + '</a>';
+                            var av = u.avatar ? '<img src="/' + u.avatar + '" class="rounded-circle me-2" width="28" height="28" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width:28px;height:28px;font-size:11px">' + u.name.charAt(0).toUpperCase() + '</span>';
+                            html += '<a class="dropdown-item d-flex align-items-center" href="#" data-id="' + u.id + '" data-name="' + u.name + '">' + av + '<div><div class="fw-medium">' + u.name + '</div>' + (u.dept_name ? '<small class="text-muted">' + u.dept_name + '</small>' : '') + '</div></a>';
                         });
                         dd.innerHTML = html || '<span class="dropdown-item text-muted">Không tìm thấy</span>';
                         dd.style.display = 'block';
@@ -238,9 +239,12 @@
                             if (d.success) {
                                 existing.push(uid);
                                 var span = document.createElement('span');
-                                span.className = 'badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2';
+                                span.className = 'badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-12 fw-normal';
                                 span.dataset.uid = uid;
-                                span.innerHTML = name + ' <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(' + uid + ', this)"></i>';
+                                var av = '';
+                                users.forEach(function(u2) { if (u2.id === uid && u2.avatar) av = u2.avatar; });
+                                var avHtml = av ? '<img src="/' + av + '" class="rounded-circle" width="20" height="20" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px">' + name.charAt(0).toUpperCase() + '</span>';
+                                span.innerHTML = avHtml + ' ' + name + ' <i class="ri-close-line text-muted" style="cursor:pointer;font-size:14px" onclick="removeFollower(' + uid + ', this)"></i>';
                                 tags.appendChild(span);
                                 input.value = '';
                                 dd.style.display = 'none';
