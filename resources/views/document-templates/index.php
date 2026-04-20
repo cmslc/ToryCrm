@@ -14,8 +14,8 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
 </div>
 
 <div class="card">
-    <div class="card-header p-0 border-0">
-        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+    <div class="card-header">
+        <ul class="nav nav-tabs-custom card-header-tabs border-bottom-0" role="tablist">
             <li class="nav-item">
                 <a class="nav-link <?= $activeTab === 'quotation' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-quotation" role="tab">
                     <i class="ri-file-list-2-line me-1"></i> Mẫu báo giá <span class="badge bg-primary ms-1"><?= count($quotationTemplates) ?></span>
