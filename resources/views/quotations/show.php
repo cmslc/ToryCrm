@@ -210,94 +210,141 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
             </div>
 
             <div class="col-lg-4">
-                <!-- Info card -->
+                <!-- Thông tin -->
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0">Thông tin</h5></div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Hiệu lực đến</span>
-                            <?php if ($quotation['valid_until']): ?>
-                                <?php $isExpired = $quotation['valid_until'] < date('Y-m-d'); ?>
-                                <span class="badge bg-<?= $isExpired ? 'danger' : 'success' ?>"><?= format_date($quotation['valid_until']) ?></span>
-                            <?php else: ?>
-                                <span>-</span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Người phụ trách</span>
-                            <span><?= e($quotation['owner_name'] ?? '-') ?></span>
-                        </div>
-                        <?php if ($quotation['deal_title']): ?>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Cơ hội</span>
-                            <a href="<?= url('deals/' . $quotation['deal_id']) ?>"><?= e($quotation['deal_title']) ?></a>
-                        </div>
-                        <?php endif; ?>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Lượt xem</span>
-                            <span><i class="ri-eye-line me-1"></i><?= (int)($quotation['view_count'] ?? 0) ?></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Người tạo</span>
-                            <span><?= e($quotation['created_by_name'] ?? '-') ?></span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted">Ngày tạo</span>
-                            <span><?= format_datetime($quotation['created_at']) ?></span>
-                        </div>
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-information-line me-1"></i> Thông tin</h5></div>
+                    <div class="card-body p-0">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted" style="width:40%">Trạng thái</td>
+                                    <td><span class="badge bg-<?= $sc[$quotation['status']] ?? 'secondary' ?>"><?= $sl[$quotation['status']] ?? '' ?></span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Hiệu lực đến</td>
+                                    <td>
+                                        <?php if ($quotation['valid_until']):
+                                            $isExpired = $quotation['valid_until'] < date('Y-m-d');
+                                        ?>
+                                            <span class="<?= $isExpired ? 'text-danger' : 'text-success' ?>"><?= format_date($quotation['valid_until']) ?></span>
+                                            <?php if ($isExpired): ?><span class="badge bg-danger ms-1">Hết hạn</span><?php endif; ?>
+                                        <?php else: ?>-<?php endif; ?>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Người thực hiện</td>
+                                    <td class="fw-medium"><?= e($quotation['owner_name'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Người tạo</td>
+                                    <td><?= e($quotation['created_by_name'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Ngày tạo</td>
+                                    <td><?= format_datetime($quotation['created_at']) ?></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Lượt xem</td>
+                                    <td><i class="ri-eye-line me-1 text-muted"></i><?= (int)($quotation['view_count'] ?? 0) ?></td>
+                                </tr>
+                                <?php if ($quotation['deal_title']): ?>
+                                <tr>
+                                    <td class="text-muted">Cơ hội</td>
+                                    <td><a href="<?= url('deals/' . $quotation['deal_id']) ?>"><?= e($quotation['deal_title']) ?></a></td>
+                                </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Portal Link -->
+                <!-- Link khách hàng -->
                 <?php if ($quotation['portal_token']): ?>
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-link me-1"></i> Link khách hàng</h5></div>
                     <div class="card-body">
                         <div class="input-group">
-                            <input type="text" class="form-control" id="portalLink" value="<?= url('quote/' . $quotation['portal_token']) ?>" readonly>
-                            <button class="btn btn-soft-primary" onclick="navigator.clipboard.writeText(document.getElementById('portalLink').value); this.innerHTML='<i class=\'ri-check-line\'></i>'">
-                                <i class="ri-file-copy-line"></i>
+                            <input type="text" class="form-control bg-light" id="portalLink" value="<?= url('quote/' . $quotation['portal_token']) ?>" readonly>
+                            <button class="btn btn-soft-primary" id="copyLinkBtn" onclick="navigator.clipboard.writeText(document.getElementById('portalLink').value).then(function(){var b=document.getElementById('copyLinkBtn');b.innerHTML='<i class=\'ri-check-line\'></i> Đã sao chép';b.classList.add('btn-success');b.classList.remove('btn-soft-primary');setTimeout(function(){b.innerHTML='<i class=\'ri-file-copy-line\'></i> Sao chép';b.classList.remove('btn-success');b.classList.add('btn-soft-primary')},2000)})">
+                                <i class="ri-file-copy-line"></i> Sao chép
                             </button>
                         </div>
-                        <small class="text-muted mt-1 d-block">Chia sẻ link này để khách hàng xem và phản hồi báo giá.</small>
+                        <small class="text-muted mt-2 d-block"><i class="ri-information-line me-1"></i>Chia sẻ link để khách hàng xem và phản hồi báo giá.</small>
                     </div>
                 </div>
                 <?php endif; ?>
 
-                <!-- Timeline -->
+                <!-- Dòng thời gian -->
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-time-line me-1"></i> Dòng thời gian</h5></div>
                     <div class="card-body">
-                        <div class="timeline-sm">
-                            <div class="timeline-sm-item">
-                                <span class="timeline-sm-date"><?= format_datetime($quotation['created_at']) ?></span>
-                                <h6 class="mb-0">Tạo báo giá</h6>
+                        <div class="acitivity-timeline acitivity-main">
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-primary text-primary"><i class="ri-add-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Tạo báo giá</h6>
+                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['created_at']) ?></small></p>
+                                </div>
                             </div>
+
                             <?php if ($quotation['sent_at'] ?? null): ?>
-                            <div class="timeline-sm-item">
-                                <span class="timeline-sm-date"><?= format_datetime($quotation['sent_at']) ?></span>
-                                <h6 class="mb-0 text-info">Đã gửi</h6>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-info text-info"><i class="ri-mail-send-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Đã gửi khách hàng</h6>
+                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['sent_at']) ?></small></p>
+                                </div>
                             </div>
                             <?php endif; ?>
+
                             <?php if (($quotation['view_count'] ?? 0) > 0): ?>
-                            <div class="timeline-sm-item">
-                                <span class="timeline-sm-date">Đã xem <?= $quotation['view_count'] ?> lần</span>
-                                <h6 class="mb-0 text-primary">Khách hàng đã xem</h6>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-warning text-warning"><i class="ri-eye-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Khách hàng đã xem</h6>
+                                    <p class="text-muted mb-0"><small><?= $quotation['view_count'] ?> lượt xem<?= ($quotation['last_viewed_at'] ?? null) ? ' · Lần cuối: ' . format_datetime($quotation['last_viewed_at']) : '' ?></small></p>
+                                </div>
                             </div>
                             <?php endif; ?>
+
                             <?php if ($quotation['accepted_at']): ?>
-                            <div class="timeline-sm-item">
-                                <span class="timeline-sm-date"><?= format_datetime($quotation['accepted_at']) ?></span>
-                                <h6 class="mb-0 text-success">Khách hàng chấp nhận</h6>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-success text-success"><i class="ri-check-double-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1 text-success">Khách hàng chấp nhận</h6>
+                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['accepted_at']) ?></small></p>
+                                </div>
                             </div>
                             <?php endif; ?>
+
                             <?php if ($quotation['rejected_at']): ?>
-                            <div class="timeline-sm-item">
-                                <span class="timeline-sm-date"><?= format_datetime($quotation['rejected_at']) ?></span>
-                                <h6 class="mb-0 text-danger">Khách hàng từ chối</h6>
-                                <?php if ($quotation['reject_reason']): ?>
-                                    <p class="text-muted mb-0"><?= e($quotation['reject_reason']) ?></p>
-                                <?php endif; ?>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-danger text-danger"><i class="ri-close-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1 text-danger">Khách hàng từ chối</h6>
+                                    <?php if ($quotation['reject_reason']): ?><p class="text-muted mb-1"><small><?= e($quotation['reject_reason']) ?></small></p><?php endif; ?>
+                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['rejected_at']) ?></small></p>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>
@@ -306,10 +353,10 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
 
                 <?php if ($quotation['converted_order_id'] ?? null): ?>
                 <div class="card border-success">
-                    <div class="card-body text-center">
-                        <i class="ri-checkbox-circle-line text-success fs-1"></i>
-                        <p class="mb-2">Đã chuyển thành đơn hàng</p>
-                        <a href="<?= url('orders/' . $quotation['converted_order_id']) ?>" class="btn btn-success">Xem đơn hàng</a>
+                    <div class="card-body text-center py-4">
+                        <i class="ri-checkbox-circle-line text-success" style="font-size:40px"></i>
+                        <h6 class="mt-2 mb-3">Đã chuyển thành đơn hàng</h6>
+                        <a href="<?= url('orders/' . $quotation['converted_order_id']) ?>" class="btn btn-success"><i class="ri-shopping-cart-line me-1"></i>Xem đơn hàng</a>
                     </div>
                 </div>
                 <?php endif; ?>
