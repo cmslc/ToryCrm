@@ -54,7 +54,6 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
             <div class="col-lg-8">
                 <!-- Quotation Info -->
                 <div class="card">
-                    <div class="card-header">
                     <div class="card-body">
                         <div class="row mb-4">
                             <div class="col-md-6">
