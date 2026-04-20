@@ -171,6 +171,7 @@ class EmailController extends Controller
 
         $contactEmail = $this->input('to');
         $prefillSubject = $this->input('subject') ?? '';
+        $prefillBody = $this->input('body') ?? '';
         $quotationId = $this->input('quotation_id') ? (int)$this->input('quotation_id') : null;
 
         // Template
@@ -181,7 +182,7 @@ class EmailController extends Controller
         }
         $templates = Database::fetchAll("SELECT id, name FROM email_templates WHERE tenant_id = ? ORDER BY name", [Database::tenantId()]);
 
-        return $this->view('email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'draftMsg', 'contactEmail', 'prefillSubject', 'quotationId', 'template', 'templates'));
+        return $this->view('email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'draftMsg', 'contactEmail', 'prefillSubject', 'prefillBody', 'quotationId', 'template', 'templates'));
     }
 
     public function send()

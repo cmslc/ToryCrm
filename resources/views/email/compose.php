@@ -5,7 +5,7 @@ $isForward = !empty($forwardMsg);
 $isDraft = !empty($draftMsg);
 $defaultTo = $contactEmail ?? ($isReply ? $replyMsg['from_email'] : ($isDraft ? ($draftMsg['to_emails'] ?? '') : ''));
 $defaultSubject = $isReply ? 'Re: ' . ($replyMsg['subject'] ?? '') : ($isForward ? 'Fwd: ' . ($forwardMsg['subject'] ?? '') : ($isDraft ? ($draftMsg['subject'] ?? '') : (($prefillSubject ?? '') ?: ($template['subject'] ?? ''))));
-$defaultBody = $isDraft ? ($draftMsg['body_html'] ?? '') : ($template['body'] ?? '');
+$defaultBody = $isDraft ? ($draftMsg['body_html'] ?? '') : (($prefillBody ?? '') ? nl2br(e($prefillBody)) : ($template['body'] ?? ''));
 $defaultCc = $isDraft ? ($draftMsg['cc_emails'] ?? '') : '';
 ?>
 

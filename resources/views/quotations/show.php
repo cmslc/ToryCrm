@@ -32,9 +32,14 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                 <?php if ($quotation['status'] === 'approved'):
                     $sendTo = $quotation['contact_email'] ?: ($quotation['c_company_email'] ?? $quotation['c_email'] ?? '');
                     $sendSubject = 'Báo giá ' . $quotation['quote_number'] . ' - ' . (\App\Services\BrandingService::get()['name'] ?? '');
+                    $sendName = $quotation['c_company_name'] ?? ($quotation['c_full_name'] ?? '');
+                    $brandName = \App\Services\BrandingService::get()['name'] ?? '';
+                    $portalUrl = url('quote/' . $quotation['portal_token']);
+                    $sendBody = "Kính gửi {$sendName},\n\nChúng tôi xin gửi báo giá {$quotation['quote_number']} như file đính kèm.\n\nQuý khách cũng có thể xem báo giá online tại:\n{$portalUrl}\n\nTrân trọng,\n{$brandName}";
                     $composeUrl = url('email/compose') . '?' . http_build_query([
                         'to' => $sendTo,
                         'subject' => $sendSubject,
+                        'body' => $sendBody,
                         'quotation_id' => $quotation['id'],
                     ]);
                 ?>
