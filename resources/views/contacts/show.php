@@ -124,7 +124,7 @@
                             $shownIds[] = $contact['owner_id'] ?? 0;
                             $viewAllUsers = \Core\Database::fetchAll(
                                 "SELECT DISTINCT u.id, u.name FROM users u
-                                 JOIN user_groups ug ON u.id = ug.user_id
+                                 JOIN user_permission_groups ug ON u.id = ug.user_id
                                  JOIN group_permissions gp ON ug.group_id = gp.group_id
                                  JOIN permissions p ON gp.permission_id = p.id
                                  WHERE p.module = 'contacts' AND p.action IN ('view_all','view')

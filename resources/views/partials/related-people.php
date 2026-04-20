@@ -62,7 +62,7 @@ try {
             try {
                 $rpPermUsers = \Core\Database::fetchAll(
                     "SELECT DISTINCT u.id, u.name FROM users u
-                     JOIN user_groups ug ON u.id = ug.user_id
+                     JOIN user_permission_groups ug ON u.id = ug.user_id
                      JOIN group_permissions gp ON ug.group_id = gp.group_id
                      JOIN permissions p ON gp.permission_id = p.id
                      WHERE p.module = ? AND p.action IN ('view_all','view')
