@@ -135,11 +135,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                 </div>
                 <?php endif; ?>
 
-                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
-                    $entityType = 'order';
-                    $entityId = $order['id'];
-                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
-                endif; ?>
+                <?php if (function_exists('activity_exchange_render')) activity_exchange_render('order', $order['id']); ?>
             </div>
 
             <div class="col-lg-4">

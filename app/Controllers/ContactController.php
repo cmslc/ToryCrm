@@ -502,13 +502,7 @@ class ContactController extends Controller
             return $this->redirect('contacts');
         }
 
-        // Activities (via plugin)
-        $activities = [];
-        $allUsers = [];
-        if (function_exists('plugin_active') && plugin_active('activity-exchange')) {
-            $activities = \App\Services\ActivityService::getActivities('contact', (int)$id, $this->userId());
-            $allUsers = \App\Services\ActivityService::getAllUsers();
-        }
+        // Activities loaded by plugin (activity-exchange) in view
 
         // Split view partial (no layout)
         if ($this->input('partial')) {

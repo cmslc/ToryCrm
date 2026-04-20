@@ -18,6 +18,9 @@ class Application
         require_once BASE_PATH . '/app/Helpers/helpers.php';
 
         Database::init($config['database']);
+
+        // Load plugins (WordPress-style)
+        \App\Services\PluginLoader::loadAll();
     }
 
     public static function getInstance(): ?Application

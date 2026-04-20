@@ -334,13 +334,7 @@ class QuotationController extends Controller
             [$id]
         );
 
-        // Activities (via plugin)
-        $activities = [];
-        $allUsers = [];
-        if (function_exists('plugin_active') && plugin_active('activity-exchange')) {
-            $activities = \App\Services\ActivityService::getActivities('quotation', (int)$id, $this->userId());
-            $allUsers = \App\Services\ActivityService::getAllUsers();
-        }
+        // Activities loaded by plugin (activity-exchange) in view
 
         $pdfTemplates = Database::fetchAll(
             "SELECT id, name, is_default FROM document_templates WHERE tenant_id = ? AND type = 'quotation' AND is_active = 1 ORDER BY is_default DESC, name",
@@ -351,8 +345,6 @@ class QuotationController extends Controller
             'quotation' => $quotation,
             'items' => $items,
             'attachments' => $attachments,
-            'activities' => $activities,
-            'allUsers' => $allUsers,
             'pdfTemplates' => $pdfTemplates,
         ]);
     }

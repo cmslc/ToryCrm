@@ -344,13 +344,7 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
                 <?php endif; ?>
 
                 <!-- Trao đổi (Plugin) -->
-                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
-                    $entityType = 'contract';
-                    $entityId = $contract['id'];
-                    $activities = \App\Services\ActivityService::getActivities('contract', (int)$contract['id'], $_SESSION['user']['id'] ?? 0);
-                    $allUsers = \App\Services\ActivityService::getAllUsers();
-                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
-                endif; ?>
+                <?php if (function_exists('activity_exchange_render')) activity_exchange_render('contract', $contract['id']); ?>
 
             </div>
         </div>

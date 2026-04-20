@@ -247,11 +247,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                 </div>
 
                 <!-- Trao đổi (Plugin) -->
-                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
-                    $entityType = 'quotation';
-                    $entityId = $quotation['id'];
-                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
-                endif; ?>
+                <?php if (function_exists('activity_exchange_render')) activity_exchange_render('quotation', $quotation['id']); ?>
             </div>
 
             <div class="col-lg-4">

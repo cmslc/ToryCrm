@@ -448,10 +448,8 @@
 
                             <!-- Tab: Trao đổi -->
                             <div class="tab-pane fade show active" id="tab-exchange" role="tabpanel">
-                                <?php if (function_exists('plugin_active') && plugin_active('activity-exchange')):
-                                    $entityType = 'contact';
-                                    $entityId = $contact['id'];
-                                    include BASE_PATH . '/resources/views/partials/activity-exchange.php';
+                                <?php if (function_exists('activity_exchange_render')):
+                                    activity_exchange_render('contact', $contact['id']);
                                 else: ?>
                                     <div class="text-center py-5"><i class="ri-chat-3-line fs-48 text-muted"></i><p class="text-muted mt-2">Plugin trao đổi chưa được bật</p></div>
                                 <?php endif; ?>
