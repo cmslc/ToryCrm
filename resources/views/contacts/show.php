@@ -118,9 +118,12 @@
                                 if (in_array($f['user_id'], $shownIds)) continue;
                                 $shownIds[] = $f['user_id'];
                             ?>
-                                <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
+                                <?php $fAvatar = $allUsers ? array_column($allUsers, 'avatar', 'id')[$f['user_id']] ?? null : null; ?>
+                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" data-uid="<?= $f['user_id'] ?>">
+                                    <?php if ($fAvatar): ?><img src="<?= asset($fAvatar) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                                    <?php else: ?><span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($f['name'], 0, 1)) ?></span><?php endif; ?>
                                     <?= e($f['name']) ?>
-                                    <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $f['user_id'] ?>, this)"></i>
+                                    <i class="ri-close-line text-muted" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $f['user_id'] ?>, this)"></i>
                                 </span>
                             <?php endforeach; ?>
 
@@ -142,7 +145,10 @@
                                 );
                                 foreach ($autoUsers as $au):
                             ?>
-                                <span class="badge bg-soft-secondary text-secondary py-1 px-2" title="<?= e($au['role_label']) ?>"><?= e($au['name']) ?></span>
+                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border" title="<?= e($au['role_label']) ?>">
+                                    <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($au['name'], 0, 1)) ?></span>
+                                    <?= e($au['name']) ?>
+                                </span>
                             <?php endforeach; } catch (\Exception $e) {} ?>
                         </div>
                     </div>
