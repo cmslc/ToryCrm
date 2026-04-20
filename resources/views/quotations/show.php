@@ -273,6 +273,32 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                     <td class="text-muted">Lần báo giá</td>
                                     <td><?= (int)($quotation['revision'] ?? 1) ?></td>
                                 </tr>
+                                <?php if ($quotation['description'] ?? null): ?>
+                                <tr>
+                                    <td class="text-muted">Mô tả</td>
+                                    <td><?= e($quotation['description']) ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <?php if ($quotation['project'] ?? null): ?>
+                                <tr>
+                                    <td class="text-muted">Dự án</td>
+                                    <td><?= e($quotation['project']) ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <?php if ($quotation['location'] ?? null): ?>
+                                <tr>
+                                    <td class="text-muted">Địa điểm</td>
+                                    <td><?= e($quotation['location']) ?></td>
+                                </tr>
+                                <?php endif; ?>
+                                <?php if ($quotation['campaign_id'] ?? null):
+                                    $campName = \Core\Database::fetch("SELECT name FROM campaigns WHERE id = ?", [$quotation['campaign_id']]);
+                                ?>
+                                <tr>
+                                    <td class="text-muted">Chiến dịch</td>
+                                    <td><?= e($campName['name'] ?? '-') ?></td>
+                                </tr>
+                                <?php endif; ?>
                                 <tr>
                                     <td class="text-muted">Người thực hiện</td>
                                     <td class="fw-medium"><?= e($quotation['owner_name'] ?? '-') ?></td>
