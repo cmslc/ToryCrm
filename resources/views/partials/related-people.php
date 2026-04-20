@@ -42,14 +42,42 @@ try {
         <!-- Người liên quan -->
         <label class="text-muted fs-12">Người liên quan</label>
         <div id="rpFollowerTags" class="d-flex flex-wrap gap-1 mb-2">
-            <?php foreach ($rpFollowers as $f):
-                if ($f['user_id'] == $rpOwnerId) continue;
+            <?php
+            $rpShownIds = [$rpOwnerId];
+
+            // Followers (thêm thủ công)
+            foreach ($rpFollowers as $f):
+                if (in_array($f['user_id'], $rpShownIds)) continue;
+                $rpShownIds[] = $f['user_id'];
             ?>
                 <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
                     <?= e($f['name']) ?>
                     <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="rpRemoveFollower(<?= $f['user_id'] ?>, this)"></i>
                 </span>
             <?php endforeach; ?>
+
+            <?php
+            // Ban lãnh đạo + Người có quyền "Xem tất cả" module này
+            $rpModule = $_entityType . 's';
+            $rpPlaceholders = implode(',', array_map('intval', $rpShownIds));
+            try {
+                $rpAutoUsers = \Core\Database::fetchAll(
+                    "SELECT DISTINCT u.id, u.name,
+                        CASE WHEN pg.is_system = 1 THEN 'Ban lãnh đạo' ELSE 'Xem tất cả' END as role_label
+                     FROM users u
+                     JOIN user_permission_groups upg ON u.id = upg.user_id
+                     JOIN permission_groups pg ON upg.group_id = pg.id
+                     LEFT JOIN group_permissions gp ON pg.id = gp.group_id
+                     LEFT JOIN permissions p ON gp.permission_id = p.id
+                     WHERE u.is_active = 1 AND u.id NOT IN ({$rpPlaceholders})
+                     AND (pg.is_system = 1 OR (p.module = ? AND p.action = 'view_all'))
+                     ORDER BY u.name",
+                    [$rpModule]
+                );
+                foreach ($rpAutoUsers as $au):
+            ?>
+                <span class="badge bg-soft-secondary text-secondary py-1 px-2" title="<?= e($au['role_label']) ?>"><?= e($au['name']) ?></span>
+            <?php endforeach; } catch (\Exception $e) {} ?>
         </div>
         <div class="position-relative">
             <input type="text" class="form-control" id="rpFollowerInput" placeholder="Gõ tên để thêm..." autocomplete="off">

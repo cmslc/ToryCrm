@@ -110,14 +110,40 @@
                         <!-- Người liên quan -->
                         <label class="text-muted fs-12">Người liên quan</label>
                         <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
-                            <?php foreach ($followers ?? [] as $f):
-                                if ($f['user_id'] == ($contact['owner_id'] ?? 0)) continue;
+                            <?php
+                            $shownIds = [$contact['owner_id'] ?? 0];
+
+                            // Followers (thêm thủ công)
+                            foreach ($followers ?? [] as $f):
+                                if (in_array($f['user_id'], $shownIds)) continue;
+                                $shownIds[] = $f['user_id'];
                             ?>
                                 <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
                                     <?= e($f['name']) ?>
                                     <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $f['user_id'] ?>, this)"></i>
                                 </span>
                             <?php endforeach; ?>
+
+                            <?php
+                            // Ban lãnh đạo (system group) + Người có quyền "Xem tất cả"
+                            $placeholders = implode(',', array_map('intval', $shownIds));
+                            try {
+                                $autoUsers = \Core\Database::fetchAll(
+                                    "SELECT DISTINCT u.id, u.name,
+                                        CASE WHEN pg.is_system = 1 THEN 'Ban lãnh đạo' ELSE 'Xem tất cả' END as role_label
+                                     FROM users u
+                                     JOIN user_permission_groups upg ON u.id = upg.user_id
+                                     JOIN permission_groups pg ON upg.group_id = pg.id
+                                     LEFT JOIN group_permissions gp ON pg.id = gp.group_id
+                                     LEFT JOIN permissions p ON gp.permission_id = p.id
+                                     WHERE u.is_active = 1 AND u.id NOT IN ({$placeholders})
+                                     AND (pg.is_system = 1 OR (p.module = 'contacts' AND p.action = 'view_all'))
+                                     ORDER BY u.name"
+                                );
+                                foreach ($autoUsers as $au):
+                            ?>
+                                <span class="badge bg-soft-secondary text-secondary py-1 px-2" title="<?= e($au['role_label']) ?>"><?= e($au['name']) ?></span>
+                            <?php endforeach; } catch (\Exception $e) {} ?>
                         </div>
                     </div>
                 </div>
