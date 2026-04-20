@@ -564,20 +564,67 @@ class QuotationController extends Controller
             return $this->redirect('quotations');
         }
 
+        $toEmail = trim($this->input('to_email') ?? '');
+        $toName = trim($this->input('to_name') ?? '');
+        $subject = trim($this->input('subject') ?? "Báo giá {$quotation['quote_number']}");
+        $body = trim($this->input('body') ?? '');
+        $templateId = (int)($this->input('template_id') ?? 0);
+
+        if (empty($toEmail)) {
+            $this->setFlash('error', 'Vui lòng nhập email người nhận.');
+            return $this->redirect('quotations/' . $id);
+        }
+
+        // Generate PDF file
+        $pdfPath = null;
+        try {
+            ob_start();
+            $this->pdf($id);
+            $pdfHtml = ob_get_clean();
+
+            // Save as temp file
+            $tmpDir = BASE_PATH . '/storage/tmp';
+            if (!is_dir($tmpDir)) mkdir($tmpDir, 0755, true);
+            $pdfFile = $tmpDir . '/quote_' . $quotation['quote_number'] . '_' . time() . '.html';
+            file_put_contents($pdfFile, $pdfHtml);
+            $pdfPath = $pdfFile;
+        } catch (\Exception $e) {
+            // PDF generation failed, send without attachment
+        }
+
+        // Send email
+        $bodyHtml = nl2br(e($body));
+        $sent = \App\Services\MailService::send(
+            $toEmail,
+            $subject,
+            $bodyHtml,
+            $toName,
+            $pdfPath ? [['path' => $pdfPath, 'name' => 'BaoGia_' . $quotation['quote_number'] . '.html']] : []
+        );
+
+        // Cleanup temp file
+        if ($pdfPath && file_exists($pdfPath)) @unlink($pdfPath);
+
+        // Update status
         Database::update('quotations', [
             'status' => 'sent',
             'sent_at' => date('Y-m-d H:i:s'),
         ], 'id = ?', [$id]);
 
+        // Log activity
         Database::insert('activities', [
-            'type' => 'deal',
-            'title' => "Gửi báo giá: {$quotation['quote_number']}",
+            'type' => 'system',
+            'title' => "Đã gửi báo giá {$quotation['quote_number']} đến {$toEmail}",
             'user_id' => $this->userId(),
+            'quotation_id' => $id,
             'tenant_id' => Database::tenantId(),
         ]);
 
-        $portalUrl = url('quote/' . $quotation['portal_token']);
-        $this->setFlash('success', "Báo giá đã được gửi. Link khách hàng: {$portalUrl}");
+        if ($sent) {
+            $this->setFlash('success', "Đã gửi email báo giá đến {$toEmail}");
+        } else {
+            $this->setFlash('warning', "Đã cập nhật trạng thái nhưng gửi email thất bại. Kiểm tra cấu hình SMTP.");
+        }
         return $this->redirect('quotations/' . $id);
     }
 

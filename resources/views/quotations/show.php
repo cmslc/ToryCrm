@@ -30,9 +30,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                 <?php endif; ?>
 
                 <?php if ($quotation['status'] === 'approved'): ?>
-                    <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/send') ?>" class="d-inline" data-confirm="Gửi báo giá cho khách hàng?">
-                        <?= csrf_field() ?><button class="btn btn-success"><i class="ri-mail-send-line me-1"></i>Gửi khách</button>
-                    </form>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#sendEmailModal"><i class="ri-mail-send-line me-1"></i>Gửi khách</button>
                 <?php endif; ?>
 
                 <?php if (in_array($quotation['status'], ['approved', 'accepted', 'sent'])): ?>
@@ -535,6 +533,63 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                 </a>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal gửi email báo giá -->
+<div class="modal fade" id="sendEmailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/send') ?>">
+            <?= csrf_field() ?>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="ri-mail-send-line me-1"></i> Gửi báo giá cho khách hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <?php
+                    $sendEmail = $quotation['contact_email'] ?: ($quotation['c_company_email'] ?? $quotation['c_email'] ?? '');
+                    $sendName = $quotation['c_company_name'] ?? ($quotation['c_full_name'] ?? '');
+                    ?>
+                    <div class="mb-3">
+                        <label class="form-label">Email người nhận <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" name="to_email" value="<?= e($sendEmail) ?>" required placeholder="Nhập email khách hàng">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên người nhận</label>
+                        <input type="text" class="form-control" name="to_name" value="<?= e($sendName) ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề email</label>
+                        <input type="text" class="form-control" name="subject" value="Báo giá <?= e($quotation['quote_number']) ?> - <?= e(\App\Services\BrandingService::get()['name'] ?? 'ToryCRM') ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nội dung email</label>
+                        <textarea class="form-control" name="body" rows="4">Kính gửi <?= e($sendName) ?>,
+
+Chúng tôi xin gửi báo giá <?= e($quotation['quote_number']) ?> như file đính kèm.
+
+Quý khách cũng có thể xem báo giá online tại: <?= url('quote/' . $quotation['portal_token']) ?>
+
+Trân trọng,
+<?= e(\App\Services\BrandingService::get()['name'] ?? '') ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mẫu báo giá đính kèm</label>
+                        <select name="template_id" class="form-select">
+                            <option value="">Mẫu mặc định hệ thống</option>
+                            <?php foreach ($pdfTemplates ?? [] as $tpl): ?>
+                            <option value="<?= $tpl['id'] ?>" <?= $tpl['is_default'] ? 'selected' : '' ?>><?= e($tpl['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success"><i class="ri-mail-send-line me-1"></i> Gửi email</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
