@@ -157,31 +157,28 @@ class OrderController extends Controller
     public function create()
     {
         $this->authorize('orders', 'create');
+        $tid = Database::tenantId();
         $orderModel = new Order();
         $type = $this->input('type') ?: 'order';
         $orderNumber = $orderModel->generateOrderNumber($type);
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
-        $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
-        $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
-        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $preContactId = (int)($this->input('contact_id') ?: ($_GET['contact_id'] ?? 0));
+        $preContact = null;
+        if ($preContactId) {
+            $preContact = Database::fetch(
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                 FROM contacts WHERE id = ? AND tenant_id = ?", [$preContactId, $tid]
+            );
+        }
 
-        $contactId = (int) $this->input('contact_id');
-        $companyId = (int) $this->input('company_id');
-        $dealId = (int) $this->input('deal_id');
+        $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('orders.create', [
             'orderNumber' => $orderNumber,
             'type' => $type,
-            'contacts' => $contacts,
-            'companies' => $companies,
-            'deals' => $deals,
-            'products' => $products,
+            'preContact' => $preContact,
+            'preContactId' => $preContactId,
             'users' => $users,
-            'selectedContactId' => $contactId,
-            'selectedCompanyId' => $companyId,
-            'selectedDealId' => $dealId,
         ]);
     }
 
