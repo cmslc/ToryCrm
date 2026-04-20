@@ -245,6 +245,122 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Trao đổi -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><i class="ri-chat-3-line me-1"></i> Trao đổi</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Form thêm bình luận -->
+                        <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="activityForm">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="type" value="note">
+                            <input type="hidden" name="quotation_id" value="<?= $quotation['id'] ?>">
+                            <div class="mb-2">
+                                <textarea name="title" class="form-control" rows="2" placeholder="Nhập nội dung trao đổi, ghi chú..." required></textarea>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <label class="btn btn-soft-secondary btn-icon" title="Đính kèm file">
+                                        <i class="ri-attachment-2"></i>
+                                        <input type="file" name="attachments[]" multiple class="d-none" onchange="this.closest('form').querySelector('.file-info').textContent=this.files.length+' file'">
+                                    </label>
+                                    <small class="text-muted file-info ms-1"></small>
+                                </div>
+                                <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i>Gửi</button>
+                            </div>
+                        </form>
+
+                        <!-- Activity Feed -->
+                        <div id="activityFeed" style="max-height:500px;overflow-y:auto" class="mt-3">
+                            <?php if (!empty($activities)):
+                                $userAvatars = [];
+                                foreach ($allUsers ?? [] as $u) { $userAvatars[$u['name']] = $u['avatar'] ?? null; }
+                            ?>
+                                <?php foreach ($activities as $act):
+                                    $userName = $act['user_name'] ?? 'Hệ thống';
+                                    $userAvatar = $userAvatars[$userName] ?? null;
+                                    $initial = mb_substr($userName, 0, 1);
+                                    $isSystem = in_array($act['type'], ['system','deal']);
+                                    $content = e($act['title']);
+                                    $content = preg_replace('/@(\S+)/', '<span class="text-primary fw-medium">@$1</span>', $content);
+                                ?>
+                                <div class="d-flex gap-2 mb-3 <?= $isSystem ? 'bg-light rounded p-2' : '' ?>" id="activity-<?= $act['id'] ?>">
+                                    <?php if ($userAvatar): ?>
+                                    <img src="<?= asset($userAvatar) ?>" class="rounded-circle flex-shrink-0" width="36" height="36" style="object-fit:cover">
+                                    <?php else: ?>
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;font-size:14px"><?= mb_strtoupper($initial) ?></div>
+                                    <?php endif; ?>
+                                    <div class="flex-grow-1">
+                                        <div>
+                                            <strong class="me-1"><?= e($userName) ?></strong>
+                                            <small class="text-muted"><?= date('d/m/Y H:i', strtotime($act['created_at'])) ?></small>
+                                        </div>
+                                        <p class="mb-1"><?= nl2br($content) ?></p>
+
+                                        <?php if ($act['attachment']):
+                                            $paths = explode('|', $act['attachment']);
+                                            $names = explode('|', $act['attachment_name'] ?? '');
+                                        ?>
+                                        <div class="d-flex flex-wrap gap-1 mb-1">
+                                            <?php foreach ($paths as $fi => $fp): ?>
+                                            <a href="<?= url($fp) ?>" target="_blank" class="badge bg-soft-primary text-primary"><i class="ri-attachment-2 me-1"></i><?= e($names[$fi] ?? basename($fp)) ?></a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <?php endif; ?>
+
+                                        <!-- Like/Dislike/Reply -->
+                                        <div class="d-flex gap-3" style="font-size:13px">
+                                            <a href="javascript:void(0)" onclick="reactActivity(<?= $act['id'] ?>,'like')" class="text-muted <?= ($act['my_reaction'] ?? '') === 'like' ? 'text-primary fw-medium' : '' ?>">
+                                                <i class="ri-thumb-up-line me-1"></i><?= $act['likes'] ?: '' ?>
+                                            </a>
+                                            <a href="javascript:void(0)" onclick="reactActivity(<?= $act['id'] ?>,'dislike')" class="text-muted <?= ($act['my_reaction'] ?? '') === 'dislike' ? 'text-danger fw-medium' : '' ?>">
+                                                <i class="ri-thumb-down-line me-1"></i><?= $act['dislikes'] ?: '' ?>
+                                            </a>
+                                            <a href="javascript:void(0)" onclick="toggleReply(<?= $act['id'] ?>)" class="text-muted"><i class="ri-reply-line me-1"></i>Trả lời</a>
+                                        </div>
+
+                                        <!-- Replies -->
+                                        <?php if (!empty($act['replies'])): ?>
+                                        <div class="ms-3 mt-2 border-start ps-3">
+                                            <?php foreach ($act['replies'] as $reply):
+                                                $rAvatar = $userAvatars[$reply['user_name'] ?? ''] ?? null;
+                                                $rContent = e($reply['title']);
+                                                $rContent = preg_replace('/@(\S+)/', '<span class="text-primary fw-medium">@$1</span>', $rContent);
+                                            ?>
+                                            <div class="d-flex gap-2 mb-2">
+                                                <?php if ($rAvatar): ?>
+                                                <img src="<?= asset($rAvatar) ?>" class="rounded-circle flex-shrink-0" width="28" height="28" style="object-fit:cover">
+                                                <?php else: ?>
+                                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;font-size:11px"><?= mb_strtoupper(mb_substr($reply['user_name'] ?? '?', 0, 1)) ?></div>
+                                                <?php endif; ?>
+                                                <div>
+                                                    <strong style="font-size:13px"><?= e($reply['user_name'] ?? '') ?></strong>
+                                                    <small class="text-muted ms-1"><?= date('d/m H:i', strtotime($reply['created_at'])) ?></small>
+                                                    <p class="mb-0" style="font-size:13px"><?= nl2br($rContent) ?></p>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <?php endif; ?>
+
+                                        <!-- Reply form (hidden) -->
+                                        <div class="mt-2 d-none" id="reply-form-<?= $act['id'] ?>">
+                                            <div class="d-flex gap-2">
+                                                <input type="text" class="form-control" id="reply-input-<?= $act['id'] ?>" placeholder="Viết trả lời...">
+                                                <button class="btn btn-primary" onclick="submitReply(<?= $act['id'] ?>)"><i class="ri-send-plane-line"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="text-center text-muted mb-0">Chưa có trao đổi nào</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="col-lg-4">
@@ -559,3 +675,33 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
         </form>
     </div>
 </div>
+
+<script>
+function reactActivity(id, type) {
+    fetch('<?= url("activities") ?>/' + id + '/react', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: JSON.stringify({ type: type })
+    }).then(r => r.json()).then(function() { location.reload(); });
+}
+
+function toggleReply(id) {
+    var el = document.getElementById('reply-form-' + id);
+    el.classList.toggle('d-none');
+    if (!el.classList.contains('d-none')) document.getElementById('reply-input-' + id).focus();
+}
+
+function submitReply(parentId) {
+    var input = document.getElementById('reply-input-' + parentId);
+    var text = input.value.trim();
+    if (!text) return;
+    fetch('<?= url("activities") ?>/' + parentId + '/reply', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'X-CSRF-TOKEN':'<?= csrf_token() ?>'},
+        body: JSON.stringify({ title: text })
+    }).then(r => r.json()).then(function() { location.reload(); });
+}
+
+var feed = document.getElementById('activityFeed');
+if (feed) feed.scrollTop = feed.scrollHeight;
+</script>
