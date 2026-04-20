@@ -267,7 +267,8 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
 .product-search-wrap input { width: 100%; }
 .product-dropdown { position: fixed; background: #fff; border: 1px solid #ddd; border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 1060; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.15); min-width: 250px; }
 #itemsTable td { overflow: visible; }
-.table-responsive { overflow: visible; }
+#itemsTable .table-responsive,
+#itemsTable-wrapper { overflow: visible; }
 .product-dropdown .pd-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f3f3f3; }
 .product-dropdown .pd-item:hover { background: #f0f4ff; }
 .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }

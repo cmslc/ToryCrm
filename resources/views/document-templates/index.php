@@ -43,7 +43,7 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Tên mẫu</th>
+                                <th style="width:30%">Tên mẫu</th>
                                 <th style="width:100px" class="text-center">Mặc định</th>
                                 <th style="width:100px" class="text-center">Trạng thái</th>
                                 <th style="width:150px">Người tạo</th>
@@ -95,7 +95,7 @@ $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'co
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Tên mẫu</th>
+                                <th style="width:30%">Tên mẫu</th>
                                 <th style="width:100px" class="text-center">Mặc định</th>
                                 <th style="width:100px" class="text-center">Trạng thái</th>
                                 <th style="width:150px">Người tạo</th>
