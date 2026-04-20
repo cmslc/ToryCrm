@@ -240,7 +240,7 @@
                         <table class="table table-borderless table-sm mb-0">
                             <tbody>
                                 <tr>
-                                    <th class="text-muted" width="35%">Mã KH</th>
+                                    <th class="text-muted" width="35%"><i class="ri-hashtag me-2"></i>Mã KH</th>
                                     <td><?= e($contact['account_code'] ?? '-') ?></td>
                                 </tr>
                                 <tr>
@@ -257,29 +257,29 @@
                                 </tr>
                                 <?php if ($contact['province'] ?? ''): ?>
                                 <tr>
-                                    <th class="text-muted">Tỉnh/TP</th>
+                                    <th class="text-muted"><i class="ri-road-map-line me-2"></i>Tỉnh/TP</th>
                                     <td><?= e($contact['province']) ?><?= ($contact['district'] ?? '') ? ' - ' . e($contact['district']) : '' ?></td>
                                 </tr>
                                 <?php endif; ?>
                                 <tr>
-                                    <th class="text-muted">MST</th>
+                                    <th class="text-muted"><i class="ri-file-list-3-line me-2"></i>MST</th>
                                     <td><?= e($contact['tax_code'] ?? '-') ?></td>
                                 </tr>
                                 <?php if ($contact['website'] ?? ''): ?>
                                 <tr>
-                                    <th class="text-muted">Website</th>
+                                    <th class="text-muted"><i class="ri-global-line me-2"></i>Website</th>
                                     <td><a href="<?= e($contact['website']) ?>" target="_blank" class="text-truncate d-inline-block" style="max-width:180px"><?= e($contact['website']) ?></a></td>
                                 </tr>
                                 <?php endif; ?>
                                 <?php if ($contact['industry'] ?? ''): ?>
                                 <tr>
-                                    <th class="text-muted">Ngành KD</th>
+                                    <th class="text-muted"><i class="ri-briefcase-line me-2"></i>Ngành KD</th>
                                     <td><?= e($contact['industry']) ?></td>
                                 </tr>
                                 <?php endif; ?>
                                 <?php if ($contact['fax'] ?? ''): ?>
                                 <tr>
-                                    <th class="text-muted">Fax</th>
+                                    <th class="text-muted"><i class="ri-printer-line me-2"></i>Fax</th>
                                     <td><?= e($contact['fax']) ?></td>
                                 </tr>
                                 <?php endif; ?>
@@ -292,12 +292,12 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class="text-muted">Nhóm KH</th>
+                                    <th class="text-muted"><i class="ri-group-line me-2"></i>Nhóm KH</th>
                                     <td><?= e($contact['customer_group'] ?? '-') ?></td>
                                 </tr>
                                 <?php if ($contact['description'] ?? ''): ?>
                                 <tr>
-                                    <th class="text-muted">Mô tả</th>
+                                    <th class="text-muted"><i class="ri-file-text-line me-2"></i>Mô tả</th>
                                     <td class="text-muted fs-12"><?= e($contact['description']) ?></td>
                                 </tr>
                                 <?php endif; ?>
