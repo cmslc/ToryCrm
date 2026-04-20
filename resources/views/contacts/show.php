@@ -107,8 +107,8 @@
                             </div>
                         </div>
 
-                        <!-- Người theo dõi -->
-                        <label class="text-muted fs-12">Người theo dõi</label>
+                        <!-- Người liên quan -->
+                        <label class="text-muted fs-12">Người liên quan</label>
                         <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
                             <?php foreach ($followers ?? [] as $f):
                                 if ($f['user_id'] == ($contact['owner_id'] ?? 0)) continue;
