@@ -58,7 +58,7 @@ $hasAny = !empty($requests) || !empty($pending);
                         </div>
                     </td>
                     <td>
-                        <a href="<?= url('contacts/' . $r['contact_id']) ?>" class="fw-medium"><?= e($contactName) ?></a>
+                        <a href="<?= url('contacts/' . $r['existing_contact_id']) ?>" class="fw-medium"><?= e($contactName) ?></a>
                         <?php if ($r['account_code']): ?><br><small class="text-muted"><?= e($r['account_code']) ?></small><?php endif; ?>
                     </td>
                     <td>
