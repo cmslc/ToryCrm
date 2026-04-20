@@ -430,7 +430,6 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                         </div>
                     </div>
                 </div>
-                <?php endif; ?>
             </div>
         </div>
 
