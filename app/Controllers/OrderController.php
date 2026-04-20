@@ -346,15 +346,19 @@ class OrderController extends Controller
         $this->authorize('orders', 'view');
         $order = Database::fetch(
             "SELECT o.*,
-                    c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
-                    comp.name as company_name, comp.address as company_address, comp.tax_code as company_tax_code,
+                    c.company_name as c_company_name, c.full_name as c_full_name,
+                    c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    c.company_phone as c_company_phone, c.company_email as c_company_email,
+                    c.phone as c_phone, c.email as c_email,
+                    c.address as c_address, c.tax_code as c_tax_code, c.account_code as c_account_code,
                     u.name as owner_name,
-                    d.title as deal_title
+                    d.title as deal_title,
+                    uc.name as created_by_name
              FROM orders o
              LEFT JOIN contacts c ON o.contact_id = c.id
-             LEFT JOIN companies comp ON o.company_id = comp.id
              LEFT JOIN users u ON o.owner_id = u.id
              LEFT JOIN deals d ON o.deal_id = d.id
+             LEFT JOIN users uc ON o.created_by = uc.id
              WHERE o.id = ?",
             [$id]
         );
