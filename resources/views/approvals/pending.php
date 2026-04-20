@@ -77,11 +77,7 @@ $hasAny = !empty($requests) || !empty($pending);
                                 <?= csrf_field() ?>
                                 <button class="btn btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
                             </form>
-                            <form method="POST" action="<?= url('merge-requests/' . $r['id'] . '/reject') ?>" class="d-flex gap-1">
-                                <?= csrf_field() ?>
-                                <input type="text" name="reason" class="form-control" style="width:140px" placeholder="Lý do từ chối">
-                                <button class="btn btn-danger"><i class="ri-close-line me-1"></i>Từ chối</button>
-                            </form>
+                            <button class="btn btn-danger" onclick="rejectMerge(<?= $r['id'] ?>)"><i class="ri-close-line me-1"></i>Từ chối</button>
                         </div>
                     </td>
                 </tr>
@@ -125,17 +121,11 @@ $hasAny = !empty($requests) || !empty($pending);
                     <td><small class="text-muted"><?= date('d/m/Y H:i', strtotime($item['created_at'])) ?></small></td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="text" class="form-control" id="comment-<?= $item['id'] ?>" style="width:150px" placeholder="Nhận xét">
                             <form method="POST" action="<?= url('approvals/' . $item['id'] . '/approve') ?>">
                                 <?= csrf_field() ?>
-                                <input type="hidden" name="comment" class="approval-comment" data-source="comment-<?= $item['id'] ?>">
                                 <button type="submit" class="btn btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
                             </form>
-                            <form method="POST" action="<?= url('approvals/' . $item['id'] . '/reject') ?>" data-confirm="Từ chối yêu cầu này?">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="comment" class="approval-comment" data-source="comment-<?= $item['id'] ?>">
-                                <button type="submit" class="btn btn-danger"><i class="ri-close-line me-1"></i>Từ chối</button>
-                            </form>
+                            <button class="btn btn-danger" onclick="rejectApproval(<?= $item['id'] ?>)"><i class="ri-close-line me-1"></i>Từ chối</button>
                         </div>
                     </td>
                 </tr>
@@ -194,17 +184,43 @@ $hasAny = !empty($requests) || !empty($pending);
 </div>
 <?php endif; ?>
 
+<!-- Modal từ chối -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Từ chối yêu cầu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="rejectForm" method="POST">
+                <?= csrf_field() ?>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Lý do từ chối <span class="text-danger">*</span></label>
+                        <textarea name="reason" id="rejectReason" class="form-control" rows="3" placeholder="Nhập lý do từ chối..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger"><i class="ri-close-line me-1"></i>Xác nhận từ chối</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('form').forEach(function(form) {
-        form.addEventListener('submit', function() {
-            var hiddenInput = form.querySelector('.approval-comment');
-            if (hiddenInput) {
-                var sourceId = hiddenInput.getAttribute('data-source');
-                var textarea = document.getElementById(sourceId);
-                if (textarea) hiddenInput.value = textarea.value;
-            }
-        });
-    });
-});
+function rejectMerge(id) {
+    document.getElementById('rejectForm').action = '<?= url("merge-requests") ?>/' + id + '/reject';
+    document.getElementById('rejectReason').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+
+function rejectApproval(id) {
+    document.getElementById('rejectForm').action = '<?= url("approvals") ?>/' + id + '/reject';
+    document.getElementById('rejectReason').value = '';
+    // Change field name to comment for approvals
+    document.getElementById('rejectReason').name = 'comment';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
 </script>
