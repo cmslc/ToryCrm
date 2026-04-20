@@ -324,7 +324,7 @@ function pickContact(c) {
     loadPersons(c.id);
 }
 
-function loadPersons(contactId) {
+function loadPersons(contactId, selectId) {
     fetch('<?= url("contacts") ?>/' + contactId + '/persons')
         .then(r => r.json())
         .then(function(persons) {
@@ -336,6 +336,7 @@ function loadPersons(contactId) {
                 o.textContent = (p.title ? p.title + ' ' : '') + p.full_name + (p.position ? ' - ' + p.position : '');
                 o.dataset.phone = p.phone || '';
                 o.dataset.email = p.email || '';
+                if (selectId && String(p.id) === String(selectId)) o.selected = true;
                 cpSel.appendChild(o);
             });
         }).catch(function(){});
@@ -349,9 +350,10 @@ document.getElementById('contactPersonSelect')?.addEventListener('change', funct
     }
 });
 
-// Load persons for existing contact
+// Load persons for existing contact and select the saved one
 <?php if ($q['contact_id']): ?>
-loadPersons(<?= (int)$q['contact_id'] ?>);
+var savedPersonId = '<?= (int)($q['contact_person_id'] ?? 0) ?>';
+loadPersons(<?= (int)$q['contact_id'] ?>, savedPersonId);
 <?php endif; ?>
 
 // === Sản phẩm ===
