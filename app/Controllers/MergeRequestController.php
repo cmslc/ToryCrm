@@ -193,6 +193,18 @@ class MergeRequestController extends Controller
             'is_primary' => 1,
         ]);
 
+        // Auto-follow: owner + người duyệt + admin/managers
+        $tid = Database::tenantId();
+        $followerIds = [$req['requested_by'], $this->userId()];
+        $defaultFollowers = Database::fetchAll(
+            "SELECT id FROM users WHERE tenant_id = ? AND is_active = 1 AND role IN ('admin', 'manager')",
+            [$tid]
+        );
+        foreach ($defaultFollowers as $df) { $followerIds[] = $df['id']; }
+        foreach (array_unique($followerIds) as $fid) {
+            Database::query("INSERT IGNORE INTO contact_followers (contact_id, user_id) VALUES (?, ?)", [$newContactId, $fid]);
+        }
+
         Database::update('contact_merge_requests', [
             'status' => 'approved',
             'approved_by' => $this->userId(),
