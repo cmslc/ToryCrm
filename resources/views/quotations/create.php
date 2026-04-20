@@ -57,6 +57,17 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
                 <label class="form-label"><?= $fl["contact_person_id"] ?? "Người liên hệ" ?><?= isset($req["contact_person_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                 <select class="form-select" name="contact_person_id" id="contactPersonSelect">
                     <option value="">Chọn người liên hệ</option>
+                    <?php if ($preContactId):
+                        $cpList = \Core\Database::fetchAll("SELECT id, title, full_name, phone, email, position, is_primary FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id", [$preContactId]);
+                        $firstCpId = !empty($cpList) ? $cpList[0]['id'] : null;
+                        foreach ($cpList as $cp):
+                    ?>
+                    <option value="<?= $cp['id'] ?>"
+                        data-phone="<?= e($cp['phone'] ?? '') ?>"
+                        data-email="<?= e($cp['email'] ?? '') ?>"
+                        <?= $firstCpId == $cp['id'] ? 'selected' : '' ?>
+                    ><?= $cp['title'] ? e(ucfirst($cp['title'])) . ' ' : '' ?><?= e($cp['full_name']) ?><?= $cp['position'] ? ' - ' . e($cp['position']) : '' ?></option>
+                    <?php endforeach; endif; ?>
                 </select>
             </div>
 
