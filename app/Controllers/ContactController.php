@@ -509,7 +509,6 @@ class ContactController extends Controller
             $contactStatuses = Database::fetchAll("SELECT * FROM contact_statuses WHERE tenant_id = ? AND (is_active = 1 OR is_active IS NULL) ORDER BY sort_order", [Database::tenantId()]);
             return $this->view('contacts.partial-show', [
                 'contact' => $contact,
-                'activities' => $activities,
                 'contactStatuses' => $contactStatuses,
                 'noLayout' => true,
             ]);
@@ -546,7 +545,6 @@ class ContactController extends Controller
 
         return $this->view('contacts.show', [
             'contact' => $contact,
-            'activities' => $activities,
             'deals' => $deals,
             'tasks' => $tasks,
             'contactStatuses' => $contactStatuses,
