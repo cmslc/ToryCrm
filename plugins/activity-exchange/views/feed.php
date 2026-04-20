@@ -168,11 +168,11 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                         <div class="ms-4 mt-2 d-none" id="replyBox-<?= $act['id'] ?>">
                             <div class="d-flex gap-2 align-items-center">
                                 <input type="text" class="form-control" placeholder="Viết trả lời..." id="replyInput-<?= $act['id'] ?>" onkeydown="if(event.key==='Enter'){event.preventDefault();submitReply(<?= $act['id'] ?>)}">
-                                <label class="btn btn-soft-secondary btn-sm mb-0" title="Đính kèm file">
+                                <label class="btn btn-soft-secondary mb-0" title="Đính kèm file" style="padding:6px 10px">
                                     <i class="ri-attachment-2"></i>
                                     <input type="file" class="d-none" id="replyFile-<?= $act['id'] ?>" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.dwg,.dxf,.cad,.zip,.rar">
                                 </label>
-                                <button class="btn btn-primary btn-sm" onclick="submitReply(<?= $act['id'] ?>)">Gửi</button>
+                                <button class="btn btn-primary" onclick="submitReply(<?= $act['id'] ?>)" style="padding:6px 16px">Gửi</button>
                             </div>
                         </div>
                     </div>
