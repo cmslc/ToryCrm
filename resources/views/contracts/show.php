@@ -357,7 +357,7 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
 
         <!-- Đơn hàng liên quan -->
         <div class="card">
-            <div class="card-header"><h6 class="card-title mb-0 fw-bold">ĐƠN HÀNG LIÊN QUAN</h6></div>
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-file-list-3-line me-1"></i> Đơn hàng liên quan</h5></div>
             <div class="card-body p-2">
                 <div class="table-responsive">
                     <table class="table table-sm mb-0">
@@ -404,7 +404,7 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
 
         <!-- Tài liệu đính kèm -->
         <div class="card">
-            <div class="card-header"><h6 class="card-title mb-0 fw-bold">TÀI LIỆU ĐÍNH KÈM</h6></div>
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-attachment-2 me-1"></i> Tài liệu đính kèm</h5></div>
             <div class="card-body">
                 <?php
                 $fileIcons = ['pdf'=>'ri-file-pdf-line text-danger','doc'=>'ri-file-word-line text-primary','docx'=>'ri-file-word-line text-primary',
