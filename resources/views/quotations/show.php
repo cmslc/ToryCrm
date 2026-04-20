@@ -270,6 +270,10 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                     </td>
                                 </tr>
                                 <tr>
+                                    <td class="text-muted">Lần báo giá</td>
+                                    <td><?= (int)($quotation['revision'] ?? 1) ?></td>
+                                </tr>
+                                <tr>
                                     <td class="text-muted">Người thực hiện</td>
                                     <td class="fw-medium"><?= e($quotation['owner_name'] ?? '-') ?></td>
                                 </tr>
