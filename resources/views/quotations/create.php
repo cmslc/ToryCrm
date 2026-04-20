@@ -341,13 +341,12 @@ document.getElementById('contactPersonSelect')?.addEventListener('change', funct
     }
 });
 
-// Pre-fill nếu có contact_id
+// Pre-fill nếu có contact_id (persons đã render từ PHP, không gọi AJAX)
 <?php if ($preContactId && $pc): ?>
 (function() {
     document.getElementById('qAddress').value = '<?= e($pc['address'] ?? '') ?>';
     document.getElementById('qPhone').value = '<?= e($pc['company_phone'] ?? $pc['phone'] ?? '') ?>';
     document.getElementById('qEmail').value = '<?= e($pc['company_email'] ?? $pc['email'] ?? '') ?>';
-    loadPersons(<?= (int)$preContactId ?>);
 })();
 <?php endif; ?>
 
