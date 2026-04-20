@@ -898,6 +898,9 @@ class QuotationController extends Controller
                 '{{vat_amount}}' => number_format((float)($quotation['tax_amount'] ?? 0)),
                 '{{revenue}}' => number_format((float)($quotation['total'] ?? 0)),
                 '{{content}}' => $quotation['content'] ?? '',
+                '{{quote_content}}' => $quotation['content'] ?? '',
+                '{{quote_terms}}' => $quotation['terms'] ?? '',
+                '{{quote_notes}}' => $quotation['notes'] ?? '',
             ];
 
             $html = \App\Services\DocumentService::render('quotation', $templateId, $replacements);
@@ -912,7 +915,9 @@ class QuotationController extends Controller
                     $row = str_replace('{{p.name}}', htmlspecialchars($item['product_name'] ?? ''), $row);
                     $row = str_replace('{{p.desc}}', htmlspecialchars($item['description'] ?? ''), $row);
                     $row = str_replace('{{p.l_desc}}', htmlspecialchars($item['description'] ?? ''), $row);
-                    $row = str_replace('{{p.kich_thuoc}}', '', $row);
+                    $row = str_replace('{{p.kich_thuoc}}', $item['dimensions'] ?? '', $row);
+                    // Xóa dòng "KT:  mm" nếu không có kích thước
+                    $row = preg_replace('/KT:\s*mm/', '', $row);
                     $row = str_replace('{{p.unit}}', htmlspecialchars($item['unit'] ?? ''), $row);
                     $row = str_replace('{{p.qty}}', number_format((float)($item['quantity'] ?? 0), 2), $row);
                     $row = str_replace('{{p.cost}}', number_format((float)($item['unit_price'] ?? 0)), $row);
