@@ -39,10 +39,12 @@ try {
             <span class="fw-medium"><?= e($rpOwnerName) ?></span>
         </div>
 
-        <!-- Người theo dõi -->
-        <label class="text-muted fs-12">Người theo dõi</label>
+        <!-- Người có quyền truy cập -->
+        <label class="text-muted fs-12">Người có quyền truy cập</label>
         <div id="rpFollowerTags" class="d-flex flex-wrap gap-1 mb-2">
-            <?php foreach ($rpFollowers as $f):
+            <?php
+            // Followers
+            foreach ($rpFollowers as $f):
                 if ($f['user_id'] == $rpOwnerId) continue;
             ?>
                 <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
@@ -50,6 +52,28 @@ try {
                     <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="rpRemoveFollower(<?= $f['user_id'] ?>, this)"></i>
                 </span>
             <?php endforeach; ?>
+
+            <?php
+            // Users with view_all or view permission
+            $rpModule = $_entityType . 's'; // contacts, quotations, orders, contracts
+            $rpShownIds = array_column($rpFollowers, 'user_id');
+            $rpShownIds[] = $rpOwnerId;
+            $rpShownPlaceholder = implode(',', array_map('intval', $rpShownIds));
+            try {
+                $rpPermUsers = \Core\Database::fetchAll(
+                    "SELECT DISTINCT u.id, u.name FROM users u
+                     JOIN user_groups ug ON u.id = ug.user_id
+                     JOIN group_permissions gp ON ug.group_id = gp.group_id
+                     JOIN permissions p ON gp.permission_id = p.id
+                     WHERE p.module = ? AND p.action IN ('view_all','view')
+                     AND u.is_active = 1 AND u.id NOT IN ({$rpShownPlaceholder})
+                     ORDER BY u.name",
+                    [$rpModule]
+                );
+                foreach ($rpPermUsers as $pu):
+            ?>
+                <span class="badge bg-soft-secondary text-secondary py-1 px-2"><?= e($pu['name']) ?></span>
+            <?php endforeach; } catch (\Exception $e) {} ?>
         </div>
         <div class="position-relative">
             <input type="text" class="form-control" id="rpFollowerInput" placeholder="Gõ tên để thêm..." autocomplete="off">

@@ -107,21 +107,34 @@
                             </div>
                         </div>
 
-                        <!-- Người theo dõi -->
-                        <label class="text-muted fs-12">Người theo dõi</label>
-                        <div id="followerTags" class="d-flex flex-wrap gap-1 mb-2">
-                            <?php foreach ($followers ?? [] as $f):
+                        <!-- Người có quyền truy cập -->
+                        <label class="text-muted fs-12">Người có quyền truy cập</label>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <?php
+                            // Followers
+                            foreach ($followers ?? [] as $f):
                                 if ($f['user_id'] == ($contact['owner_id'] ?? 0)) continue;
                             ?>
-                                <span class="badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2" data-uid="<?= $f['user_id'] ?>">
-                                    <?= e($f['name']) ?>
-                                    <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="removeFollower(<?= $f['user_id'] ?>, this)"></i>
-                                </span>
+                                <span class="badge bg-info-subtle text-info py-1 px-2"><?= e($f['name']) ?></span>
                             <?php endforeach; ?>
-                        </div>
-                        <div class="position-relative">
-                            <input type="text" class="form-control" id="followerInput" placeholder="Gõ tên để thêm..." autocomplete="off">
-                            <div id="followerDropdown" class="dropdown-menu w-100" style="display:none;max-height:200px;overflow-y:auto"></div>
+
+                            <?php
+                            // Users with view_all permission (not already shown)
+                            $shownIds = array_column($followers ?? [], 'user_id');
+                            $shownIds[] = $contact['owner_id'] ?? 0;
+                            $viewAllUsers = \Core\Database::fetchAll(
+                                "SELECT DISTINCT u.id, u.name FROM users u
+                                 JOIN user_groups ug ON u.id = ug.user_id
+                                 JOIN group_permissions gp ON ug.group_id = gp.group_id
+                                 JOIN permissions p ON gp.permission_id = p.id
+                                 WHERE p.module = 'contacts' AND p.action IN ('view_all','view')
+                                 AND u.is_active = 1 AND u.id NOT IN (" . implode(',', array_map('intval', $shownIds)) . ")
+                                 ORDER BY u.name"
+                            );
+                            foreach ($viewAllUsers as $vu):
+                            ?>
+                                <span class="badge bg-soft-secondary text-secondary py-1 px-2"><?= e($vu['name']) ?></span>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
