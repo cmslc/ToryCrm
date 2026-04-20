@@ -278,6 +278,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-time-line me-1"></i> Dòng thời gian</h5></div>
                     <div class="card-body">
                         <div class="acitivity-timeline acitivity-main">
+                            <!-- Tạo báo giá -->
                             <div class="acitivity-item d-flex">
                                 <div class="flex-shrink-0">
                                     <div class="avatar-xs acitivity-avatar">
@@ -285,11 +286,48 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                     </div>
                                 </div>
                                 <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Tạo báo giá</h6>
-                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['created_at']) ?></small></p>
+                                    <h6 class="mb-1">Tạo báo giá <span class="fw-normal text-muted">#<?= e($quotation['quote_number']) ?></span></h6>
+                                    <p class="mb-1"><small>Người tạo: <strong><?= e($quotation['created_by_name'] ?? '-') ?></strong></small></p>
+                                    <?php if ($quotation['contact_first_name']): ?>
+                                    <p class="mb-1"><small>Khách hàng: <a href="<?= url('contacts/' . $quotation['contact_id']) ?>"><?= e(trim($quotation['contact_first_name'] . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></a></small></p>
+                                    <?php endif; ?>
+                                    <p class="mb-0"><small>Tổng tiền: <strong class="text-primary"><?= format_money($quotation['total'] ?? 0) ?></strong></small></p>
+                                    <p class="text-muted mb-0 mt-1"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['created_at']) ?></small></p>
                                 </div>
                             </div>
 
+                            <!-- Gửi duyệt -->
+                            <?php if ($quotation['submitted_at'] ?? null): ?>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-warning text-warning"><i class="ri-send-plane-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Gửi duyệt</h6>
+                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['submitted_at']) ?></small></p>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Đã duyệt -->
+                            <?php if ($quotation['approved_at'] ?? null): ?>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-success text-success"><i class="ri-checkbox-circle-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1 text-success">Đã duyệt</h6>
+                                    <?php if ($quotation['approved_by_name'] ?? null): ?><p class="mb-1"><small>Người duyệt: <strong><?= e($quotation['approved_by_name']) ?></strong></small></p><?php endif; ?>
+                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['approved_at']) ?></small></p>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Gửi khách -->
                             <?php if ($quotation['sent_at'] ?? null): ?>
                             <div class="acitivity-item d-flex">
                                 <div class="flex-shrink-0">
@@ -299,11 +337,18 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1">Đã gửi khách hàng</h6>
-                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['sent_at']) ?></small></p>
+                                    <?php if ($quotation['contact_email'] ?? $quotation['contact_phone'] ?? null): ?>
+                                    <p class="mb-1"><small>
+                                        <?php if ($quotation['contact_email']): ?><i class="ri-mail-line me-1"></i><?= e($quotation['contact_email']) ?><?php endif; ?>
+                                        <?php if ($quotation['contact_phone']): ?> · <i class="ri-phone-line me-1"></i><?= e($quotation['contact_phone']) ?><?php endif; ?>
+                                    </small></p>
+                                    <?php endif; ?>
+                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['sent_at']) ?></small></p>
                                 </div>
                             </div>
                             <?php endif; ?>
 
+                            <!-- KH đã xem -->
                             <?php if (($quotation['view_count'] ?? 0) > 0): ?>
                             <div class="acitivity-item d-flex">
                                 <div class="flex-shrink-0">
@@ -313,11 +358,15 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1">Khách hàng đã xem</h6>
-                                    <p class="text-muted mb-0"><small><?= $quotation['view_count'] ?> lượt xem<?= ($quotation['last_viewed_at'] ?? null) ? ' · Lần cuối: ' . format_datetime($quotation['last_viewed_at']) : '' ?></small></p>
+                                    <p class="mb-1"><small><i class="ri-eye-line me-1"></i><?= $quotation['view_count'] ?> lượt xem</small></p>
+                                    <?php if ($quotation['last_viewed_at'] ?? null): ?>
+                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i>Lần cuối: <?= format_datetime($quotation['last_viewed_at']) ?></small></p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <?php endif; ?>
 
+                            <!-- KH chấp nhận -->
                             <?php if ($quotation['accepted_at']): ?>
                             <div class="acitivity-item d-flex">
                                 <div class="flex-shrink-0">
@@ -327,11 +376,13 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-success">Khách hàng chấp nhận</h6>
-                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['accepted_at']) ?></small></p>
+                                    <p class="mb-1"><small>Báo giá đã được KH đồng ý. Có thể tạo đơn hàng hoặc hợp đồng.</small></p>
+                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['accepted_at']) ?></small></p>
                                 </div>
                             </div>
                             <?php endif; ?>
 
+                            <!-- KH từ chối -->
                             <?php if ($quotation['rejected_at']): ?>
                             <div class="acitivity-item d-flex">
                                 <div class="flex-shrink-0">
@@ -341,21 +392,42 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-1 text-danger">Khách hàng từ chối</h6>
-                                    <?php if ($quotation['reject_reason']): ?><p class="text-muted mb-1"><small><?= e($quotation['reject_reason']) ?></small></p><?php endif; ?>
-                                    <p class="text-muted mb-0"><small><?= format_datetime($quotation['rejected_at']) ?></small></p>
+                                    <?php if ($quotation['reject_reason']): ?><p class="mb-1"><small><i class="ri-chat-quote-line me-1"></i>Lý do: <?= e($quotation['reject_reason']) ?></small></p><?php endif; ?>
+                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['rejected_at']) ?></small></p>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Chuyển đơn hàng -->
+                            <?php if ($quotation['converted_order_id'] ?? null): ?>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-dark text-dark"><i class="ri-shopping-cart-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">Đã chuyển thành đơn hàng</h6>
+                                    <p class="mb-0"><small><a href="<?= url('orders/' . $quotation['converted_order_id']) ?>" class="text-primary">Xem đơn hàng <i class="ri-arrow-right-line"></i></a></small></p>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- Hết hạn -->
+                            <?php if (($quotation['valid_until'] ?? null) && $quotation['valid_until'] < date('Y-m-d') && !$quotation['accepted_at'] && !$quotation['rejected_at']): ?>
+                            <div class="acitivity-item d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-xs acitivity-avatar">
+                                        <div class="avatar-title rounded-circle bg-soft-danger text-danger"><i class="ri-alarm-warning-line"></i></div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1 text-danger">Báo giá đã hết hạn</h6>
+                                    <p class="text-muted mb-0"><small>Hiệu lực đến: <?= format_date($quotation['valid_until']) ?></small></p>
                                 </div>
                             </div>
                             <?php endif; ?>
                         </div>
-                    </div>
-                </div>
-
-                <?php if ($quotation['converted_order_id'] ?? null): ?>
-                <div class="card border-success">
-                    <div class="card-body text-center py-4">
-                        <i class="ri-checkbox-circle-line text-success" style="font-size:40px"></i>
-                        <h6 class="mt-2 mb-3">Đã chuyển thành đơn hàng</h6>
-                        <a href="<?= url('orders/' . $quotation['converted_order_id']) ?>" class="btn btn-success"><i class="ri-shopping-cart-line me-1"></i>Xem đơn hàng</a>
                     </div>
                 </div>
                 <?php endif; ?>
