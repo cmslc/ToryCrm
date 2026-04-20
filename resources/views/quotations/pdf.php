@@ -115,14 +115,19 @@
     <div class="info-section">
         <div class="info-block">
             <div class="label">Khách hàng</div>
-            <?php if ($quotation['contact_first_name']): ?>
-            <div class="name"><?= e(trim($quotation['contact_first_name'] . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></div>
-            <?php endif; ?>
+            <?php
+            $pdfName = $quotation['c_company_name'] ?? ($quotation['c_full_name'] ?? trim(($quotation['contact_first_name'] ?? '') . ' ' . ($quotation['contact_last_name'] ?? '')));
+            $pdfPhone = $quotation['contact_phone'] ?? ($quotation['c_company_phone'] ?? $quotation['c_phone'] ?? '');
+            $pdfEmail = $quotation['contact_email'] ?? ($quotation['c_company_email'] ?? $quotation['c_email'] ?? '');
+            $pdfAddress = $quotation['address'] ?? ($quotation['c_address'] ?? '');
+            $pdfTax = $quotation['c_tax_code'] ?? '';
+            ?>
+            <div class="name"><?= e($pdfName) ?></div>
             <div class="detail">
-                <?php if ($quotation['company_name']): ?><?= e($quotation['company_name']) ?><br><?php endif; ?>
-                <?php if ($quotation['company_address']): ?><?= e($quotation['company_address']) ?><br><?php endif; ?>
-                <?php if ($quotation['contact_phone']): ?>ĐT: <?= e($quotation['contact_phone']) ?><br><?php endif; ?>
-                <?php if ($quotation['contact_email']): ?>Email: <?= e($quotation['contact_email']) ?><?php endif; ?>
+                <?php if ($pdfTax): ?>MST: <?= e($pdfTax) ?><br><?php endif; ?>
+                <?php if ($pdfAddress): ?><?= e($pdfAddress) ?><br><?php endif; ?>
+                <?php if ($pdfPhone): ?>ĐT: <?= e($pdfPhone) ?><br><?php endif; ?>
+                <?php if ($pdfEmail): ?>Email: <?= e($pdfEmail) ?><?php endif; ?>
             </div>
         </div>
         <div class="info-block" style="text-align:right">
@@ -206,8 +211,18 @@
         </div>
     </div>
 
+    <!-- Nội dung điều khoản -->
+    <?php if ($quotation['content'] ?? null): ?>
+    <div class="notes-section">
+        <div class="note-box">
+            <div class="note-title">Nội dung điều khoản</div>
+            <div style="font-size:12px;color:#555"><?= $quotation['content'] ?></div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Notes & Terms -->
-    <?php if ($quotation['notes'] || $quotation['terms']): ?>
+    <?php if (($quotation['notes'] ?? null) || ($quotation['terms'] ?? null)): ?>
     <div class="notes-section">
         <?php if ($quotation['notes']): ?>
         <div class="note-box">
@@ -237,23 +252,6 @@
         </div>
     </div>
     <?php endif; ?>
-
-    <!-- Signatures -->
-    <div class="signatures">
-        <div class="sig-block">
-            <div class="sig-label">Đại diện bên bán</div>
-            <div class="sig-line"></div>
-            <div class="sig-name"><?= e($branding['representative'] ?? $quotation['owner_name'] ?? '') ?></div>
-            <?php if (!empty($branding['representative_title'])): ?>
-            <div style="font-size:11px;color:#888"><?= e($branding['representative_title']) ?></div>
-            <?php endif; ?>
-        </div>
-        <div class="sig-block">
-            <div class="sig-label">Đại diện bên mua</div>
-            <div class="sig-line"></div>
-            <div class="sig-name"><?= e(trim(($quotation['contact_first_name'] ?? '') . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></div>
-        </div>
-    </div>
 
     <!-- Footer -->
     <div class="footer">
