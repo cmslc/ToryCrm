@@ -413,19 +413,20 @@ class OrderController extends Controller
             [$id]
         );
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
-        $deals = Database::fetchAll("SELECT id, title FROM deals WHERE status = 'open' ORDER BY title");
-        $products = Database::fetchAll("SELECT id, name, sku, price, unit, tax_rate FROM products WHERE is_active = 1 ORDER BY name");
-        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $tid = Database::tenantId();
+        $editContact = null;
+        if ($order['contact_id']) {
+            $editContact = Database::fetch(
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                 FROM contacts WHERE id = ?", [$order['contact_id']]
+            );
+        }
+        $users = Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('orders.edit', [
             'order' => $order,
             'items' => $items,
-            'contacts' => $contacts,
-            'companies' => $companies,
-            'deals' => $deals,
-            'products' => $products,
+            'editContact' => $editContact,
             'users' => $users,
         ]);
     }
