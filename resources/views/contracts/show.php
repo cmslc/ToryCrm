@@ -343,11 +343,11 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
                 </div>
                 <?php endif; ?>
 
-                <!-- Trao đổi (Plugin) -->
-                <?php if (function_exists('activity_exchange_render')) activity_exchange_render('contract', $contract['id']); ?>
-
             </div>
         </div>
+
+        <!-- Trao đổi (Plugin) -->
+        <?php if (function_exists('activity_exchange_render')) activity_exchange_render('contract', $contract['id']); ?>
     </div>
 
     <!-- SIDEBAR -->
