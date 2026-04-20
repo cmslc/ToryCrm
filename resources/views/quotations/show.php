@@ -91,7 +91,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                                 ?>
                                 <?php if ($cp): ?>
                                     <p class="mb-1 fw-medium">
-                                        <?php if ($cp['title']): ?><span class="badge bg-soft-info text-info me-1"><?= e(ucfirst($cp['title'])) ?></span><?php endif; ?>
+                                        <?php if ($cp['title']): ?><span class="me-1"><?= e(ucfirst($cp['title'])) ?></span><?php endif; ?>
                                         <?= e($cp['full_name']) ?>
                                         <?php if ($cp['position']): ?><span class="text-muted">- <?= e($cp['position']) ?></span><?php endif; ?>
                                     </p>
