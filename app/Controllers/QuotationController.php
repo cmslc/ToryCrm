@@ -788,12 +788,14 @@ class QuotationController extends Controller
     {
         $quotation = Database::fetch(
             "SELECT q.*,
-                    c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
-                    comp.name as company_name, comp.address as company_address, comp.tax_code as company_tax_code,
+                    c.company_name as c_company_name, c.full_name as c_full_name,
+                    c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    c.company_phone as c_company_phone, c.company_email as c_company_email,
+                    c.phone as c_phone, c.email as c_email,
+                    c.address as c_address, c.tax_code as c_tax_code, c.account_code as c_account_code,
                     u.name as owner_name, u.email as owner_email, u.phone as owner_phone
              FROM quotations q
              LEFT JOIN contacts c ON q.contact_id = c.id
-             LEFT JOIN companies comp ON q.company_id = comp.id
              LEFT JOIN users u ON q.owner_id = u.id
              WHERE q.id = ? AND q.tenant_id = ?",
             [$id, Database::tenantId()]
@@ -805,7 +807,65 @@ class QuotationController extends Controller
         }
 
         $items = Database::fetchAll("SELECT * FROM quotation_items WHERE quotation_id = ? ORDER BY sort_order", [$id]);
+        $templateId = (int)($this->input('template_id') ?: ($_GET['template_id'] ?? 0));
 
+        // Nếu có template_id → render từ document_templates
+        if ($templateId) {
+            $branding = \App\Services\BrandingService::get();
+            $customerName = $quotation['c_company_name'] ?: ($quotation['c_full_name'] ?: trim(($quotation['contact_first_name'] ?? '') . ' ' . ($quotation['contact_last_name'] ?? '')));
+            $customerPhone = $quotation['contact_phone'] ?: ($quotation['c_company_phone'] ?: $quotation['c_phone'] ?? '');
+            $customerEmail = $quotation['contact_email'] ?: ($quotation['c_company_email'] ?: $quotation['c_email'] ?? '');
+            $customerAddress = $quotation['address'] ?: ($quotation['c_address'] ?? '');
+
+            $summary = [
+                ['label' => '<strong>Tổng tiền hàng</strong>', 'value' => number_format((float)($quotation['subtotal'] ?? 0))],
+            ];
+            if (($quotation['shipping_fee'] ?? 0) > 0) $summary[] = ['label' => 'Phí vận chuyển', 'value' => number_format((float)$quotation['shipping_fee'])];
+            if (($quotation['discount_amount'] ?? 0) > 0) $summary[] = ['label' => 'Chiết khấu', 'value' => '-' . number_format((float)$quotation['discount_amount'])];
+            if (($quotation['tax_amount'] ?? 0) > 0) $summary[] = ['label' => 'Thuế VAT', 'value' => number_format((float)$quotation['tax_amount'])];
+            if (($quotation['installation_fee'] ?? 0) > 0) $summary[] = ['label' => 'Phí lắp đặt', 'value' => number_format((float)$quotation['installation_fee'])];
+            $summary[] = ['label' => '<strong>TỔNG CỘNG</strong>', 'value' => '<strong>' . number_format((float)($quotation['total'] ?? 0)) . '</strong>'];
+
+            $replacements = [
+                '{{company_name}}' => $branding['name'] ?? '',
+                '{{company_address}}' => $branding['address'] ?? '',
+                '{{company_phone}}' => $branding['phone'] ?? '',
+                '{{company_tax_code}}' => $branding['tax_code'] ?? '',
+                '{{company_representative}}' => $branding['representative'] ?? '',
+                '{{company_position}}' => $branding['representative_title'] ?? '',
+                '{{company_bank_account}}' => $branding['bank_account'] ?? '',
+                '{{company_bank_name}}' => $branding['bank_name'] ?? '',
+                '{{customer_name}}' => $customerName,
+                '{{customer_address}}' => $customerAddress,
+                '{{customer_phone}}' => $customerPhone,
+                '{{customer_tax_code}}' => $quotation['c_tax_code'] ?? '',
+                '{{customer_representative}}' => '',
+                '{{customer_position}}' => '',
+                '{{items_table}}' => \App\Services\DocumentService::buildItemsTable($items, $summary),
+                '{{subtotal}}' => number_format((float)($quotation['subtotal'] ?? 0)),
+                '{{discount}}' => number_format((float)($quotation['discount_amount'] ?? 0)),
+                '{{vat}}' => number_format((float)($quotation['tax_amount'] ?? 0)),
+                '{{total}}' => number_format((float)($quotation['total'] ?? 0)),
+                '{{today}}' => date('d/m/Y'),
+                '{{owner_name}}' => $quotation['owner_name'] ?? '',
+                '{{quote_number}}' => $quotation['quote_number'] ?? '',
+                '{{valid_until}}' => !empty($quotation['valid_until']) ? date('d/m/Y', strtotime($quotation['valid_until'])) : '',
+                '{{notes}}' => $quotation['notes'] ?? '',
+                '{{terms}}' => $quotation['terms'] ?? '',
+            ];
+
+            $html = \App\Services\DocumentService::render('quotation', $templateId, $replacements);
+            if ($html) {
+                echo '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Báo giá ' . e($quotation['quote_number']) . '</title>';
+                echo '<style>body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:13px;line-height:1.6;color:#333;padding:20px 40px}table{border-collapse:collapse}td,th{padding:6px 8px}</style>';
+                echo '</head><body>';
+                echo $html;
+                echo '<script>window.onload=function(){window.print()}</script></body></html>';
+                return;
+            }
+        }
+
+        // Fallback: mẫu mặc định hệ thống
         $noLayout = true;
         $branding = \App\Services\BrandingService::get();
         include BASE_PATH . '/resources/views/quotations/pdf.php';
