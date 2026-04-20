@@ -68,8 +68,9 @@ class ContractController extends Controller
         $contracts = Database::fetchAll(
             "SELECT ct.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    c.company_name as c_company_name, c.full_name as c_full_name, c.avatar as contact_avatar,
                     comp.name as company_name,
-                    u.name as owner_name
+                    u.name as owner_name, u.avatar as owner_avatar
              FROM contracts ct
              LEFT JOIN contacts c ON ct.contact_id = c.id
              LEFT JOIN companies comp ON ct.company_id = comp.id

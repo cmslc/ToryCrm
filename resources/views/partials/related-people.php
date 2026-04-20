@@ -64,7 +64,7 @@ try {
 
             <?php
             // Ban lãnh đạo + Người có quyền "Xem tất cả" module này
-            $rpModule = $_entityType . 's';
+            $rpModule = $rpEntityType . 's';
             $rpPlaceholders = implode(',', array_map('intval', $rpShownIds));
             try {
                 $rpAutoUsers = \Core\Database::fetchAll(

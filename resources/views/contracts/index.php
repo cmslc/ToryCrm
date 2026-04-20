@@ -99,7 +99,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <tbody>
                     <?php if (!empty($contracts['items'])): ?>
                         <?php foreach ($contracts['items'] as $ct):
-                            $contactName = trim(($ct['contact_first_name'] ?? '') . ' ' . ($ct['contact_last_name'] ?? ''));
+                            $contactName = $ct['c_company_name'] ?? ($ct['c_full_name'] ?? trim(($ct['contact_first_name'] ?? '') . ' ' . ($ct['contact_last_name'] ?? '')));
                         ?>
                         <tr>
                             <?php foreach ($displayColumns as $dc):
@@ -118,12 +118,23 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                 <?php break; case 'type': ?>
                                     <span class="badge bg-<?= $tc[$val] ?? 'secondary' ?>-subtle text-<?= $tc[$val] ?? 'secondary' ?>"><?= $tl[$val] ?? $val ?></span>
                                 <?php break; case 'contact_id': ?>
-                                    <?= $contactName ? e($contactName) : '-' ?>
-                                    <?php if (!empty($ct['company_name'])): ?><br><small class="text-muted"><?= e($ct['company_name']) ?></small><?php endif; ?>
+                                    <?php if ($contactName): ?>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <?php if ($ct['contact_avatar'] ?? null): ?><img src="<?= asset($ct['contact_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                        <?php else: ?><span class="rounded-circle bg-info text-white d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:10px"><?= mb_strtoupper(mb_substr($contactName, 0, 1)) ?></span><?php endif; ?>
+                                        <div><?= e($contactName) ?></div>
+                                    </div>
+                                    <?php else: ?>-<?php endif; ?>
                                 <?php break; case 'company_id': ?>
                                     <?= !empty($ct['company_name']) ? e($ct['company_name']) : '-' ?>
                                 <?php break; case 'owner_id': ?>
-                                    <?= !empty($ct['owner_name']) ? e($ct['owner_name']) : '-' ?>
+                                    <?php if (!empty($ct['owner_name'])): ?>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <?php if ($ct['owner_avatar'] ?? null): ?><img src="<?= asset($ct['owner_avatar']) ?>" class="rounded-circle" width="24" height="24" style="object-fit:cover">
+                                        <?php else: ?><span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:10px"><?= mb_strtoupper(mb_substr($ct['owner_name'], 0, 1)) ?></span><?php endif; ?>
+                                        <?= e($ct['owner_name']) ?>
+                                    </div>
+                                    <?php else: ?>-<?php endif; ?>
                                 <?php break; case 'value': case 'subtotal': case 'discount_amount': case 'shipping_fee': case 'installation_fee': case 'tax_amount': case 'actual_value': case 'executed_amount': case 'paid_amount': ?>
                                     <?= format_money($val) ?>
                                 <?php break; case 'start_date': case 'end_date': case 'signed_date': ?>
