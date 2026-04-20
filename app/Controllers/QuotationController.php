@@ -826,7 +826,35 @@ class QuotationController extends Controller
             if (($quotation['installation_fee'] ?? 0) > 0) $summary[] = ['label' => 'Phí lắp đặt', 'value' => number_format((float)$quotation['installation_fee'])];
             $summary[] = ['label' => '<strong>TỔNG CỘNG</strong>', 'value' => '<strong>' . number_format((float)($quotation['total'] ?? 0)) . '</strong>'];
 
+            // Load contact person
+            $cp = null;
+            if ($quotation['contact_person_id'] ?? null) {
+                $cp = Database::fetch("SELECT * FROM contact_persons WHERE id = ?", [$quotation['contact_person_id']]);
+            } elseif ($quotation['contact_id']) {
+                $cp = Database::fetch("SELECT * FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, id LIMIT 1", [$quotation['contact_id']]);
+            }
+            $contactName = $cp ? (($cp['title'] ? ucfirst($cp['title']) . ' ' : '') . $cp['full_name']) : '';
+            $contactHonorific = $cp['title'] ?? '';
+
+            // Build items HTML cho từng sản phẩm (Getfly style: {{p.name}}, {{p.qty}}, etc)
+            $itemsHtml = '';
+            $salesTotal = 0;
+            foreach ($items as $i => $item) {
+                $rowHtml = '<tr>';
+                $rowHtml .= '<td style="text-align:center">' . ($i + 1) . '</td>';
+                $rowHtml .= '<td>' . htmlspecialchars($item['product_name'] ?? '') . '</td>';
+                $rowHtml .= '<td></td>'; // ảnh SP placeholder
+                $rowHtml .= '<td style="text-align:center">' . htmlspecialchars($item['unit'] ?? '') . '</td>';
+                $rowHtml .= '<td style="text-align:right">' . number_format((float)($item['quantity'] ?? 0), 2) . '</td>';
+                $rowHtml .= '<td style="text-align:right">' . number_format((float)($item['unit_price'] ?? 0)) . '</td>';
+                $rowHtml .= '<td style="text-align:right">' . number_format((float)($item['total'] ?? 0)) . '</td>';
+                $rowHtml .= '</tr>';
+                $itemsHtml .= $rowHtml;
+                $salesTotal += (float)($item['total'] ?? 0);
+            }
+
             $replacements = [
+                // ToryCRM variables
                 '{{company_name}}' => $branding['name'] ?? '',
                 '{{company_address}}' => $branding['address'] ?? '',
                 '{{company_phone}}' => $branding['phone'] ?? '',
@@ -839,8 +867,8 @@ class QuotationController extends Controller
                 '{{customer_address}}' => $customerAddress,
                 '{{customer_phone}}' => $customerPhone,
                 '{{customer_tax_code}}' => $quotation['c_tax_code'] ?? '',
-                '{{customer_representative}}' => '',
-                '{{customer_position}}' => '',
+                '{{customer_representative}}' => $contactName,
+                '{{customer_position}}' => $cp['position'] ?? '',
                 '{{items_table}}' => \App\Services\DocumentService::buildItemsTable($items, $summary),
                 '{{subtotal}}' => number_format((float)($quotation['subtotal'] ?? 0)),
                 '{{discount}}' => number_format((float)($quotation['discount_amount'] ?? 0)),
@@ -852,9 +880,51 @@ class QuotationController extends Controller
                 '{{valid_until}}' => !empty($quotation['valid_until']) ? date('d/m/Y', strtotime($quotation['valid_until'])) : '',
                 '{{notes}}' => $quotation['notes'] ?? '',
                 '{{terms}}' => $quotation['terms'] ?? '',
+
+                // Getfly variables
+                '{{a.account_name}}' => $customerName,
+                '{{a.last_contact_honorific}}' => $contactHonorific,
+                '{{contact_name}}' => $contactName,
+                '{{contact_phone}}' => $cp['phone'] ?? $customerPhone,
+                '{{contact_email}}' => $cp['email'] ?? $customerEmail,
+                '{{quote_account_address}}' => $customerAddress,
+                '{{quote_project_address}}' => $quotation['location'] ?? $customerAddress,
+                '{{quote_date}}' => date('d/m/Y', strtotime($quotation['created_at'])),
+                '{{quote_code}}' => $quotation['quote_number'] ?? '',
+                '{{assigned_name}}' => $quotation['owner_name'] ?? '',
+                '{{assigned_email}}' => $quotation['owner_email'] ?? '',
+                '{{assigned_phone}}' => $quotation['owner_phone'] ?? '',
+                '{{sales}}' => number_format($salesTotal),
+                '{{vat_amount}}' => number_format((float)($quotation['tax_amount'] ?? 0)),
+                '{{revenue}}' => number_format((float)($quotation['total'] ?? 0)),
+                '{{content}}' => $quotation['content'] ?? '',
             ];
 
             $html = \App\Services\DocumentService::render('quotation', $templateId, $replacements);
+
+            // Xử lý biến sản phẩm theo dòng (Getfly style)
+            if ($html && preg_match('/(<tr[^>]*>(?:(?!<\/tr>).)*\{\{p\.\w+\}\}.*?<\/tr>)/si', $html, $rowMatch)) {
+                $rowTemplate = $rowMatch[1];
+                $rowsHtml = '';
+                foreach ($items as $i => $item) {
+                    $row = $rowTemplate;
+                    $row = str_replace('{{p.no}}', $i + 1, $row);
+                    $row = str_replace('{{p.name}}', htmlspecialchars($item['product_name'] ?? ''), $row);
+                    $row = str_replace('{{p.desc}}', htmlspecialchars($item['description'] ?? ''), $row);
+                    $row = str_replace('{{p.l_desc}}', htmlspecialchars($item['description'] ?? ''), $row);
+                    $row = str_replace('{{p.kich_thuoc}}', '', $row);
+                    $row = str_replace('{{p.unit}}', htmlspecialchars($item['unit'] ?? ''), $row);
+                    $row = str_replace('{{p.qty}}', number_format((float)($item['quantity'] ?? 0), 2), $row);
+                    $row = str_replace('{{p.cost}}', number_format((float)($item['unit_price'] ?? 0)), $row);
+                    $row = str_replace('{{p.revenue}}', number_format((float)($item['total'] ?? 0)), $row);
+                    $row = str_replace('{{p.discount}}', number_format((float)($item['discount'] ?? 0)), $row);
+                    $row = str_replace('{{p.vat}}', number_format((float)($item['tax_rate'] ?? 0), 2) . '%', $row);
+                    $row = preg_replace('/\{\{p\.avatar[^}]*\}\}/', '', $row);
+                    $rowsHtml .= $row;
+                }
+                $html = str_replace($rowTemplate, $rowsHtml, $html);
+            }
+
             if ($html) {
                 echo '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Báo giá ' . e($quotation['quote_number']) . '</title>';
                 echo '<style>body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:13px;line-height:1.6;color:#333;padding:20px 40px}table{border-collapse:collapse}td,th{padding:6px 8px}</style>';
