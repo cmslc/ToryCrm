@@ -235,11 +235,11 @@ class PermissionService
     public static function updateGroupPermissions(int $groupId, array $permissionIds): void
     {
         Database::query("DELETE FROM group_permissions WHERE group_id = ?", [$groupId]);
-        foreach ($permissionIds as $pid) {
-            Database::insert('group_permissions', [
-                'group_id' => $groupId,
-                'permission_id' => (int)$pid,
-            ]);
+        foreach (array_unique($permissionIds) as $pid) {
+            Database::query(
+                "INSERT IGNORE INTO group_permissions (group_id, permission_id) VALUES (?, ?)",
+                [$groupId, (int)$pid]
+            );
         }
         self::clearCache();
     }
