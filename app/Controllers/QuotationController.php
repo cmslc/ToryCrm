@@ -932,7 +932,7 @@ class QuotationController extends Controller
 
             if ($html) {
                 echo '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>Báo giá ' . e($quotation['quote_number']) . '</title>';
-                echo '<style>body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:13px;line-height:1.6;color:#333;padding:20px 40px}table{border-collapse:collapse}td,th{padding:6px 8px}</style>';
+                echo '<style>body{font-family:"DejaVu Sans",Arial,sans-serif;font-size:13px;line-height:1.3;color:#333;padding:15px 30px;margin:0}p{margin:2px 0}table{border-collapse:collapse}td,th{padding:4px 6px}</style>';
                 echo '</head><body>';
                 echo $html;
                 echo '<script>window.onload=function(){window.print()}</script></body></html>';
