@@ -334,33 +334,13 @@ class QuotationController extends Controller
             [$id]
         );
 
-        // Activities
-        $uid = $this->userId();
-        $activities = Database::fetchAll(
-            "SELECT a.*, u.name as user_name, u.avatar as user_avatar,
-                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'like') as likes,
-                    (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'dislike') as dislikes,
-                    (SELECT type FROM activity_reactions WHERE activity_id = a.id AND user_id = ? LIMIT 1) as my_reaction
-             FROM activities a
-             LEFT JOIN users u ON a.user_id = u.id
-             WHERE a.quotation_id = ? AND a.parent_id IS NULL
-             ORDER BY a.created_at ASC
-             LIMIT 50",
-            [$uid, $id]
-        );
-        foreach ($activities as &$act) {
-            $act['replies'] = Database::fetchAll(
-                "SELECT a.*, u.name as user_name, u.avatar as user_avatar,
-                        (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'like') as likes,
-                        (SELECT COUNT(*) FROM activity_reactions WHERE activity_id = a.id AND type = 'dislike') as dislikes,
-                        (SELECT type FROM activity_reactions WHERE activity_id = a.id AND user_id = ? LIMIT 1) as my_reaction
-                 FROM activities a LEFT JOIN users u ON a.user_id = u.id WHERE a.parent_id = ? ORDER BY a.created_at ASC",
-                [$uid, $act['id']]
-            );
+        // Activities (via plugin)
+        $activities = [];
+        $allUsers = [];
+        if (function_exists('plugin_active') && plugin_active('activity-exchange')) {
+            $activities = \App\Services\ActivityService::getActivities('quotation', (int)$id, $this->userId());
+            $allUsers = \App\Services\ActivityService::getAllUsers();
         }
-        unset($act);
-
-        $allUsers = Database::fetchAll("SELECT id, name, avatar, department_id FROM users WHERE is_active = 1 ORDER BY name");
 
         $pdfTemplates = Database::fetchAll(
             "SELECT id, name, is_default FROM document_templates WHERE tenant_id = ? AND type = 'quotation' AND is_active = 1 ORDER BY is_default DESC, name",
