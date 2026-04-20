@@ -497,7 +497,7 @@ class ContactController extends Controller
         }
 
         // Ownership check: staff can only view own records
-        if (!$this->canAccessOwner($contact['owner_id'] ?? null)) {
+        if (!$this->canAccessEntity('contact', (int)$contact['id'], $contact['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('contacts');
         }
@@ -564,7 +564,7 @@ class ContactController extends Controller
         }
 
         // Ownership check: staff can only edit own records
-        if (!$this->canAccessOwner($contact['owner_id'] ?? null)) {
+        if (!$this->canAccessEntity('contact', (int)$contact['id'], $contact['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('contacts');
         }
@@ -603,7 +603,7 @@ class ContactController extends Controller
         }
 
         // Ownership check: staff can only update own records
-        if (!$this->canAccessOwner($contact['owner_id'] ?? null)) {
+        if (!$this->canAccessEntity('contact', (int)$contact['id'], $contact['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('contacts');
         }
@@ -698,7 +698,7 @@ class ContactController extends Controller
         }
 
         // Ownership check: staff can only delete own records
-        if (!$this->canAccessOwner($contact['owner_id'] ?? null)) {
+        if (!$this->canAccessEntity('contact', (int)$contact['id'], $contact['owner_id'] ?? null)) {
             $this->setFlash('error', 'Bạn không có quyền truy cập.');
             return $this->redirect('contacts');
         }
