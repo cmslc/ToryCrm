@@ -52,26 +52,51 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
 
         <div class="row">
             <div class="col-lg-8">
-                <!-- Quotation Info -->
+                <!-- Thông tin khách hàng -->
+                <?php
+                $cName = $quotation['c_company_name'] ?: ($quotation['c_full_name'] ?: trim(($quotation['contact_first_name'] ?? '') . ' ' . ($quotation['contact_last_name'] ?? '')));
+                $cPhone = $quotation['contact_phone'] ?: ($quotation['c_company_phone'] ?: $quotation['c_phone'] ?? '');
+                $cEmail = $quotation['contact_email'] ?: ($quotation['c_company_email'] ?: $quotation['c_email'] ?? '');
+                $cAddress = $quotation['address'] ?: ($quotation['c_address'] ?? '');
+                $cTax = $quotation['c_tax_code'] ?? '';
+                $cCode = $quotation['c_account_code'] ?? '';
+                ?>
                 <div class="card">
                     <div class="card-body">
-                        <div class="row mb-4">
+                        <div class="row">
                             <div class="col-md-6">
-                                <h6 class="text-muted mb-2">Khách hàng</h6>
-                                <?php if ($quotation['contact_first_name']): ?>
-                                    <p class="mb-1 fw-medium"><?= e(trim($quotation['contact_first_name'] . ' ' . ($quotation['contact_last_name'] ?? ''))) ?></p>
-                                    <?php if ($quotation['contact_email']): ?><p class="mb-1 text-muted"><i class="ri-mail-line me-1"></i><?= e($quotation['contact_email']) ?></p><?php endif; ?>
-                                    <?php if ($quotation['contact_phone']): ?><p class="mb-0 text-muted"><i class="ri-phone-line me-1"></i><?= e($quotation['contact_phone']) ?></p><?php endif; ?>
+                                <h6 class="text-muted mb-2"><i class="ri-user-3-line me-1"></i>Khách hàng</h6>
+                                <?php if ($cName): ?>
+                                    <p class="mb-1 fw-medium">
+                                        <a href="<?= url('contacts/' . $quotation['contact_id']) ?>"><?= e($cName) ?></a>
+                                        <?php if ($cCode): ?><span class="text-muted">(<?= e($cCode) ?>)</span><?php endif; ?>
+                                    </p>
+                                    <?php if ($cTax): ?><p class="mb-1 text-muted"><i class="ri-hashtag me-1"></i>MST: <?= e($cTax) ?></p><?php endif; ?>
+                                    <?php if ($cAddress): ?><p class="mb-1 text-muted"><i class="ri-map-pin-line me-1"></i><?= e($cAddress) ?></p><?php endif; ?>
+                                    <?php if ($cPhone): ?><p class="mb-1 text-muted"><i class="ri-phone-line me-1"></i><?= e($cPhone) ?></p><?php endif; ?>
+                                    <?php if ($cEmail): ?><p class="mb-0 text-muted"><i class="ri-mail-line me-1"></i><?= e($cEmail) ?></p><?php endif; ?>
                                 <?php else: ?>
                                     <p class="text-muted">-</p>
                                 <?php endif; ?>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-muted mb-2">Công ty</h6>
-                                <?php if ($quotation['company_name']): ?>
-                                    <p class="mb-1 fw-medium"><?= e($quotation['company_name']) ?></p>
-                                    <?php if ($quotation['company_address']): ?><p class="mb-1 text-muted"><?= e($quotation['company_address']) ?></p><?php endif; ?>
-                                    <?php if ($quotation['company_tax_code']): ?><p class="mb-0 text-muted">MST: <?= e($quotation['company_tax_code']) ?></p><?php endif; ?>
+                                <h6 class="text-muted mb-2"><i class="ri-contacts-book-line me-1"></i>Người liên hệ</h6>
+                                <?php
+                                $cp = null;
+                                if ($quotation['contact_person_id'] ?? null) {
+                                    $cp = \Core\Database::fetch("SELECT * FROM contact_persons WHERE id = ?", [$quotation['contact_person_id']]);
+                                } elseif ($quotation['contact_id']) {
+                                    $cp = \Core\Database::fetch("SELECT * FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, id LIMIT 1", [$quotation['contact_id']]);
+                                }
+                                ?>
+                                <?php if ($cp): ?>
+                                    <p class="mb-1 fw-medium">
+                                        <?php if ($cp['title']): ?><span class="badge bg-soft-info text-info me-1"><?= e(ucfirst($cp['title'])) ?></span><?php endif; ?>
+                                        <?= e($cp['full_name']) ?>
+                                        <?php if ($cp['position']): ?><span class="text-muted">- <?= e($cp['position']) ?></span><?php endif; ?>
+                                    </p>
+                                    <?php if ($cp['phone']): ?><p class="mb-1 text-muted"><i class="ri-phone-line me-1"></i><?= e($cp['phone']) ?></p><?php endif; ?>
+                                    <?php if ($cp['email']): ?><p class="mb-0 text-muted"><i class="ri-mail-line me-1"></i><?= e($cp['email']) ?></p><?php endif; ?>
                                 <?php else: ?>
                                     <p class="text-muted">-</p>
                                 <?php endif; ?>

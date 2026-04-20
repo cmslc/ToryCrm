@@ -296,17 +296,21 @@ class QuotationController extends Controller
     {
         $quotation = Database::fetch(
             "SELECT q.*,
-                    c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
-                    comp.name as company_name, comp.address as company_address, comp.tax_code as company_tax_code,
+                    c.company_name as c_company_name, c.full_name as c_full_name,
+                    c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    c.company_phone as c_company_phone, c.company_email as c_company_email,
+                    c.phone as c_phone, c.email as c_email,
+                    c.address as c_address, c.tax_code as c_tax_code, c.account_code as c_account_code,
                     u.name as owner_name,
                     d.title as deal_title,
-                    uc.name as created_by_name
+                    uc.name as created_by_name,
+                    ua.name as approved_by_name
              FROM quotations q
              LEFT JOIN contacts c ON q.contact_id = c.id
-             LEFT JOIN companies comp ON q.company_id = comp.id
              LEFT JOIN users u ON q.owner_id = u.id
              LEFT JOIN deals d ON q.deal_id = d.id
              LEFT JOIN users uc ON q.created_by = uc.id
+             LEFT JOIN users ua ON q.approved_by = ua.id
              WHERE q.id = ? AND q.tenant_id = ?",
             [$id, Database::tenantId()]
         );
