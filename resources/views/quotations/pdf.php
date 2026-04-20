@@ -255,7 +255,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        <?= e($branding['name'] ?? 'ToryCRM') ?> · Báo giá <?= e($quotation['quote_number']) ?> · Tạo ngày <?= date('d/m/Y H:i', strtotime($quotation['created_at'])) ?>
+        Báo giá <?= e($quotation['quote_number']) ?> · Ngày <?= date('d/m/Y', strtotime($quotation['created_at'])) ?>
     </div>
 
 </div>
