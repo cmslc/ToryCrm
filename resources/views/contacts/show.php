@@ -449,14 +449,14 @@
                             <!-- Tab: Trao đổi -->
                             <div class="tab-pane fade show active" id="tab-exchange" role="tabpanel">
                                 <?php if (function_exists('activity_exchange_render')):
-                                    activity_exchange_render('contact', $contact['id']);
+                                    activity_exchange_render('contact', $contact['id'], true);
                                 else: ?>
                                     <div class="text-center py-5"><i class="ri-chat-3-line fs-48 text-muted"></i><p class="text-muted mt-2">Plugin trao đổi chưa được bật</p></div>
                                 <?php endif; ?>
                             </div>
 
-                            <?php if(false): /* OLD INLINE CODE REMOVED */ ?>
-                                <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="composeForm" style="display:none">
+                            <?php if(false): /* removed */ ?>
+                                <div class="d-none">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="contact_id" value="<?= $contact['id'] ?>">
                                     <input type="hidden" name="type" value="note" id="activityType">

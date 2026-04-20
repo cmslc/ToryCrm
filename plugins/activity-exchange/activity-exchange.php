@@ -23,7 +23,7 @@ if (!defined('BASE_PATH')) return;
  * @param string $entityType  contact|quotation|order|contract|deal
  * @param int    $entityId
  */
-function activity_exchange_render(string $entityType, int $entityId): void
+function activity_exchange_render(string $entityType, int $entityId, bool $noCard = false): void
 {
     if (!function_exists('plugin_active') || !plugin_active('activity-exchange')) return;
 
@@ -31,9 +31,7 @@ function activity_exchange_render(string $entityType, int $entityId): void
     $activities = \App\Services\ActivityExchangeService::getActivities($entityType, $entityId, $userId);
     $allUsers = \App\Services\ActivityExchangeService::getAllUsers();
 
-    // Variables for the view
-    $entityType = $entityType;
-    $entityId = $entityId;
+    $_noCard = $noCard;
 
     include __DIR__ . '/views/feed.php';
 }

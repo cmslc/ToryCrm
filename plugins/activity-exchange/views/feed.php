@@ -17,11 +17,14 @@ foreach ($_allUsers as $u) { $_userAvatars[$u['name']] = $u['avatar'] ?? null; }
 $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
 ?>
 
+<?php if (empty($_noCard)): ?>
 <div class="card" id="activity-exchange-card">
     <div class="card-header">
         <h5 class="card-title mb-0"><i class="ri-chat-3-line me-1"></i> Trao đổi</h5>
     </div>
     <div class="card-body">
+<?php endif; ?>
+<div id="activity-exchange-inner">
         <!-- Compose Area -->
         <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="composeForm" style="display:none">
             <?= csrf_field() ?>
@@ -182,8 +185,11 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                 </div>
             <?php endif; ?>
         </div>
+</div>
+<?php if (empty($_noCard)): ?>
     </div>
 </div>
+<?php endif; ?>
 
 <script>
 // Move compose form below feed
