@@ -7,7 +7,6 @@ $actionCols = [
     'approve' => 'Duyệt',
     'payment' => 'Thanh toán',
     'view_all' => 'Xem tất cả',
-    'view_department' => 'Xem phòng ban',
 ];
 
 // Getfly-style nested hierarchy
@@ -15,13 +14,13 @@ $hierarchy = [
     'Quản lý phòng ban' => ['users' => ['view']],
     'Quản lý người dùng' => ['users' => ['view', 'create', 'edit', 'delete']],
     'Quản lý công việc' => [
-        'tasks' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all'],
+        'tasks' => ['view', 'create', 'edit', 'delete', 'approve', 'view_all'],
     ],
     'Quản lý quyền' => ['settings' => ['view']],
     'Chiến dịch - Cơ hội' => [
         '_children' => [
             'Chiến dịch' => ['campaigns' => ['view', 'create', 'edit', 'delete', 'view_all']],
-            'Cơ hội' => ['deals' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all']],
+            'Cơ hội' => ['deals' => ['view', 'create', 'edit', 'delete', 'approve', 'view_all']],
         ],
     ],
     'CRM' => [
@@ -29,16 +28,16 @@ $hierarchy = [
             'Cài đặt CRM' => ['settings' => ['view']],
             'Bán hàng' => [
                 '_children' => [
-                    'Báo giá' => ['quotations' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all']],
-                    'Hợp đồng bán' => ['contracts' => ['view', 'create', 'edit', 'delete', 'approve', 'payment', 'view_department', 'view_all']],
-                    'Đơn hàng bán' => ['orders' => ['view', 'create', 'edit', 'delete', 'approve', 'payment', 'view_department', 'view_all']],
-                    'Đơn hàng mua' => ['purchase_orders' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all']],
+                    'Báo giá' => ['quotations' => ['view', 'create', 'edit', 'delete', 'approve', 'view_all']],
+                    'Hợp đồng bán' => ['contracts' => ['view', 'create', 'edit', 'delete', 'approve', 'payment', 'view_all']],
+                    'Đơn hàng bán' => ['orders' => ['view', 'create', 'edit', 'delete', 'approve', 'payment', 'view_all']],
+                    'Đơn hàng mua' => ['purchase_orders' => ['view', 'create', 'edit', 'delete', 'approve', 'view_all']],
                 ],
             ],
             'Dùng chung' => [
                 '_children' => [
                     'Sản phẩm' => ['products' => ['view', 'create', 'edit', 'delete']],
-                    'Khách hàng' => ['contacts' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all']],
+                    'Khách hàng' => ['contacts' => ['view', 'create', 'edit', 'delete', 'approve', 'view_all']],
                 ],
             ],
             'Hạch toán' => ['debts' => ['view', 'create', 'edit', 'delete', 'payment', 'approve']],
@@ -60,7 +59,7 @@ $hierarchy = [
         ],
     ],
     'Hoạt động' => ['activities' => ['view', 'create', 'edit', 'delete']],
-    'Hỗ trợ' => ['tickets' => ['view', 'create', 'edit', 'delete', 'view_department', 'view_all']],
+    'Hỗ trợ' => ['tickets' => ['view', 'create', 'edit', 'delete', 'view_all']],
     'Import/Export' => ['import_export' => ['use']],
 ];
 

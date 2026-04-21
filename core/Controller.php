@@ -128,11 +128,9 @@ class Controller
     {
         if ($this->isSystemAdmin()) return '';
         if ($module && \App\Services\PermissionService::can($module, 'view_all')) return '';
-        if ($module && \App\Services\PermissionService::can($module, 'view_department')) {
-            $ids = $this->getVisibleUserIds();
-            if ($ids && count($ids) > 0) {
-                return " AND {$col} IN (" . implode(',', array_map('intval', $ids)) . ")";
-            }
+        $ids = $this->getVisibleUserIds();
+        if ($ids && count($ids) > 1) {
+            return " AND {$col} IN (" . implode(',', array_map('intval', $ids)) . ")";
         }
         return " AND {$col} = " . (int)$this->userId();
     }
@@ -164,11 +162,11 @@ class Controller
         try {
             $deptIds = [];
 
-            // Phòng ban của user
+            // Phòng ban của user (chỉ khi là trưởng/phó phòng)
             if ($deptId) {
-                $deptIds[] = (int)$deptId;
                 $dept = Database::fetch("SELECT manager_id, vice_manager_id FROM departments WHERE id = ?", [$deptId]);
                 if ($dept && ($dept['manager_id'] == $uid || $dept['vice_manager_id'] == $uid)) {
+                    $deptIds[] = (int)$deptId;
                     $childIds = $this->getChildDeptIds($deptId);
                     $deptIds = array_merge($deptIds, $childIds);
                 }
@@ -306,19 +304,17 @@ class Controller
 
         $col = $alias ? "{$alias}.{$ownerField}" : $ownerField;
 
-        // Check view_department permission — xem data phòng ban + phòng con
-        if ($module && \App\Services\PermissionService::can($module, 'view_department')) {
-            $visibleIds = $this->getVisibleUserIds();
-            if ($visibleIds && count($visibleIds) > 0) {
-                $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
-                return [
-                    'where' => "{$col} IN ({$placeholders})",
-                    'params' => $visibleIds,
-                ];
-            }
+        // Trưởng/phó phòng → tự động thấy data phòng ban + phòng con
+        $visibleIds = $this->getVisibleUserIds();
+        if ($visibleIds && count($visibleIds) > 1) {
+            $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
+            return [
+                'where' => "{$col} IN ({$placeholders})",
+                'params' => $visibleIds,
+            ];
         }
 
-        // Không có view_department → chỉ thấy data của mình
+        // Nhân viên thường → chỉ thấy data của mình
         return [
             'where' => "{$col} = ?",
             'params' => [$this->userId()],
@@ -335,10 +331,8 @@ class Controller
         if (\App\Services\PermissionService::isInSystemGroup($userId)) return true;
         if ($module && \App\Services\PermissionService::can($module, 'view_all')) return true;
         if ($ownerId == $this->userId()) return true;
-        if ($module && \App\Services\PermissionService::can($module, 'view_department')) {
-            $visible = $this->getVisibleUserIds();
-            if ($visible && in_array($ownerId, $visible)) return true;
-        }
+        $visible = $this->getVisibleUserIds();
+        if ($visible && count($visible) > 1 && in_array($ownerId, $visible)) return true;
         return false;
     }
 
