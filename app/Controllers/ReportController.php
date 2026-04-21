@@ -256,6 +256,7 @@ class ReportController extends Controller
         $this->authorize('reports', 'view');
         $tid = Database::tenantId();
         $year = (int)($this->input('year') ?: date('Y'));
+        if ($year < 2000 || $year > (int)date('Y') + 1) $year = (int)date('Y');
 
         // Pipeline: deals by stage
         $byStage = Database::fetchAll(
@@ -335,6 +336,7 @@ class ReportController extends Controller
         $this->authorize('reports', 'view');
         $tid = Database::tenantId();
         $year = (int)($this->input('year') ?: date('Y'));
+        if ($year < 2000 || $year > (int)date('Y') + 1) $year = (int)date('Y');
 
         // Orders by status
         $byStatus = Database::fetchAll(
@@ -484,6 +486,7 @@ class ReportController extends Controller
         $this->authorize('reports', 'view');
         $tid = Database::tenantId();
         $year = (int)($this->input('year') ?: date('Y'));
+        if ($year < 2000 || $year > (int)date('Y') + 1) $year = (int)date('Y');
         if ($year < 2000 || $year > (int)date('Y') + 1) $year = (int)date('Y');
 
         // Scope: admin/view_all thấy toàn bộ; manager thấy visible users; staff thấy chính mình

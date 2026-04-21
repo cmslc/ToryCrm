@@ -280,6 +280,7 @@ class OrderController extends Controller
         $orderModel->recalculate($orderId);
 
         Database::insert('activities', [
+            'tenant_id' => Database::tenantId(),
             'type' => 'deal',
             'title' => ($type === 'quote' ? 'Báo giá' : 'Đơn hàng') . " tạo mới: {$orderNumber}",
             'user_id' => $this->userId(),
@@ -554,6 +555,7 @@ class OrderController extends Controller
         ], 'id = ?', [$id]);
 
         Database::insert('activities', [
+            'tenant_id' => Database::tenantId(),
             'type' => 'deal',
             'title' => "Duyệt đơn hàng: {$order['order_number']}",
             'user_id' => $this->userId(),
@@ -585,6 +587,7 @@ class OrderController extends Controller
         ], 'id = ?', [$id]);
 
         Database::insert('activities', [
+            'tenant_id' => Database::tenantId(),
             'type' => 'deal',
             'title' => "Hủy đơn hàng: {$order['order_number']}",
             'user_id' => $this->userId(),
@@ -636,6 +639,7 @@ class OrderController extends Controller
         Database::softDelete('orders', 'id = ?', [$id]);
 
         Database::insert('activities', [
+            'tenant_id' => Database::tenantId(),
             'type' => 'deal',
             'title' => "Xóa đơn hàng: {$order['order_number']}",
             'user_id' => $this->userId(),
@@ -693,6 +697,7 @@ class OrderController extends Controller
         ], 'id = ?', [$id]);
 
         Database::insert('activities', [
+            'tenant_id' => Database::tenantId(),
             'type' => 'deal',
             'title' => "Thanh toán " . format_money($amount) . " cho {$order['order_number']}",
             'user_id' => $this->userId(),

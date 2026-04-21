@@ -200,7 +200,9 @@ class SettingController extends Controller
             'rate_limit' => (int)($this->input('rate_limit') ?: 100),
         ]);
 
-        $this->setFlash('success', "API Key đã tạo: {$apiKey}");
+        // Stash full key one-time in session so list view can reveal, then scrubbed
+        $_SESSION['_new_api_key'] = $apiKey;
+        $this->setFlash('success', 'API Key đã tạo. Hãy copy ngay — sau khi rời trang, chỉ hiển thị masked.');
         return $this->redirect('settings/api-keys');
     }
 
