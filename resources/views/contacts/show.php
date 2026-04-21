@@ -130,8 +130,45 @@
                             <?php endforeach; ?>
 
                             <?php
-                            // Ban lãnh đạo (system group) + Người có quyền "Xem tất cả"
+                            // Trưởng/phó phòng theo hierarchy
                             $placeholders = implode(',', array_map('intval', $shownIds));
+                            if ($contact['owner_id'] ?? null) {
+                                try {
+                                    $ownerDept = \Core\Database::fetch("SELECT department_id FROM users WHERE id = ?", [$contact['owner_id']]);
+                                    if ($ownerDept && $ownerDept['department_id']) {
+                                        $deptChain = [];
+                                        $curDeptId = $ownerDept['department_id'];
+                                        $maxD = 10;
+                                        while ($curDeptId && $maxD-- > 0) {
+                                            $deptChain[] = (int)$curDeptId;
+                                            $pd = \Core\Database::fetch("SELECT parent_id FROM departments WHERE id = ?", [$curDeptId]);
+                                            $pid = $pd['parent_id'] ?? null;
+                                            if (!$pid || $pid == $curDeptId || in_array((int)$pid, $deptChain)) break;
+                                            $curDeptId = $pid;
+                                        }
+                                        $deptPh = implode(',', $deptChain);
+                                        $deptMgrs = \Core\Database::fetchAll(
+                                            "SELECT DISTINCT u.id, u.name, u.avatar, CASE WHEN d.manager_id = u.id THEN 'Trưởng phòng' ELSE 'Phó phòng' END as role_label
+                                             FROM departments d JOIN users u ON (u.id = d.manager_id OR u.id = d.vice_manager_id)
+                                             WHERE d.id IN ({$deptPh}) AND u.is_active = 1 AND u.id NOT IN ({$placeholders})"
+                                        );
+                                        foreach ($deptMgrs as $dm):
+                                            $shownIds[] = $dm['id'];
+                                        ?>
+                                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-12 fw-normal" title="<?= e($dm['role_label']) ?>">
+                                    <?php if ($dm['avatar'] ?? null): ?><img src="<?= asset($dm['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                                    <?php else: ?><span class="rounded-circle bg-warning text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($dm['name'], 0, 1)) ?></span><?php endif; ?>
+                                    <?= e($dm['name']) ?>
+                                </span>
+                                        <?php endforeach;
+                                        $placeholders = implode(',', array_map('intval', $shownIds));
+                                    }
+                                } catch (\Exception $e) {}
+                            }
+                            ?>
+
+                            <?php
+                            // Ban lãnh đạo (system group) + Người có quyền "Xem tất cả"
                             try {
                                 $autoUsers = \Core\Database::fetchAll(
                                     "SELECT DISTINCT u.id, u.name, u.avatar,
