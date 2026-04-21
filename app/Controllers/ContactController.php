@@ -269,19 +269,14 @@ class ContactController extends Controller
             $dob = !empty($dobs[$i]) ? $dobs[$i] : null;
             $note = trim($notes[$i] ?? '') ?: null;
 
-            // Resolve person_id: use provided (user picked existing) or create new
+            // Resolve person_id: use provided (user picked existing) or lookup/create
             $personId = (int)($personIds[$i] ?? 0);
             if ($personId > 0) {
-                // Verify person belongs to current tenant
                 $exists = Database::fetch("SELECT id FROM persons WHERE id = ? AND tenant_id = ?", [$personId, $tid]);
                 if (!$exists) $personId = 0;
             }
             if ($personId === 0) {
-                $personId = (int) Database::insert('persons', [
-                    'tenant_id' => $tid,
-                    'full_name' => $name,
-                    'phone' => $phone,
-                    'email' => $email,
+                $personId = \App\Services\PersonService::findOrCreate($tid, $phone, $email, $name, [
                     'gender' => $gender,
                     'date_of_birth' => $dob,
                     'note' => $note,

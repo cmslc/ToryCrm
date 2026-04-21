@@ -449,7 +449,7 @@ class GetflySyncController extends Controller
                 $contactId = Database::insert('contacts', $data);
             }
 
-            // Sync contact persons
+            // Sync contact persons — dùng PersonService để link vào bảng persons toàn cục
             $contacts = $r['contacts'] ?? [];
             if (!empty($contacts)) {
                 Database::query("DELETE FROM contact_persons WHERE contact_id = ?", [$contactId]);
@@ -473,15 +473,21 @@ class GetflySyncController extends Controller
                     if (!$cpTitle && ($r['gender'] ?? '') === '2') $cpTitle = 'anh';
                     if (!$cpTitle && ($r['gender'] ?? '') === '1') $cpTitle = 'chị';
 
+                    $cpPhone = trim($cp['phone_mobile'] ?? $cp['phone_home'] ?? '') ?: null;
+                    $cpEmail = trim($cp['email'] ?? '') ?: null;
+                    $personId = \App\Services\PersonService::findOrCreate($tid, $cpPhone, $cpEmail, $cpName);
+
                     Database::insert('contact_persons', [
                         'tenant_id' => $tid,
                         'contact_id' => $contactId,
+                        'person_id' => $personId,
                         'title' => $cpTitle,
                         'full_name' => $cpName,
-                        'phone' => trim($cp['phone_mobile'] ?? $cp['phone_home'] ?? '') ?: null,
-                        'email' => trim($cp['email'] ?? '') ?: null,
+                        'phone' => $cpPhone,
+                        'email' => $cpEmail,
                         'position' => html_entity_decode(trim($cp['title'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8') ?: null,
                         'is_primary' => $idx === 0 ? 1 : 0,
+                        'is_active' => 1,
                         'sort_order' => $idx,
                     ]);
                 }
