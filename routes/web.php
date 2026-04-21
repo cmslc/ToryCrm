@@ -103,6 +103,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('contacts/check-duplicate', 'ContactController@checkDuplicate');
     Router::get('contacts/check-person-phone', 'ContactController@checkPersonPhone');
     Router::get('contacts/search-ajax', 'ContactController@searchAjax');
+    Router::get('persons/search', 'PersonController@search');
+    Router::get('persons/{id}', 'PersonController@show');
     Router::post('contacts/store', 'ContactController@store');
     Router::get('contacts/{id}', 'ContactController@show');
     Router::get('contacts/{id}/edit', 'ContactController@edit');

@@ -163,7 +163,12 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="fw-medium">
-                                        <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?><?= e($cp['full_name']) ?>
+                                        <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?>
+                                        <?php if (!empty($cp['person_id'])): ?>
+                                            <a href="<?= url('persons/' . $cp['person_id']) ?>"><?= e($cp['full_name']) ?></a>
+                                        <?php else: ?>
+                                            <?= e($cp['full_name']) ?>
+                                        <?php endif; ?>
                                         <?php if ($cp['is_primary']): ?><span class="badge bg-success-subtle text-success ms-1">Chính</span><?php endif; ?>
                                     </div>
                                     <?php if ($cp['position'] ?? ''): ?><div class="text-muted fs-12"><?= e($cp['position']) ?></div><?php endif; ?>

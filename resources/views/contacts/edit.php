@@ -162,7 +162,8 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                             </select>
                                         </div>
                                         <div class="col-7">
-                                            <input type="text" class="form-control" name="cp_name[]" placeholder="Họ và tên *" value="<?= e($cp['full_name'] ?? '') ?>" required>
+                                            <input type="hidden" name="cp_person_id[]" class="cp-person-id" value="<?= (int)($cp['person_id'] ?? 0) ?>">
+                                            <input type="text" class="form-control cp-name-input" name="cp_name[]" placeholder="Họ và tên *" value="<?= e($cp['full_name'] ?? '') ?>" required autocomplete="off">
                                         </div>
                                     </div>
                                 </div>
@@ -173,9 +174,10 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                             </div>
                             <div class="mb-2">
                                 <label class="form-label">Điện thoại</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control cp-phone-input" name="cp_phone[]" value="<?= e($cp['phone'] ?? '') ?>">
+                                <div class="input-group position-relative">
+                                    <input type="text" class="form-control cp-phone-input" name="cp_phone[]" value="<?= e($cp['phone'] ?? '') ?>" autocomplete="off">
                                     <button type="button" class="btn btn-soft-info cp-phone-check-btn" onclick="checkCpPhone(this)"><i class="ri-search-line"></i></button>
+                                    <div class="cp-person-dropdown dropdown-menu w-100" style="display:none;max-height:260px;overflow-y:auto"></div>
                                 </div>
                             </div>
                             <div class="mb-2">
@@ -397,4 +399,70 @@ function checkCpPhone(btn) {
         input.closest('.mb-2')?.appendChild(alertDiv);
     });
 }
+
+// ---- Phase 3: Link existing person when phone/name matches ----
+(function() {
+    function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    var searchTimer = null;
+
+    function searchPersons(input) {
+        clearTimeout(searchTimer);
+        var wrap = input.closest('.input-group') || input.parentElement;
+        var dd = wrap.querySelector('.cp-person-dropdown');
+        if (!dd) return;
+        var q = input.value.trim();
+        if (q.length < 3) { dd.style.display = 'none'; return; }
+
+        searchTimer = setTimeout(function() {
+            fetch('<?= url('persons/search') ?>?q=' + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(list => {
+                    if (!Array.isArray(list) || list.length === 0) { dd.style.display = 'none'; return; }
+                    dd.innerHTML = '<div class="dropdown-header fs-12 text-muted">Đã có người này — click để dùng lại:</div>';
+                    list.forEach(function(p) {
+                        var empTxt = (p.employments || []).map(function(e) { return e.company_name + (e.position ? ' (' + e.position + ')' : ''); }).join(', ');
+                        var item = document.createElement('a');
+                        item.className = 'dropdown-item py-2';
+                        item.href = '#';
+                        item.innerHTML = '<div class="d-flex align-items-start gap-2">' +
+                            '<div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width:32px;height:32px;font-size:13px">' + escapeHtml((p.full_name||'?').charAt(0).toUpperCase()) + '</div>' +
+                            '<div class="flex-grow-1" style="white-space:normal">' +
+                                '<div class="fw-medium">' + escapeHtml(p.full_name || '') + '</div>' +
+                                '<div class="text-muted fs-12">' + escapeHtml(p.phone || '') + (p.email ? ' · ' + escapeHtml(p.email) : '') + '</div>' +
+                                (empTxt ? '<div class="text-muted fs-12"><i class="ri-building-line me-1"></i>' + escapeHtml(empTxt) + '</div>' : '') +
+                            '</div>' +
+                        '</div>';
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            var root = wrap.closest('.row, .cp-row, .card, .mb-3') || wrap.parentElement.parentElement.parentElement;
+                            var nameEl = root.querySelector('.cp-name-input');
+                            var phoneEl = root.querySelector('.cp-phone-input');
+                            var emailEl = root.querySelector('[name="cp_email[]"]');
+                            var pidEl = root.querySelector('.cp-person-id');
+                            if (nameEl && !nameEl.value.trim()) nameEl.value = p.full_name || '';
+                            if (phoneEl) phoneEl.value = p.phone || phoneEl.value;
+                            if (emailEl && !emailEl.value.trim()) emailEl.value = p.email || '';
+                            if (pidEl) pidEl.value = p.id;
+                            dd.style.display = 'none';
+                        });
+                        dd.appendChild(item);
+                    });
+                    dd.style.display = 'block';
+                })
+                .catch(() => { dd.style.display = 'none'; });
+        }, 300);
+    }
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('cp-phone-input') || e.target.classList.contains('cp-name-input')) {
+            searchPersons(e.target);
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.input-group')) {
+            document.querySelectorAll('.cp-person-dropdown').forEach(function(dd) { dd.style.display = 'none'; });
+        }
+    });
+})();
 </script>

@@ -256,23 +256,52 @@ class ContactController extends Controller
         $dobs = $data['cp_dob'] ?? [];
         $notes = $data['cp_note'] ?? [];
         $primaries = $data['cp_primary'] ?? [];
+        $personIds = $data['cp_person_id'] ?? [];
+        $tid = Database::tenantId();
 
         foreach ($names as $i => $name) {
             $name = trim($name);
             if (empty($name)) continue;
 
+            $phone = trim($phones[$i] ?? '') ?: null;
+            $email = trim($emails[$i] ?? '') ?: null;
+            $gender = ($genders[$i] ?? '') ?: null;
+            $dob = !empty($dobs[$i]) ? $dobs[$i] : null;
+            $note = trim($notes[$i] ?? '') ?: null;
+
+            // Resolve person_id: use provided (user picked existing) or create new
+            $personId = (int)($personIds[$i] ?? 0);
+            if ($personId > 0) {
+                // Verify person belongs to current tenant
+                $exists = Database::fetch("SELECT id FROM persons WHERE id = ? AND tenant_id = ?", [$personId, $tid]);
+                if (!$exists) $personId = 0;
+            }
+            if ($personId === 0) {
+                $personId = (int) Database::insert('persons', [
+                    'tenant_id' => $tid,
+                    'full_name' => $name,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'gender' => $gender,
+                    'date_of_birth' => $dob,
+                    'note' => $note,
+                ]);
+            }
+
             Database::insert('contact_persons', [
-                'tenant_id' => Database::tenantId(),
+                'tenant_id' => $tid,
                 'contact_id' => $contactId,
+                'person_id' => $personId,
                 'title' => trim($titles[$i] ?? '') ?: null,
                 'full_name' => $name,
                 'position' => trim($positions[$i] ?? '') ?: null,
-                'phone' => trim($phones[$i] ?? '') ?: null,
-                'email' => trim($emails[$i] ?? '') ?: null,
-                'gender' => ($genders[$i] ?? '') ?: null,
-                'date_of_birth' => !empty($dobs[$i]) ? $dobs[$i] : null,
-                'note' => trim($notes[$i] ?? '') ?: null,
+                'phone' => $phone,
+                'email' => $email,
+                'gender' => $gender,
+                'date_of_birth' => $dob,
+                'note' => $note,
                 'is_primary' => in_array($i, $primaries) ? 1 : 0,
+                'is_active' => 1,
                 'sort_order' => $i,
             ]);
         }
