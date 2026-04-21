@@ -206,6 +206,10 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Nhãn</label>
+                                <?php $selectedTags = []; include BASE_PATH . '/resources/views/components/tag-input-form.php'; ?>
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label"><?= $fl["source_id"] ?? "Nguồn KH" ?><?= isset($req["source_id"]) ? ' <span class="text-danger">*</span>' : '' ?></label>
                                 <div class="d-flex gap-2">
                                     <select name="source_id" class="form-select flex-grow-1" required>

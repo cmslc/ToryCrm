@@ -475,6 +475,12 @@ class ContactController extends Controller
             );
         }
 
+        // Sync tags
+        $tagIds = $this->input('tag_ids') ?? [];
+        if (is_array($tagIds) && !empty($tagIds)) {
+            \App\Services\TagService::syncTags('contact', $contactId, $tagIds);
+        }
+
         $this->setFlash('success', 'Đã tạo khách hàng thành công.');
         return $this->redirect('contacts/' . $contactId);
     }
@@ -629,6 +635,10 @@ class ContactController extends Controller
             'user_id' => $this->userId(),
             'contact_id' => $id,
         ]);
+
+        // Sync tags (empty array = clear all)
+        $tagIds = $this->input('tag_ids') ?? [];
+        \App\Services\TagService::syncTags('contact', (int)$id, is_array($tagIds) ? $tagIds : []);
 
         $this->setFlash('success', 'Cập nhật khách hàng thành công.');
         return $this->redirect('contacts/' . $id);

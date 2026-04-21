@@ -56,16 +56,6 @@
                         </div>
                         <?php endif; ?>
 
-                        <!-- Nhãn (inline) -->
-                        <div class="mt-3">
-                            <?php
-                            $entityType = 'contact';
-                            $entityId = $contact['id'];
-                            $selectedTags = $contactTags;
-                            include __DIR__ . '/../components/tag-input.php';
-                            ?>
-                        </div>
-
                         <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
                             <?php if (!empty($contact['email']) && plugin_active('email')): ?>
                             <a href="<?= url('email/compose?to=' . urlencode($contact['email'])) ?>" class="btn btn-soft-info">
@@ -80,6 +70,42 @@
                                 <button type="submit" class="btn btn-danger"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Người liên hệ -->
+                <div class="card">
+                    <div class="card-header p-2 d-flex align-items-center justify-content-between">
+                        <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Người liên hệ</h5>
+                        <span class="badge bg-primary"><?= count($contactPersons ?? []) ?></span>
+                    </div>
+                    <div class="card-body py-2">
+                        <?php if (!empty($contactPersons)): ?>
+                            <?php foreach ($contactPersons as $cp): ?>
+                            <div class="d-flex align-items-start gap-2 py-2 <?= $cp !== end($contactPersons) ? 'border-bottom' : '' ?>">
+                                <div class="avatar-xs flex-shrink-0">
+                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= strtoupper(mb_substr($cp['full_name'], 0, 1)) ?></span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">
+                                        <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?><?= e($cp['full_name']) ?>
+                                        <?php if ($cp['is_primary']): ?><span class="badge bg-success-subtle text-success ms-1">Chính</span><?php endif; ?>
+                                    </div>
+                                    <?php if ($cp['position'] ?? ''): ?><div class="text-muted fs-12"><?= e($cp['position']) ?></div><?php endif; ?>
+                                    <div class="d-flex gap-3 mt-1 fs-12">
+                                        <?php if ($cp['phone'] ?? ''): ?><span><i class="ri-phone-line me-1"></i><?= e($cp['phone']) ?></span><?php endif; ?>
+                                        <?php if ($cp['email'] ?? ''): ?><span><i class="ri-mail-line me-1"></i><?= e($cp['email']) ?></span><?php endif; ?>
+                                    </div>
+                                    <?php if ($cp['note'] ?? ''): ?><div class="text-muted fs-12 mt-1"><i class="ri-sticky-note-line me-1"></i><?= e($cp['note']) ?></div><?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="ri-user-add-line fs-20 d-block mb-1"></i>
+                                <small>Chưa có người liên hệ</small>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -378,41 +404,6 @@
                     </div>
                 </div>
 
-                <!-- Người liên hệ -->
-                <div class="card">
-                    <div class="card-header p-2 d-flex align-items-center justify-content-between">
-                        <h5 class="card-title mb-0"><i class="ri-contacts-book-line me-1"></i> Người liên hệ</h5>
-                        <span class="badge bg-primary"><?= count($contactPersons ?? []) ?></span>
-                    </div>
-                    <div class="card-body py-2">
-                        <?php if (!empty($contactPersons)): ?>
-                            <?php foreach ($contactPersons as $cp): ?>
-                            <div class="d-flex align-items-start gap-2 py-2 <?= $cp !== end($contactPersons) ? 'border-bottom' : '' ?>">
-                                <div class="avatar-xs flex-shrink-0">
-                                    <span class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= strtoupper(mb_substr($cp['full_name'], 0, 1)) ?></span>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-medium">
-                                        <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?><?= e($cp['full_name']) ?>
-                                        <?php if ($cp['is_primary']): ?><span class="badge bg-success-subtle text-success ms-1">Chính</span><?php endif; ?>
-                                    </div>
-                                    <?php if ($cp['position'] ?? ''): ?><div class="text-muted fs-12"><?= e($cp['position']) ?></div><?php endif; ?>
-                                    <div class="d-flex gap-3 mt-1 fs-12">
-                                        <?php if ($cp['phone'] ?? ''): ?><span><i class="ri-phone-line me-1"></i><?= e($cp['phone']) ?></span><?php endif; ?>
-                                        <?php if ($cp['email'] ?? ''): ?><span><i class="ri-mail-line me-1"></i><?= e($cp['email']) ?></span><?php endif; ?>
-                                    </div>
-                                    <?php if ($cp['note'] ?? ''): ?><div class="text-muted fs-12 mt-1"><i class="ri-sticky-note-line me-1"></i><?= e($cp['note']) ?></div><?php endif; ?>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="text-center text-muted py-3">
-                                <i class="ri-user-add-line fs-20 d-block mb-1"></i>
-                                <small>Chưa có người liên hệ</small>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
             </div>
 
             <!-- Right Column - Tabbed Layout -->
