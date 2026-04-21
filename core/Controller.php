@@ -8,9 +8,30 @@ class Controller
     {
         extract($data);
 
-        $viewPath = BASE_PATH . '/resources/views/' . str_replace('.', '/', $view) . '.php';
+        $viewPath = null;
 
-        if (!file_exists($viewPath)) {
+        // Plugin view syntax: view('plugin:<slug>.<file>', ...)
+        if (str_starts_with($view, 'plugin:')) {
+            $rest = substr($view, 7);
+            $dotPos = strpos($rest, '.');
+            if ($dotPos !== false) {
+                $slug = substr($rest, 0, $dotPos);
+                $subView = substr($rest, $dotPos + 1);
+                $viewPath = \App\Services\PluginLoader::resolveView($slug, $subView);
+            }
+        } else {
+            $viewPath = BASE_PATH . '/resources/views/' . str_replace('.', '/', $view) . '.php';
+            if (!file_exists($viewPath)) {
+                // Fallback: try all active plugins' views
+                foreach (\App\Services\PluginLoader::discover() as $p) {
+                    if (!$p['active']) continue;
+                    $tryPath = \App\Services\PluginLoader::resolveView($p['slug'], $view);
+                    if ($tryPath) { $viewPath = $tryPath; break; }
+                }
+            }
+        }
+
+        if (!$viewPath || !file_exists($viewPath)) {
             die("View not found: {$view}");
         }
 

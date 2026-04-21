@@ -12,7 +12,12 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/login\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8081/\")",
       "Bash(wc -l /d/Toryhub/ToryCrm/database/migrations/*.sql)",
-      "Bash(ssh -o:*)"
+      "Bash(ssh -o:*)",
+      "Bash(mysql --version)",
+      "Bash(mysqldump --version)"
+    ],
+    "additionalDirectories": [
+      "d:\\Toryhub\\ToryCrm\\databaogia"
     ]
   }
 }

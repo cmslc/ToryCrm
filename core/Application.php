@@ -38,9 +38,10 @@ class Application
     {
         $router = new Router();
 
-        // Load routes
+        // Load routes (main + plugins)
         require BASE_PATH . '/routes/web.php';
         require BASE_PATH . '/routes/api.php';
+        \App\Services\PluginLoader::loadRoutes();
 
         $router->dispatch();
     }

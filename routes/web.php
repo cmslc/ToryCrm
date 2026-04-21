@@ -35,9 +35,6 @@ Router::get('book/{slug}', 'BookingController@publicPage');
 Router::get('book/{slug}/slots', 'BookingController@getAvailableSlots');
 Router::post('book/{slug}', 'BookingController@bookSlot');
 
-// Public lead form (no auth)
-Router::get('form/{slug}', 'LeadFormController@publicForm');
-Router::post('form/{slug}/submit', 'LeadFormController@publicSubmit');
 
 // Public quotation view (no auth)
 Router::get('quote/{token}', 'QuotationController@publicView');
@@ -580,15 +577,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // System Info
     Router::get('system-info', 'SystemInfoController@index');
 
-    // Lead Forms
-    Router::get('lead-forms', 'LeadFormController@index');
-    Router::get('lead-forms/create', 'LeadFormController@create');
-    Router::post('lead-forms/store', 'LeadFormController@store');
-    Router::get('lead-forms/{id}/edit', 'LeadFormController@edit');
-    Router::post('lead-forms/{id}/update', 'LeadFormController@update');
-    Router::post('lead-forms/{id}/delete', 'LeadFormController@delete');
-    Router::get('lead-forms/{id}/embed', 'LeadFormController@embed');
-    Router::get('lead-forms/{id}/submissions', 'LeadFormController@submissions');
+    // Lead Forms → moved to plugins/lead-forms/routes.php
 
     // Tags
     Router::get('tags', 'TagController@index');
