@@ -276,6 +276,19 @@ class BookingController extends Controller
 
     public function bookSlot($slug)
     {
+        // Rate limit public booking: max 5 attempts / IP / minute
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        try {
+            $recent = (int)(Database::fetch(
+                "SELECT COUNT(*) as c FROM booking_appointments WHERE guest_ip = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)",
+                [$ip]
+            )['c'] ?? 0);
+            if ($recent >= 5) {
+                http_response_code(429);
+                return $this->json(['error' => 'Quá nhiều yêu cầu. Vui lòng thử lại sau.'], 429);
+            }
+        } catch (\Exception $e) {}
+
         $link = Database::fetch(
             "SELECT * FROM booking_links WHERE slug = ? AND is_active = 1",
             [$slug]

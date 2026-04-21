@@ -10,6 +10,7 @@ class WarehouseController extends Controller
     // ---- Warehouses ----
     public function index()
     {
+        $this->authorize('logistics', 'view');
         $tid = Database::tenantId();
         $warehouses = Database::fetchAll(
             "SELECT w.*, u.name as manager_name,
@@ -28,6 +29,7 @@ class WarehouseController extends Controller
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('warehouses');
+        $this->authorize('logistics', 'create');
 
         $name = trim($this->input('name') ?? '');
         if (empty($name)) { $this->setFlash('error', 'Tên kho không được để trống.'); return $this->back(); }
@@ -47,6 +49,7 @@ class WarehouseController extends Controller
 
     public function show($id)
     {
+        $this->authorize('logistics', 'view');
         $tid = Database::tenantId();
         $warehouse = Database::fetch(
             "SELECT w.*, u.name as manager_name FROM warehouses w LEFT JOIN users u ON w.manager_id = u.id WHERE w.id = ? AND w.tenant_id = ?",
@@ -92,6 +95,7 @@ class WarehouseController extends Controller
 
     public function update($id)
     {
+        $this->authorize('logistics', 'edit');
         if (!$this->isPost()) return $this->redirect('warehouses');
         $name = trim($this->input('name') ?? '');
         if (empty($name)) { $this->setFlash('error', 'Tên kho không được để trống.'); return $this->back(); }
@@ -111,6 +115,7 @@ class WarehouseController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('logistics', 'edit');
         if (!$this->isPost()) return $this->redirect('warehouses');
         $stockCount = Database::fetch("SELECT COUNT(*) as c FROM stock WHERE warehouse_id = ? AND quantity > 0", [(int)$id])['c'] ?? 0;
         if ($stockCount > 0) {
@@ -156,6 +161,7 @@ class WarehouseController extends Controller
 
     public function createMovement()
     {
+        $this->authorize('logistics', 'create');
         if (!$this->isPost()) return $this->redirect('warehouses/movements');
 
         $type = $this->input('type');
@@ -175,6 +181,7 @@ class WarehouseController extends Controller
         $code = ($typeLabels[$type] ?? 'PK') . date('ymd') . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
 
         $movementId = Database::insert('stock_movements', [
+            'tenant_id' => Database::tenantId(),
             'code' => $code,
             'type' => $type,
             'warehouse_id' => $warehouseId,
@@ -333,6 +340,7 @@ class WarehouseController extends Controller
 
     public function completeCheck($id)
     {
+        $this->authorize('logistics', 'edit');
         if (!$this->isPost()) return $this->redirect('warehouses/checks/' . $id);
 
         $check = Database::fetch("SELECT * FROM stock_checks WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
@@ -345,6 +353,7 @@ class WarehouseController extends Controller
         $items = Database::fetchAll("SELECT * FROM stock_check_items WHERE check_id = ? AND difference != 0", [(int)$id]);
         if (!empty($items)) {
             $movementId = Database::insert('stock_movements', [
+                'tenant_id' => Database::tenantId(),
                 'code' => 'DC-' . $check['code'],
                 'type' => 'adjustment',
                 'warehouse_id' => $check['warehouse_id'],

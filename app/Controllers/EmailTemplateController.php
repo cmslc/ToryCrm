@@ -210,6 +210,19 @@ class EmailTemplateController extends Controller
         if (!$this->isPost()) {
             return $this->json(['error' => 'Method not allowed'], 405);
         }
+        $this->authorize('email', 'create');
+
+        // Rate limit: max 10 sends / user / hour to prevent mass-mail abuse
+        $uid = $this->userId();
+        try {
+            $recent = (int)(Database::fetch(
+                "SELECT COUNT(*) as c FROM activities WHERE user_id = ? AND type = 'email' AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR) AND tenant_id = ?",
+                [$uid, Database::tenantId()]
+            )['c'] ?? 0);
+            if ($recent >= 10) {
+                return $this->json(['error' => 'Vượt giới hạn 10 email/giờ. Vui lòng thử lại sau.'], 429);
+            }
+        } catch (\Exception $e) {}
 
         $template = Database::fetch(
             "SELECT * FROM email_templates WHERE id = ? AND tenant_id = ?",

@@ -204,6 +204,15 @@ class CommissionController extends Controller
     public function approve($id)
     {
         if (!$this->isPost()) return $this->redirect('commissions');
+        $this->authorize('commissions', 'approve');
+
+        // Prevent self-approval: user cannot approve their own commission
+        $comm = \Core\Database::fetch("SELECT user_id FROM commissions WHERE id = ? AND tenant_id = ?", [$id, \Core\Database::tenantId()]);
+        if (!$comm) { $this->setFlash('error', 'Hoa hồng không tồn tại.'); return $this->redirect('commissions'); }
+        if ((int)$comm['user_id'] === (int)$this->userId() && !$this->isSystemAdmin()) {
+            $this->setFlash('error', 'Không thể tự duyệt hoa hồng của chính mình.');
+            return $this->redirect('commissions');
+        }
 
         if ($this->service->approve($id)) {
             $this->setFlash('success', 'Hoa hồng đã được duyệt.');

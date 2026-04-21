@@ -93,6 +93,7 @@ class ImportExportController extends Controller
 
     public function exportContacts()
     {
+        $this->authorize('contacts', 'view');
         $filters = [];
 
         $dateFrom = $this->input('date_from');
@@ -120,6 +121,7 @@ class ImportExportController extends Controller
 
     public function exportProducts()
     {
+        $this->authorize('products', 'view');
         $filters = [];
 
         $dateFrom = $this->input('date_from');

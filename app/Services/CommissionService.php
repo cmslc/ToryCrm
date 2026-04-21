@@ -114,10 +114,14 @@ class CommissionService
     /**
      * Get commissions for a user, optionally filtered by period (YYYY-MM).
      */
-    public function getForUser(int $userId, ?string $period = null): array
+    public function getForUser(int $userId, ?string $period = null, ?int $tenantId = null): array
     {
         $where = "c.user_id = ?";
         $params = [$userId];
+        if ($tenantId) {
+            $where .= " AND c.tenant_id = ?";
+            $params[] = $tenantId;
+        }
 
         if ($period) {
             $where .= " AND DATE_FORMAT(c.created_at, '%Y-%m') = ?";
