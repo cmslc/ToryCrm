@@ -7,6 +7,7 @@ use Core\Database;
 use App\Helpers\Auth;
 use App\Services\RateLimiter;
 use App\Services\PasswordPolicy;
+use App\Services\AuditLog;
 
 class AuthController extends Controller
 {
@@ -39,12 +40,14 @@ class AuthController extends Controller
         $user = Database::fetch("SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1", [$email]);
 
         if (!$user || !Auth::verifyPassword($password, $user['password'])) {
+            AuditLog::loginFailed($email);
             $this->setFlash('error', 'Email hoặc mật khẩu không đúng.');
             return $this->back();
         }
 
         // Clear rate limit on success
         RateLimiter::clear($rateLimitKey);
+        AuditLog::loginSuccess((int)$user['id'], $email);
 
         // Regenerate session ID to prevent session fixation
         session_regenerate_id(true);
@@ -164,6 +167,7 @@ class AuthController extends Controller
 
     public function logout()
     {
+        if ($uid = Auth::id()) AuditLog::logout($uid);
         Auth::logout();
         return $this->redirect('login');
     }

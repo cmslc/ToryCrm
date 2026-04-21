@@ -323,20 +323,60 @@ class EmailController extends Controller
 
     public function downloadAttachment()
     {
+        $this->authorize('email', 'view');
         $url = $this->input('file_url');
         $name = $this->input('file_name') ?: 'attachment';
         if (empty($url)) { $this->setFlash('error', 'URL không hợp lệ.'); return $this->redirect('email'); }
 
+        // SSRF defense: validate URL + block internal IPs
+        $parts = parse_url($url);
+        if (!$parts || !in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'])) {
+            $this->setFlash('error', 'URL không hợp lệ.'); return $this->redirect('email');
+        }
+        $host = $parts['host'] ?? '';
+        $ips = @gethostbynamel($host) ?: [];
+        foreach ($ips as $ip) {
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                $this->setFlash('error', 'URL nội bộ không được phép.'); return $this->redirect('email');
+            }
+        }
+
+        // Verify the attachment URL actually belongs to an email_messages row user can access
+        $msgId = (int)$this->input('msg_id');
+        if ($msgId) {
+            $msg = Database::fetch("SELECT id FROM email_messages WHERE id = ? AND tenant_id = ?", [$msgId, Database::tenantId()]);
+            if (!$msg) { $this->setFlash('error', 'Không có quyền.'); return $this->redirect('email'); }
+        }
+
         $ch = curl_init($url);
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 30, CURLOPT_SSL_VERIFYPEER => false]);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false, // no redirects — could redirect to internal IP
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_MAXFILESIZE => 50 * 1024 * 1024, // 50MB cap
+        ]);
         $content = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $mime = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: 'application/octet-stream';
         curl_close($ch);
 
-        if ($content === false) { $this->setFlash('error', 'Không tải được file.'); return $this->redirect('email'); }
+        if ($content === false || $httpCode >= 400) {
+            $this->setFlash('error', 'Không tải được file.');
+            return $this->redirect('email');
+        }
+        if (strlen($content) > 50 * 1024 * 1024) {
+            $this->setFlash('error', 'File vượt quá 50MB.');
+            return $this->redirect('email');
+        }
+
+        // Sanitize filename for Content-Disposition
+        $safeName = preg_replace('/[^\w\-\.\s]/', '_', $name);
 
         header('Content-Type: ' . $mime);
-        header('Content-Disposition: attachment; filename="' . $name . '"');
+        header('Content-Disposition: attachment; filename="' . $safeName . '"');
         header('Content-Length: ' . strlen($content));
         echo $content;
         exit;
