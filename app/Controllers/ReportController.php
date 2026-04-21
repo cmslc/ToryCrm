@@ -13,12 +13,27 @@ class ReportController extends Controller
         return $this->view('reports.index');
     }
 
+    /**
+     * Clamp user-supplied date range: valid format + max 2-year span to prevent DoS on aggregate queries.
+     */
+    private function clampDateRange(?string $from, ?string $to, int $maxDays = 730): array
+    {
+        $validDate = fn($d) => $d && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) ? $d : null;
+        $from = $validDate($from);
+        $to = $validDate($to);
+        if ($from && $to) {
+            $diff = (strtotime($to) - strtotime($from)) / 86400;
+            if ($diff > $maxDays) $from = date('Y-m-d', strtotime($to . ' -' . $maxDays . ' days'));
+            if ($diff < 0) [$from, $to] = [$to, $from];
+        }
+        return [$from, $to];
+    }
+
     public function customers()
     {
         $this->authorize('reports', 'view');
         $tid = Database::tenantId();
-        $dateFrom = $this->input('date_from');
-        $dateTo = $this->input('date_to');
+        [$dateFrom, $dateTo] = $this->clampDateRange($this->input('date_from'), $this->input('date_to'));
         $period = $this->input('period');
 
         // Auto date range from period
@@ -62,14 +77,22 @@ class ReportController extends Controller
             array_merge($baseParams, $dateParams)
         );
 
-        // 3. Tỷ lệ KH theo User (người phụ trách)
+        // 3. Tỷ lệ KH theo User (người phụ trách) — scope theo visibleUsers của người xem
+        $visibleIds = $this->getVisibleUserIds();
+        $userScope = '';
+        $userScopeParams = [];
+        if ($visibleIds && count($visibleIds) > 0 && !$this->isSystemAdmin() && !\App\Services\PermissionService::can('reports', 'view_all')) {
+            $ph = implode(',', array_fill(0, count($visibleIds), '?'));
+            $userScope = " AND u.id IN ({$ph})";
+            $userScopeParams = $visibleIds;
+        }
         $byOwner = Database::fetchAll(
             "SELECT u.name, COUNT(c.id) as count
              FROM users u
              LEFT JOIN contacts c ON c.owner_id = u.id AND {$baseWhere} {$dateWhere}
-             WHERE u.is_active = 1 AND u.tenant_id = ?
+             WHERE u.is_active = 1 AND u.tenant_id = ?{$userScope}
              GROUP BY u.id, u.name ORDER BY count DESC",
-            array_merge($baseParams, $dateParams, [$tid])
+            array_merge($baseParams, $dateParams, [$tid], $userScopeParams)
         );
 
         // 4. KH theo tháng
@@ -151,6 +174,10 @@ class ReportController extends Controller
     {
         $this->authorize('reports', 'view');
         $tid = Database::tenantId();
+        // Clamp date range to prevent DoS on big aggregates; override $_GET so downstream input() reads clamped values
+        [$_clampFrom, $_clampTo] = $this->clampDateRange($this->input('date_from'), $this->input('date_to'));
+        if ($_clampFrom !== null) $_GET['date_from'] = $_clampFrom;
+        if ($_clampTo !== null) $_GET['date_to'] = $_clampTo;
         $year = (int)($this->input('year') ?: date('Y'));
 
         $dealRevenue = Database::fetchAll(
@@ -457,6 +484,17 @@ class ReportController extends Controller
         $this->authorize('reports', 'view');
         $tid = Database::tenantId();
         $year = (int)($this->input('year') ?: date('Y'));
+        if ($year < 2000 || $year > (int)date('Y') + 1) $year = (int)date('Y');
+
+        // Scope: admin/view_all thấy toàn bộ; manager thấy visible users; staff thấy chính mình
+        $visibleIds = $this->getVisibleUserIds();
+        $userScope = '';
+        $userScopeParams = [];
+        if ($visibleIds && count($visibleIds) > 0 && !$this->isSystemAdmin() && !\App\Services\PermissionService::can('reports', 'view_all')) {
+            $ph = implode(',', array_fill(0, count($visibleIds), '?'));
+            $userScope = " AND u.id IN ({$ph})";
+            $userScopeParams = $visibleIds;
+        }
 
         // Staff performance: deals + orders + tasks
         $staffPerf = Database::fetchAll(
@@ -470,9 +508,9 @@ class ReportController extends Controller
                     (SELECT COUNT(*) FROM activities a WHERE a.user_id = u.id AND YEAR(a.created_at) = ? AND a.tenant_id = ?) as activities
              FROM users u
              LEFT JOIN departments d ON u.department_id = d.id
-             WHERE u.is_active = 1 AND u.tenant_id = ?
+             WHERE u.is_active = 1 AND u.tenant_id = ?{$userScope}
              ORDER BY deal_revenue DESC",
-            [$year, $tid, $year, $tid, $year, $tid, $year, $tid, $year, $tid, $tid, $year, $tid, $tid]
+            array_merge([$year, $tid, $year, $tid, $year, $tid, $year, $tid, $year, $tid, $tid, $year, $tid, $tid], $userScopeParams)
         );
 
         // Commission summary
