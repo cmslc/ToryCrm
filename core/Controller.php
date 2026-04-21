@@ -300,17 +300,19 @@ class Controller
 
         $col = $alias ? "{$alias}.{$ownerField}" : $ownerField;
 
-        // Get visible user IDs based on department hierarchy
-        $visibleIds = $this->getVisibleUserIds();
-        if ($visibleIds && count($visibleIds) > 0) {
-            $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
-            return [
-                'where' => "{$col} IN ({$placeholders})",
-                'params' => $visibleIds,
-            ];
+        // Check view_department permission — xem data phòng ban + phòng con
+        if ($module && \App\Services\PermissionService::can($module, 'view_department')) {
+            $visibleIds = $this->getVisibleUserIds();
+            if ($visibleIds && count($visibleIds) > 0) {
+                $placeholders = implode(',', array_fill(0, count($visibleIds), '?'));
+                return [
+                    'where' => "{$col} IN ({$placeholders})",
+                    'params' => $visibleIds,
+                ];
+            }
         }
 
-        // Fallback: own data only
+        // Không có view_department → chỉ thấy data của mình
         return [
             'where' => "{$col} = ?",
             'params' => [$this->userId()],
@@ -327,8 +329,10 @@ class Controller
         if (\App\Services\PermissionService::isInSystemGroup($userId)) return true;
         if ($module && \App\Services\PermissionService::can($module, 'view_all')) return true;
         if ($ownerId == $this->userId()) return true;
-        $visible = $this->getVisibleUserIds();
-        if ($visible && in_array($ownerId, $visible)) return true;
+        if ($module && \App\Services\PermissionService::can($module, 'view_department')) {
+            $visible = $this->getVisibleUserIds();
+            if ($visible && in_array($ownerId, $visible)) return true;
+        }
         return false;
     }
 
