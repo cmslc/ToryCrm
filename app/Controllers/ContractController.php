@@ -307,6 +307,7 @@ class ContractController extends Controller
 
     public function show($id)
     {
+        $this->authorize('contracts', 'view');
         $contract = Database::fetch(
             "SELECT ct.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
@@ -415,6 +416,7 @@ class ContractController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('contracts', 'edit');
         $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND is_deleted = 0", [$id]);
         if (!$contract) {
             $this->setFlash('error', 'Hợp đồng không tồn tại.');
@@ -836,6 +838,7 @@ class ContractController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('contracts', 'delete');
         if (!$this->isPost()) return $this->redirect('contracts/' . $id);
 
         $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND is_deleted = 0", [$id]);
