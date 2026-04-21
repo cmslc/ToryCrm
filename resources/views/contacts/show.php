@@ -1026,13 +1026,20 @@
                                     <?php endif; ?>
                                 </div>
                                 <?php
-                                $contactEmail = $contact['email'] ?? '';
+                                $contactEmail = trim($contact['email'] ?? '');
                                 $contactEmails = [];
                                 try {
-                                    $contactEmails = \Core\Database::fetchAll(
-                                        "SELECT * FROM email_messages WHERE tenant_id = ? AND (from_email = ? OR to_emails LIKE ? OR contact_id = ?) ORDER BY sent_at DESC LIMIT 20",
-                                        [$_SESSION['tenant_id'] ?? 1, $contactEmail, '%' . $contactEmail . '%', $contact['id']]
-                                    );
+                                    if ($contactEmail !== '') {
+                                        $contactEmails = \Core\Database::fetchAll(
+                                            "SELECT * FROM email_messages WHERE tenant_id = ? AND (from_email = ? OR to_emails LIKE ? OR contact_id = ?) ORDER BY sent_at DESC LIMIT 20",
+                                            [$_SESSION['tenant_id'] ?? 1, $contactEmail, '%' . $contactEmail . '%', $contact['id']]
+                                        );
+                                    } else {
+                                        $contactEmails = \Core\Database::fetchAll(
+                                            "SELECT * FROM email_messages WHERE tenant_id = ? AND contact_id = ? ORDER BY sent_at DESC LIMIT 20",
+                                            [$_SESSION['tenant_id'] ?? 1, $contact['id']]
+                                        );
+                                    }
                                 } catch (\Exception $e) {}
                                 ?>
                                 <?php if (!empty($contactEmails)): ?>
