@@ -131,6 +131,7 @@ class TaskController extends Controller
         $this->authorize('tasks', 'view');
         $statuses = ['todo', 'in_progress', 'review', 'done'];
         $board = [];
+        $scopeSql = $this->getOwnerScopeSql('t.assigned_to', 'tasks');
 
         foreach ($statuses as $status) {
             $board[$status] = Database::fetchAll(
@@ -141,7 +142,7 @@ class TaskController extends Controller
                  LEFT JOIN users u ON t.assigned_to = u.id
                  LEFT JOIN contacts c ON t.contact_id = c.id
                  LEFT JOIN deals d ON t.deal_id = d.id
-                 WHERE t.status = ? AND t.tenant_id = ? AND t.is_deleted = 0 AND t.parent_id IS NULL
+                 WHERE t.status = ? AND t.tenant_id = ? AND t.is_deleted = 0 AND t.parent_id IS NULL{$scopeSql}
                  ORDER BY t.priority DESC, t.due_date ASC",
                 [$status, Database::tenantId()]
             );
@@ -592,6 +593,9 @@ class TaskController extends Controller
         if (!$task) {
             return $this->json(['error' => 'Công việc không tồn tại'], 404);
         }
+        if (!$this->canAccessOwner((int)($task['assigned_to'] ?? $task['created_by'] ?? 0), 'tasks')) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $field = $this->input('field');
         $value = $this->input('value');
@@ -671,9 +675,13 @@ class TaskController extends Controller
     public function followers($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $this->authorize('tasks', 'edit');
 
-        $task = Database::fetch("SELECT id FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        $task = Database::fetch("SELECT id, assigned_to, created_by FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$task) return $this->json(['error' => 'Task không tồn tại'], 404);
+        if (!$this->canAccessOwner((int)($task['assigned_to'] ?? $task['created_by'] ?? 0), 'tasks')) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $action = $this->input('action'); // add or remove
         $userId = (int)$this->input('user_id');
@@ -700,6 +708,9 @@ class TaskController extends Controller
 
         $parent = Database::fetch("SELECT * FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$parent) return $this->json(['error' => 'Task không tồn tại'], 404);
+        if (!$this->canAccessOwner((int)($parent['assigned_to'] ?? $parent['created_by'] ?? 0), 'tasks')) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $title = trim($this->input('title') ?? '');
         if (empty($title)) return $this->json(['error' => 'Tiêu đề không được để trống'], 422);
@@ -738,9 +749,13 @@ class TaskController extends Controller
     public function addComment($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        $this->authorize('tasks', 'view');
 
-        $task = Database::fetch("SELECT id FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        $task = Database::fetch("SELECT id, assigned_to, created_by FROM tasks WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$task) return $this->json(['error' => 'Task không tồn tại'], 404);
+        if (!$this->canAccessOwner((int)($task['assigned_to'] ?? $task['created_by'] ?? 0), 'tasks')) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $content = trim($this->input('content') ?? '');
         if (empty($content)) return $this->json(['error' => 'Nội dung không được để trống'], 422);

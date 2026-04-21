@@ -9,6 +9,8 @@ class ActivityController extends Controller
 {
     public function index()
     {
+        $this->authorize('activities', 'view');
+        $tid = Database::tenantId();
         $type = $this->input('type');
         $userId = $this->input('user_id');
         $contactId = $this->input('contact_id');
@@ -18,8 +20,12 @@ class ActivityController extends Controller
         $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["1=1"];
-        $params = [];
+        $where = ["a.tenant_id = ?"];
+        $params = [$tid];
+
+        // Scope by user access (admin/view_all see all; otherwise limit to visible users)
+        $scopeSql = $this->getOwnerScopeSql('a.user_id', 'activities');
+        if ($scopeSql) $where[] = ltrim($scopeSql, ' AND ');
 
         if ($type) {
             $where[] = "a.type = ?";
@@ -70,8 +76,8 @@ class ActivityController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        // Get users for filter
-        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        // Get users for filter (same tenant)
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 AND u.tenant_id = ? ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('activities.index', [
             'activities' => $activities,
@@ -91,6 +97,9 @@ class ActivityController extends Controller
 
     public function feed()
     {
+        $this->authorize('activities', 'view');
+        $tid = Database::tenantId();
+        $scopeSql = $this->getOwnerScopeSql('a.user_id', 'activities');
         $activities = Database::fetchAll(
             "SELECT a.*, u.name as user_name,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
@@ -100,8 +109,10 @@ class ActivityController extends Controller
              LEFT JOIN contacts c ON a.contact_id = c.id
              LEFT JOIN deals d ON a.deal_id = d.id
              LEFT JOIN companies comp ON a.company_id = comp.id
+             WHERE a.tenant_id = ?{$scopeSql}
              ORDER BY a.created_at DESC
-             LIMIT 20"
+             LIMIT 20",
+            [$tid]
         );
 
         $now = time();
@@ -186,6 +197,7 @@ class ActivityController extends Controller
         $attachName = !empty($attachNames) ? implode('|', $attachNames) : null;
 
         $activityId = Database::insert('activities', [
+            'tenant_id' => Database::tenantId(),
             'type' => $type,
             'title' => $title,
             'description' => trim($data['description'] ?? ''),
@@ -257,6 +269,9 @@ class ActivityController extends Controller
     public function react($id)
     {
         if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        // Verify activity belongs to current tenant before reacting
+        $act = Database::fetch("SELECT id FROM activities WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$act) return $this->json(['error' => 'Activity not found'], 404);
 
         $type = $this->input('type') === 'dislike' ? 'dislike' : 'like';
         $uid = $this->userId();
@@ -291,7 +306,7 @@ class ActivityController extends Controller
         $content = trim($this->input('content') ?? '');
         if (empty($content) && empty($_FILES['attachment']['name'])) return $this->json(['error' => 'Nội dung trống'], 422);
 
-        $parent = Database::fetch("SELECT id, contact_id FROM activities WHERE id = ?", [$id]);
+        $parent = Database::fetch("SELECT id, contact_id FROM activities WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$parent) return $this->json(['error' => 'Không tồn tại'], 404);
 
         // Handle file upload

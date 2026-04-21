@@ -9,6 +9,8 @@ class CheckinController extends Controller
 {
     public function index()
     {
+        $this->authorize('checkins', 'view');
+        $tid = Database::tenantId();
         $userId = $this->input('user_id');
         $dateFrom = $this->input('date_from');
         $dateTo = $this->input('date_to');
@@ -17,8 +19,10 @@ class CheckinController extends Controller
         $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["1=1"];
-        $params = [];
+        $where = ["ch.tenant_id = ?"];
+        $params = [$tid];
+        $scopeSql = $this->getOwnerScopeSql('ch.user_id', 'checkins');
+        if ($scopeSql) $where[] = ltrim($scopeSql, ' AND ');
 
         if ($userId) {
             $where[] = "ch.user_id = ?";
@@ -68,20 +72,24 @@ class CheckinController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        // Stats
+        // Stats (tenant-scoped + owner-scoped)
+        $statScopeSql = $this->getOwnerScopeSql('user_id', 'checkins');
         $statsToday = Database::fetch(
-            "SELECT COUNT(*) as count FROM checkins WHERE DATE(created_at) = CURDATE()"
+            "SELECT COUNT(*) as count FROM checkins WHERE tenant_id = ? AND DATE(created_at) = CURDATE(){$statScopeSql}",
+            [$tid]
         )['count'];
 
         $statsWeek = Database::fetch(
-            "SELECT COUNT(*) as count FROM checkins WHERE YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)"
+            "SELECT COUNT(*) as count FROM checkins WHERE tenant_id = ? AND YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1){$statScopeSql}",
+            [$tid]
         )['count'];
 
         $statsMonth = Database::fetch(
-            "SELECT COUNT(*) as count FROM checkins WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())"
+            "SELECT COUNT(*) as count FROM checkins WHERE tenant_id = ? AND YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE()){$statScopeSql}",
+            [$tid]
         )['count'];
 
-        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 AND u.tenant_id = ? ORDER BY d.name, u.name", [$tid]);
 
         return $this->view('checkins.index', [
             'checkins' => $checkins,
@@ -103,12 +111,16 @@ class CheckinController extends Controller
 
     public function create()
     {
+        $this->authorize('checkins', 'create');
+        $tid = Database::tenantId();
         $contacts = Database::fetchAll(
-            "SELECT id, first_name, last_name FROM contacts ORDER BY first_name"
+            "SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name",
+            [$tid]
         );
 
         $companies = Database::fetchAll(
-            "SELECT id, name FROM companies ORDER BY name"
+            "SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name",
+            [$tid]
         );
 
         return $this->view('checkins.create', [
@@ -120,6 +132,7 @@ class CheckinController extends Controller
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('checkins');
+        $this->authorize('checkins', 'create');
 
         $data = $this->allInput();
 
@@ -181,6 +194,7 @@ class CheckinController extends Controller
 
     public function show($id)
     {
+        $this->authorize('checkins', 'view');
         $checkin = Database::fetch(
             "SELECT ch.*, u.name as user_name,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
@@ -189,12 +203,16 @@ class CheckinController extends Controller
              LEFT JOIN users u ON ch.user_id = u.id
              LEFT JOIN contacts c ON ch.contact_id = c.id
              LEFT JOIN companies comp ON ch.company_id = comp.id
-             WHERE ch.id = ?",
-            [$id]
+             WHERE ch.id = ? AND ch.tenant_id = ?",
+            [$id, Database::tenantId()]
         );
 
         if (!$checkin) {
             $this->setFlash('error', 'Không tìm thấy check-in.');
+            return $this->redirect('checkins');
+        }
+        if (!$this->canAccessOwner((int)($checkin['user_id'] ?? 0), 'checkins')) {
+            $this->setFlash('error', 'Không có quyền.');
             return $this->redirect('checkins');
         }
 
