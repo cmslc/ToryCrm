@@ -23,7 +23,7 @@ class WarehouseController extends Controller
 
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [$tid]);
 
-        return $this->view('warehouses.index', ['warehouses' => $warehouses, 'users' => $users]);
+        return $this->view('plugin:warehouse.index', ['warehouses' => $warehouses, 'users' => $users]);
     }
 
     public function store()
@@ -85,7 +85,7 @@ class WarehouseController extends Controller
             [(int)$id]
         );
 
-        return $this->view('warehouses.show', [
+        return $this->view('plugin:warehouse.show', [
             'warehouse' => $warehouse,
             'stocks' => $stocks,
             'movements' => $movements,
@@ -151,7 +151,7 @@ class WarehouseController extends Controller
         $warehouses = Database::fetchAll("SELECT id, name FROM warehouses WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$tid]);
         $products = Database::fetchAll("SELECT id, name, sku, unit, price FROM products WHERE tenant_id = ? AND is_deleted = 0 ORDER BY name", [$tid]);
 
-        return $this->view('warehouses.movements', [
+        return $this->view('plugin:warehouse.movements', [
             'movements' => $movements,
             'warehouses' => $warehouses,
             'products' => $products,
@@ -241,7 +241,7 @@ class WarehouseController extends Controller
             [(int)$id]
         );
 
-        return $this->view('warehouses.movement-show', ['movement' => $movement, 'items' => $items]);
+        return $this->view('plugin:warehouse.movement-show', ['movement' => $movement, 'items' => $items]);
     }
 
     // ---- Stock Check ----
@@ -259,7 +259,7 @@ class WarehouseController extends Controller
 
         $warehouses = Database::fetchAll("SELECT id, name FROM warehouses WHERE tenant_id = ? AND is_active = 1", [Database::tenantId()]);
 
-        return $this->view('warehouses.checks', ['checks' => $checks, 'warehouses' => $warehouses]);
+        return $this->view('plugin:warehouse.checks', ['checks' => $checks, 'warehouses' => $warehouses]);
     }
 
     public function createCheck()
@@ -311,7 +311,7 @@ class WarehouseController extends Controller
             [(int)$id]
         );
 
-        return $this->view('warehouses.check-show', ['check' => $check, 'items' => $items]);
+        return $this->view('plugin:warehouse.check-show', ['check' => $check, 'items' => $items]);
     }
 
     public function updateCheck($id)
@@ -411,7 +411,7 @@ class WarehouseController extends Controller
         $totalProducts = count(array_filter($stockReport, fn($r) => $r['total_qty'] > 0));
         $lowStockCount = count(array_filter($stockReport, fn($r) => $r['min_qty'] > 0 && $r['total_qty'] <= $r['min_qty']));
 
-        return $this->view('warehouses.report', [
+        return $this->view('plugin:warehouse.report', [
             'stockReport' => $stockReport,
             'warehouses' => $warehouses,
             'totalValue' => $totalValue,
@@ -428,7 +428,7 @@ class WarehouseController extends Controller
         $settings = json_decode($tenant['settings'] ?? '{}', true);
         $whConfig = $settings['warehouse'] ?? [];
 
-        return $this->view('warehouses.settings', ['config' => $whConfig]);
+        return $this->view('plugin:warehouse.settings', ['config' => $whConfig]);
     }
 
     public function saveSettings()

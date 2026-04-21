@@ -40,7 +40,7 @@ class LogisticsController extends Controller
             [$tid]
         );
 
-        return $this->view('logistics.index', ['stats' => $stats, 'recentPackages' => $recentPackages]);
+        return $this->view('plugin:kho-logistics.index', ['stats' => $stats, 'recentPackages' => $recentPackages]);
     }
 
     // ---- Warehouse Receive (Nhập kho - Quét mã) ----
@@ -64,7 +64,7 @@ class LogisticsController extends Controller
             [$tid, $this->userId()]
         );
 
-        return $this->view('logistics.receive', [
+        return $this->view('plugin:kho-logistics.receive', [
             'todayStats' => $todayStats,
             'scanHistory' => $scanHistory,
         ]);
@@ -277,7 +277,7 @@ class LogisticsController extends Controller
 
         $statusCounts = Database::fetchAll("SELECT status, COUNT(*) as count FROM logistics_packages WHERE tenant_id = ? GROUP BY status", [$tid]);
 
-        return $this->view('logistics.packages', [
+        return $this->view('plugin:kho-logistics.packages', [
             'packages' => $packages,
             'statusCounts' => $statusCounts,
             'filters' => ['status' => $status, 'search' => $search],
@@ -329,7 +329,7 @@ class LogisticsController extends Controller
             [(int)$id]
         );
 
-        return $this->view('logistics.package-show', ['package' => $pkg, 'history' => $history]);
+        return $this->view('plugin:kho-logistics.package-show', ['package' => $pkg, 'history' => $history]);
     }
 
     // ---- Bags ----
@@ -367,7 +367,7 @@ class LogisticsController extends Controller
         );
         $totalPages = ceil($total / $limit);
         $filters = compact('status', 'search', 'dateFrom', 'dateTo');
-        return $this->view('logistics.bags', compact('bags', 'page', 'totalPages', 'total', 'filters'));
+        return $this->view('plugin:kho-logistics.bags', compact('bags', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function createBag()
@@ -500,7 +500,7 @@ class LogisticsController extends Controller
              WHERE sl.bag_id = ? AND sl.tenant_id = ? ORDER BY sl.created_at DESC LIMIT 50",
             [$id, $tid]
         );
-        return $this->view('logistics.bag-show', compact('bag', 'packages', 'scanLogs'));
+        return $this->view('plugin:kho-logistics.bag-show', compact('bag', 'packages', 'scanLogs'));
     }
 
     public function scanToBag($id)
@@ -649,13 +649,13 @@ class LogisticsController extends Controller
             $params
         );
 
-        return $this->view('logistics.orders', ['orders' => $orders, 'page' => $page, 'totalPages' => $totalPages, 'total' => $total, 'filters' => ['type' => $type, 'status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
+        return $this->view('plugin:kho-logistics.orders', ['orders' => $orders, 'page' => $page, 'totalPages' => $totalPages, 'total' => $total, 'filters' => ['type' => $type, 'status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
     }
 
     public function createOrderForm()
     {
         if (!$this->checkPlugin()) return;
-        return $this->view('logistics.order-create');
+        return $this->view('plugin:kho-logistics.order-create');
     }
 
     public function editOrder($id)
@@ -663,7 +663,7 @@ class LogisticsController extends Controller
         if (!$this->checkPlugin()) return;
         $order = Database::fetch("SELECT * FROM logistics_orders WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
         if (!$order) { $this->setFlash('error', 'Đơn không tồn tại.'); return $this->redirect('logistics/orders'); }
-        return $this->view('logistics.order-edit', ['order' => $order]);
+        return $this->view('plugin:kho-logistics.order-edit', ['order' => $order]);
     }
 
     public function createOrder()
@@ -747,7 +747,7 @@ class LogisticsController extends Controller
             [$tid, $order['order_code']]
         );
 
-        return $this->view('logistics.order-show', ['order' => $order, 'packages' => $packages, 'scanLogs' => $scanLogs]);
+        return $this->view('plugin:kho-logistics.order-show', ['order' => $order, 'packages' => $packages, 'scanLogs' => $scanLogs]);
     }
 
     public function addPackageToOrder($id)
@@ -908,7 +908,7 @@ class LogisticsController extends Controller
         );
         $totalPages = ceil($total / $limit);
 
-        return $this->view('logistics.shipments', ['shipments' => $shipments, 'page' => $page, 'totalPages' => $totalPages, 'total' => $total, 'filters' => ['status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
+        return $this->view('plugin:kho-logistics.shipments', ['shipments' => $shipments, 'page' => $page, 'totalPages' => $totalPages, 'total' => $total, 'filters' => ['status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]]);
     }
 
     public function createShipment()
@@ -1050,7 +1050,7 @@ class LogisticsController extends Controller
             [(int)$id, $tid]
         );
 
-        return $this->view('logistics.shipment-show', ['shipment' => $shipment, 'packages' => $packages, 'bags' => $bags]);
+        return $this->view('plugin:kho-logistics.shipment-show', ['shipment' => $shipment, 'packages' => $packages, 'bags' => $bags]);
     }
 
     public function updateShipmentStatus($id)
@@ -1204,7 +1204,7 @@ class LogisticsController extends Controller
             "SELECT ld.*, u.name as delivered_by_name FROM logistics_deliveries ld LEFT JOIN users u ON ld.delivered_by = u.id WHERE ld.tenant_id = ? ORDER BY ld.created_at DESC",
             [Database::tenantId()]
         );
-        return $this->view('logistics.deliveries', ['deliveries' => $deliveries]);
+        return $this->view('plugin:kho-logistics.deliveries', ['deliveries' => $deliveries]);
     }
 
     public function createDelivery()
@@ -1281,7 +1281,7 @@ class LogisticsController extends Controller
     {
         if (!$this->checkPlugin()) return;
         $rates = Database::fetchAll("SELECT * FROM logistics_shipping_rates WHERE tenant_id = ? AND is_active = 1 ORDER BY cargo_type, name", [Database::tenantId()]);
-        return $this->view('logistics.calculator', ['rates' => $rates]);
+        return $this->view('plugin:kho-logistics.calculator', ['rates' => $rates]);
     }
 
     public function saveRate()
@@ -1346,7 +1346,7 @@ class LogisticsController extends Controller
             [$tid, $dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']
         );
 
-        return $this->view('logistics.reports', [
+        return $this->view('plugin:kho-logistics.reports', [
             'receiveStats' => $receiveStats,
             'deliveryStats' => $deliveryStats,
             'orderStats' => $orderStats,
@@ -1399,7 +1399,7 @@ class LogisticsController extends Controller
         $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
         $all = json_decode($tenant['settings'] ?? '{}', true);
         $cfg = $all['logistics'] ?? [];
-        return $this->view('logistics.settings', ['cfg' => $cfg]);
+        return $this->view('plugin:kho-logistics.settings', ['cfg' => $cfg]);
     }
 
     public function saveSettings()

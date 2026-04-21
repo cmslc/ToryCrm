@@ -20,7 +20,7 @@ class BookingController extends Controller
             [$tid, $uid]
         );
 
-        return $this->view('bookings.index', [
+        return $this->view('plugin:booking.index', [
             'pageTitle' => 'Đặt lịch hẹn',
             'links' => $links,
         ]);
@@ -28,7 +28,7 @@ class BookingController extends Controller
 
     public function create()
     {
-        return $this->view('bookings.create', [
+        return $this->view('plugin:booking.create', [
             'pageTitle' => 'Tạo liên kết đặt lịch',
         ]);
     }
@@ -84,7 +84,7 @@ class BookingController extends Controller
             return $this->redirect('bookings');
         }
 
-        return $this->view('bookings.create', [
+        return $this->view('plugin:booking.create', [
             'pageTitle' => 'Sửa liên kết đặt lịch',
             'link' => $link,
         ]);
@@ -157,7 +157,7 @@ class BookingController extends Controller
             [(int)$id]
         );
 
-        return $this->view('bookings.bookings_list', [
+        return $this->view('plugin:booking.bookings_list', [
             'pageTitle' => 'Lịch hẹn - ' . $link['title'],
             'link' => $link,
             'bookings' => $bookings,
@@ -183,7 +183,7 @@ class BookingController extends Controller
         }
 
         $noLayout = true;
-        return $this->view('bookings.public', [
+        return $this->view('plugin:booking.public', [
             'link' => $link,
             'noLayout' => true,
         ]);

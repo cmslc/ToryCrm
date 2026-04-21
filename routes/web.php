@@ -30,11 +30,6 @@ Router::post('webhooks/momo', 'PaymentController@momoIPN');
 // Google Calendar OAuth callback (public)
 Router::get('integrations/google-calendar/callback', 'GoogleCalendarController@callback');
 
-// Booking public pages (no auth)
-Router::get('book/{slug}', 'BookingController@publicPage');
-Router::get('book/{slug}/slots', 'BookingController@getAvailableSlots');
-Router::post('book/{slug}', 'BookingController@bookSlot');
-
 
 // Public quotation view (no auth)
 Router::get('quote/{token}', 'QuotationController@publicView');
@@ -75,13 +70,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('conversations/{id}/status', 'ConversationController@updateStatus');
     Router::post('conversations/{id}/star', 'ConversationController@star');
 
-    // Check-in
-    Router::get('checkins', 'CheckinController@index');
-    Router::get('checkins/create', 'CheckinController@create');
-    Router::get('checkins/map', 'CheckinController@map');
-    Router::get('checkins/my', 'CheckinController@myCheckins');
-    Router::post('checkins/store', 'CheckinController@store');
-    Router::get('checkins/{id}', 'CheckinController@show');
+    // Check-in → moved to plugins/checkin/routes.php
 
     // Theme
     Router::post('theme/toggle', 'ThemeController@toggle');
@@ -231,13 +220,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('notifications/{id}/read', 'NotificationController@markRead');
     Router::post('notifications/{id}/delete', 'NotificationController@delete');
 
-    // SLA Policies
-    Router::get('sla', 'SlaController@index');
-    Router::get('sla/create', 'SlaController@create');
-    Router::post('sla/store', 'SlaController@store');
-    Router::get('sla/{id}/edit', 'SlaController@edit');
-    Router::post('sla/{id}/update', 'SlaController@update');
-    Router::post('sla/{id}/delete', 'SlaController@delete');
+    // SLA Policies → moved to plugins/sla/routes.php
 
     // Tickets
     Router::get('tickets', 'TicketController@index');
@@ -260,15 +243,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('campaigns/{id}/add-contact', 'CampaignController@addContact');
     Router::post('campaigns/{id}/delete', 'CampaignController@delete');
 
-    // Email Templates
-    Router::get('email-templates', 'EmailTemplateController@index');
-    Router::get('email-templates/create', 'EmailTemplateController@create');
-    Router::post('email-templates/store', 'EmailTemplateController@store');
-    Router::get('email-templates/{id}/edit', 'EmailTemplateController@edit');
-    Router::post('email-templates/{id}/update', 'EmailTemplateController@update');
-    Router::post('email-templates/{id}/delete', 'EmailTemplateController@delete');
-    Router::get('email-templates/{id}/preview', 'EmailTemplateController@preview');
-    Router::post('email-templates/{id}/send', 'EmailTemplateController@send');
+    // Email Templates → moved to plugins/email/routes.php
 
     // Internal Chat
     Router::get('chat/{entityType}/{entityId}', 'ChatController@getMessages');
@@ -387,81 +362,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('fund/{id}/cancel', 'FundController@cancel');
     Router::post('fund/{id}/delete', 'FundController@delete');
 
-    // Warehouses (Kho)
-    Router::get('warehouses', 'WarehouseController@index');
-    Router::post('warehouses/store', 'WarehouseController@store');
-    Router::get('warehouses/movements', 'WarehouseController@movements');
-    Router::post('warehouses/movements/create', 'WarehouseController@createMovement');
-    Router::get('warehouses/movements/{id}', 'WarehouseController@showMovement');
-    Router::get('warehouses/checks', 'WarehouseController@checks');
-    Router::post('warehouses/checks/create', 'WarehouseController@createCheck');
-    Router::get('warehouses/checks/{id}', 'WarehouseController@showCheck');
-    Router::post('warehouses/checks/{id}/update', 'WarehouseController@updateCheck');
-    Router::post('warehouses/checks/{id}/complete', 'WarehouseController@completeCheck');
-    Router::get('warehouses/report', 'WarehouseController@report');
-    Router::get('warehouses/settings', 'WarehouseController@settings');
-    Router::post('warehouses/settings', 'WarehouseController@saveSettings');
-    Router::get('warehouses/{id}', 'WarehouseController@show');
-    Router::post('warehouses/{id}/update', 'WarehouseController@update');
-    Router::post('warehouses/{id}/delete', 'WarehouseController@delete');
-
-    // Logistics (Plugin)
-    Router::get('logistics', 'LogisticsController@index');
-    Router::get('logistics/receive', 'LogisticsController@receive');
-    Router::post('logistics/scan', 'LogisticsController@scan');
-    Router::post('logistics/update-weight', 'LogisticsController@updateWeight');
-    Router::get('logistics/packages', 'LogisticsController@packages');
-    Router::post('logistics/packages/create', 'LogisticsController@createPackage');
-    Router::get('logistics/packages/{id}', 'LogisticsController@showPackage');
-    Router::get('logistics/orders', 'LogisticsController@orders');
-    Router::get('logistics/orders/create', 'LogisticsController@createOrderForm');
-    Router::post('logistics/orders/create', 'LogisticsController@createOrder');
-    Router::get('logistics/orders/{id}', 'LogisticsController@showOrder');
-    Router::get('logistics/orders/{id}/edit', 'LogisticsController@editOrder');
-    Router::post('logistics/orders/{id}/update', 'LogisticsController@updateOrder');
-    Router::post('logistics/orders/{id}/add-package', 'LogisticsController@addPackageToOrder');
-    Router::post('logistics/orders/{id}/upload', 'LogisticsController@uploadOrderImage');
-    Router::post('logistics/orders/{id}/delete', 'LogisticsController@deleteOrder');
-    Router::post('logistics/confirm-wholesale', 'LogisticsController@confirmWholesale');
-    Router::get('logistics/shipments', 'LogisticsController@shipments');
-    Router::post('logistics/shipments/create', 'LogisticsController@createShipment');
-    Router::post('logistics/shipments/create-from-orders', 'LogisticsController@createShipmentFromOrders');
-    Router::post('logistics/shipments/create-from-bags', 'LogisticsController@createShipmentFromBags');
-    Router::get('logistics/shipments/{id}', 'LogisticsController@showShipment');
-    Router::post('logistics/shipments/{id}/status', 'LogisticsController@updateShipmentStatus');
-    Router::post('logistics/shipments/{id}/add', 'LogisticsController@addToShipment');
-    Router::post('logistics/shipments/{id}/add-orders', 'LogisticsController@addOrdersToShipment');
-    Router::post('logistics/shipments/{id}/add-bags', 'LogisticsController@addBagsToShipment');
-    Router::post('logistics/shipments/{id}/remove', 'LogisticsController@removeFromShipment');
-    Router::get('logistics/deliveries', 'LogisticsController@deliveries');
-    Router::post('logistics/deliveries/create', 'LogisticsController@createDelivery');
-    Router::post('logistics/deliveries/{id}/mark', 'LogisticsController@markDelivered');
-    Router::get('logistics/calculator', 'LogisticsController@shippingCalculator');
-    Router::post('logistics/calculator/store', 'LogisticsController@saveRate');
-    Router::post('logistics/calculator/{id}/delete', 'LogisticsController@deleteRate');
-    Router::get('logistics/reports', 'LogisticsController@reports');
-    Router::get('logistics/settings', 'LogisticsController@settings');
-    Router::post('logistics/settings', 'LogisticsController@saveSettings');
-    Router::get('logistics/bags', 'LogisticsController@bags');
-    Router::post('logistics/bags/create', 'LogisticsController@createBag');
-    Router::get('logistics/bags/{id}', 'LogisticsController@showBag');
-    Router::post('logistics/bags/{id}/seal', 'LogisticsController@sealBag');
-    Router::post('logistics/bags/{id}/update', 'LogisticsController@updateBag');
-    Router::post('logistics/bags/{id}/delete', 'LogisticsController@deleteBag');
-    Router::post('logistics/bags/{id}/scan', 'LogisticsController@scanToBag');
-    Router::post('logistics/bags/{id}/remove-package', 'LogisticsController@removeFromBag');
-
-    // Booking Links
-    Router::get('bookings', 'BookingController@index');
-    Router::get('bookings/create', 'BookingController@create');
-    Router::post('bookings/store', 'BookingController@store');
-    Router::get('bookings/{id}/edit', 'BookingController@edit');
-    Router::post('bookings/{id}/update', 'BookingController@update');
-    Router::post('bookings/{id}/delete', 'BookingController@delete');
-
-    // Gamification
-    Router::get('leaderboard', 'GamificationController@leaderboard');
-    Router::get('achievements', 'GamificationController@achievements');
+    // Warehouses → plugins/warehouse/routes.php
+    // Logistics → plugins/kho-logistics/routes.php
+    // Booking Links → plugins/booking/routes.php
+    // Gamification → plugins/gamification/routes.php
 
     // User Management
     Router::get('users', 'UserController@index');
@@ -510,69 +414,10 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('import-export/export-products', 'ImportExportController@exportProducts');
     Router::get('import-export/template/{type}', 'ImportExportController@downloadTemplate');
 
-    // Workflows
-    Router::get('workflows', 'WorkflowController@index');
-    Router::get('workflows/create', 'WorkflowController@create');
-    Router::post('workflows/store', 'WorkflowController@store');
-    Router::get('workflows/{id}/edit', 'WorkflowController@edit');
-    Router::post('workflows/{id}/update', 'WorkflowController@update');
-    Router::post('workflows/{id}/delete', 'WorkflowController@delete');
-    Router::post('workflows/{id}/toggle', 'WorkflowController@toggleActive');
-    Router::get('workflows/{id}/logs', 'WorkflowController@logs');
-
-    // Automation
-    Router::get('automation', 'AutomationController@index');
-    Router::get('automation/create', 'AutomationController@create');
-    Router::post('automation/store', 'AutomationController@store');
-    Router::get('automation/{id}/logs', 'AutomationController@logs');
-    Router::post('automation/{id}/toggle-active', 'AutomationController@toggleActive');
-    Router::post('automation/{id}/delete', 'AutomationController@delete');
-
-    // Email Plugin
-    Router::get('email', 'EmailController@inbox');
-    Router::get('email/compose', 'EmailController@compose');
-    Router::post('email/send', 'EmailController@send');
-    Router::post('email/sync', 'EmailController@sync');
-    Router::get('email/settings', 'EmailController@settings');
-    Router::post('email/settings/save', 'EmailController@saveAccount');
-    Router::post('email/settings/test', 'EmailController@testAccount');
-    Router::post('email/settings/{id}/delete', 'EmailController@deleteAccount');
-    Router::post('email/settings/signature', 'EmailController@saveSignature');
-    Router::post('email/bulk', 'EmailController@bulkAction');
-    Router::get('email/templates', 'EmailController@templates');
-    Router::post('email/templates/save', 'EmailController@saveTemplate');
-    Router::post('email/templates/{id}/delete', 'EmailController@deleteTemplate');
-    Router::get('email/download', 'EmailController@downloadAttachment');
-    Router::get('email/{id}', 'EmailController@read');
-    Router::post('email/{id}/star', 'EmailController@toggleStar');
-    Router::post('email/{id}/trash', 'EmailController@moveToTrash');
-    Router::post('email/{id}/delete', 'EmailController@delete');
-
-    // Documents
-    Router::get('documents', 'DocumentController@index');
-    Router::post('documents/upload', 'DocumentController@upload');
-    Router::get('documents/{id}/download', 'DocumentController@download');
-    Router::post('documents/{id}/delete', 'DocumentController@delete');
-
-    // Attendance & Payroll
-    Router::get('attendance', 'AttendanceController@index');
-    Router::post('attendance/check-in', 'AttendanceController@checkIn');
-    Router::post('attendance/{id}/update', 'AttendanceController@update');
-    Router::get('attendance/leaves', 'AttendanceController@leaves');
-    Router::post('attendance/leaves/create', 'AttendanceController@createLeave');
-    Router::post('attendance/leaves/{id}/approve', 'AttendanceController@approveLeave');
-    Router::get('attendance/payroll', 'AttendanceController@payroll');
-    Router::get('attendance/payroll/export', 'AttendanceController@exportPayroll');
-    Router::get('attendance/payroll/{id}', 'AttendanceController@payrollDetail');
-    Router::post('attendance/payroll/generate', 'AttendanceController@generatePayroll');
-    Router::post('attendance/payroll/{id}/update', 'AttendanceController@updatePayroll');
-    Router::post('attendance/payroll/{id}/confirm', 'AttendanceController@confirmPayroll');
-    Router::post('attendance/payroll/{id}/paid', 'AttendanceController@markPaid');
-    Router::post('attendance/payroll/bulk', 'AttendanceController@bulkConfirmPayroll');
-    Router::get('attendance/payroll/history/{userId}', 'AttendanceController@payrollHistory');
-    Router::get('attendance/advances', 'AttendanceController@advances');
-    Router::post('attendance/advances/create', 'AttendanceController@createAdvance');
-    Router::post('attendance/advances/{id}/approve', 'AttendanceController@approveAdvance');
+    // Workflows + Automation → plugins/automation/routes.php
+    // Email → plugins/email/routes.php
+    // Documents → plugins/documents/routes.php
+    // Attendance & Payroll → plugins/attendance-payroll/routes.php
 
     // System Info
     Router::get('system-info', 'SystemInfoController@index');

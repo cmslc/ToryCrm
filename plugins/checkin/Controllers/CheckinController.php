@@ -91,7 +91,7 @@ class CheckinController extends Controller
 
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 AND u.tenant_id = ? ORDER BY d.name, u.name", [$tid]);
 
-        return $this->view('checkins.index', [
+        return $this->view('plugin:checkin.index', [
             'checkins' => $checkins,
             'total' => $total,
             'page' => $page,
@@ -123,7 +123,7 @@ class CheckinController extends Controller
             [$tid]
         );
 
-        return $this->view('checkins.create', [
+        return $this->view('plugin:checkin.create', [
             'contacts' => $contacts,
             'companies' => $companies,
         ]);
@@ -216,7 +216,7 @@ class CheckinController extends Controller
             return $this->redirect('checkins');
         }
 
-        return $this->view('checkins.show', [
+        return $this->view('plugin:checkin.show', [
             'checkin' => $checkin,
         ]);
     }
@@ -255,7 +255,7 @@ class CheckinController extends Controller
             [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']
         );
 
-        return $this->view('checkins.map', [
+        return $this->view('plugin:checkin.map', [
             'checkins' => $checkins,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,

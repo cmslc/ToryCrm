@@ -17,7 +17,7 @@ class AutomationController extends Controller
         $this->authorize('automation', 'create');
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 AND u.tenant_id = ? ORDER BY d.name, u.name", [Database::tenantId()]);
 
-        return $this->view('automation.create', ['users' => $users]);
+        return $this->view('plugin:automation.automation.create', ['users' => $users]);
     }
 
     public function store()
@@ -122,6 +122,6 @@ class AutomationController extends Controller
             [$id]
         );
 
-        return $this->view('automation.logs', ['rule' => $rule, 'logs' => $logs]);
+        return $this->view('plugin:automation.automation.logs', ['rule' => $rule, 'logs' => $logs]);
     }
 }

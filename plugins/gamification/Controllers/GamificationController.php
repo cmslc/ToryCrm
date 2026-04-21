@@ -32,7 +32,7 @@ class GamificationController extends Controller
             $entry['rank'] = $i + 1;
         }
 
-        return $this->view('gamification.leaderboard', [
+        return $this->view('plugin:gamification.leaderboard', [
             'pageTitle' => 'Bảng xếp hạng',
             'leaderboard' => $leaderboard,
             'period' => $period,
@@ -58,7 +58,7 @@ class GamificationController extends Controller
             $ach['progress'] = $this->calculateProgress($ach, $tid, $uid);
         }
 
-        return $this->view('gamification.achievements', [
+        return $this->view('plugin:gamification.achievements', [
             'pageTitle' => 'Thành tựu',
             'achievements' => $achievements,
         ]);

@@ -49,7 +49,7 @@ class DocumentController extends Controller
         $totalPages = ceil($total / $limit);
         $filters = compact('category', 'search', 'entityType');
 
-        return $this->view('documents.index', compact('docs', 'categories', 'page', 'totalPages', 'total', 'filters'));
+        return $this->view('plugin:documents.index', compact('docs', 'categories', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function upload()

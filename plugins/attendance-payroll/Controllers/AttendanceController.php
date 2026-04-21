@@ -42,7 +42,7 @@ class AttendanceController extends Controller
 
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
-        return $this->view('attendance.index', compact('users', 'map', 'month', 'year', 'daysInMonth'));
+        return $this->view('plugin:attendance-payroll.index', compact('users', 'map', 'month', 'year', 'daysInMonth'));
     }
 
     public function checkIn()
@@ -167,7 +167,7 @@ class AttendanceController extends Controller
         );
 
         $filters = compact('status', 'leaveType');
-        return $this->view('attendance.leaves', compact('leaves', 'leaveStats', 'page', 'totalPages', 'total', 'filters'));
+        return $this->view('plugin:attendance-payroll.leaves', compact('leaves', 'leaveStats', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function createLeave()
@@ -272,7 +272,7 @@ class AttendanceController extends Controller
             [$tid, $month, $year]
         );
 
-        return $this->view('attendance.payroll', compact('payrolls', 'month', 'year'));
+        return $this->view('plugin:attendance-payroll.payroll', compact('payrolls', 'month', 'year'));
     }
 
     public function payrollDetail($id)
@@ -288,7 +288,7 @@ class AttendanceController extends Controller
             $this->setFlash('error', 'Không tìm thấy.');
             return $this->redirect('attendance/payroll');
         }
-        return $this->view('attendance.payroll-detail', compact('payroll'));
+        return $this->view('plugin:attendance-payroll.payroll-detail', compact('payroll'));
     }
 
     public function generatePayroll()
@@ -471,7 +471,7 @@ class AttendanceController extends Controller
             "SELECT * FROM payrolls WHERE tenant_id = ? AND user_id = ? ORDER BY year DESC, month DESC",
             [$tid, $userId]
         );
-        return $this->view('attendance.payroll-history', compact('user', 'history'));
+        return $this->view('plugin:attendance-payroll.payroll-history', compact('user', 'history'));
     }
 
     public function exportPayroll()
@@ -534,7 +534,7 @@ class AttendanceController extends Controller
         $totalPages = ceil($total / $limit);
         $filters = compact('status', 'fMonth', 'fYear');
 
-        return $this->view('attendance.advances', compact('advances', 'page', 'totalPages', 'total', 'filters'));
+        return $this->view('plugin:attendance-payroll.advances', compact('advances', 'page', 'totalPages', 'total', 'filters'));
     }
 
     public function createAdvance()

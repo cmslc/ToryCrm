@@ -48,7 +48,7 @@ class EmailTemplateController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        return $this->view('email-templates.index', [
+        return $this->view('plugin:email.email-templates.index', [
             'templates' => [
                 'items' => $templates,
                 'total' => $total,
@@ -64,7 +64,7 @@ class EmailTemplateController extends Controller
 
     public function create()
     {
-        return $this->view('email-templates.create');
+        return $this->view('plugin:email.email-templates.create');
     }
 
     public function store()
@@ -105,7 +105,7 @@ class EmailTemplateController extends Controller
             return $this->redirect('email-templates');
         }
 
-        return $this->view('email-templates.edit', [
+        return $this->view('plugin:email.email-templates.edit', [
             'template' => $template,
         ]);
     }

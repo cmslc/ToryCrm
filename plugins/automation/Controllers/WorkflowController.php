@@ -29,7 +29,7 @@ class WorkflowController extends Controller
             [$tid]
         );
 
-        return $this->view('workflows.index', [
+        return $this->view('plugin:automation.workflows.index', [
             'workflows' => $workflows,
             'rules' => $rules,
         ]);
@@ -38,7 +38,7 @@ class WorkflowController extends Controller
     public function create()
     {
         $this->authorize('automation', 'create');
-        return $this->view('workflows.create');
+        return $this->view('plugin:automation.workflows.create');
     }
 
     public function store()
@@ -81,7 +81,7 @@ class WorkflowController extends Controller
         $this->authorize('automation', 'edit');
         $workflow = $this->fetchWorkflow($id);
         if (!$workflow) { $this->setFlash('error', 'Workflow không tồn tại.'); return $this->redirect('workflows'); }
-        return $this->view('workflows.edit', ['workflow' => $workflow]);
+        return $this->view('plugin:automation.workflows.edit', ['workflow' => $workflow]);
     }
 
     public function update($id)

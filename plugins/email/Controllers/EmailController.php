@@ -40,7 +40,7 @@ class EmailController extends Controller
             $accounts = EmailService::getAccountsForUser($this->userId());
         }
         if (empty($accounts)) {
-            return $this->view('email.inbox', ['accounts' => [], 'messages' => [], 'total' => 0, 'page' => 1, 'totalPages' => 0, 'folder' => $folder, 'accountId' => 0, 'search' => '', 'unreadCount' => 0, 'folders' => []]);
+            return $this->view('plugin:email.email.inbox', ['accounts' => [], 'messages' => [], 'total' => 0, 'page' => 1, 'totalPages' => 0, 'folder' => $folder, 'accountId' => 0, 'search' => '', 'unreadCount' => 0, 'folders' => []]);
         }
 
         $account = $accountId ? EmailService::getAccount($accountId) : $accounts[0];
@@ -76,7 +76,7 @@ class EmailController extends Controller
             [$accountId]
         );
 
-        return $this->view('email.inbox', compact('accounts', 'messages', 'total', 'page', 'totalPages', 'folder', 'accountId', 'search', 'unreadCount', 'folders'));
+        return $this->view('plugin:email.email.inbox', compact('accounts', 'messages', 'total', 'page', 'totalPages', 'folder', 'accountId', 'search', 'unreadCount', 'folders'));
     }
 
     // ---- Read ----
@@ -142,7 +142,7 @@ class EmailController extends Controller
              FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]
         );
 
-        return $this->view('email.read', compact('message', 'accounts', 'accountId', 'folders'));
+        return $this->view('plugin:email.email.read', compact('message', 'accounts', 'accountId', 'folders'));
     }
 
     // ---- Compose ----
@@ -182,7 +182,7 @@ class EmailController extends Controller
         }
         $templates = Database::fetchAll("SELECT id, name FROM email_templates WHERE tenant_id = ? ORDER BY name", [Database::tenantId()]);
 
-        return $this->view('email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'draftMsg', 'contactEmail', 'prefillSubject', 'prefillBody', 'quotationId', 'template', 'templates'));
+        return $this->view('plugin:email.email.compose', compact('accounts', 'replyMsg', 'forwardMsg', 'draftMsg', 'contactEmail', 'prefillSubject', 'prefillBody', 'quotationId', 'template', 'templates'));
     }
 
     public function send()
@@ -370,7 +370,7 @@ class EmailController extends Controller
         $accountId = $accounts[0]['id'] ?? 0;
         $folders = $accountId ? Database::fetchAll("SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read=0 THEN 1 ELSE 0 END) as unread FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]) : [];
         $folder = '';
-        return $this->view('email.settings', compact('accounts', 'accountId', 'folders', 'folder'));
+        return $this->view('plugin:email.email.settings', compact('accounts', 'accountId', 'folders', 'folder'));
     }
 
     public function saveAccount()
@@ -496,7 +496,7 @@ class EmailController extends Controller
         $accountId = $accounts[0]['id'] ?? 0;
         $folders = $accountId ? Database::fetchAll("SELECT folder, COUNT(*) as cnt, SUM(CASE WHEN is_read=0 THEN 1 ELSE 0 END) as unread FROM email_messages WHERE account_id = ? GROUP BY folder", [$accountId]) : [];
         $folder = '';
-        return $this->view('email.templates', compact('templates', 'accounts', 'accountId', 'folders', 'folder'));
+        return $this->view('plugin:email.email.templates', compact('templates', 'accounts', 'accountId', 'folders', 'folder'));
     }
 
     public function saveTemplate()
