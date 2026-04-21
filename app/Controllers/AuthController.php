@@ -30,7 +30,7 @@ class AuthController extends Controller
         }
 
         // Rate limiting - max 5 attempts per 15 minutes per IP
-        $rateLimitKey = 'login:' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $rateLimitKey = 'login:' . client_ip();
         if (!RateLimiter::attempt($rateLimitKey, 5, 15)) {
             $this->setFlash('error', 'Quá nhiều lần thử. Vui lòng chờ 15 phút.');
             return $this->back();
@@ -87,6 +87,13 @@ class AuthController extends Controller
     {
         if (!$this->isPost()) {
             return $this->redirect('register');
+        }
+
+        // Rate limit registration: max 3 accounts per IP per hour (anti-spam)
+        $rateLimitKey = 'register:' . client_ip();
+        if (!RateLimiter::attempt($rateLimitKey, 3, 60)) {
+            $this->setFlash('error', 'Quá nhiều yêu cầu đăng ký. Vui lòng thử lại sau.');
+            return $this->back();
         }
 
         $name = trim($this->input('name'));

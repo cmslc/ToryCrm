@@ -28,8 +28,35 @@ if ($_ENV['APP_DEBUG'] ?? false) {
     error_reporting(0);
 }
 
-// Session
+// Session hardening (must be BEFORE session_start)
+$https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+      || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
+      || ($_SERVER['SERVER_PORT'] ?? '') == 443;
+
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_secure', $https ? '1' : '0');
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.gc_maxlifetime', '28800'); // 8h absolute
 session_start();
+
+// Session timeout: idle >2h OR absolute >8h → force re-login
+$now = time();
+$idleMax = 7200;      // 2h inactivity
+$absoluteMax = 28800; // 8h total
+if (!empty($_SESSION['user'])) {
+    $loginTime = $_SESSION['login_time'] ?? $now;
+    $lastActivity = $_SESSION['_last_activity'] ?? $now;
+    if (($now - $lastActivity) > $idleMax || ($now - $loginTime) > $absoluteMax) {
+        session_unset();
+        session_destroy();
+        session_start();
+        $_SESSION['flash'] = ['type' => 'warning', 'message' => 'Phiên đã hết hạn. Vui lòng đăng nhập lại.'];
+    } else {
+        $_SESSION['_last_activity'] = $now;
+    }
+}
 
 // Load config
 $config = require BASE_PATH . '/config/app.php';

@@ -14,7 +14,7 @@ $availableDays = $isEdit ? explode(',', $link['available_days'] ?? '1,2,3,4,5') 
         <div class="card">
             <div class="card-body">
                 <form method="POST" action="<?= $isEdit ? url('bookings/' . $link['id'] . '/update') : url('bookings/store') ?>">
-                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="_token" value="<?= csrf_token() ?>">
 
                     <div class="mb-3">
                         <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>

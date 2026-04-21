@@ -72,7 +72,7 @@
                                     <i class="ri-edit-line me-1"></i> Sửa
                                 </a>
                                 <form method="POST" action="<?= url('bookings/' . $link['id'] . '/delete') ?>" onsubmit="return confirm('Bạn có chắc chắn muốn xóa liên kết này?')">
-                                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                    <input type="hidden" name="_token" value="<?= csrf_token() ?>">
                                     <button class="btn btn-soft-danger" title="Xóa"><i class="ri-delete-bin-line me-1"></i> Xóa</button>
                                 </form>
                             </div>

@@ -33,6 +33,22 @@ function verify_csrf(string $token): bool
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
+/**
+ * Best-effort client IP. Trusts X-Forwarded-For only if REMOTE_ADDR is a
+ * reverse proxy (loopback or RFC1918). Returns REMOTE_ADDR otherwise.
+ */
+function client_ip(): string
+{
+    $remote = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $isPrivate = filter_var($remote, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
+    if ($isPrivate && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $forwarded = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0] ?? '';
+        $forwarded = trim($forwarded);
+        if (filter_var($forwarded, FILTER_VALIDATE_IP)) return $forwarded;
+    }
+    return $remote;
+}
+
 function flash(): ?array
 {
     $flash = $_SESSION['flash'] ?? null;
