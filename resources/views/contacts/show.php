@@ -778,12 +778,20 @@
                                                         <td><a href="<?= url('orders/' . $order['id']) ?>"><?= e($order['order_number']) ?></a></td>
                                                         <td><?= format_money($order['total']) ?></td>
                                                         <td>
-                                                            <?php $oColors = ['draft'=>'secondary','pending'=>'warning','confirmed'=>'info','processing'=>'primary','completed'=>'success','cancelled'=>'danger']; ?>
-                                                            <span class="badge bg-<?= $oColors[$order['status']] ?? 'secondary' ?>-subtle text-<?= $oColors[$order['status']] ?? 'secondary' ?>"><?= e($order['status']) ?></span>
+                                                            <?php
+                                                            $oColors = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','processing'=>'info','completed'=>'success','cancelled'=>'danger'];
+                                                            $oLabels = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
+                                                            $oStatus = $order['status'] ?? '';
+                                                            ?>
+                                                            <span class="badge bg-<?= $oColors[$oStatus] ?? 'secondary' ?>-subtle text-<?= $oColors[$oStatus] ?? 'secondary' ?>"><?= $oLabels[$oStatus] ?? e($oStatus) ?></span>
                                                         </td>
                                                         <td>
-                                                            <?php $pColors = ['unpaid'=>'danger','partial'=>'warning','paid'=>'success']; ?>
-                                                            <span class="badge bg-<?= $pColors[$order['payment_status']] ?? 'secondary' ?>"><?= e($order['payment_status'] ?? 'unpaid') ?></span>
+                                                            <?php
+                                                            $pColors = ['unpaid'=>'danger','partial'=>'warning','paid'=>'success'];
+                                                            $pLabels = ['unpaid'=>'Chưa TT','partial'=>'Một phần','paid'=>'Đã TT'];
+                                                            $pStatus = $order['payment_status'] ?? 'unpaid';
+                                                            ?>
+                                                            <span class="badge bg-<?= $pColors[$pStatus] ?? 'secondary' ?>-subtle text-<?= $pColors[$pStatus] ?? 'secondary' ?>"><?= $pLabels[$pStatus] ?? e($pStatus) ?></span>
                                                         </td>
                                                         <td class="text-muted"><?= time_ago($order['created_at']) ?></td>
                                                     </tr>
@@ -937,6 +945,7 @@
                                     [$contact['id']]
                                 );
                                 $ctColors = ['draft'=>'secondary','pending'=>'warning','active'=>'primary','signed'=>'info','executing'=>'primary','completed'=>'success','cancelled'=>'danger','terminated'=>'danger'];
+                                $ctLabels = ['draft'=>'Nháp','pending'=>'Chờ duyệt','active'=>'Đang hiệu lực','signed'=>'Đã ký','executing'=>'Đang thực hiện','completed'=>'Hoàn thành','cancelled'=>'Đã hủy','terminated'=>'Chấm dứt'];
                                 ?>
                                 <?php if (!empty($contracts)): ?>
                                     <div class="table-responsive">
@@ -957,7 +966,7 @@
                                                     <td><a href="<?= url('contracts/' . $ct['id']) ?>"><?= e($ct['contract_number']) ?></a></td>
                                                     <td class="fw-medium"><?= format_money($ct['value']) ?></td>
                                                     <td>
-                                                        <span class="badge bg-<?= $ctColors[$ct['status']] ?? 'secondary' ?>-subtle text-<?= $ctColors[$ct['status']] ?? 'secondary' ?>"><?= e($ct['status']) ?></span>
+                                                        <span class="badge bg-<?= $ctColors[$ct['status']] ?? 'secondary' ?>-subtle text-<?= $ctColors[$ct['status']] ?? 'secondary' ?>"><?= $ctLabels[$ct['status']] ?? e($ct['status']) ?></span>
                                                     </td>
                                                     <td class="text-muted"><?= format_money($ct['paid_amount'] ?? 0) ?></td>
                                                     <td><?= user_avatar($ct['owner_name'] ?? null) ?></td>
@@ -1216,14 +1225,16 @@
                                             <tbody>
                                                 <?php
                                                 $tColors = ['open'=>'info','in_progress'=>'primary','waiting'=>'warning','resolved'=>'success','closed'=>'secondary'];
+                                                $tLabels = ['open'=>'Mở','in_progress'=>'Đang xử lý','waiting'=>'Chờ phản hồi','resolved'=>'Đã xử lý','closed'=>'Đã đóng'];
                                                 $pColors = ['low'=>'info','medium'=>'warning','high'=>'danger','urgent'=>'danger'];
+                                                $pLabels = ['low'=>'Thấp','medium'=>'Bình thường','high'=>'Cao','urgent'=>'Khẩn'];
                                                 ?>
                                                 <?php foreach ($tickets as $ticket): ?>
                                                     <tr>
                                                         <td><a href="<?= url('tickets/' . $ticket['id']) ?>"><?= e($ticket['ticket_code']) ?></a></td>
                                                         <td><?= e($ticket['title']) ?></td>
-                                                        <td><span class="badge bg-<?= $tColors[$ticket['status']] ?? 'secondary' ?>-subtle text-<?= $tColors[$ticket['status']] ?? 'secondary' ?>"><?= e($ticket['status']) ?></span></td>
-                                                        <td><span class="badge bg-<?= $pColors[$ticket['priority']] ?? 'secondary' ?>"><?= e($ticket['priority']) ?></span></td>
+                                                        <td><span class="badge bg-<?= $tColors[$ticket['status']] ?? 'secondary' ?>-subtle text-<?= $tColors[$ticket['status']] ?? 'secondary' ?>"><?= $tLabels[$ticket['status']] ?? e($ticket['status']) ?></span></td>
+                                                        <td><span class="badge bg-<?= $pColors[$ticket['priority']] ?? 'secondary' ?>"><?= $pLabels[$ticket['priority']] ?? e($ticket['priority']) ?></span></td>
                                                         <td><?= user_avatar($ticket['assigned_name'] ?? null) ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
