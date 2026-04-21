@@ -56,9 +56,19 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                     <button type="submit" class="btn btn-primary px-4">Gửi</button>
                 </div>
                 <div id="attachBadge" style="display:none" class="px-3 py-2 border-top bg-light"></div>
-                <div id="checkinBadge" style="display:none" class="px-3 py-2 border-top bg-success-subtle text-success fs-13">
-                    <i class="ri-map-pin-fill me-1"></i><span id="checkinBadgeText"></span>
-                    <i class="ri-close-line ms-2" style="cursor:pointer" onclick="clearCheckin()"></i>
+                <div id="checkinBadge" style="display:none" class="px-3 py-2 border-top bg-success-subtle fs-13">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="ri-map-pin-fill text-success mt-1"></i>
+                        <div class="flex-grow-1">
+                            <input type="text" id="checkinAddressInput" class="form-control form-control border-0 bg-transparent p-0 text-success fw-medium" placeholder="Địa chỉ..." style="box-shadow:none">
+                            <div class="d-flex align-items-center gap-2 text-muted" style="font-size:11px">
+                                <span id="checkinCoords"></span>
+                                <span id="checkinAccuracy" class="badge bg-warning-subtle text-warning" style="font-size:10px"></span>
+                                <a href="#" id="checkinMapPreview" target="_blank" class="text-primary text-decoration-none">Xem bản đồ</a>
+                            </div>
+                        </div>
+                        <i class="ri-close-line text-muted" style="cursor:pointer" onclick="clearCheckin()"></i>
+                    </div>
                 </div>
             </div>
         </form>
@@ -335,8 +345,16 @@ window.clearCheckin = function() {
     document.getElementById('checkinLat').value = '';
     document.getElementById('checkinLng').value = '';
     document.getElementById('checkinAddress').value = '';
+    document.getElementById('checkinAddressInput').value = '';
     document.getElementById('checkinBadge').style.display = 'none';
+    var btn = document.getElementById('checkinBtn');
+    if (btn) { btn.classList.remove('text-primary'); btn.innerHTML = '<i class="ri-map-pin-line fs-18"></i>'; }
 };
+
+// Sync editable address input back to hidden field
+document.getElementById('checkinAddressInput')?.addEventListener('input', function() {
+    document.getElementById('checkinAddress').value = this.value;
+});
 
 document.getElementById('checkinBtn')?.addEventListener('click', function() {
     if (!navigator.geolocation) { alert('Trình duyệt không hỗ trợ định vị GPS.'); return; }
@@ -346,28 +364,40 @@ document.getElementById('checkinBtn')?.addEventListener('click', function() {
     navigator.geolocation.getCurrentPosition(function(pos) {
         var lat = pos.coords.latitude.toFixed(7);
         var lng = pos.coords.longitude.toFixed(7);
+        var acc = Math.round(pos.coords.accuracy || 0);
         document.getElementById('checkinLat').value = lat;
         document.getElementById('checkinLng').value = lng;
         btn.innerHTML = '<i class="ri-map-pin-fill fs-18"></i>';
-        var badge = document.getElementById('checkinBadge');
-        var badgeText = document.getElementById('checkinBadgeText');
-        badge.style.display = 'block';
-        badgeText.textContent = lat + ', ' + lng + ' — đang lấy địa chỉ...';
-        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=vi', {
-            headers: { 'User-Agent': 'ToryCRM' }
-        })
-        .then(r => r.json())
-        .then(d => {
-            var addr = d.display_name || (lat + ', ' + lng);
-            document.getElementById('checkinAddress').value = addr;
-            badgeText.textContent = addr;
-        })
-        .catch(() => { badgeText.textContent = lat + ', ' + lng; });
+
+        document.getElementById('checkinBadge').style.display = 'block';
+        document.getElementById('checkinCoords').textContent = lat + ', ' + lng;
+        var accEl = document.getElementById('checkinAccuracy');
+        if (acc > 0) {
+            accEl.textContent = '±' + (acc < 1000 ? acc + 'm' : (acc/1000).toFixed(1) + 'km');
+            accEl.className = 'badge ' + (acc < 50 ? 'bg-success-subtle text-success' : acc < 500 ? 'bg-warning-subtle text-warning' : 'bg-danger-subtle text-danger') + '';
+            accEl.style.fontSize = '10px';
+        } else { accEl.textContent = ''; }
+        document.getElementById('checkinMapPreview').href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+        var addrInput = document.getElementById('checkinAddressInput');
+        addrInput.value = 'Đang lấy địa chỉ...';
+        addrInput.disabled = true;
+
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=vi&zoom=18')
+            .then(r => r.json())
+            .then(d => {
+                var addr = d.display_name || '';
+                addrInput.value = addr;
+                addrInput.disabled = false;
+                document.getElementById('checkinAddress').value = addr;
+                addrInput.focus();
+                addrInput.select();
+            })
+            .catch(() => { addrInput.value = ''; addrInput.disabled = false; addrInput.focus(); });
     }, function(err) {
         btn.classList.remove('text-primary');
         btn.innerHTML = '<i class="ri-map-pin-line fs-18"></i>';
         alert('Không lấy được vị trí: ' + (err.message || 'lỗi không rõ'));
-    }, { enableHighAccuracy: true, timeout: 10000 });
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 });
 
 // Auto-scroll
