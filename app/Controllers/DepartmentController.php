@@ -309,14 +309,16 @@ class DepartmentController extends Controller
 
         $userId = (int)$this->input('user_id');
         $position = trim($this->input('position') ?? '');
-        if (!$userId || !$position) {
-            $this->setFlash('error', 'Chọn nhân viên và vị trí.');
+        if (!$userId) {
+            $this->setFlash('error', 'Chọn nhân viên.');
             return $this->back();
         }
 
         try {
             $existing = Database::fetch("SELECT id FROM department_positions WHERE department_id = ? AND user_id = ?", [(int)$id, $userId]);
-            if ($existing) {
+            if (empty($position)) {
+                if ($existing) Database::query("DELETE FROM department_positions WHERE id = ?", [$existing['id']]);
+            } elseif ($existing) {
                 Database::update('department_positions', ['position' => $position], 'id = ?', [$existing['id']]);
             } else {
                 Database::query("INSERT INTO department_positions (department_id, user_id, position) VALUES (?, ?, ?)", [(int)$id, $userId, $position]);
