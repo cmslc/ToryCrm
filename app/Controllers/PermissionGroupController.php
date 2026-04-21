@@ -244,9 +244,15 @@ class PermissionGroupController extends Controller
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
         $this->authorize('settings', 'manage');
+        $tid = Database::tenantId();
 
         $userId = (int)$this->input('user_id');
         if (!$userId) return $this->json(['error' => 'User ID required'], 422);
+
+        // Verify both user and group belong to current tenant (prevent cross-tenant escalation)
+        $userOk = Database::fetch("SELECT id FROM users WHERE id = ? AND tenant_id = ?", [$userId, $tid]);
+        $groupOk = Database::fetch("SELECT id FROM permission_groups WHERE id = ? AND tenant_id = ?", [$groupId, $tid]);
+        if (!$userOk || !$groupOk) return $this->json(['error' => 'Invalid user or group'], 403);
 
         Database::query(
             "INSERT IGNORE INTO user_permission_groups (user_id, group_id) VALUES (?, ?)",

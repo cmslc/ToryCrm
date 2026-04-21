@@ -112,14 +112,27 @@ class UserController extends Controller
             return $this->back();
         }
 
+        // Role whitelist (prevent non-admin users elevating to admin)
+        $allowedRoles = $this->isSystemAdmin() ? ['staff','manager','admin'] : ['staff','manager'];
+        $role = in_array($data['role'] ?? 'staff', $allowedRoles) ? $data['role'] : 'staff';
+
+        $tid = Database::tenantId();
+        // Validate dept belongs to tenant
+        $deptId = !empty($data['department_id']) ? (int)$data['department_id'] : null;
+        if ($deptId) {
+            $ok = Database::fetch("SELECT id FROM departments WHERE id = ? AND tenant_id = ?", [$deptId, $tid]);
+            if (!$ok) $deptId = null;
+        }
+
         $userId = Database::insert('users', [
+            'tenant_id' => $tid,
             'name' => $name,
             'email' => $email,
             'password' => Auth::hashPassword($password),
             'phone' => trim($data['phone'] ?? ''),
-            'role' => $data['role'] ?? 'staff',
+            'role' => $role,
             'position_id' => !empty($data['position_id']) ? (int)$data['position_id'] : null,
-            'department_id' => !empty($data['department_id']) ? (int)$data['department_id'] : null,
+            'department_id' => $deptId,
             'department' => trim($data['department'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
         ]);
@@ -211,9 +224,17 @@ class UserController extends Controller
             'join_date' => $data['join_date'] ?? null ?: null,
             'emergency_contact' => trim($data['emergency_contact'] ?? '') ?: null,
             'emergency_phone' => trim($data['emergency_phone'] ?? '') ?: null,
-            'role' => $data['role'] ?? $user['role'],
+            'role' => (function() use ($data, $user) {
+                $allowed = $this->isSystemAdmin() ? ['staff','manager','admin'] : ['staff','manager'];
+                return in_array($data['role'] ?? '', $allowed) ? $data['role'] : $user['role'];
+            })(),
             'position_id' => !empty($data['position_id']) ? (int)$data['position_id'] : null,
-            'department_id' => !empty($data['department_id']) ? (int)$data['department_id'] : null,
+            'department_id' => (function() use ($data) {
+                $did = !empty($data['department_id']) ? (int)$data['department_id'] : null;
+                if (!$did) return null;
+                $ok = Database::fetch("SELECT id FROM departments WHERE id = ? AND tenant_id = ?", [$did, Database::tenantId()]);
+                return $ok ? $did : null;
+            })(),
             'department' => trim($data['department'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
         ];

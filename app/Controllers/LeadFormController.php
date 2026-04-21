@@ -214,6 +214,20 @@ class LeadFormController extends Controller
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 
+        // Simple rate limit: max 5 submissions per IP per minute
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        try {
+            $recent = (int)(Database::fetch(
+                "SELECT COUNT(*) as c FROM lead_form_submissions WHERE ip_address = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)",
+                [$ip]
+            )['c'] ?? 0);
+            if ($recent >= 5) {
+                http_response_code(429);
+                echo json_encode(['success' => false, 'error' => 'Quá nhiều yêu cầu. Vui lòng thử lại sau.']);
+                exit;
+            }
+        } catch (\Exception $e) {}
+
         $form = Database::fetch("SELECT * FROM lead_forms WHERE slug = ? AND is_active = 1", [$slug]);
         if (!$form) { echo json_encode(['success' => false, 'error' => 'Form not found']); exit; }
 

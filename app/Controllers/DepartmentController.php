@@ -48,12 +48,16 @@ class DepartmentController extends Controller
             return $this->back();
         }
 
+        $tid = $this->tenantId();
+        $validUser = fn($uid) => $uid && Database::fetch("SELECT id FROM users WHERE id = ? AND tenant_id = ?", [(int)$uid, $tid]) ? (int)$uid : null;
+        $validDept = fn($did) => $did && Database::fetch("SELECT id FROM departments WHERE id = ? AND tenant_id = ?", [(int)$did, $tid]) ? (int)$did : null;
+
         Database::insert('departments', [
-            'tenant_id' => $this->tenantId(),
+            'tenant_id' => $tid,
             'name' => $name,
-            'parent_id' => $this->input('parent_id') ?: null,
-            'manager_id' => $this->input('manager_id') ?: null,
-            'vice_manager_id' => $this->input('vice_manager_id') ?: null,
+            'parent_id' => $validDept($this->input('parent_id')),
+            'manager_id' => $validUser($this->input('manager_id')),
+            'vice_manager_id' => $validUser($this->input('vice_manager_id')),
             'description' => trim($this->input('description') ?? ''),
             'color' => $this->input('color') ?? '#405189',
         ]);
@@ -72,14 +76,18 @@ class DepartmentController extends Controller
             return $this->back();
         }
 
+        $tid = $this->tenantId();
+        $validUser = fn($uid) => $uid && Database::fetch("SELECT id FROM users WHERE id = ? AND tenant_id = ?", [(int)$uid, $tid]) ? (int)$uid : null;
+        $validDept = fn($did) => $did && (int)$did !== (int)$id && Database::fetch("SELECT id FROM departments WHERE id = ? AND tenant_id = ?", [(int)$did, $tid]) ? (int)$did : null;
+
         Database::update('departments', [
             'name' => $name,
-            'parent_id' => $this->input('parent_id') ?: null,
-            'manager_id' => $this->input('manager_id') ?: null,
-            'vice_manager_id' => $this->input('vice_manager_id') ?: null,
+            'parent_id' => $validDept($this->input('parent_id')),
+            'manager_id' => $validUser($this->input('manager_id')),
+            'vice_manager_id' => $validUser($this->input('vice_manager_id')),
             'description' => trim($this->input('description') ?? ''),
             'color' => $this->input('color') ?? '#405189',
-        ], 'id = ? AND tenant_id = ?', [(int)$id, $this->tenantId()]);
+        ], 'id = ? AND tenant_id = ?', [(int)$id, $tid]);
 
         $this->setFlash('success', 'Đã cập nhật phòng ban.');
         return $this->redirect('departments');

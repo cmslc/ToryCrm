@@ -9,6 +9,8 @@ class DebtController extends Controller
 {
     public function index()
     {
+        $this->authorize('debts', 'view');
+        $tid = Database::tenantId();
         $type = $this->input('type') ?: 'receivable';
         $status = $this->input('status');
         $contactId = $this->input('contact_id');
@@ -19,31 +21,16 @@ class DebtController extends Controller
         $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["d.type = ?"];
-        $params = [$type];
+        $where = ["d.type = ?", "d.tenant_id = ?"];
+        $params = [$type, $tid];
 
-        if ($status) {
-            $where[] = "d.status = ?";
-            $params[] = $status;
-        }
-        if ($contactId) {
-            $where[] = "d.contact_id = ?";
-            $params[] = $contactId;
-        }
-        if ($companyId) {
-            $where[] = "d.company_id = ?";
-            $params[] = $companyId;
-        }
-        if ($dateFrom) {
-            $where[] = "d.due_date >= ?";
-            $params[] = $dateFrom;
-        }
-        if ($dateTo) {
-            $where[] = "d.due_date <= ?";
-            $params[] = $dateTo;
-        }
+        if ($status) { $where[] = "d.status = ?"; $params[] = $status; }
+        if ($contactId) { $where[] = "d.contact_id = ?"; $params[] = $contactId; }
+        if ($companyId) { $where[] = "d.company_id = ?"; $params[] = $companyId; }
+        if ($dateFrom) { $where[] = "d.due_date >= ?"; $params[] = $dateFrom; }
+        if ($dateTo) { $where[] = "d.due_date <= ?"; $params[] = $dateTo; }
 
-        $ownerScope = $this->ownerScope('d', 'created_by', 'fund');
+        $ownerScope = $this->ownerScope('d', 'created_by', 'debts');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         $whereClause = implode(' AND ', $where);
@@ -70,23 +57,21 @@ class DebtController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        // Summary cards (same scope as list)
-        $summaryWhere = "1=1" . $this->getOwnerScopeSql('created_by', 'debts');
-        $summaryParams = [];
+        // Summary cards — tenant + owner scoped
+        $summaryScope = $this->getOwnerScopeSql('created_by', 'debts');
         $summary = Database::fetch(
             "SELECT
                 COALESCE(SUM(CASE WHEN type = 'receivable' THEN amount - paid_amount ELSE 0 END), 0) as total_receivable,
                 COALESCE(SUM(CASE WHEN type = 'payable' THEN amount - paid_amount ELSE 0 END), 0) as total_payable,
                 COALESCE(SUM(CASE WHEN status = 'overdue' THEN amount - paid_amount ELSE 0 END), 0) as total_overdue,
                 COALESCE(SUM(CASE WHEN status = 'paid' AND MONTH(updated_at) = MONTH(CURDATE()) AND YEAR(updated_at) = YEAR(CURDATE()) THEN paid_amount ELSE 0 END), 0) as collected_this_month
-             FROM debts WHERE {$summaryWhere}",
-            $summaryParams
+             FROM debts WHERE tenant_id = ?{$summaryScope}",
+            [$tid]
         );
 
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name", [$tid]);
+        $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
 
-        // Aging data
         $aging = Database::fetch(
             "SELECT
                 COALESCE(SUM(CASE WHEN due_date >= CURDATE() THEN amount - paid_amount ELSE 0 END), 0) as current_due,
@@ -94,12 +79,11 @@ class DebtController extends Controller
                 COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 31 AND 60 THEN amount - paid_amount ELSE 0 END), 0) as overdue_60,
                 COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 61 AND 90 THEN amount - paid_amount ELSE 0 END), 0) as overdue_90,
                 COALESCE(SUM(CASE WHEN DATEDIFF(CURDATE(), due_date) > 90 THEN amount - paid_amount ELSE 0 END), 0) as overdue_90plus
-             FROM debts WHERE status NOT IN ('paid','written_off') AND {$summaryWhere}",
-            $summaryParams
+             FROM debts WHERE status NOT IN ('paid','written_off') AND tenant_id = ?{$summaryScope}",
+            [$tid]
         );
 
-        // Overdue count
-        $overdueCount = Database::fetch("SELECT COUNT(*) as cnt FROM debts WHERE status NOT IN ('paid','written_off') AND due_date < CURDATE() AND {$summaryWhere}", $summaryParams)['cnt'];
+        $overdueCount = Database::fetch("SELECT COUNT(*) as cnt FROM debts WHERE status NOT IN ('paid','written_off') AND due_date < CURDATE() AND tenant_id = ?{$summaryScope}", [$tid])['cnt'];
 
         return $this->view('debts.index', [
             'debts' => [
@@ -126,6 +110,7 @@ class DebtController extends Controller
 
     public function show($id)
     {
+        $this->authorize('debts', 'view');
         $debt = Database::fetch(
             "SELECT d.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
@@ -137,12 +122,16 @@ class DebtController extends Controller
              LEFT JOIN companies comp ON d.company_id = comp.id
              LEFT JOIN orders o ON d.order_id = o.id
              LEFT JOIN users u ON d.created_by = u.id
-             WHERE d.id = ?",
-            [$id]
+             WHERE d.id = ? AND d.tenant_id = ?",
+            [$id, Database::tenantId()]
         );
 
         if (!$debt) {
             $this->setFlash('error', 'Công nợ không tồn tại.');
+            return $this->redirect('debts');
+        }
+        if (!$this->canAccessOwner((int)($debt['created_by'] ?? 0), 'debts')) {
+            $this->setFlash('error', 'Không có quyền.');
             return $this->redirect('debts');
         }
 
@@ -163,9 +152,11 @@ class DebtController extends Controller
 
     public function create()
     {
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts ORDER BY first_name");
-        $companies = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
-        $orders = Database::fetchAll("SELECT id, order_number, total FROM orders WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 200");
+        $this->authorize('debts', 'create');
+        $tid = Database::tenantId();
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name", [$tid]);
+        $companies = Database::fetchAll("SELECT id, name FROM companies WHERE tenant_id = ? ORDER BY name", [$tid]);
+        $orders = Database::fetchAll("SELECT id, order_number, total FROM orders WHERE is_deleted = 0 AND tenant_id = ? ORDER BY created_at DESC LIMIT 200", [$tid]);
 
         return $this->view('debts.create', [
             'contacts' => $contacts,
@@ -177,6 +168,8 @@ class DebtController extends Controller
     public function store()
     {
         if (!$this->isPost()) return $this->redirect('debts');
+        $this->authorize('debts', 'create');
+        $tid = Database::tenantId();
 
         $data = $this->allInput();
         $amount = (float) ($data['amount'] ?? 0);
@@ -186,9 +179,18 @@ class DebtController extends Controller
             return $this->back();
         }
 
+        // Verify FK references belong to tenant
+        foreach ([['contact_id', 'contacts'], ['company_id', 'companies'], ['order_id', 'orders']] as [$k, $tbl]) {
+            if (!empty($data[$k])) {
+                $ok = Database::fetch("SELECT id FROM {$tbl} WHERE id = ? AND tenant_id = ?", [$data[$k], $tid]);
+                if (!$ok) { $this->setFlash('error', 'Tham chiếu không hợp lệ.'); return $this->back(); }
+            }
+        }
+
         $dueDate = !empty($data['due_date']) ? $data['due_date'] : date('Y-m-d', strtotime('+30 days'));
 
         $id = Database::insert('debts', [
+            'tenant_id' => $tid,
             'type' => $data['type'] ?? 'receivable',
             'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
             'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
@@ -208,11 +210,17 @@ class DebtController extends Controller
     public function addPayment($id)
     {
         if (!$this->isPost()) return $this->redirect('debts/' . $id);
+        $this->authorize('debts', 'payment');
+        $tid = Database::tenantId();
 
-        $debt = Database::fetch("SELECT * FROM debts WHERE id = ?", [$id]);
+        $debt = Database::fetch("SELECT * FROM debts WHERE id = ? AND tenant_id = ?", [$id, $tid]);
         if (!$debt) {
             $this->setFlash('error', 'Công nợ không tồn tại.');
             return $this->redirect('debts');
+        }
+        if (!$this->canAccessOwner((int)($debt['created_by'] ?? 0), 'debts')) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('debts/' . $id);
         }
 
         $data = $this->allInput();
@@ -231,7 +239,6 @@ class DebtController extends Controller
 
         Database::beginTransaction();
         try {
-            // Insert payment record
             Database::insert('debt_payments', [
                 'debt_id' => $id,
                 'amount' => $paymentAmount,
@@ -241,19 +248,18 @@ class DebtController extends Controller
                 'created_by' => $this->userId(),
             ]);
 
-            // Update debt
             $newPaidAmount = $debt['paid_amount'] + $paymentAmount;
             $newStatus = ($newPaidAmount >= $debt['amount']) ? 'paid' : 'partial';
 
             Database::update('debts', [
                 'paid_amount' => $newPaidAmount,
                 'status' => $newStatus,
-            ], 'id = ?', [$id]);
+            ], 'id = ? AND tenant_id = ?', [$id, $tid]);
 
-            // Optionally create fund transaction
             if (!empty($data['create_fund_transaction'])) {
                 $txType = $debt['type'] === 'receivable' ? 'receipt' : 'payment';
                 Database::insert('fund_transactions', [
+                    'tenant_id' => $tid,
                     'transaction_code' => strtoupper($txType === 'receipt' ? 'PT' : 'PC') . '-' . date('ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
                     'type' => $txType,
                     'amount' => $paymentAmount,
@@ -279,7 +285,10 @@ class DebtController extends Controller
 
     public function aging()
     {
+        $this->authorize('debts', 'view');
+        $tid = Database::tenantId();
         $type = $this->input('type') ?: 'receivable';
+        $scope = $this->getOwnerScopeSql('d.created_by', 'debts');
 
         $debts = Database::fetchAll(
             "SELECT d.*,
@@ -288,12 +297,11 @@ class DebtController extends Controller
              FROM debts d
              LEFT JOIN contacts c ON d.contact_id = c.id
              LEFT JOIN companies comp ON d.company_id = comp.id
-             WHERE d.type = ? AND d.status IN ('open', 'partial', 'overdue')
+             WHERE d.type = ? AND d.status IN ('open', 'partial', 'overdue') AND d.tenant_id = ?{$scope}
              ORDER BY d.due_date ASC",
-            [$type]
+            [$type, $tid]
         );
 
-        // Group by contact/company with age buckets
         $agingData = [];
         $totals = ['0_30' => 0, '31_60' => 0, '61_90' => 0, '90_plus' => 0, 'total' => 0];
         $today = new \DateTime();
@@ -314,17 +322,11 @@ class DebtController extends Controller
             $diff = $today->diff($dueDate);
             $daysOverdue = $dueDate < $today ? $diff->days : -$diff->days;
 
-            if ($daysOverdue <= 0) {
-                $bucket = '0_30'; // Not yet due
-            } elseif ($daysOverdue <= 30) {
-                $bucket = '0_30';
-            } elseif ($daysOverdue <= 60) {
-                $bucket = '31_60';
-            } elseif ($daysOverdue <= 90) {
-                $bucket = '61_90';
-            } else {
-                $bucket = '90_plus';
-            }
+            if ($daysOverdue <= 0) $bucket = '0_30';
+            elseif ($daysOverdue <= 30) $bucket = '0_30';
+            elseif ($daysOverdue <= 60) $bucket = '31_60';
+            elseif ($daysOverdue <= 90) $bucket = '61_90';
+            else $bucket = '90_plus';
 
             $agingData[$key][$bucket] += $remaining;
             $agingData[$key]['total'] += $remaining;
@@ -341,7 +343,10 @@ class DebtController extends Controller
 
     public function byContact()
     {
+        $this->authorize('debts', 'view');
+        $tid = Database::tenantId();
         $type = $this->input('type') ?: 'receivable';
+        $scope = $this->getOwnerScopeSql('d.created_by', 'debts');
 
         $data = Database::fetchAll(
             "SELECT
@@ -355,10 +360,10 @@ class DebtController extends Controller
              FROM debts d
              LEFT JOIN contacts c ON d.contact_id = c.id
              LEFT JOIN companies comp ON d.company_id = comp.id
-             WHERE d.type = ?
+             WHERE d.type = ? AND d.tenant_id = ?{$scope}
              GROUP BY d.contact_id, d.company_id
              ORDER BY total_remaining DESC",
-            [$type]
+            [$type, $tid]
         );
 
         return $this->view('debts.by_contact', [

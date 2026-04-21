@@ -239,8 +239,12 @@ class TicketController extends Controller
         if (!$this->isPost()) return $this->redirect('tickets/' . $id);
         $this->authorize('tickets', 'edit');
 
-        $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ?", [$id]);
+        $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$ticket) return $this->redirect('tickets');
+        if (!$this->canAccessOwner((int)($ticket['assigned_to'] ?? $ticket['created_by'] ?? 0), 'tickets')) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('tickets/' . $id);
+        }
 
         $content = trim($this->input('content') ?? '');
         if (empty($content)) {
@@ -272,6 +276,9 @@ class TicketController extends Controller
         $ticket = Database::fetch("SELECT * FROM tickets WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$ticket) {
             return $this->json(['error' => 'Ticket không tồn tại'], 404);
+        }
+        if (!$this->canAccessOwner((int)($ticket['assigned_to'] ?? $ticket['created_by'] ?? 0), 'tickets')) {
+            return $this->json(['error' => 'Không có quyền'], 403);
         }
 
         $field = $this->input('field');
