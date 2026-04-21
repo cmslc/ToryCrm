@@ -6,7 +6,7 @@ Bản ghi hoàn chỉnh các luồng nghiệp vụ + cơ chế bảo mật + cơ
 
 ### Bảng chính
 - **`contacts`** — Công ty / khách hàng (có `owner_id` là sale phụ trách)
-- **`persons`** — Người cá nhân (tên, SĐT, email, avatar, `is_hidden`) — unique per tenant
+- **`persons`** — Người cá nhân (tên, SĐT, email, avatar) — unique per tenant
 - **`contact_persons`** — "Nơi làm việc" (1 person ↔ 1 công ty, có `is_active`, `start_date`, `end_date`, `is_primary`, `position`, `title`)
 
 Một `person` có thể có nhiều `contact_persons` → giải quyết **nghỉ việc chuyển công ty** và **làm song song nhiều công ty**.
@@ -76,15 +76,13 @@ Cả `start_date` và `end_date` **không bắt buộc** — chỉ điền khi c
 
 ### 4.1 Hiển thị
 - Info cá nhân (tên, SĐT, email, avatar, giới tính, sinh nhật, note)
-- Badge "Ẩn khỏi search" nếu `is_hidden = 1`
 - Lịch sử làm việc (employments) theo thời gian mới nhất trước:
   - Đang làm (xanh) — click mở công ty
   - Đã nghỉ (xám) — hiện end_date
   - Công ty không có quyền → tên hiển thị + 🔒 icon khoá, không click được
 
-### 4.2 Hành động (3 nút)
+### 4.2 Hành động (2 nút)
 - **Sửa** → `/persons/{id}/edit` — edit tên, SĐT, email, avatar, giới tính, sinh nhật, note
-- **Ẩn / Bỏ ẩn** → toggle `is_hidden`. Ẩn rồi thì dropdown search không trả person này cho sale khác (chỉ person_id trực tiếp biết được)
 - **Xoá** → chỉ cho phép nếu **không còn contact_persons** nào trỏ về. Nếu còn, báo lỗi + gợi ý gộp
 
 ---
@@ -117,8 +115,8 @@ Verify mọi person thuộc cùng tenant; không cho chọn target làm source; 
 
 ### 6.2 Quyền với Person
 - **Profile**: ai có `contacts.view` đều mở được `/persons/{id}` (toàn tenant); công ty trong timeline được lock theo quyền từng công ty
-- **Edit / delete / toggle hidden**: cần `contacts.edit` (delete cần `contacts.delete`)
-- **Search dropdown**: lọc `is_hidden = 0`, giấu tên công ty không có quyền
+- **Edit**: cần `contacts.edit`; **Delete** cần `contacts.delete`
+- **Search dropdown**: giấu tên công ty không có quyền
 - **Merge**: verify tenant cho mọi person source + target
 
 ---
@@ -144,7 +142,6 @@ Verify mọi person thuộc cùng tenant; không cho chọn target làm source; 
 | `persons/{id}/edit` | `authorize('contacts', 'edit')` + tenant check |
 | `persons/{id}/update` | `authorize('contacts', 'edit')` + tenant check |
 | `persons/{id}/delete` | `authorize('contacts', 'delete')` + không còn employment |
-| `persons/{id}/toggle-hidden` | `authorize('contacts', 'edit')` + tenant check |
 | `persons/duplicates` | `authorize('contacts', 'edit')` |
 | `persons/merge` | `authorize('contacts', 'edit')` + verify tenant của mọi person |
 | `merge-requests/store` | POST, verify tenant của existing_contact, chặn duplicate pending |
@@ -173,7 +170,7 @@ Khi owner duyệt merge_request, dùng `PersonService::findOrCreate` để tạo
 | # | Mục | Trạng thái |
 |---|---|---|
 | 1 | Form sửa person profile (`/persons/{id}/edit`) | ✅ Đã làm |
-| 2 | Toggle `is_hidden` | ✅ Đã làm |
+| 2 | Toggle `is_hidden` | ❌ Đã bỏ (không dùng đến) |
 | 3 | Xoá person (chặn nếu còn contact_persons) | ✅ Đã làm |
 | 4 | UI `start_date` / `end_date` / `is_active` trong form contact_persons | ✅ Đã làm |
 | 5 | Hiển thị `is_active` trong "Người liên hệ" card ở contacts/show | ✅ Đã làm |

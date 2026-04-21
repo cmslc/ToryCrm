@@ -109,7 +109,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('persons/{id}/edit', 'PersonController@edit');
     Router::post('persons/{id}/update', 'PersonController@update');
     Router::post('persons/{id}/delete', 'PersonController@delete');
-    Router::post('persons/{id}/toggle-hidden', 'PersonController@toggleHidden');
     Router::get('persons/{id}', 'PersonController@show');
     Router::post('contacts/store', 'ContactController@store');
     Router::get('contacts/{id}', 'ContactController@show');

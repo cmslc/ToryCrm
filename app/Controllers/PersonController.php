@@ -25,14 +25,14 @@ class PersonController extends Controller
         if ($isPhoneLike) {
             $persons = Database::fetchAll(
                 "SELECT id, full_name, phone, email, avatar FROM persons
-                 WHERE tenant_id = ? AND is_hidden = 0 AND phone LIKE ?
+                 WHERE tenant_id = ? AND phone LIKE ?
                  ORDER BY full_name LIMIT 10",
                 [$tid, $q . '%']
             );
         } else {
             $persons = Database::fetchAll(
                 "SELECT id, full_name, phone, email, avatar FROM persons
-                 WHERE tenant_id = ? AND is_hidden = 0
+                 WHERE tenant_id = ?
                    AND (full_name LIKE ? OR email LIKE ?)
                  ORDER BY full_name LIMIT 10",
                 [$tid, $like, $like]
@@ -257,20 +257,6 @@ class PersonController extends Controller
         Database::query("DELETE FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
         $this->setFlash('success', 'Đã xoá người liên hệ.');
         return $this->redirect('contacts');
-    }
-
-    public function toggleHidden($id)
-    {
-        if (!$this->isPost()) return $this->redirect('persons/' . $id);
-        $this->authorize('contacts', 'edit');
-        $tid = Database::tenantId();
-        $person = Database::fetch("SELECT is_hidden FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
-        if (!$person) return $this->redirect('contacts');
-
-        $new = ((int)($person['is_hidden'] ?? 0)) ? 0 : 1;
-        Database::update('persons', ['is_hidden' => $new], 'id = ? AND tenant_id = ?', [(int)$id, $tid]);
-        $this->setFlash('success', $new ? 'Đã ẩn khỏi search chung.' : 'Đã bỏ ẩn.');
-        return $this->redirect('persons/' . $id);
     }
 
     /**
