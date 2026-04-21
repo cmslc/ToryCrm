@@ -9,6 +9,8 @@ Router::get('privacy', 'LegalController@privacy');
 // Auth routes (guest only)
 Router::get('login', 'AuthController@loginForm', ['GuestMiddleware']);
 Router::post('login', 'AuthController@login', ['GuestMiddleware', 'CsrfMiddleware']);
+Router::get('login/2fa', 'AuthController@twoFactorForm', ['GuestMiddleware']);
+Router::post('login/2fa', 'AuthController@twoFactorVerify', ['GuestMiddleware', 'CsrfMiddleware']);
 Router::get('register', 'AuthController@registerForm', ['GuestMiddleware']);
 Router::post('register', 'AuthController@register', ['GuestMiddleware', 'CsrfMiddleware']);
 Router::get('forgot-password', 'AuthController@forgotForm', ['GuestMiddleware']);
@@ -52,6 +54,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('', 'DashboardController@index');
     Router::get('dashboard', 'DashboardController@index');
     Router::post('insights/{id}/dismiss', 'DashboardController@dismissInsight');
+
+    // 2FA management
+    Router::get('settings/2fa', 'TwoFactorController@setup');
+    Router::post('settings/2fa/enable', 'TwoFactorController@enable');
+    Router::post('settings/2fa/disable', 'TwoFactorController@disable');
+    Router::post('settings/2fa/regenerate-backup', 'TwoFactorController@regenerateBackup');
 
     // AI Chat
     Router::get('ai-chat', 'AiChatController@index');
