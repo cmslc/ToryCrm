@@ -78,11 +78,22 @@ try {
                 try {
                     $ownerDept = \Core\Database::fetch("SELECT department_id FROM users WHERE id = ?", [$rpOwnerId]);
                     if ($ownerDept && $ownerDept['department_id']) {
+                        // Tìm tất cả phòng cha (lên hierarchy)
+                        $deptChain = [];
+                        $currentDeptId = $ownerDept['department_id'];
+                        $maxDepth = 10;
+                        while ($currentDeptId && $maxDepth-- > 0) {
+                            $deptChain[] = (int)$currentDeptId;
+                            $parentDept = \Core\Database::fetch("SELECT parent_id FROM departments WHERE id = ?", [$currentDeptId]);
+                            $parentId = $parentDept['parent_id'] ?? null;
+                            if (!$parentId || $parentId == $currentDeptId || in_array((int)$parentId, $deptChain)) break;
+                            $currentDeptId = $parentId;
+                        }
+                        $deptPlaceholders = implode(',', $deptChain);
                         $deptManagers = \Core\Database::fetchAll(
-                            "SELECT u.id, u.name, u.avatar, CASE WHEN d.manager_id = u.id THEN 'Trưởng phòng' ELSE 'Phó phòng' END as role_label
+                            "SELECT DISTINCT u.id, u.name, u.avatar, CASE WHEN d.manager_id = u.id THEN 'Trưởng phòng' ELSE 'Phó phòng' END as role_label
                              FROM departments d JOIN users u ON (u.id = d.manager_id OR u.id = d.vice_manager_id)
-                             WHERE d.id = ? AND u.is_active = 1 AND u.id NOT IN ({$rpPlaceholders})",
-                            [$ownerDept['department_id']]
+                             WHERE d.id IN ({$deptPlaceholders}) AND u.is_active = 1 AND u.id NOT IN ({$rpPlaceholders})"
                         );
                         foreach ($deptManagers as $dm):
                             $rpShownIds[] = $dm['id'];
