@@ -15,6 +15,7 @@ class ReportController extends Controller
 
     public function customers()
     {
+        $this->authorize('reports', 'view');
         $tid = Database::tenantId();
         $dateFrom = $this->input('date_from');
         $dateTo = $this->input('date_to');
@@ -148,6 +149,7 @@ class ReportController extends Controller
 
     public function revenue()
     {
+        $this->authorize('reports', 'view');
         $tid = Database::tenantId();
         $year = (int)($this->input('year') ?: date('Y'));
 

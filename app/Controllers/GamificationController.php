@@ -9,8 +9,11 @@ class GamificationController extends Controller
 {
     public function leaderboard()
     {
+        $this->authorize('reports', 'view');
         $tid = $this->tenantId();
         $period = $this->input('period', date('Y-m'));
+        // Validate period format to prevent malformed date strings
+        if (!preg_match('/^\d{4}-\d{2}$/', $period)) $period = date('Y-m');
 
         // Get or generate leaderboard data
         $this->generateLeaderboard($tid, $period);
