@@ -31,6 +31,9 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
             <input type="hidden" name="<?= $_fieldName ?>" value="<?= $_entityId ?>">
             <input type="hidden" name="type" value="note" id="activityType">
             <input type="hidden" name="tagged_users" id="taggedUsers" value="">
+            <input type="hidden" name="latitude" id="checkinLat" value="">
+            <input type="hidden" name="longitude" id="checkinLng" value="">
+            <input type="hidden" name="address" id="checkinAddress" value="">
 
             <div class="border rounded mb-3">
                 <textarea name="title" class="form-control border-0" rows="4" placeholder="Nhập nội dung trao đổi, ghi chú..." required id="activityTextarea" style="resize:none"></textarea>
@@ -46,10 +49,17 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                         <span class="text-muted" style="cursor:pointer" title="Emoji" onclick="var ta=document.getElementById('activityTextarea');ta.value+=' 😊';ta.focus();">
                             <i class="ri-emotion-happy-line fs-18"></i>
                         </span>
+                        <span class="text-muted" style="cursor:pointer" title="Check-in vị trí" id="checkinBtn">
+                            <i class="ri-map-pin-line fs-18"></i>
+                        </span>
                     </div>
                     <button type="submit" class="btn btn-primary px-4">Gửi</button>
                 </div>
                 <div id="attachBadge" style="display:none" class="px-3 py-2 border-top bg-light"></div>
+                <div id="checkinBadge" style="display:none" class="px-3 py-2 border-top bg-success-subtle text-success fs-13">
+                    <i class="ri-map-pin-fill me-1"></i><span id="checkinBadgeText"></span>
+                    <i class="ri-close-line ms-2" style="cursor:pointer" onclick="clearCheckin()"></i>
+                </div>
             </div>
         </form>
 
@@ -81,6 +91,11 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                         <div style="white-space:pre-wrap;word-break:break-word"><?= $content ?></div>
                         <?php if (!empty($act['description'])): ?>
                         <div class="text-muted mt-1" style="font-size:13px;white-space:pre-wrap"><?= e($act['description']) ?></div>
+                        <?php endif; ?>
+                        <?php if (!empty($act['latitude']) && !empty($act['longitude'])): ?>
+                        <a href="https://www.google.com/maps?q=<?= $act['latitude'] ?>,<?= $act['longitude'] ?>" target="_blank" class="d-inline-flex align-items-center gap-1 mt-2 px-2 py-1 bg-success-subtle text-success rounded text-decoration-none" style="font-size:12px">
+                            <i class="ri-map-pin-fill"></i><?= e($act['address'] ?? ($act['latitude'] . ', ' . $act['longitude'])) ?>
+                        </a>
                         <?php endif; ?>
                         <?php if (!empty($act['attachment'])):
                             $attPaths = explode('|', $act['attachment']);
@@ -313,6 +328,46 @@ document.getElementById('activityTextarea')?.addEventListener('keydown', functio
         e.preventDefault();
         this.closest('form').submit();
     }
+});
+
+// Check-in: capture GPS + reverse geocode
+window.clearCheckin = function() {
+    document.getElementById('checkinLat').value = '';
+    document.getElementById('checkinLng').value = '';
+    document.getElementById('checkinAddress').value = '';
+    document.getElementById('checkinBadge').style.display = 'none';
+};
+
+document.getElementById('checkinBtn')?.addEventListener('click', function() {
+    if (!navigator.geolocation) { alert('Trình duyệt không hỗ trợ định vị GPS.'); return; }
+    var btn = this;
+    btn.classList.add('text-primary');
+    btn.innerHTML = '<i class="ri-loader-4-line ri-spin fs-18"></i>';
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        var lat = pos.coords.latitude.toFixed(7);
+        var lng = pos.coords.longitude.toFixed(7);
+        document.getElementById('checkinLat').value = lat;
+        document.getElementById('checkinLng').value = lng;
+        btn.innerHTML = '<i class="ri-map-pin-fill fs-18"></i>';
+        var badge = document.getElementById('checkinBadge');
+        var badgeText = document.getElementById('checkinBadgeText');
+        badge.style.display = 'block';
+        badgeText.textContent = lat + ', ' + lng + ' — đang lấy địa chỉ...';
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=vi', {
+            headers: { 'User-Agent': 'ToryCRM' }
+        })
+        .then(r => r.json())
+        .then(d => {
+            var addr = d.display_name || (lat + ', ' + lng);
+            document.getElementById('checkinAddress').value = addr;
+            badgeText.textContent = addr;
+        })
+        .catch(() => { badgeText.textContent = lat + ', ' + lng; });
+    }, function(err) {
+        btn.classList.remove('text-primary');
+        btn.innerHTML = '<i class="ri-map-pin-line fs-18"></i>';
+        alert('Không lấy được vị trí: ' + (err.message || 'lỗi không rõ'));
+    }, { enableHighAccuracy: true, timeout: 10000 });
 });
 
 // Auto-scroll

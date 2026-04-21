@@ -1,0 +1,4 @@
+ALTER TABLE activities
+  ADD COLUMN latitude DECIMAL(10,7) NULL,
+  ADD COLUMN longitude DECIMAL(10,7) NULL,
+  ADD COLUMN address VARCHAR(500) NULL;

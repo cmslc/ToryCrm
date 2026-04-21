@@ -201,6 +201,9 @@ class ActivityController extends Controller
             'contract_id' => $data['contract_id'] ?? null,
             'purchase_order_id' => $data['purchase_order_id'] ?? null,
             'scheduled_at' => $data['scheduled_at'] ?? null,
+            'latitude' => !empty($data['latitude']) ? $data['latitude'] : null,
+            'longitude' => !empty($data['longitude']) ? $data['longitude'] : null,
+            'address' => !empty($data['address']) ? trim($data['address']) : null,
         ]);
 
         // Update last_activity_at on contact
