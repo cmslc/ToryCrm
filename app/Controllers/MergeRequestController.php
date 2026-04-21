@@ -12,6 +12,7 @@ class MergeRequestController extends Controller
      */
     public function pending()
     {
+        $this->authorize('contacts', 'edit');
         $uid = $this->userId();
         $tid = Database::tenantId();
 
@@ -64,8 +65,11 @@ class MergeRequestController extends Controller
             return $this->json(['error' => 'Thiếu thông tin'], 422);
         }
 
-        // Check existing contact exists
-        $contact = Database::fetch("SELECT id, owner_id, company_name FROM contacts WHERE id = ? AND is_deleted = 0", [$existingContactId]);
+        // Check existing contact exists (and belongs to current tenant)
+        $contact = Database::fetch(
+            "SELECT id, owner_id, company_name FROM contacts WHERE id = ? AND tenant_id = ? AND is_deleted = 0",
+            [$existingContactId, Database::tenantId()]
+        );
         if (!$contact) return $this->json(['error' => 'KH không tồn tại'], 404);
 
         // Check if phone already exists in contact_persons of this contact

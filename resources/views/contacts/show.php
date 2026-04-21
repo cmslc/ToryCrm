@@ -161,15 +161,20 @@
                                 <div class="avatar-xs flex-shrink-0">
                                     <span class="avatar-title bg-primary-subtle text-primary rounded-circle"><?= strtoupper(mb_substr($cp['full_name'], 0, 1)) ?></span>
                                 </div>
-                                <div class="flex-grow-1">
+                                <div class="flex-grow-1 <?= ($cp['is_active'] ?? 1) ? '' : 'opacity-50' ?>">
                                     <div class="fw-medium">
                                         <?= e(($cp['title'] ?? '') ? ucfirst($cp['title']) . ' ' : '') ?>
                                         <?php if (!empty($cp['person_id'])): ?>
-                                            <a href="<?= url('persons/' . $cp['person_id']) ?>"><?= e($cp['full_name']) ?></a>
+                                            <a href="<?= url('persons/' . $cp['person_id']) ?>" class="<?= ($cp['is_active'] ?? 1) ? '' : 'text-muted text-decoration-line-through' ?>"><?= e($cp['full_name']) ?></a>
                                         <?php else: ?>
                                             <?= e($cp['full_name']) ?>
                                         <?php endif; ?>
                                         <?php if ($cp['is_primary']): ?><span class="badge bg-success-subtle text-success ms-1">Chính</span><?php endif; ?>
+                                        <?php if (!($cp['is_active'] ?? 1)): ?>
+                                            <span class="badge bg-secondary-subtle text-secondary ms-1">Đã nghỉ<?= !empty($cp['end_date']) ? ' ' . format_date($cp['end_date']) : '' ?></span>
+                                        <?php elseif (!empty($cp['start_date'])): ?>
+                                            <span class="text-muted fs-12 ms-1">từ <?= format_date($cp['start_date']) ?></span>
+                                        <?php endif; ?>
                                     </div>
                                     <?php if ($cp['position'] ?? ''): ?><div class="text-muted fs-12"><?= e($cp['position']) ?></div><?php endif; ?>
                                     <div class="d-flex gap-3 mt-1 fs-12">

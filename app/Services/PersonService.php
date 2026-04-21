@@ -23,7 +23,41 @@ class PersonService
         $email = $email !== null ? trim($email) : null;
         $fullName = trim($fullName);
 
-        // Lookup by phone (VN: strongest unique signal for a person)
+        // First cheap lookup without lock
+        $found = self::lookup($tenantId, $phone, $email);
+        if ($found) return $found;
+
+        // Race-safe creation: wrap in transaction, re-check under lock, then insert
+        Database::beginTransaction();
+        try {
+            $found = self::lookup($tenantId, $phone, $email);
+            if ($found) {
+                Database::commit();
+                return $found;
+            }
+            $id = (int) Database::insert('persons', [
+                'tenant_id' => $tenantId,
+                'full_name' => $fullName !== '' ? $fullName : '(Chưa có tên)',
+                'phone' => $phone ?: null,
+                'email' => $email ?: null,
+                'gender' => $extra['gender'] ?? null,
+                'date_of_birth' => $extra['date_of_birth'] ?? null,
+                'note' => $extra['note'] ?? null,
+                'avatar' => $extra['avatar'] ?? null,
+            ]);
+            Database::commit();
+            return $id;
+        } catch (\Exception $e) {
+            Database::rollback();
+            // Một lần nữa thử đọc — có thể process khác vừa insert xong
+            $found = self::lookup($tenantId, $phone, $email);
+            if ($found) return $found;
+            throw $e;
+        }
+    }
+
+    private static function lookup(int $tenantId, ?string $phone, ?string $email): ?int
+    {
         if ($phone !== null && $phone !== '') {
             $row = Database::fetch(
                 "SELECT id FROM persons WHERE tenant_id = ? AND phone = ? LIMIT 1",
@@ -31,8 +65,6 @@ class PersonService
             );
             if ($row) return (int)$row['id'];
         }
-
-        // Then by email
         if ($email !== null && $email !== '') {
             $row = Database::fetch(
                 "SELECT id FROM persons WHERE tenant_id = ? AND email = ? LIMIT 1",
@@ -40,17 +72,6 @@ class PersonService
             );
             if ($row) return (int)$row['id'];
         }
-
-        // Create new
-        return (int) Database::insert('persons', [
-            'tenant_id' => $tenantId,
-            'full_name' => $fullName !== '' ? $fullName : '(Chưa có tên)',
-            'phone' => $phone ?: null,
-            'email' => $email ?: null,
-            'gender' => $extra['gender'] ?? null,
-            'date_of_birth' => $extra['date_of_birth'] ?? null,
-            'note' => $extra['note'] ?? null,
-            'avatar' => $extra['avatar'] ?? null,
-        ]);
+        return null;
     }
 }
