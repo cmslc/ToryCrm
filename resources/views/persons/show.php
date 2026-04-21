@@ -25,6 +25,17 @@ $pageTitle = $person['full_name'];
                 <?php if ($person['is_hidden']): ?>
                 <span class="badge bg-warning-subtle text-warning"><i class="ri-eye-off-line me-1"></i>Ẩn khỏi search</span>
                 <?php endif; ?>
+                <div class="mt-3 d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="<?= url('persons/' . $person['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
+                    <form method="POST" action="<?= url('persons/' . $person['id'] . '/toggle-hidden') ?>" class="d-inline" data-confirm="<?= $person['is_hidden'] ? 'Hiện lại trong search chung?' : 'Ẩn khỏi search chung (VIP)?' ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-soft-warning"><i class="ri-<?= $person['is_hidden'] ? 'eye-line' : 'eye-off-line' ?> me-1"></i><?= $person['is_hidden'] ? 'Bỏ ẩn' : 'Ẩn' ?></button>
+                    </form>
+                    <form method="POST" action="<?= url('persons/' . $person['id'] . '/delete') ?>" class="d-inline" data-confirm="Xoá vĩnh viễn người này? (Phải xoá hết contact_persons trước)">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i>Xoá</button>
+                    </form>
+                </div>
             </div>
             <div class="card-body border-top">
                 <?php if ($person['phone']): ?>

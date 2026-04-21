@@ -179,6 +179,21 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('contacts'));
                                     <label class="form-label">Sinh nhật</label>
                                     <input type="date" class="form-control" name="cp_dob[]">
                                 </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <label class="form-label">Ngày vào</label>
+                                        <input type="date" class="form-control" name="cp_start_date[]">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Ngày nghỉ</label>
+                                        <input type="date" class="form-control" name="cp_end_date[]">
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input type="hidden" name="cp_active[0]" value="0">
+                                    <input class="form-check-input" type="checkbox" name="cp_active[0]" value="1" id="cpActiveNew0" checked>
+                                    <label class="form-check-label" for="cpActiveNew0">Đang làm việc tại đây</label>
+                                </div>
                                 <div class="mb-0">
                                     <label class="form-label">Ghi chú</label>
                                     <textarea name="cp_note[]" class="form-control" rows="2"></textarea>

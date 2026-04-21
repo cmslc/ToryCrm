@@ -257,6 +257,9 @@ class ContactController extends Controller
         $notes = $data['cp_note'] ?? [];
         $primaries = $data['cp_primary'] ?? [];
         $personIds = $data['cp_person_id'] ?? [];
+        $startDates = $data['cp_start_date'] ?? [];
+        $endDates = $data['cp_end_date'] ?? [];
+        $activeMap = $data['cp_active'] ?? []; // keyed by $idx
         $tid = Database::tenantId();
 
         foreach ($names as $i => $name) {
@@ -283,6 +286,7 @@ class ContactController extends Controller
                 ]);
             }
 
+            $isActive = array_key_exists($i, $activeMap) ? (int)$activeMap[$i] : 1;
             Database::insert('contact_persons', [
                 'tenant_id' => $tid,
                 'contact_id' => $contactId,
@@ -296,7 +300,9 @@ class ContactController extends Controller
                 'date_of_birth' => $dob,
                 'note' => $note,
                 'is_primary' => in_array($i, $primaries) ? 1 : 0,
-                'is_active' => 1,
+                'is_active' => $isActive,
+                'start_date' => !empty($startDates[$i]) ? $startDates[$i] : null,
+                'end_date' => !empty($endDates[$i]) ? $endDates[$i] : null,
                 'sort_order' => $i,
             ]);
         }

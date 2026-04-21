@@ -192,6 +192,87 @@ class PersonController extends Controller
         return $this->redirect('persons/duplicates');
     }
 
+    public function edit($id)
+    {
+        $this->authorize('contacts', 'edit');
+        $person = Database::fetch("SELECT * FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        if (!$person) {
+            $this->setFlash('error', 'Không tìm thấy người liên hệ.');
+            return $this->redirect('contacts');
+        }
+        return $this->view('persons.edit', ['person' => $person]);
+    }
+
+    public function update($id)
+    {
+        if (!$this->isPost()) return $this->redirect('persons/' . $id);
+        $this->authorize('contacts', 'edit');
+        $tid = Database::tenantId();
+        $person = Database::fetch("SELECT id FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$person) {
+            $this->setFlash('error', 'Không tìm thấy.');
+            return $this->redirect('contacts');
+        }
+
+        $fullName = trim($this->input('full_name') ?? '');
+        if ($fullName === '') {
+            $this->setFlash('error', 'Họ tên không được để trống.');
+            return $this->back();
+        }
+
+        $avatarPath = $person['avatar'] ?? null;
+        if (!empty($_FILES['avatar']['tmp_name'])) {
+            $uploaded = upload_avatar('avatar', 'avatars', $avatarPath);
+            if ($uploaded) $avatarPath = 'uploads/avatars/' . $uploaded;
+        }
+
+        Database::update('persons', [
+            'full_name' => $fullName,
+            'phone' => trim($this->input('phone') ?? '') ?: null,
+            'email' => trim($this->input('email') ?? '') ?: null,
+            'gender' => $this->input('gender') ?: null,
+            'date_of_birth' => $this->input('date_of_birth') ?: null,
+            'note' => trim($this->input('note') ?? '') ?: null,
+            'avatar' => $avatarPath,
+        ], 'id = ? AND tenant_id = ?', [(int)$id, $tid]);
+
+        $this->setFlash('success', 'Đã cập nhật thông tin.');
+        return $this->redirect('persons/' . $id);
+    }
+
+    public function delete($id)
+    {
+        if (!$this->isPost()) return $this->redirect('persons/' . $id);
+        $this->authorize('contacts', 'delete');
+        $tid = Database::tenantId();
+        $person = Database::fetch("SELECT id FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$person) return $this->redirect('contacts');
+
+        $cnt = Database::fetch("SELECT COUNT(*) as c FROM contact_persons WHERE person_id = ?", [(int)$id]);
+        if (((int)($cnt['c'] ?? 0)) > 0) {
+            $this->setFlash('error', 'Không thể xoá: còn ' . $cnt['c'] . ' nơi làm việc. Hãy xoá/chuyển các entry contact_persons trước, hoặc gộp sang person khác.');
+            return $this->redirect('persons/' . $id);
+        }
+
+        Database::query("DELETE FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        $this->setFlash('success', 'Đã xoá người liên hệ.');
+        return $this->redirect('contacts');
+    }
+
+    public function toggleHidden($id)
+    {
+        if (!$this->isPost()) return $this->redirect('persons/' . $id);
+        $this->authorize('contacts', 'edit');
+        $tid = Database::tenantId();
+        $person = Database::fetch("SELECT is_hidden FROM persons WHERE id = ? AND tenant_id = ?", [(int)$id, $tid]);
+        if (!$person) return $this->redirect('contacts');
+
+        $new = ((int)($person['is_hidden'] ?? 0)) ? 0 : 1;
+        Database::update('persons', ['is_hidden' => $new], 'id = ? AND tenant_id = ?', [(int)$id, $tid]);
+        $this->setFlash('success', $new ? 'Đã ẩn khỏi search chung.' : 'Đã bỏ ẩn.');
+        return $this->redirect('persons/' . $id);
+    }
+
     /**
      * Person profile — show info + full employment history + linked deals/quotations/orders.
      */
