@@ -94,7 +94,7 @@ class ContactController extends Controller
         );
 
         $todayCount = Database::fetch(
-            "SELECT COUNT(*) as count FROM contacts WHERE is_deleted = 0 AND tenant_id = ? AND DATE(created_at) = CURDATE()",
+            "SELECT COUNT(*) as count FROM contacts WHERE is_deleted = 0 AND tenant_id = ? AND DATE(created_at) = CURDATE()" . $this->getOwnerScopeSql('owner_id', 'contacts'),
             [Database::tenantId()]
         )['count'];
 
@@ -662,6 +662,11 @@ class ContactController extends Controller
 
     public function persons($id)
     {
+        $this->authorize('contacts', 'view');
+        $contact = Database::fetch("SELECT owner_id FROM contacts WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        if (!$contact || !$this->canAccessEntity('contact', (int)$id, (int)($contact['owner_id'] ?? 0))) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
         $persons = Database::fetchAll(
             "SELECT id, title, full_name, phone, email, position FROM contact_persons WHERE contact_id = ? ORDER BY is_primary DESC, sort_order, id",
             [(int)$id]
@@ -673,6 +678,11 @@ class ContactController extends Controller
     {
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
         $this->authorize('contacts', 'edit');
+
+        $contact = Database::fetch("SELECT owner_id FROM contacts WHERE id = ? AND tenant_id = ?", [(int)$id, Database::tenantId()]);
+        if (!$contact || !$this->canAccessEntity('contact', (int)$id, (int)($contact['owner_id'] ?? 0))) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $userId = (int) $this->input('user_id');
         $action = $this->input('action');
@@ -767,6 +777,9 @@ class ContactController extends Controller
         if (!$contact) {
             return $this->json(['error' => 'Khách hàng không tồn tại'], 404);
         }
+        if (!$this->canAccessEntity('contact', (int)$id, (int)($contact['owner_id'] ?? 0))) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $field = $this->input('field');
         $value = $this->input('value');
@@ -816,6 +829,22 @@ class ContactController extends Controller
         $ids = array_map('intval', $ids);
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $tenantId = Database::tenantId();
+
+        // Chỉ giữ IDs mà user có quyền truy cập
+        $accessibleIds = [];
+        $ownerRows = Database::fetchAll(
+            "SELECT id, owner_id FROM contacts WHERE id IN ({$placeholders}) AND tenant_id = ?",
+            array_merge($ids, [$tenantId])
+        );
+        foreach ($ownerRows as $row) {
+            if ($this->canAccessEntity('contact', (int)$row['id'], (int)($row['owner_id'] ?? 0))) {
+                $accessibleIds[] = (int)$row['id'];
+            }
+        }
+        if (empty($accessibleIds)) {
+            return $this->json(['error' => 'Không có quyền thực hiện trên các khách hàng đã chọn'], 403);
+        }
+        $ids = $accessibleIds;
 
         $count = 0;
 
@@ -887,6 +916,10 @@ class ContactController extends Controller
         if (!$contact) {
             $this->setFlash('error', 'Khách hàng không tồn tại.');
             return $this->redirect('contacts');
+        }
+        if (!$this->canAccessEntity('contact', (int)$id, (int)($contact['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền đổi người phụ trách khách hàng này.');
+            return $this->redirect('contacts/' . $id);
         }
 
         $newOwnerId = $this->input('owner_id');

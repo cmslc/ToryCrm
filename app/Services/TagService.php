@@ -60,10 +60,22 @@ class TagService
             );
         }
 
-        // Insert new taggables and increment use_count
-        foreach ($tagIds as $tagId) {
+        // Filter to only tags belonging to current tenant (prevent cross-tenant injection)
+        $tenantId = Database::tenantId();
+        $validIds = [];
+        $intIds = array_filter(array_map('intval', $tagIds), fn($id) => $id > 0);
+        if (!empty($intIds)) {
+            $ph = implode(',', array_fill(0, count($intIds), '?'));
+            $rows = Database::fetchAll(
+                "SELECT id FROM tags WHERE id IN ({$ph}) AND tenant_id = ?",
+                array_merge($intIds, [$tenantId])
+            );
+            $validIds = array_column($rows, 'id');
+        }
+
+        // Insert new taggables and increment use_count (chỉ với tag hợp lệ)
+        foreach ($validIds as $tagId) {
             $tagId = (int) $tagId;
-            if ($tagId <= 0) continue;
 
             Database::insert('taggables', [
                 'tag_id' => $tagId,
@@ -72,8 +84,8 @@ class TagService
             ]);
 
             Database::query(
-                "UPDATE tags SET use_count = use_count + 1 WHERE id = ?",
-                [$tagId]
+                "UPDATE tags SET use_count = use_count + 1 WHERE id = ? AND tenant_id = ?",
+                [$tagId, $tenantId]
             );
         }
     }
