@@ -112,8 +112,14 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <?php endif; ?>
                             <?php if (canSee('orders')): ?>
                             <li class="nav-item"><a href="<?= url('orders') ?>" class="nav-link <?= isActive('orders', $currentUrl) ?>">Đơn hàng bán</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('purchase_orders')): ?>
                             <li class="nav-item"><a href="<?= url('purchase-orders') ?>" class="nav-link <?= isActive('purchase-orders', $currentUrl) ?>">Đơn hàng mua</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('quotations')): ?>
                             <li class="nav-item"><a href="<?= url('quotations') ?>" class="nav-link <?= isActive('quotations', $currentUrl) ?>">Báo giá</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('contracts')): ?>
                             <li class="nav-item"><a href="<?= url('contracts') ?>" class="nav-link <?= isActive('contracts', $currentUrl) ?>">Hợp đồng</a></li>
                             <?php endif; ?>
                             <?php if (plugin_active('warehouse')): ?><li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho</a></li><?php endif; ?>
