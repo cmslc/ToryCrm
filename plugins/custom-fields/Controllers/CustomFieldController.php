@@ -27,7 +27,7 @@ class CustomFieldController extends Controller
             $fieldsByModule[$key] = CustomFieldService::getFields($key, $tenantId);
         }
 
-        return $this->view('custom-fields.index', [
+        return $this->view('plugin:custom-fields.index', [
             'modules' => $this->modules,
             'fieldsByModule' => $fieldsByModule,
             'activeModule' => $activeModule,
@@ -36,7 +36,7 @@ class CustomFieldController extends Controller
 
     public function create()
     {
-        return $this->view('custom-fields.create', [
+        return $this->view('plugin:custom-fields.create', [
             'modules' => $this->modules,
             'module' => $this->input('module', 'contacts'),
         ]);
@@ -108,7 +108,7 @@ class CustomFieldController extends Controller
             return $this->redirect('custom-fields');
         }
 
-        return $this->view('custom-fields.create', [
+        return $this->view('plugin:custom-fields.create', [
             'modules' => $this->modules,
             'module' => $field['module'],
             'field' => $field,

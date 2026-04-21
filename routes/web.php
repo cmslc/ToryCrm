@@ -18,7 +18,7 @@ Router::post('forgot-password', 'AuthController@forgot', ['GuestMiddleware']);
 Router::get('logout', 'AuthController@logout');
 
 // Public webhook routes (no auth)
-Router::post('webhooks/zalo', 'ZaloController@webhook');
+// Zalo webhook → plugins/zalo-mini-app/routes.php
 Router::post('webhooks/voip', 'VoipController@callEvent');
 
 // Payment gateway callbacks (public - no auth)
@@ -478,9 +478,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Integrations
     Router::get('integrations', 'IntegrationController@index');
-    Router::get('integrations/zalo', 'ZaloController@settings');
-    Router::post('integrations/zalo', 'ZaloController@saveSettings');
-    Router::post('integrations/zalo/send', 'ZaloController@send');
+    // Zalo → plugins/zalo-mini-app/routes.php
     Router::get('integrations/voip', 'VoipController@settings');
     Router::post('integrations/voip', 'VoipController@saveSettings');
     Router::post('integrations/voip/call', 'VoipController@makeCall');
@@ -505,13 +503,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('payments/{invoiceId}/momo', 'PaymentController@processMoMo');
 
     // Custom Fields
-    Router::get('custom-fields', 'CustomFieldController@index');
-    Router::get('custom-fields/create', 'CustomFieldController@create');
-    Router::post('custom-fields/store', 'CustomFieldController@store');
-    Router::get('custom-fields/{id}/edit', 'CustomFieldController@edit');
-    Router::post('custom-fields/{id}/update', 'CustomFieldController@update');
-    Router::post('custom-fields/{id}/delete', 'CustomFieldController@delete');
-    Router::post('custom-fields/reorder', 'CustomFieldController@reorder');
+    // Custom Fields → plugins/custom-fields/routes.php
 
     // Approvals
     Router::get('approvals', 'ApprovalController@index');

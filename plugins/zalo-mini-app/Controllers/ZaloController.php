@@ -96,7 +96,7 @@ class ZaloController extends Controller
         $webhookUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
             . '://' . ($_SERVER['HTTP_HOST'] ?? 'your-domain.com') . '/webhooks/zalo';
 
-        return $this->view('integrations.zalo', [
+        return $this->view('plugin:zalo-mini-app.settings', [
             'integration' => $integration,
             'config' => $config,
             'messages' => $messages,
