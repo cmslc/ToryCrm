@@ -45,6 +45,8 @@ class DashboardController extends Controller
             $insights = Database::fetchAll(
                 "SELECT * FROM smart_insights
                  WHERE tenant_id = ? AND user_id = ? AND is_dismissed = 0
+                   AND (expires_at IS NULL OR expires_at >= NOW())
+                   AND DATE(created_at) = CURDATE()
                  ORDER BY priority DESC, created_at DESC
                  LIMIT 3",
                 [$tid, $uid]
