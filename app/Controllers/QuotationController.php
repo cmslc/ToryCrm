@@ -44,7 +44,7 @@ class QuotationController extends Controller
                 SUM(status = 'converted') as has_order,
                 SUM(status NOT IN ('draft','pending','approved','converted','rejected') OR status IS NULL) as no_order,
                 SUM(status = 'rejected' OR status = 'expired') as deleted
-             FROM quotations WHERE tenant_id = ?" . $this->getOwnerScopeSql('owner_id'),
+             FROM quotations WHERE tenant_id = ?" . $this->getOwnerScopeSql('owner_id', 'quotations'),
             [$tid]
         );
 

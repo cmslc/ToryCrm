@@ -16,8 +16,8 @@ class DashboardController extends Controller
         $uid = $this->userId();
         $isAdmin = $this->isSystemAdmin();
 
-        // Build owner filter based on department hierarchy
-        $ownerWhere = $this->getOwnerScopeSql('owner_id');
+        // Build owner filter based on department hierarchy (dashboard scope ~ contacts module)
+        $ownerWhere = $this->getOwnerScopeSql('owner_id', 'contacts');
         $ownerParams = [];
 
         // Generate insights if none exist today

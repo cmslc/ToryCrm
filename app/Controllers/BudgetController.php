@@ -75,7 +75,7 @@ class BudgetController extends Controller
             "SELECT
                 COALESCE(SUM(total_budget), 0) as total_planned,
                 COALESCE(SUM((SELECT COALESCE(SUM(actual_amount), 0) FROM budget_items WHERE budget_id = b.id)), 0) as total_spent
-             FROM budgets b WHERE b.tenant_id = ?" . $this->getOwnerScopeSql('b.created_by'),
+             FROM budgets b WHERE b.tenant_id = ?" . $this->getOwnerScopeSql('b.created_by', 'budgets'),
             [$tid]
         );
         $summary['remaining'] = (float)$summary['total_planned'] - (float)$summary['total_spent'];

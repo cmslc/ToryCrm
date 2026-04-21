@@ -71,7 +71,7 @@ class DebtController extends Controller
         $totalPages = ceil($total / $perPage);
 
         // Summary cards (same scope as list)
-        $summaryWhere = "1=1" . $this->getOwnerScopeSql('created_by');
+        $summaryWhere = "1=1" . $this->getOwnerScopeSql('created_by', 'debts');
         $summaryParams = [];
         $summary = Database::fetch(
             "SELECT
