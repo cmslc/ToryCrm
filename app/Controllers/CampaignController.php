@@ -60,6 +60,7 @@ class CampaignController extends Controller
         $code = $campaignModel->generateCode();
 
         $id = Database::insert('campaigns', [
+            'tenant_id' => Database::tenantId(),
             'campaign_code' => $code,
             'name' => $name,
             'type' => $data['type'] ?? 'email',
@@ -90,8 +91,8 @@ class CampaignController extends Controller
              FROM campaigns c
              LEFT JOIN users u ON c.owner_id = u.id
              LEFT JOIN users uc ON c.created_by = uc.id
-             WHERE c.id = ?",
-            [$id]
+             WHERE c.id = ? AND c.tenant_id = ?",
+            [$id, Database::tenantId()]
         );
 
         if (!$campaign) {
@@ -119,7 +120,7 @@ class CampaignController extends Controller
     public function edit($id)
     {
         $this->authorize('campaigns', 'edit');
-        $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
+        $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');
             return $this->redirect('campaigns');
@@ -144,7 +145,7 @@ class CampaignController extends Controller
         if (!$this->isPost()) return $this->redirect('campaigns/' . $id);
         $this->authorize('campaigns', 'edit');
 
-        $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
+        $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');
             return $this->redirect('campaigns');
@@ -184,12 +185,24 @@ class CampaignController extends Controller
     {
         if (!$this->isPost()) return $this->redirect('campaigns/' . $id);
         $this->authorize('campaigns', 'edit');
+        $tid = Database::tenantId();
+
+        // Verify campaign belongs to tenant + user can access
+        $campaign = Database::fetch("SELECT owner_id FROM campaigns WHERE id = ? AND tenant_id = ?", [$id, $tid]);
+        if (!$campaign) { $this->setFlash('error', 'Chiến dịch không tồn tại.'); return $this->redirect('campaigns'); }
+        if (!$this->canAccessOwner((int)($campaign['owner_id'] ?? 0), 'campaigns')) {
+            $this->setFlash('error', 'Không có quyền.'); return $this->redirect('campaigns');
+        }
 
         $contactId = $this->input('contact_id');
         if (empty($contactId)) {
             $this->setFlash('error', 'Vui lòng chọn khách hàng.');
             return $this->back();
         }
+
+        // Verify contact belongs to tenant
+        $contactOk = Database::fetch("SELECT id FROM contacts WHERE id = ? AND tenant_id = ?", [$contactId, $tid]);
+        if (!$contactOk) { $this->setFlash('error', 'Khách hàng không hợp lệ.'); return $this->back(); }
 
         $exists = Database::fetch(
             "SELECT id FROM campaign_contacts WHERE campaign_id = ? AND contact_id = ?",
@@ -216,7 +229,7 @@ class CampaignController extends Controller
     public function delete($id)
     {
         $this->authorize('campaigns', 'delete');
-        $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ?", [$id]);
+        $campaign = Database::fetch("SELECT * FROM campaigns WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$campaign) {
             $this->setFlash('error', 'Chiến dịch không tồn tại.');
             return $this->redirect('campaigns');

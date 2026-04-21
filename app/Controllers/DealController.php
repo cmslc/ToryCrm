@@ -100,6 +100,8 @@ class DealController extends Controller
     public function pipeline()
     {
         $this->authorize('deals', 'view');
+        $tid = Database::tenantId();
+        $scopeSql = $this->getOwnerScopeSql('d.owner_id', 'deals');
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
 
         $pipeline = [];
@@ -111,9 +113,9 @@ class DealController extends Controller
                  LEFT JOIN contacts c ON d.contact_id = c.id
                  LEFT JOIN companies comp ON d.company_id = comp.id
                  LEFT JOIN users u ON d.owner_id = u.id
-                 WHERE d.stage_id = ? AND d.status = 'open'
+                 WHERE d.stage_id = ? AND d.status = 'open' AND d.tenant_id = ?{$scopeSql}
                  ORDER BY d.created_at DESC",
-                [$stage['id']]
+                [$stage['id'], $tid]
             );
             $pipeline[] = $stage;
         }
@@ -161,7 +163,15 @@ class DealController extends Controller
             return $this->back();
         }
 
+        // Verify contact_id/company_id belong to current tenant
+        $tid = Database::tenantId();
+        if (!empty($data['contact_id'])) {
+            $ok = Database::fetch("SELECT id FROM contacts WHERE id = ? AND tenant_id = ?", [$data['contact_id'], $tid]);
+            if (!$ok) { $this->setFlash('error', 'Khách hàng không hợp lệ.'); return $this->back(); }
+        }
+
         $dealId = Database::insert('deals', [
+            'tenant_id' => $tid,
             'title' => $title,
             'value' => (float) ($data['value'] ?? 0),
             'stage_id' => (!empty($data['stage_id']) ? $data['stage_id'] : null),
@@ -454,10 +464,13 @@ class DealController extends Controller
         }
         $this->authorize('deals', 'edit');
 
-        $deal = Database::fetch("SELECT * FROM deals WHERE id = ?", [$id]);
+        $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
 
         if (!$deal) {
             return $this->json(['error' => 'Deal not found'], 404);
+        }
+        if (!$this->canAccessOwner((int)($deal['owner_id'] ?? 0), 'deals')) {
+            return $this->json(['error' => 'Không có quyền'], 403);
         }
 
         $newStageId = $this->input('stage_id');
@@ -551,6 +564,10 @@ class DealController extends Controller
         $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if ($deal && !$this->canAccessOwner((int)($deal['owner_id'] ?? 0), 'deals')) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('deals/' . $id);
+        }
         if (!$deal) {
             $this->setFlash('error', 'Cơ hội không tồn tại.');
             return $this->redirect('deals');
@@ -611,6 +628,10 @@ class DealController extends Controller
         $this->authorize('deals', 'edit');
 
         $deal = Database::fetch("SELECT * FROM deals WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if ($deal && !$this->canAccessOwner((int)($deal['owner_id'] ?? 0), 'deals')) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('deals/' . $id);
+        }
         if (!$deal) {
             $this->setFlash('error', 'Cơ hội không tồn tại.');
             return $this->redirect('deals');

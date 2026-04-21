@@ -221,14 +221,22 @@ class LeadFormController extends Controller
         $settings = json_decode($form['settings'], true) ?: [];
         $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 
-        // Validate required
+        // Validate required + sanitize each field (XSS prevention for public endpoint)
         $data = [];
         foreach ($fields as $f) {
             $val = trim($input[$f['name']] ?? '');
             if ($f['required'] && empty($val)) {
                 echo json_encode(['success' => false, 'error' => $f['label'] . ' là bắt buộc']); exit;
             }
-            $data[$f['name']] = $val;
+            // Strip HTML tags to prevent stored XSS when displayed in admin dashboard
+            $data[$f['name']] = strip_tags($val);
+        }
+
+        // Validate auto_assign owner belongs to this tenant (don't trust form settings blindly)
+        $autoAssign = null;
+        if (!empty($settings['auto_assign'])) {
+            $ownerOk = Database::fetch("SELECT id FROM users WHERE id = ? AND tenant_id = ?", [$settings['auto_assign'], $form['tenant_id']]);
+            if ($ownerOk) $autoAssign = (int)$settings['auto_assign'];
         }
 
         // Auto-create contact
@@ -247,8 +255,8 @@ class LeadFormController extends Controller
                 'phone' => $phone ?: null,
                 'status' => 'new',
                 'description' => 'Từ form: ' . $form['name'],
-                'owner_id' => $settings['auto_assign'] ?: null,
-                'created_by' => $settings['auto_assign'] ?: null,
+                'owner_id' => $autoAssign,
+                'created_by' => $autoAssign,
             ]);
         }
 

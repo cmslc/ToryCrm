@@ -14,16 +14,16 @@ class AutomationController extends Controller
 
     public function create()
     {
-        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
+        $this->authorize('automation', 'create');
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 AND u.tenant_id = ? ORDER BY d.name, u.name", [Database::tenantId()]);
 
         return $this->view('automation.create', ['users' => $users]);
     }
 
     public function store()
     {
-        if (!$this->isPost()) {
-            return $this->redirect('automation');
-        }
+        if (!$this->isPost()) return $this->redirect('automation');
+        $this->authorize('automation', 'create');
 
         $data = $this->allInput();
 
@@ -33,25 +33,10 @@ class AutomationController extends Controller
         $conditions = $data['conditions'] ?? [];
         $actions = $data['actions'] ?? [];
 
-        if (empty($name)) {
-            $this->setFlash('error', 'Tên rule không được để trống.');
-            return $this->back();
-        }
-
-        if (empty($module)) {
-            $this->setFlash('error', 'Vui lòng chọn module.');
-            return $this->back();
-        }
-
-        if (empty($triggerEvent)) {
-            $this->setFlash('error', 'Vui lòng chọn trigger event.');
-            return $this->back();
-        }
-
-        if (empty($actions)) {
-            $this->setFlash('error', 'Vui lòng thêm ít nhất 1 action.');
-            return $this->back();
-        }
+        if (empty($name)) { $this->setFlash('error', 'Tên rule không được để trống.'); return $this->back(); }
+        if (empty($module)) { $this->setFlash('error', 'Vui lòng chọn module.'); return $this->back(); }
+        if (empty($triggerEvent)) { $this->setFlash('error', 'Vui lòng chọn trigger event.'); return $this->back(); }
+        if (empty($actions)) { $this->setFlash('error', 'Vui lòng thêm ít nhất 1 action.'); return $this->back(); }
 
         // Filter out empty conditions
         $filteredConditions = [];
@@ -74,6 +59,7 @@ class AutomationController extends Controller
         }
 
         Database::insert('automation_rules', [
+            'tenant_id' => Database::tenantId(),
             'name' => $name,
             'module' => $module,
             'trigger_event' => $triggerEvent,
@@ -88,22 +74,22 @@ class AutomationController extends Controller
         return $this->redirect('automation');
     }
 
+    private function fetchRule($id)
+    {
+        return Database::fetch("SELECT * FROM automation_rules WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+    }
+
     public function toggleActive($id)
     {
-        if (!$this->isPost()) {
-            return $this->redirect('automation');
-        }
+        if (!$this->isPost()) return $this->redirect('automation');
+        $this->authorize('automation', 'edit');
 
-        $rule = Database::fetch("SELECT * FROM automation_rules WHERE id = ?", [$id]);
-
-        if (!$rule) {
-            $this->setFlash('error', 'Rule không tồn tại.');
-            return $this->redirect('automation');
-        }
+        $rule = $this->fetchRule($id);
+        if (!$rule) { $this->setFlash('error', 'Rule không tồn tại.'); return $this->redirect('automation'); }
 
         Database::update('automation_rules', [
             'is_active' => $rule['is_active'] ? 0 : 1,
-        ], 'id = ?', [$id]);
+        ], 'id = ? AND tenant_id = ?', [$id, Database::tenantId()]);
 
         $this->setFlash('success', $rule['is_active'] ? 'Đã tắt automation rule.' : 'Đã bật automation rule.');
         return $this->redirect('automation');
@@ -111,19 +97,14 @@ class AutomationController extends Controller
 
     public function delete($id)
     {
-        if (!$this->isPost()) {
-            return $this->redirect('automation');
-        }
+        if (!$this->isPost()) return $this->redirect('automation');
+        $this->authorize('automation', 'delete');
 
-        $rule = Database::fetch("SELECT * FROM automation_rules WHERE id = ?", [$id]);
-
-        if (!$rule) {
-            $this->setFlash('error', 'Rule không tồn tại.');
-            return $this->redirect('automation');
-        }
+        $rule = $this->fetchRule($id);
+        if (!$rule) { $this->setFlash('error', 'Rule không tồn tại.'); return $this->redirect('automation'); }
 
         Database::delete('automation_rule_logs', 'rule_id = ?', [$id]);
-        Database::delete('automation_rules', 'id = ?', [$id]);
+        Database::delete('automation_rules', 'id = ? AND tenant_id = ?', [$id, Database::tenantId()]);
 
         $this->setFlash('success', 'Automation rule đã được xóa.');
         return $this->redirect('automation');
@@ -131,26 +112,16 @@ class AutomationController extends Controller
 
     public function logs($id)
     {
-        $rule = Database::fetch("SELECT * FROM automation_rules WHERE id = ?", [$id]);
+        $this->authorize('automation', 'view');
+        $rule = $this->fetchRule($id);
+        if (!$rule) { $this->setFlash('error', 'Rule không tồn tại.'); return $this->redirect('automation'); }
 
-        if (!$rule) {
-            $this->setFlash('error', 'Rule không tồn tại.');
-            return $this->redirect('automation');
-        }
-
+        // Load logs (logs table may not have tenant_id but gated by rule tenant check above)
         $logs = Database::fetchAll(
-            "SELECT arl.*, u.name as triggered_by_name
-             FROM automation_rule_logs arl
-             LEFT JOIN users u ON arl.triggered_by = u.id
-             WHERE arl.rule_id = ?
-             ORDER BY arl.created_at DESC
-             LIMIT 50",
+            "SELECT * FROM automation_rule_logs WHERE rule_id = ? ORDER BY created_at DESC LIMIT 50",
             [$id]
         );
 
-        return $this->json([
-            'rule' => $rule,
-            'logs' => $logs,
-        ]);
+        return $this->view('automation.logs', ['rule' => $rule, 'logs' => $logs]);
     }
 }
