@@ -1,6 +1,6 @@
 <?php $noLayout = true;
 $isExpiredQuote = $quotation['valid_until'] && $quotation['valid_until'] < date('Y-m-d');
-$canRespond = in_array($quotation['status'], ['sent', 'draft']) && !$isExpiredQuote;
+$canRespond = in_array($quotation['status'], ['draft', 'pending']) && !$isExpiredQuote;
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -73,8 +73,8 @@ $canRespond = in_array($quotation['status'], ['sent', 'draft']) && !$isExpiredQu
             <span>Hiệu lực đến: <strong class="<?= $isExpiredQuote ? 'text-danger' : 'text-success' ?>"><?= date('d/m/Y', strtotime($quotation['valid_until'])) ?></strong></span>
             <?php endif; ?>
             <span>Trạng thái:
-                <?php if ($quotation['status'] === 'accepted'): ?>
-                    <span class="badge bg-success">Đã chấp nhận</span>
+                <?php if ($quotation['status'] === 'approved'): ?>
+                    <span class="badge bg-success">Đã duyệt</span>
                 <?php elseif ($quotation['status'] === 'rejected'): ?>
                     <span class="badge bg-danger">Đã từ chối</span>
                 <?php elseif ($isExpiredQuote): ?>
@@ -166,12 +166,12 @@ $canRespond = in_array($quotation['status'], ['sent', 'draft']) && !$isExpiredQu
 
         <!-- Actions -->
         <div class="action-section no-print">
-            <?php if ($quotation['status'] === 'accepted'): ?>
+            <?php if ($quotation['status'] === 'approved'): ?>
             <div class="status-banner">
                 <div class="rounded-circle bg-success-subtle d-inline-flex align-items-center justify-content-center mb-3" style="width:70px;height:70px">
                     <i class="ri-check-double-line text-success" style="font-size:32px"></i>
                 </div>
-                <h4 class="text-success">Báo giá đã được chấp nhận</h4>
+                <h4 class="text-success">Báo giá đã được duyệt</h4>
                 <?php if ($quotation['accepted_at']): ?><p class="text-muted">Ngày <?= date('d/m/Y H:i', strtotime($quotation['accepted_at'])) ?></p><?php endif; ?>
             </div>
             <?php elseif ($quotation['status'] === 'rejected'): ?>

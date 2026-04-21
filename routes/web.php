@@ -297,7 +297,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('quotations/{id}/submit', 'QuotationController@submitForApproval');
     Router::post('quotations/{id}/approve', 'QuotationController@approve');
     Router::post('quotations/{id}/reject-approval', 'QuotationController@rejectApproval');
-    Router::post('quotations/{id}/send', 'QuotationController@send');
     Router::post('quotations/{id}/convert', 'QuotationController@convertToOrder');
     Router::post('quotations/{id}/create-contract', 'QuotationController@convertToContract');
     Router::post('quotations/{id}/followers', 'QuotationController@followers');
@@ -721,7 +720,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/data-definition/{module}/update-field', 'DataDefinitionController@updateField');
     Router::post('settings/data-definition/{module}/delete-field', 'DataDefinitionController@deleteField');
     Router::post('settings/data-definition/{module}/toggle-show', 'DataDefinitionController@toggleShowInList');
-    Router::get('settings/positions', 'PositionController@index');
+    Router::get('settings/positions', function() { header('Location: ' . url('departments?view=positions')); exit; });
     Router::post('settings/positions/store', 'PositionController@store');
     Router::post('settings/positions/{id}/update', 'PositionController@update');
     Router::post('settings/positions/{id}/delete', 'PositionController@delete');

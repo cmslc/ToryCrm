@@ -24,6 +24,7 @@ if (!function_exists('flattenDeptTree')) {
 }
 flattenDeptTree($tree, 0, $flatList);
 $activeView = $_GET['view'] ?? 'chart';
+$_isAdmin = is_admin();
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -52,6 +53,13 @@ $activeView = $_GET['view'] ?? 'chart';
                     <i class="ri-drag-move-line me-1"></i> Sắp xếp
                 </a>
             </li>
+            <?php if ($_isAdmin): ?>
+            <li class="nav-item">
+                <a class="nav-link <?= $activeView === 'positions' ? 'active' : '' ?>" data-bs-toggle="tab" href="#viewPositions" role="tab">
+                    <i class="ri-briefcase-line me-1"></i> Chức vụ
+                </a>
+            </li>
+            <?php endif; ?>
         </ul>
     </div>
     <div class="card-body">
@@ -169,6 +177,57 @@ $activeView = $_GET['view'] ?? 'chart';
                 <?php endif; ?>
             </div>
 
+            <!-- Chức vụ -->
+            <?php if ($_isAdmin): ?>
+            <div class="tab-pane fade <?= $activeView === 'positions' ? 'show active' : '' ?>" id="viewPositions" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Danh sách chức vụ</h6>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#posModal" id="btnAddPos"><i class="ri-add-line me-1"></i>Thêm chức vụ</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:50px">#</th>
+                                <th>Chức vụ</th>
+                                <th>Mô tả</th>
+                                <th class="text-center">Số nhân viên</th>
+                                <th class="text-center" style="width:120px">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($positions)): ?>
+                            <?php foreach ($positions as $i => $p): ?>
+                            <tr>
+                                <td class="text-muted"><?= $i + 1 ?></td>
+                                <td class="fw-medium"><?= e($p['name']) ?></td>
+                                <td class="text-muted fs-13"><?= e($p['description'] ?? '-') ?></td>
+                                <td class="text-center"><span class="badge bg-primary-subtle text-primary rounded-pill"><?= $p['user_count'] ?></span></td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-ghost-secondary btn-icon edit-pos" data-id="<?= $p['id'] ?>" data-name="<?= e($p['name']) ?>" data-desc="<?= e($p['description'] ?? '') ?>" title="Sửa"><i class="ri-pencil-line"></i></button>
+                                    <?php if ($p['user_count'] == 0): ?>
+                                    <form method="POST" action="<?= url('settings/positions/' . $p['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa chức vụ <?= e($p['name']) ?>?">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-ghost-danger btn-icon" title="Xóa"><i class="ri-delete-bin-line"></i></button>
+                                    </form>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                            <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="ri-briefcase-line fs-36 d-block mb-2"></i>
+                                    <h5>Chưa có chức vụ nào</h5>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Sắp xếp kéo thả -->
             <div class="tab-pane fade" id="viewSort" role="tabpanel">
                 <div class="alert alert-info mb-3">
@@ -255,6 +314,37 @@ $activeView = $_GET['view'] ?? 'chart';
         </div>
     </div>
 </div>
+
+<!-- Position Modal -->
+<?php if ($_isAdmin): ?>
+<div class="modal fade" id="posModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="<?= url('settings/positions/store') ?>" id="posForm">
+            <?= csrf_field() ?>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="posModalTitle">Thêm chức vụ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên chức vụ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" id="posName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="description" id="posDesc" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i>Lưu</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
 
 <style>
 /* Org Chart Styles */
@@ -456,4 +546,21 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
         });
     });
 })();
+
+// Position CRUD
+document.querySelectorAll('.edit-pos').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('posForm').action = '<?= url('settings/positions/') ?>' + this.dataset.id + '/update';
+        document.getElementById('posModalTitle').textContent = 'Sửa chức vụ';
+        document.getElementById('posName').value = this.dataset.name;
+        document.getElementById('posDesc').value = this.dataset.desc;
+        new bootstrap.Modal(document.getElementById('posModal')).show();
+    });
+});
+document.getElementById('btnAddPos')?.addEventListener('click', function() {
+    document.getElementById('posForm').action = '<?= url('settings/positions/store') ?>';
+    document.getElementById('posModalTitle').textContent = 'Thêm chức vụ';
+    document.getElementById('posName').value = '';
+    document.getElementById('posDesc').value = '';
+});
 </script>

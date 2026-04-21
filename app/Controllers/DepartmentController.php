@@ -23,11 +23,18 @@ class DepartmentController extends Controller
             [$this->tenantId()]
         );
 
-        $users = Database::fetchAll("SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1 ORDER BY name", [$this->tenantId()]);
+        $users = Database::fetchAll("SELECT id, name, department_id, d2.name as dept_name FROM users LEFT JOIN departments d2 ON d2.id = users.department_id WHERE users.tenant_id = ? AND users.is_active = 1 ORDER BY users.name", [$this->tenantId()]);
+
+        $positions = Database::fetchAll(
+            "SELECT p.*, (SELECT COUNT(*) FROM users u WHERE u.position_id = p.id) as user_count
+             FROM positions p WHERE p.tenant_id = ? ORDER BY p.sort_order, p.name",
+            [$this->tenantId()]
+        );
 
         return $this->view('departments.index', [
             'departments' => $departments,
             'users' => $users,
+            'positions' => $positions,
         ]);
     }
 

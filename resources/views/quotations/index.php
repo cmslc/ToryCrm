@@ -3,8 +3,8 @@ $pageTitle = 'Báo giá';
 $currentStatus = $filters['status'] ?? '';
 $qsc = ['pending'=>'warning','approved'=>'primary','has_order'=>'success','no_order'=>'info','deleted'=>'danger'];
 $qsl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','has_order'=>'Đã tạo ĐH','no_order'=>'Chưa tạo ĐH','deleted'=>'Đã xóa'];
-$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
-$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','sent'=>'Đã gửi KH','accepted'=>'KH chấp nhận','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
+$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
+$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
 $colKeys = array_column($displayColumns ?? [], 'key');
 $totalAll = 0;
 foreach ($stats as $v) $totalAll += (int)$v;
@@ -198,7 +198,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                     <?= e($q['creator_name']) ?>
                                                 </div>
                                                 <?php else: ?>-<?php endif; ?>
-                                            <?php break; case 'created_at': case 'updated_at': case 'accepted_at': case 'rejected_at': case 'last_viewed_at': ?>
+                                            <?php break; case 'created_at': case 'updated_at': case 'rejected_at': case 'last_viewed_at': ?>
                                                 <?= $val ? time_ago($val) : '-' ?>
                                             <?php break; default: ?>
                                                 <?= e($val ?: '-') ?>
@@ -212,14 +212,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                 <ul class="dropdown-menu">
                                                     <li><a class="dropdown-item" href="<?= url('quotations/' . $q['id']) ?>"><i class="ri-eye-line me-2"></i>Xem</a></li>
                                                     <li><a class="dropdown-item" href="<?= url('quotations/' . $q['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>
-                                                    <?php if ($q['status'] === 'draft'): ?>
-                                                    <li>
-                                                        <form method="POST" action="<?= url('quotations/' . $q['id'] . '/send') ?>" data-confirm="Gửi báo giá này?">
-                                                            <?= csrf_field() ?><button class="dropdown-item"><i class="ri-send-plane-line me-2"></i>Gửi</button>
-                                                        </form>
-                                                    </li>
-                                                    <?php endif; ?>
-                                                    <?php if (in_array($q['status'], ['accepted', 'sent'])): ?>
+                                                    <?php if ($q['status'] === 'approved'): ?>
                                                     <li>
                                                         <form method="POST" action="<?= url('quotations/' . $q['id'] . '/convert') ?>" data-confirm="Chuyển thành đơn hàng?">
                                                             <?= csrf_field() ?><button class="dropdown-item"><i class="ri-swap-line me-2"></i>Chuyển đơn hàng</button>

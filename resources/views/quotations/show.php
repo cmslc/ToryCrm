@@ -1,7 +1,7 @@
 <?php
 $pageTitle = 'Báo giá ' . $quotation['quote_number'];
-$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','sent'=>'info','accepted'=>'success','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
-$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','sent'=>'Đã gửi KH','accepted'=>'KH chấp nhận','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
+$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
+$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
 ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -29,24 +29,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectApprovalModal"><i class="ri-close-line me-1"></i>Từ chối</button>
                 <?php endif; ?>
 
-                <?php if ($quotation['status'] === 'approved'):
-                    $sendTo = $quotation['contact_email'] ?: ($quotation['c_company_email'] ?? $quotation['c_email'] ?? '');
-                    $sendSubject = 'Báo giá ' . $quotation['quote_number'] . ' - ' . (\App\Services\BrandingService::get()['name'] ?? '');
-                    $sendName = $quotation['c_company_name'] ?? ($quotation['c_full_name'] ?? '');
-                    $brandName = \App\Services\BrandingService::get()['name'] ?? '';
-                    $portalUrl = url('quote/' . $quotation['portal_token']);
-                    $sendBody = "Kính gửi {$sendName},\n\nChúng tôi xin gửi báo giá {$quotation['quote_number']} như file đính kèm.\n\nQuý khách cũng có thể xem báo giá online tại:\n{$portalUrl}\n\nTrân trọng,\n{$brandName}";
-                    $composeUrl = url('email/compose') . '?' . http_build_query([
-                        'to' => $sendTo,
-                        'subject' => $sendSubject,
-                        'body' => $sendBody,
-                        'quotation_id' => $quotation['id'],
-                    ]);
-                ?>
-                    <a href="<?= $composeUrl ?>" class="btn btn-success"><i class="ri-mail-send-line me-1"></i>Gửi khách</a>
-                <?php endif; ?>
-
-                <?php if (in_array($quotation['status'], ['approved', 'accepted', 'sent'])): ?>
+                <?php if ($quotation['status'] === 'approved'): ?>
                     <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/convert') ?>" class="d-inline" data-confirm="Tạo đơn hàng từ báo giá này?">
                         <?= csrf_field() ?><button class="btn btn-soft-success"><i class="ri-shopping-cart-line me-1"></i>Tạo đơn hàng</button>
                     </form>
@@ -340,22 +323,6 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                     </div>
                 </div>
 
-                <!-- Link khách hàng -->
-                <?php if ($quotation['portal_token']): ?>
-                <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-link me-1"></i> Link khách hàng</h5></div>
-                    <div class="card-body">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light" id="portalLink" value="<?= url('quote/' . $quotation['portal_token']) ?>" readonly>
-                            <button class="btn btn-soft-primary" id="copyLinkBtn" onclick="navigator.clipboard.writeText(document.getElementById('portalLink').value).then(function(){var b=document.getElementById('copyLinkBtn');b.innerHTML='<i class=\'ri-check-line\'></i> Đã sao chép';b.classList.add('btn-success');b.classList.remove('btn-soft-primary');setTimeout(function(){b.innerHTML='<i class=\'ri-file-copy-line\'></i> Sao chép';b.classList.remove('btn-success');b.classList.add('btn-soft-primary')},2000)})">
-                                <i class="ri-file-copy-line"></i> Sao chép
-                            </button>
-                        </div>
-                        <small class="text-muted mt-2 d-block"><i class="ri-information-line me-1"></i>Chia sẻ link để khách hàng xem và phản hồi báo giá.</small>
-                    </div>
-                </div>
-                <?php endif; ?>
-
                 <!-- Người liên quan -->
                 <?php $rpEntityType = 'quotation'; $rpEntityId = $quotation['id']; $rpOwnerId = $quotation['owner_id'] ?? 0; $rpOwnerName = $quotation['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
 
@@ -409,60 +376,6 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                             </div>
                             <?php endif; ?>
 
-                            <!-- Gửi khách -->
-                            <?php if ($quotation['sent_at'] ?? null): ?>
-                            <div class="acitivity-item d-flex">
-                                <div class="flex-shrink-0">
-                                    <div class="avatar-xs acitivity-avatar">
-                                        <div class="avatar-title rounded-circle bg-soft-info text-info"><i class="ri-mail-send-line"></i></div>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Đã gửi khách hàng</h6>
-                                    <?php if ($quotation['contact_email'] ?? $quotation['contact_phone'] ?? null): ?>
-                                    <p class="mb-1"><small>
-                                        <?php if ($quotation['contact_email']): ?><i class="ri-mail-line me-1"></i><?= e($quotation['contact_email']) ?><?php endif; ?>
-                                        <?php if ($quotation['contact_phone']): ?> · <i class="ri-phone-line me-1"></i><?= e($quotation['contact_phone']) ?><?php endif; ?>
-                                    </small></p>
-                                    <?php endif; ?>
-                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['sent_at']) ?></small></p>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-
-                            <!-- KH đã xem -->
-                            <?php if (($quotation['view_count'] ?? 0) > 0): ?>
-                            <div class="acitivity-item d-flex">
-                                <div class="flex-shrink-0">
-                                    <div class="avatar-xs acitivity-avatar">
-                                        <div class="avatar-title rounded-circle bg-soft-warning text-warning"><i class="ri-eye-line"></i></div>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1">Khách hàng đã xem</h6>
-                                    <p class="mb-1"><small><i class="ri-eye-line me-1"></i><?= $quotation['view_count'] ?> lượt xem</small></p>
-                                    <?php if ($quotation['last_viewed_at'] ?? null): ?>
-                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i>Lần cuối: <?= format_datetime($quotation['last_viewed_at']) ?></small></p>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-
-                            <!-- KH chấp nhận -->
-                            <?php if ($quotation['accepted_at']): ?>
-                            <div class="acitivity-item d-flex">
-                                <div class="flex-shrink-0">
-                                    <div class="avatar-xs acitivity-avatar">
-                                        <div class="avatar-title rounded-circle bg-soft-success text-success"><i class="ri-check-double-line"></i></div>
-                                    </div>
-                                </div>
-                                <div class="flex-grow-1 ms-3">
-                                    <h6 class="mb-1 text-success">Khách hàng chấp nhận</h6>
-                                    <p class="mb-1"><small>Báo giá đã được KH đồng ý. Có thể tạo đơn hàng hoặc hợp đồng.</small></p>
-                                    <p class="text-muted mb-0"><small><i class="ri-time-line me-1"></i><?= format_datetime($quotation['accepted_at']) ?></small></p>
-                                </div>
-                            </div>
-                            <?php endif; ?>
 
                             <!-- KH từ chối -->
                             <?php if ($quotation['rejected_at']): ?>
@@ -496,7 +409,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','s
                             <?php endif; ?>
 
                             <!-- Hết hạn -->
-                            <?php if (($quotation['valid_until'] ?? null) && $quotation['valid_until'] < date('Y-m-d') && !$quotation['accepted_at'] && !$quotation['rejected_at']): ?>
+                            <?php if (($quotation['valid_until'] ?? null) && $quotation['valid_until'] < date('Y-m-d') && !$quotation['rejected_at']): ?>
                             <div class="acitivity-item d-flex">
                                 <div class="flex-shrink-0">
                                     <div class="avatar-xs acitivity-avatar">

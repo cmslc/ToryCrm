@@ -23,7 +23,7 @@ class PositionController extends Controller
 
     public function store()
     {
-        if (!$this->isPost()) return $this->redirect('settings/positions');
+        if (!$this->isPost()) return $this->redirect('departments?view=positions');
         $this->authorize('settings', 'manage');
 
         $name = trim($this->input('name') ?? '');
@@ -42,12 +42,12 @@ class PositionController extends Controller
         ]);
 
         $this->setFlash('success', 'Đã thêm chức vụ.');
-        return $this->redirect('settings/positions');
+        return $this->redirect('departments?view=positions');
     }
 
     public function update($id)
     {
-        if (!$this->isPost()) return $this->redirect('settings/positions');
+        if (!$this->isPost()) return $this->redirect('departments?view=positions');
         $this->authorize('settings', 'manage');
 
         $name = trim($this->input('name') ?? '');
@@ -62,12 +62,12 @@ class PositionController extends Controller
         ], 'id = ? AND tenant_id = ?', [$id, Database::tenantId()]);
 
         $this->setFlash('success', 'Đã cập nhật chức vụ.');
-        return $this->redirect('settings/positions');
+        return $this->redirect('departments?view=positions');
     }
 
     public function delete($id)
     {
-        if (!$this->isPost()) return $this->redirect('settings/positions');
+        if (!$this->isPost()) return $this->redirect('departments?view=positions');
         $this->authorize('settings', 'manage');
 
         // Unset position from users
@@ -75,6 +75,6 @@ class PositionController extends Controller
         Database::query("DELETE FROM positions WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
 
         $this->setFlash('success', 'Đã xóa chức vụ.');
-        return $this->redirect('settings/positions');
+        return $this->redirect('departments?view=positions');
     }
 }

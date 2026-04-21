@@ -39,10 +39,10 @@ class QuotationController extends Controller
         // Stats
         $stats = Database::fetch(
             "SELECT
-                SUM(status = 'draft' OR status = 'sent') as pending,
-                SUM(status = 'accepted') as approved,
+                SUM(status = 'draft' OR status = 'pending') as pending,
+                SUM(status = 'approved') as approved,
                 SUM(status = 'converted') as has_order,
-                SUM(status NOT IN ('draft','sent','accepted','converted','rejected') OR status IS NULL) as no_order,
+                SUM(status NOT IN ('draft','pending','approved','converted','rejected') OR status IS NULL) as no_order,
                 SUM(status = 'rejected' OR status = 'expired') as deleted
              FROM quotations WHERE tenant_id = ?" . $this->getOwnerScopeSql('owner_id'),
             [$tid]
@@ -196,7 +196,7 @@ class QuotationController extends Controller
         try {
             $quotationId = Database::insert('quotations', [
                 'quote_number' => $quoteNumber,
-                'status' => $data['action'] === 'send' ? 'sent' : 'draft',
+                'status' => 'draft',
                 'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
                 'contact_person_id' => !empty($data['contact_person_id']) ? $data['contact_person_id'] : null,
                 'address' => trim($data['address'] ?? '') ?: null,
@@ -568,79 +568,6 @@ class QuotationController extends Controller
         return $this->redirect('quotations/' . $id);
     }
 
-    public function send($id)
-    {
-        if (!$this->isPost()) return $this->redirect('quotations/' . $id);
-
-        $quotation = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
-        if (!$quotation) {
-            $this->setFlash('error', 'Báo giá không tồn tại.');
-            return $this->redirect('quotations');
-        }
-
-        $toEmail = trim($this->input('to_email') ?? '');
-        $toName = trim($this->input('to_name') ?? '');
-        $subject = trim($this->input('subject') ?? "Báo giá {$quotation['quote_number']}");
-        $body = trim($this->input('body') ?? '');
-        $templateId = (int)($this->input('template_id') ?? 0);
-
-        if (empty($toEmail)) {
-            $this->setFlash('error', 'Vui lòng nhập email người nhận.');
-            return $this->redirect('quotations/' . $id);
-        }
-
-        // Generate PDF file
-        $pdfPath = null;
-        try {
-            ob_start();
-            $this->pdf($id);
-            $pdfHtml = ob_get_clean();
-
-            // Save as temp file
-            $tmpDir = BASE_PATH . '/storage/tmp';
-            if (!is_dir($tmpDir)) mkdir($tmpDir, 0755, true);
-            $pdfFile = $tmpDir . '/quote_' . $quotation['quote_number'] . '_' . time() . '.html';
-            file_put_contents($pdfFile, $pdfHtml);
-            $pdfPath = $pdfFile;
-        } catch (\Exception $e) {
-            // PDF generation failed, send without attachment
-        }
-
-        // Send email
-        $bodyHtml = nl2br(e($body));
-        $sent = \App\Services\MailService::send(
-            $toEmail,
-            $subject,
-            $bodyHtml,
-            $toName,
-            $pdfPath ? [['path' => $pdfPath, 'name' => 'BaoGia_' . $quotation['quote_number'] . '.html']] : []
-        );
-
-        // Cleanup temp file
-        if ($pdfPath && file_exists($pdfPath)) @unlink($pdfPath);
-
-        // Update status
-        Database::update('quotations', [
-            'status' => 'sent',
-            'sent_at' => date('Y-m-d H:i:s'),
-        ], 'id = ?', [$id]);
-
-        // Log activity
-        Database::insert('activities', [
-            'type' => 'system',
-            'title' => "Đã gửi báo giá {$quotation['quote_number']} đến {$toEmail}",
-            'user_id' => $this->userId(),
-            'quotation_id' => $id,
-            'tenant_id' => Database::tenantId(),
-        ]);
-
-        if ($sent) {
-            $this->setFlash('success', "Đã gửi email báo giá đến {$toEmail}");
-        } else {
-            $this->setFlash('warning', "Đã cập nhật trạng thái nhưng gửi email thất bại. Kiểm tra cấu hình SMTP.");
-        }
-        return $this->redirect('quotations/' . $id);
-    }
 
     /**
      * Delete quotation
@@ -1057,7 +984,7 @@ class QuotationController extends Controller
             return;
         }
 
-        if ($quotation['status'] === 'accepted') {
+        if ($quotation['status'] === 'approved') {
             echo json_encode(['success' => true, 'message' => 'Báo giá đã được chấp nhận trước đó.']);
             return;
         }
@@ -1068,7 +995,7 @@ class QuotationController extends Controller
         }
 
         Database::update('quotations', [
-            'status' => 'accepted',
+            'status' => 'approved',
             'accepted_at' => date('Y-m-d H:i:s'),
         ], 'id = ?', [$quotation['id']]);
 
