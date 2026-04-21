@@ -158,21 +158,37 @@ class Controller
             } catch (\Exception $e) {}
         }
 
-        if (!$deptId) {
-            // Không có phòng ban → chỉ thấy dữ liệu của mình
-            $visCache = [$uid];
-            return $visCache;
-        }
-
         try {
-            $dept = Database::fetch("SELECT manager_id, vice_manager_id FROM departments WHERE id = ?", [$deptId]);
+            $deptIds = [];
 
-            $deptIds = [(int)$deptId];
+            // Phòng ban của user
+            if ($deptId) {
+                $deptIds[] = (int)$deptId;
+                $dept = Database::fetch("SELECT manager_id, vice_manager_id FROM departments WHERE id = ?", [$deptId]);
+                if ($dept && ($dept['manager_id'] == $uid || $dept['vice_manager_id'] == $uid)) {
+                    $childIds = $this->getChildDeptIds($deptId);
+                    $deptIds = array_merge($deptIds, $childIds);
+                }
+            }
 
-            // If manager/vice_manager, include child depts
-            if ($dept && ($dept['manager_id'] == $uid || $dept['vice_manager_id'] == $uid)) {
-                $childIds = $this->getChildDeptIds($deptId);
-                $deptIds = array_merge($deptIds, $childIds);
+            // Phòng ban mà user là manager/vice_manager (dù không thuộc phòng đó)
+            $managedDepts = Database::fetchAll(
+                "SELECT id FROM departments WHERE manager_id = ? OR vice_manager_id = ?",
+                [$uid, $uid]
+            );
+            foreach ($managedDepts as $md) {
+                if (!in_array((int)$md['id'], $deptIds)) {
+                    $deptIds[] = (int)$md['id'];
+                    $childIds = $this->getChildDeptIds((int)$md['id']);
+                    $deptIds = array_merge($deptIds, $childIds);
+                }
+            }
+
+            $deptIds = array_unique($deptIds);
+
+            if (empty($deptIds)) {
+                $visCache = [$uid];
+                return $visCache;
             }
 
             $placeholders = implode(',', array_fill(0, count($deptIds), '?'));
@@ -182,7 +198,6 @@ class Controller
             );
             $visCache = array_column($members, 'id');
 
-            // Make sure own ID is included
             if (!in_array($uid, $visCache)) $visCache[] = $uid;
 
             return $visCache;
