@@ -884,9 +884,11 @@
                                 </div>
                                 <?php
                                 $quotations = \Core\Database::fetchAll(
-                                    "SELECT o.*, u.name as owner_name FROM orders o LEFT JOIN users u ON o.owner_id = u.id WHERE o.contact_id = ? AND o.type = 'quote' AND o.is_deleted = 0 ORDER BY o.created_at DESC LIMIT 20",
+                                    "SELECT q.*, u.name as owner_name FROM quotations q LEFT JOIN users u ON q.owner_id = u.id WHERE q.contact_id = ? ORDER BY q.created_at DESC LIMIT 20",
                                     [$contact['id']]
                                 );
+                                $qColors = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
+                                $qLabels = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
                                 ?>
                                 <?php if (!empty($quotations)): ?>
                                     <div class="table-responsive">
@@ -903,11 +905,10 @@
                                             <tbody>
                                                 <?php foreach ($quotations as $q): ?>
                                                 <tr>
-                                                    <td><a href="<?= url('orders/' . $q['id']) ?>"><?= e($q['order_number']) ?></a></td>
+                                                    <td><a href="<?= url('quotations/' . $q['id']) ?>"><?= e($q['quote_number']) ?></a></td>
                                                     <td><?= format_money($q['total']) ?></td>
                                                     <td>
-                                                        <?php $qColors = ['draft'=>'secondary','pending'=>'warning','confirmed'=>'success','cancelled'=>'danger']; ?>
-                                                        <span class="badge bg-<?= $qColors[$q['status']] ?? 'secondary' ?>-subtle text-<?= $qColors[$q['status']] ?? 'secondary' ?>"><?= e($q['status']) ?></span>
+                                                        <span class="badge bg-<?= $qColors[$q['status']] ?? 'secondary' ?>"><?= $qLabels[$q['status']] ?? e($q['status']) ?></span>
                                                     </td>
                                                     <td><?= user_avatar($q['owner_name'] ?? null) ?></td>
                                                     <td class="text-muted"><?= time_ago($q['created_at']) ?></td>
@@ -932,9 +933,10 @@
                                 </div>
                                 <?php
                                 $contracts = \Core\Database::fetchAll(
-                                    "SELECT o.*, u.name as owner_name FROM orders o LEFT JOIN users u ON o.owner_id = u.id WHERE o.contact_id = ? AND o.type = 'contract' AND o.is_deleted = 0 ORDER BY o.created_at DESC LIMIT 20",
+                                    "SELECT c.*, u.name as owner_name FROM contracts c LEFT JOIN users u ON c.owner_id = u.id WHERE c.contact_id = ? ORDER BY c.created_at DESC LIMIT 20",
                                     [$contact['id']]
                                 );
+                                $ctColors = ['draft'=>'secondary','pending'=>'warning','active'=>'primary','signed'=>'info','executing'=>'primary','completed'=>'success','cancelled'=>'danger','terminated'=>'danger'];
                                 ?>
                                 <?php if (!empty($contracts)): ?>
                                     <div class="table-responsive">
@@ -944,7 +946,7 @@
                                                     <th>Mã HĐ</th>
                                                     <th>Giá trị</th>
                                                     <th>Trạng thái</th>
-                                                    <th>Hạn thanh toán</th>
+                                                    <th>Đã thanh toán</th>
                                                     <th>Người tạo</th>
                                                     <th>Ngày</th>
                                                 </tr>
@@ -952,13 +954,12 @@
                                             <tbody>
                                                 <?php foreach ($contracts as $ct): ?>
                                                 <tr>
-                                                    <td><a href="<?= url('orders/' . $ct['id']) ?>"><?= e($ct['order_number']) ?></a></td>
-                                                    <td class="fw-medium"><?= format_money($ct['total']) ?></td>
+                                                    <td><a href="<?= url('contracts/' . $ct['id']) ?>"><?= e($ct['contract_number']) ?></a></td>
+                                                    <td class="fw-medium"><?= format_money($ct['value']) ?></td>
                                                     <td>
-                                                        <?php $ctColors = ['draft'=>'secondary','pending'=>'warning','confirmed'=>'info','processing'=>'primary','completed'=>'success','cancelled'=>'danger']; ?>
                                                         <span class="badge bg-<?= $ctColors[$ct['status']] ?? 'secondary' ?>-subtle text-<?= $ctColors[$ct['status']] ?? 'secondary' ?>"><?= e($ct['status']) ?></span>
                                                     </td>
-                                                    <td class="text-muted"><?= $ct['due_date'] ? format_date($ct['due_date']) : '-' ?></td>
+                                                    <td class="text-muted"><?= format_money($ct['paid_amount'] ?? 0) ?></td>
                                                     <td><?= user_avatar($ct['owner_name'] ?? null) ?></td>
                                                     <td class="text-muted"><?= time_ago($ct['created_at']) ?></td>
                                                 </tr>
@@ -1273,7 +1274,7 @@
                                 <h6 class="mb-3">Công nợ</h6>
                                 <?php
                                 $debtOrders = \Core\Database::fetchAll(
-                                    "SELECT order_number, total, paid_amount, (total - paid_amount) as debt, payment_status, due_date, status, created_at
+                                    "SELECT id, order_number, total, paid_amount, (total - paid_amount) as debt, payment_status, due_date, status, created_at
                                      FROM orders WHERE contact_id = ? AND is_deleted = 0 AND payment_status != 'paid' AND status != 'cancelled'
                                      ORDER BY due_date ASC",
                                     [$contact['id']]
