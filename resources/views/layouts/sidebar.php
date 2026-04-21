@@ -64,16 +64,10 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <!-- Hộp thư moved to topbar -->
 
                 <?php if (canSee('contacts')): ?>
-                <?php $crmOpen = isOpen(['contacts','companies'], $currentUrl); ?>
                 <li class="nav-item">
-                    <a class="nav-link menu-link <?= $crmOpen ? '' : 'collapsed' ?>" href="#sidebarCrm" data-bs-toggle="collapse" role="button" aria-expanded="<?= $crmOpen ? 'true' : 'false' ?>">
+                    <a class="nav-link menu-link <?= isActive('contacts', $currentUrl) ? 'active' : '' ?>" href="<?= url('contacts') ?>">
                         <i class="ri-contacts-line"></i> <span>Khách hàng</span>
                     </a>
-                    <div class="collapse menu-dropdown <?= $crmOpen ? 'show' : '' ?>" id="sidebarCrm">
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('contacts') ?>" class="nav-link <?= isActive('contacts', $currentUrl) ?>">Danh sách KH</a></li>
-                        </ul>
-                    </div>
                 </li>
                 <?php endif; ?>
 
