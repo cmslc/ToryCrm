@@ -23,6 +23,7 @@ class QuotationController extends Controller
      */
     public function index()
     {
+        $this->authorize('quotations', 'view');
         $search = $this->input('search');
         $status = $this->input('status');
         $contactId = $this->input('contact_id');
@@ -50,7 +51,7 @@ class QuotationController extends Controller
         $where = ["q.tenant_id = ?"];
         $params = [$tid];
 
-        $ownerScope = $this->ownerScope('q', 'owner_id', 'orders');
+        $ownerScope = $this->ownerScope('q', 'owner_id', 'quotations');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
         if ($search) {
@@ -305,6 +306,8 @@ class QuotationController extends Controller
      */
     public function show($id)
     {
+        $this->authorize('quotations', 'view');
+        $id = (int)$id;
         $quotation = Database::fetch(
             "SELECT q.*,
                     c.company_name as c_company_name, c.full_name as c_full_name,

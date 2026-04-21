@@ -124,12 +124,15 @@ class Controller
      * SQL suffix for owner-based filter in raw queries.
      * Admin: "", others: " AND col IN (1,2,3)"
      */
-    protected function getOwnerScopeSql(string $col = 'owner_id'): string
+    protected function getOwnerScopeSql(string $col = 'owner_id', string $module = ''): string
     {
         if ($this->isSystemAdmin()) return '';
-        $ids = $this->getVisibleUserIds();
-        if ($ids && count($ids) > 0) {
-            return " AND {$col} IN (" . implode(',', array_map('intval', $ids)) . ")";
+        if ($module && \App\Services\PermissionService::can($module, 'view_all')) return '';
+        if ($module && \App\Services\PermissionService::can($module, 'view_department')) {
+            $ids = $this->getVisibleUserIds();
+            if ($ids && count($ids) > 0) {
+                return " AND {$col} IN (" . implode(',', array_map('intval', $ids)) . ")";
+            }
         }
         return " AND {$col} = " . (int)$this->userId();
     }
@@ -266,12 +269,15 @@ class Controller
 
         $result = [];
         $queue = $childMap[$parentId] ?? [];
+        $visited = [$parentId];
         while (!empty($queue)) {
             $id = array_shift($queue);
+            if (in_array($id, $visited)) continue; // Prevent infinite loop
+            $visited[] = $id;
             $result[] = $id;
             if (isset($childMap[$id])) {
                 foreach ($childMap[$id] as $childId) {
-                    $queue[] = $childId;
+                    if (!in_array($childId, $visited)) $queue[] = $childId;
                 }
             }
         }
