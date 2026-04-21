@@ -73,6 +73,7 @@ try {
 
             <?php
             // Trưởng/phó phòng của người phụ trách
+            $rpPlaceholders = implode(',', array_map('intval', $rpShownIds));
             if ($rpOwnerId) {
                 try {
                     $ownerDept = \Core\Database::fetch("SELECT department_id FROM users WHERE id = ?", [$rpOwnerId]);
