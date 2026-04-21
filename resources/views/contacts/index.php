@@ -28,6 +28,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
         <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
+        <a href="<?= url('persons/duplicates') ?>" class="btn btn-soft-warning"><i class="ri-merge-cells-horizontal me-1"></i> Gộp trùng</a>
         <a href="<?= url('contacts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm khách hàng</a>
     </div>
 </div>

@@ -56,6 +56,124 @@ class PersonController extends Controller
     }
 
     /**
+     * Admin: list groups of persons with same phone/email (for manual merge).
+     */
+    public function duplicates()
+    {
+        $this->authorize('contacts', 'edit');
+        $tid = Database::tenantId();
+
+        // Groups by phone (more reliable than email for VN data)
+        $phoneGroups = Database::fetchAll(
+            "SELECT phone, GROUP_CONCAT(id ORDER BY id) as ids, COUNT(*) as cnt
+             FROM persons
+             WHERE tenant_id = ? AND phone IS NOT NULL AND phone != ''
+             GROUP BY phone HAVING cnt > 1
+             ORDER BY cnt DESC, phone",
+            [$tid]
+        );
+
+        $groups = [];
+        foreach ($phoneGroups as $g) {
+            $ids = array_map('intval', explode(',', $g['ids']));
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $persons = Database::fetchAll(
+                "SELECT p.*,
+                    (SELECT COUNT(*) FROM contact_persons WHERE person_id = p.id) as emp_count,
+                    (SELECT GROUP_CONCAT(DISTINCT COALESCE(c.company_name, c.full_name, '?') SEPARATOR ', ')
+                     FROM contact_persons cp LEFT JOIN contacts c ON c.id = cp.contact_id
+                     WHERE cp.person_id = p.id) as companies
+                 FROM persons p WHERE p.id IN ({$placeholders})
+                 ORDER BY p.id",
+                $ids
+            );
+            $groups[] = [
+                'key' => $g['phone'],
+                'key_type' => 'phone',
+                'persons' => $persons,
+            ];
+        }
+
+        return $this->view('persons.duplicates', [
+            'groups' => $groups,
+            'totalGroups' => count($groups),
+        ]);
+    }
+
+    /**
+     * Merge source persons into a target person.
+     * Re-points all contact_persons.person_id to target, then deletes source persons.
+     * POST: target_id (int), source_ids (int[])
+     */
+    public function merge()
+    {
+        if (!$this->isPost()) return $this->redirect('persons/duplicates');
+        $this->authorize('contacts', 'edit');
+        $tid = Database::tenantId();
+
+        $targetId = (int)$this->input('target_id');
+        $sourceIds = $this->input('source_ids') ?? [];
+        if (!is_array($sourceIds)) $sourceIds = [];
+        $sourceIds = array_values(array_filter(array_map('intval', $sourceIds), fn($i) => $i > 0 && $i !== $targetId));
+
+        if ($targetId <= 0 || empty($sourceIds)) {
+            $this->setFlash('error', 'Vui lòng chọn person mục tiêu và nguồn.');
+            return $this->redirect('persons/duplicates');
+        }
+
+        // Verify all IDs belong to current tenant
+        $allIds = array_merge([$targetId], $sourceIds);
+        $ph = implode(',', array_fill(0, count($allIds), '?'));
+        $ownRows = Database::fetchAll(
+            "SELECT id FROM persons WHERE id IN ({$ph}) AND tenant_id = ?",
+            array_merge($allIds, [$tid])
+        );
+        $validIds = array_column($ownRows, 'id');
+        if (count($validIds) !== count($allIds)) {
+            $this->setFlash('error', 'Một số person không hợp lệ.');
+            return $this->redirect('persons/duplicates');
+        }
+
+        Database::beginTransaction();
+        try {
+            // Fill empty fields in target from sources (soft-merge info)
+            $target = Database::fetch("SELECT * FROM persons WHERE id = ?", [$targetId]);
+            $fill = [];
+            foreach (['full_name','phone','email','gender','date_of_birth','avatar','note'] as $f) {
+                if (empty($target[$f])) {
+                    foreach ($sourceIds as $sid) {
+                        $src = Database::fetch("SELECT {$f} FROM persons WHERE id = ?", [$sid]);
+                        if (!empty($src[$f])) { $fill[$f] = $src[$f]; break; }
+                    }
+                }
+            }
+            if (!empty($fill)) Database::update('persons', $fill, 'id = ?', [$targetId]);
+
+            // Re-point contact_persons
+            $srcPh = implode(',', array_fill(0, count($sourceIds), '?'));
+            Database::query(
+                "UPDATE contact_persons SET person_id = ? WHERE person_id IN ({$srcPh})",
+                array_merge([$targetId], $sourceIds)
+            );
+
+            // Delete source persons
+            Database::query(
+                "DELETE FROM persons WHERE id IN ({$srcPh}) AND tenant_id = ?",
+                array_merge($sourceIds, [$tid])
+            );
+
+            Database::commit();
+        } catch (\Exception $e) {
+            Database::rollback();
+            $this->setFlash('error', 'Lỗi khi gộp: ' . $e->getMessage());
+            return $this->redirect('persons/duplicates');
+        }
+
+        $this->setFlash('success', 'Đã gộp ' . count($sourceIds) . ' person vào #' . $targetId . '.');
+        return $this->redirect('persons/duplicates');
+    }
+
+    /**
      * Person profile — show info + full employment history + linked deals/quotations/orders.
      */
     public function show($id)
