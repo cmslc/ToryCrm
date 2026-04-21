@@ -48,11 +48,6 @@ $_isAdmin = \App\Services\PermissionService::isInSystemGroup($GLOBALS['user']['i
                     <i class="ri-list-check me-1"></i> Danh sách
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#viewSort" role="tab">
-                    <i class="ri-drag-move-line me-1"></i> Sắp xếp
-                </a>
-            </li>
             <?php if ($_isAdmin): ?>
             <li class="nav-item">
                 <a class="nav-link <?= $activeView === 'positions' ? 'active' : '' ?>" data-bs-toggle="tab" href="#viewPositions" role="tab">
@@ -228,37 +223,6 @@ $_isAdmin = \App\Services\PermissionService::isInSystemGroup($GLOBALS['user']['i
             </div>
             <?php endif; ?>
 
-            <!-- Sắp xếp kéo thả -->
-            <div class="tab-pane fade" id="viewSort" role="tabpanel">
-                <div class="alert alert-info mb-3">
-                    <i class="ri-information-line me-1"></i> Kéo thả để sắp xếp và thay đổi cấp phòng ban. Kéo vào phòng ban khác để đặt làm phòng con.
-                </div>
-                <div id="sortTree">
-                    <?php
-                    if (!function_exists('renderSortTree')) {
-                        function renderSortTree($nodes) { ?>
-                            <ul class="sort-list list-unstyled mb-0">
-                            <?php foreach ($nodes as $node): ?>
-                                <li class="sort-item" data-id="<?= $node['id'] ?>">
-                                    <div class="sort-handle d-flex align-items-center gap-2 border rounded px-3 py-2 mb-1 bg-white">
-                                        <i class="ri-draggable text-muted" style="cursor:grab"></i>
-                                        <span class="d-inline-block rounded-circle flex-shrink-0" style="width:10px;height:10px;background:<?= e($node['color']) ?>"></span>
-                                        <span class="fw-medium"><?= e($node['name']) ?></span>
-                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-auto"><?= $node['member_count'] ?></span>
-                                    </div>
-                                    <?php if (!empty($node['children'])) renderSortTree($node['children']); ?>
-                                </li>
-                            <?php endforeach; ?>
-                            </ul>
-                        <?php }
-                    }
-                    if (!empty($tree)) renderSortTree($tree);
-                    ?>
-                </div>
-                <div class="mt-3">
-                    <button type="button" class="btn btn-primary" id="saveSortBtn"><i class="ri-save-line me-1"></i>Lưu sắp xếp</button>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -395,19 +359,8 @@ $_isAdmin = \App\Services\PermissionService::isInSystemGroup($GLOBALS['user']['i
     font-size: 10px; font-weight: 600; flex-shrink: 0;
 }
 .org-card-meta { font-size: 11px; color: #888; }
-/* Sort tree */
-.sort-list { padding-left: 28px; }
-#sortTree > .sort-list { padding-left: 0; }
-.sort-item > .sort-handle { transition: all .2s ease; cursor: default; }
-.sort-item > .sort-handle .ri-draggable { cursor: grab; font-size: 18px; }
-.sort-item > .sort-handle:hover { background: #f3f6f9 !important; border-color: #c8d0da !important; }
-.sortable-ghost > .sort-handle { background: #e8effc !important; border-color: #405189 !important; border-style: dashed !important; opacity: 0.6; }
-.sortable-drag { opacity: 0.95; z-index: 9999; }
-.sortable-drag > .sort-handle { box-shadow: 0 8px 25px rgba(0,0,0,.15); transform: scale(1.02); }
-.sort-item { transition: margin .2s ease; }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 document.querySelectorAll('.edit-dept').forEach(function(btn) {
     btn.addEventListener('click', function(e) {
@@ -458,93 +411,6 @@ document.getElementById('addDeptModal').addEventListener('hidden.bs.modal', func
             apply();
         }
     }, {passive: false});
-})();
-
-// Nested sortable for department tree
-(function() {
-    function initSortable(el) {
-        new Sortable(el, {
-            group: 'dept-tree',
-            animation: 200,
-            easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
-            fallbackOnBody: true,
-            swapThreshold: 0.5,
-            handle: '.ri-draggable',
-            draggable: '.sort-item',
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            forceFallback: true,
-            fallbackTolerance: 3,
-            onEnd: function() {
-                // Ensure all items have child lists for future drops
-                document.querySelectorAll('#sortTree .sort-item').forEach(function(item) {
-                    if (!item.querySelector(':scope > .sort-list')) {
-                        var ul = document.createElement('ul');
-                        ul.className = 'sort-list list-unstyled mb-0';
-                        item.appendChild(ul);
-                        initSortable(ul);
-                    }
-                });
-            }
-        });
-    }
-
-    // Init all existing lists
-    document.querySelectorAll('#sortTree .sort-list').forEach(initSortable);
-
-    // Create empty child lists for leaf items
-    document.querySelectorAll('#sortTree .sort-item').forEach(function(item) {
-        if (!item.querySelector(':scope > .sort-list')) {
-            var ul = document.createElement('ul');
-            ul.className = 'sort-list list-unstyled mb-0';
-            item.appendChild(ul);
-            initSortable(ul);
-        }
-    });
-
-    // Save button
-    document.getElementById('saveSortBtn')?.addEventListener('click', function() {
-        var btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i>Đang lưu...';
-
-        var items = [];
-        function collectTree(parentEl, parentId) {
-            var list = parentEl.querySelector(':scope > .sort-list');
-            if (!list) return;
-            var children = list.querySelectorAll(':scope > .sort-item');
-            children.forEach(function(child, index) {
-                var id = parseInt(child.dataset.id);
-                items.push({ id: id, parent_id: parentId, sort_order: index });
-                collectTree(child, id);
-            });
-        }
-        collectTree(document.getElementById('sortTree'), null);
-
-        fetch('<?= url("departments/reorder") ?>', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '<?= csrf_token() ?>'},
-            body: JSON.stringify({ items: items })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                btn.innerHTML = '<i class="ri-check-line me-1"></i>Đã lưu!';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-success');
-                setTimeout(function() { location.reload(); }, 1000);
-            } else {
-                alert(data.error || 'Lỗi');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ri-save-line me-1"></i>Lưu sắp xếp';
-            }
-        })
-        .catch(function() {
-            alert('Lỗi kết nối');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ri-save-line me-1"></i>Lưu sắp xếp';
-        });
-    });
 })();
 
 // Position CRUD

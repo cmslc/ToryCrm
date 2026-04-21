@@ -85,29 +85,6 @@ class DepartmentController extends Controller
         return $this->redirect('departments');
     }
 
-    public function reorder()
-    {
-        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
-
-        $items = $this->input('items');
-        if (!is_array($items)) return $this->json(['error' => 'Invalid data'], 422);
-
-        $tid = $this->tenantId();
-        foreach ($items as $item) {
-            $id = (int)($item['id'] ?? 0);
-            $parentId = !empty($item['parent_id']) ? (int)$item['parent_id'] : null;
-            $sort = (int)($item['sort_order'] ?? 0);
-            if ($id) {
-                Database::query(
-                    "UPDATE departments SET parent_id = ?, sort_order = ? WHERE id = ? AND tenant_id = ?",
-                    [$parentId, $sort, $id, $tid]
-                );
-            }
-        }
-
-        return $this->json(['success' => true]);
-    }
-
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('departments');
