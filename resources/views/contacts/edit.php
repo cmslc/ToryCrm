@@ -420,7 +420,12 @@ function checkCpPhone(btn) {
                     if (!Array.isArray(list) || list.length === 0) { dd.style.display = 'none'; return; }
                     dd.innerHTML = '<div class="dropdown-header fs-12 text-muted">Đã có người này — click để dùng lại:</div>';
                     list.forEach(function(p) {
-                        var empTxt = (p.employments || []).map(function(e) { return e.company_name + (e.position ? ' (' + e.position + ')' : ''); }).join(', ');
+                        var empNames = (p.employments || []).map(function(e) { return escapeHtml(e.company_name + (e.position ? ' (' + e.position + ')' : '')); });
+                        var empTxt = empNames.join(', ');
+                        if (p.hidden_count > 0) {
+                            empTxt = empTxt + (empTxt ? ' ' : '') + '<span class="text-warning">(+' + (p.hidden_count|0) + ' nơi khác không có quyền xem)</span>';
+                        }
+                        if (!empTxt) empTxt = '<span class="text-muted">Chưa có nơi làm việc</span>';
                         var item = document.createElement('a');
                         item.className = 'dropdown-item py-2';
                         item.href = '#';
@@ -429,7 +434,7 @@ function checkCpPhone(btn) {
                             '<div class="flex-grow-1" style="white-space:normal">' +
                                 '<div class="fw-medium">' + escapeHtml(p.full_name || '') + '</div>' +
                                 '<div class="text-muted fs-12">' + escapeHtml(p.phone || '') + (p.email ? ' · ' + escapeHtml(p.email) : '') + '</div>' +
-                                (empTxt ? '<div class="text-muted fs-12"><i class="ri-building-line me-1"></i>' + escapeHtml(empTxt) + '</div>' : '') +
+                                '<div class="text-muted fs-12"><i class="ri-building-line me-1"></i>' + empTxt + '</div>' +
                             '</div>' +
                         '</div>';
                         item.addEventListener('click', function(e) {

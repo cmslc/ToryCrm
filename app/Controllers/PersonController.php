@@ -39,16 +39,35 @@ class PersonController extends Controller
             );
         }
 
-        // Attach current employments (active contact_persons) for context
+        // Attach current employments + filter by access (hide company names
+        // of companies the user can't access, so sale B doesn't learn where
+        // sale C's customer lists their contacts).
         foreach ($persons as &$p) {
-            $p['employments'] = Database::fetchAll(
-                "SELECT cp.id, cp.position, c.id as contact_id, COALESCE(c.company_name, c.full_name, '?') as company_name
+            $rows = Database::fetchAll(
+                "SELECT cp.id, cp.position, c.id as contact_id, c.owner_id,
+                        COALESCE(c.company_name, c.full_name, '?') as company_name
                  FROM contact_persons cp
                  LEFT JOIN contacts c ON c.id = cp.contact_id
                  WHERE cp.person_id = ? AND (cp.is_active IS NULL OR cp.is_active = 1)
-                 ORDER BY cp.id DESC LIMIT 5",
+                 ORDER BY cp.id DESC LIMIT 10",
                 [$p['id']]
             );
+            $visible = [];
+            $hiddenCount = 0;
+            foreach ($rows as $r) {
+                if ($this->canAccessOwner((int)($r['owner_id'] ?? 0), 'contacts')) {
+                    $visible[] = [
+                        'id' => $r['id'],
+                        'position' => $r['position'],
+                        'contact_id' => $r['contact_id'],
+                        'company_name' => $r['company_name'],
+                    ];
+                } else {
+                    $hiddenCount++;
+                }
+            }
+            $p['employments'] = array_slice($visible, 0, 5);
+            $p['hidden_count'] = $hiddenCount;
         }
         unset($p);
 
