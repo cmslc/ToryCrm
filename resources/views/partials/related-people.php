@@ -72,6 +72,33 @@ try {
             <?php endforeach; ?>
 
             <?php
+            // Trưởng/phó phòng của người phụ trách
+            if ($rpOwnerId) {
+                try {
+                    $ownerDept = \Core\Database::fetch("SELECT department_id FROM users WHERE id = ?", [$rpOwnerId]);
+                    if ($ownerDept && $ownerDept['department_id']) {
+                        $deptManagers = \Core\Database::fetchAll(
+                            "SELECT u.id, u.name, u.avatar, CASE WHEN d.manager_id = u.id THEN 'Trưởng phòng' ELSE 'Phó phòng' END as role_label
+                             FROM departments d JOIN users u ON (u.id = d.manager_id OR u.id = d.vice_manager_id)
+                             WHERE d.id = ? AND u.is_active = 1 AND u.id NOT IN ({$rpPlaceholders})",
+                            [$ownerDept['department_id']]
+                        );
+                        foreach ($deptManagers as $dm):
+                            $rpShownIds[] = $dm['id'];
+                        ?>
+                <span class="badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-12 fw-normal" title="<?= e($dm['role_label']) ?>">
+                    <?php if ($dm['avatar'] ?? null): ?><img src="<?= asset($dm['avatar']) ?>" class="rounded-circle" width="20" height="20" style="object-fit:cover">
+                    <?php else: ?><span class="rounded-circle bg-warning text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px"><?= mb_strtoupper(mb_substr($dm['name'], 0, 1)) ?></span><?php endif; ?>
+                    <?= e($dm['name']) ?>
+                </span>
+                        <?php endforeach;
+                    }
+                } catch (\Exception $e) {}
+                $rpPlaceholders = implode(',', array_map('intval', $rpShownIds));
+            }
+            ?>
+
+            <?php
             // Ban lãnh đạo + Người có quyền "Xem tất cả" module này
             $rpModule = $rpEntityType . 's';
             $rpPlaceholders = implode(',', array_map('intval', $rpShownIds));
