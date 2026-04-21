@@ -361,6 +361,8 @@ document.getElementById('checkinBtn')?.addEventListener('click', function() {
     var btn = this;
     btn.classList.add('text-primary');
     btn.innerHTML = '<i class="ri-loader-4-line ri-spin fs-18"></i>';
+    var ta = document.getElementById('activityTextarea');
+    if (ta && !ta.value.trim()) ta.value = 'Check in';
     navigator.geolocation.getCurrentPosition(function(pos) {
         var lat = pos.coords.latitude.toFixed(7);
         var lng = pos.coords.longitude.toFixed(7);
