@@ -174,7 +174,7 @@ class ColumnService
         ],
         'quotations' => [
             'quote_number' => 'Mã báo giá',
-            'contact_id' => 'Tìm khách hàng',
+            'contact_id' => 'Khách hàng',
             'contact_person_id' => 'Người liên hệ',
             'address' => 'Địa chỉ',
             'contact_phone' => 'Điện thoại',
