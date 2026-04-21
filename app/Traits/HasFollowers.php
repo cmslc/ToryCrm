@@ -31,4 +31,14 @@ trait HasFollowers
 
         return ['error' => 'Invalid action'];
     }
+
+    protected function handleChangeOwner(string $table, int $entityId): array
+    {
+        $body = $this->getJsonBody();
+        $ownerId = (int)($body['owner_id'] ?? $this->input('owner_id') ?? 0);
+        if (!$ownerId) return ['error' => 'Owner ID required'];
+
+        Database::update($table, ['owner_id' => $ownerId], 'id = ?', [$entityId]);
+        return ['success' => true, 'owner_id' => $ownerId];
+    }
 }

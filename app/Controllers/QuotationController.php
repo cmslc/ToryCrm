@@ -13,6 +13,11 @@ class QuotationController extends Controller
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
         return $this->json($this->handleFollowers('quotation', (int)$id));
     }
+
+    public function changeOwner($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleChangeOwner('quotations', (int)$id));
+    }
     /**
      * List quotations with filters and stats
      */

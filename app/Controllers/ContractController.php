@@ -14,6 +14,11 @@ class ContractController extends Controller
         return $this->json($this->handleFollowers('contract', (int)$id));
     }
 
+    public function changeOwner($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleChangeOwner('contracts', (int)$id));
+    }
+
     public function index()
     {
         $search = trim($this->input('search') ?? '');

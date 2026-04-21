@@ -15,6 +15,11 @@ class OrderController extends Controller
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
         return $this->json($this->handleFollowers('order', (int)$id));
     }
+
+    public function changeOwner($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleChangeOwner('orders', (int)$id));
+    }
     public function index()
     {
         $this->authorize('orders', 'view');

@@ -33,13 +33,22 @@ try {
         <!-- Phụ trách chính -->
         <label class="text-muted fs-12">Phụ trách chính</label>
         <?php $rpOwnerAvatar = null; foreach ($rpUsers as $_u) { if ($_u['id'] == $rpOwnerId) { $rpOwnerAvatar = $_u['avatar'] ?? null; break; } } ?>
-        <div class="d-flex align-items-center mb-3 p-2 bg-light rounded">
-            <?php if ($rpOwnerAvatar): ?>
-            <img src="<?= asset($rpOwnerAvatar) ?>" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover">
-            <?php else: ?>
-            <div class="avatar-xs me-2"><span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(mb_substr($rpOwnerName, 0, 1)) ?></span></div>
-            <?php endif; ?>
-            <span class="fw-medium"><?= e($rpOwnerName) ?></span>
+        <div class="d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded">
+            <div class="d-flex align-items-center">
+                <?php if ($rpOwnerAvatar): ?>
+                <img src="<?= asset($rpOwnerAvatar) ?>" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover">
+                <?php else: ?>
+                <div class="avatar-xs me-2"><span class="avatar-title bg-primary text-white rounded-circle fs-12"><?= strtoupper(mb_substr($rpOwnerName, 0, 1)) ?></span></div>
+                <?php endif; ?>
+                <span class="fw-medium" id="rpOwnerName"><?= e($rpOwnerName) ?></span>
+            </div>
+            <div class="position-relative">
+                <button type="button" class="btn btn-soft-primary py-0 px-2" id="rpChangeOwnerBtn">Đổi</button>
+                <div id="rpOwnerSearchBox" class="position-absolute end-0 bg-white border rounded shadow p-2" style="display:none;width:250px;z-index:1060;top:100%;margin-top:4px">
+                    <input type="text" class="form-control mb-1" id="rpOwnerSearchInput" placeholder="Tìm người..." autocomplete="off">
+                    <div id="rpOwnerSearchResults" style="max-height:200px;overflow-y:auto"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Người liên quan -->
@@ -131,9 +140,12 @@ try {
             if (data.success) {
                 existing.push(uid);
                 var badge = document.createElement('span');
-                badge.className = 'badge bg-info-subtle text-info d-inline-flex align-items-center gap-1 py-1 px-2';
+                badge.className = 'badge bg-light text-dark d-inline-flex align-items-center gap-1 py-1 px-2 border fs-12 fw-normal';
                 badge.dataset.uid = uid;
-                badge.innerHTML = name + ' <i class="ri-close-line" style="cursor:pointer;font-size:14px" onclick="rpRemoveFollower(' + uid + ', this)"></i>';
+                var av = '';
+                users.forEach(function(u2) { if (u2.id === uid && u2.avatar) av = u2.avatar; });
+                var avHtml = av ? '<img src="/' + av + '" class="rounded-circle" width="20" height="20" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px">' + name.charAt(0).toUpperCase() + '</span>';
+                badge.innerHTML = avHtml + ' ' + name + ' <i class="ri-close-line text-muted" style="cursor:pointer;font-size:14px" onclick="rpRemoveFollower(' + uid + ', this)"></i>';
                 tags.appendChild(badge);
                 input.value = '';
                 dropdown.style.display = 'none';
@@ -150,6 +162,47 @@ try {
             if (data.success) {
                 existing = existing.filter(function(id) { return id !== uid; });
                 el.closest('.badge').remove();
+            }
+        });
+    };
+
+    // Change owner
+    var ownerBtn = document.getElementById('rpChangeOwnerBtn');
+    var ownerBox = document.getElementById('rpOwnerSearchBox');
+    var ownerInput = document.getElementById('rpOwnerSearchInput');
+    var ownerResults = document.getElementById('rpOwnerSearchResults');
+
+    ownerBtn?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        ownerBox.style.display = ownerBox.style.display === 'none' ? 'block' : 'none';
+        if (ownerBox.style.display === 'block') { ownerInput.value = ''; renderOwnerList(''); ownerInput.focus(); }
+    });
+
+    function renderOwnerList(q) {
+        var filtered = users.filter(function(u) { return !q || u.name.toLowerCase().indexOf(q.toLowerCase()) !== -1; }).slice(0, 10);
+        ownerResults.innerHTML = filtered.map(function(u) {
+            var av = u.avatar ? '<img src="/' + u.avatar + '" class="rounded-circle me-2" width="24" height="24" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width:24px;height:24px;font-size:10px">' + u.name.charAt(0).toUpperCase() + '</span>';
+            return '<div class="d-flex align-items-center px-2 py-1 rounded" style="cursor:pointer" onmousedown="rpChangeOwner(' + u.id + ',\'' + u.name.replace(/'/g, "\\'") + '\',\'' + (u.avatar || '').replace(/'/g, "\\'") + '\')">' + av + '<span>' + u.name + '</span></div>';
+        }).join('');
+    }
+
+    ownerInput?.addEventListener('input', function() { renderOwnerList(this.value); });
+    document.addEventListener('click', function(e) { if (ownerBox && !ownerBox.contains(e.target) && e.target !== ownerBtn) ownerBox.style.display = 'none'; });
+
+    window.rpChangeOwner = function(uid, name, avatar) {
+        fetch('<?= url("") ?>' + entityType + 's/' + entityId + '/change-owner', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'X-CSRF-TOKEN': tok},
+            body: JSON.stringify({ owner_id: uid })
+        }).then(r => r.json()).then(function(data) {
+            if (data.success || data.owner_id) {
+                var nameEl = document.getElementById('rpOwnerName');
+                if (nameEl) nameEl.textContent = name;
+                var imgContainer = nameEl?.closest('.d-flex')?.querySelector('img, .avatar-xs');
+                if (imgContainer && avatar) {
+                    imgContainer.outerHTML = '<img src="/' + avatar + '" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover">';
+                }
+                ownerBox.style.display = 'none';
             }
         });
     };
