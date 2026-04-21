@@ -107,11 +107,12 @@ Sau import hoặc nhập tay, có thể 2 `persons` khác nhau nhưng cùng SĐT
 
 ## 6. Vấn đề còn tồn tại / việc nên làm tiếp
 
-| # | Gap | Ưu tiên |
+| # | Gap | Ưu tiên / trạng thái |
 |---|---|---|
-| 1 | Form sửa person profile — hiện chỉ edit qua từng employment | Cao |
-| 2 | Toggle `is_hidden` (person VIP ẩn khỏi search) | Trung |
-| 3 | Xoá person | Trung |
-| 4 | Unique index `(tenant_id, phone)` trên persons — chặn race condition ở tầng DB | Thấp |
-| 5 | Import Excel — dedupe theo SĐT person (hiện `ImportService` không import contact_persons, chưa cần) | Thấp |
-| 6 | GetflySyncController đã cập nhật để gọi `PersonService::findOrCreate` | ✅ Đã làm |
+| 1 | Form sửa person profile (`/persons/{id}/edit`) | ✅ Đã làm |
+| 2 | Toggle `is_hidden` (person VIP ẩn khỏi search) | ✅ Đã làm |
+| 3 | Xoá person (chặn nếu còn contact_persons) | ✅ Đã làm |
+| 4 | UI `start_date` / `end_date` / `is_active` trong form contact_persons | ✅ Đã làm |
+| 5 | `GetflySyncController` dùng `PersonService::findOrCreate` | ✅ Đã làm |
+| 6 | Unique index `(tenant_id, phone)` trên persons | Bỏ qua (Phase 4 đủ dùng) |
+| 7 | Import Excel dedupe | Chưa cần (`ImportService` không import contact_persons) |
