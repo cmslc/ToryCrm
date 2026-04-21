@@ -283,6 +283,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('purchase-orders/{id}/approve', 'PurchaseOrderController@approve');
     Router::post('purchase-orders/{id}/cancel', 'PurchaseOrderController@cancel');
     Router::post('purchase-orders/{id}/payment', 'PurchaseOrderController@payment');
+    Router::post('purchase-orders/{id}/followers', 'PurchaseOrderController@followers');
+    Router::post('purchase-orders/{id}/change-owner', 'PurchaseOrderController@changeOwner');
     Router::post('purchase-orders/{id}/delete', 'PurchaseOrderController@delete');
 
     // Quotations (Báo giá)

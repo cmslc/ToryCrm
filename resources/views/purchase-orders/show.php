@@ -117,11 +117,16 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                     <div class="card-body"><?= nl2br(e($order['notes'])) ?></div>
                 </div>
                 <?php endif; ?>
+                <!-- Trao đổi (Plugin) -->
+                <?php if (function_exists('activity_exchange_render')) activity_exchange_render('purchase_order', $order['id']); ?>
             </div>
 
             <div class="col-lg-4">
+                <!-- Người liên quan -->
+                <?php $rpEntityType = 'purchase_order'; $rpEntityId = $order['id']; $rpOwnerId = $order['owner_id'] ?? 0; $rpOwnerName = $order['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
+
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0">Thông tin</h5></div>
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-information-line me-1"></i> Thông tin</h5></div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-3">
                             <span class="text-muted">Ngày dự kiến nhận</span>

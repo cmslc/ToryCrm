@@ -8,8 +8,21 @@ use App\Models\PurchaseOrder;
 
 class PurchaseOrderController extends Controller
 {
+    use \App\Traits\HasFollowers;
+
+    public function followers($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleFollowers('purchase_order', (int)$id));
+    }
+
+    public function changeOwner($id) {
+        if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
+        return $this->json($this->handleChangeOwner('purchase_orders', (int)$id));
+    }
+
     public function index()
     {
+        $this->authorize('purchase_orders', 'view');
         $model = new PurchaseOrder();
         $page = max(1, (int) $this->input('page') ?: 1);
 
@@ -33,6 +46,7 @@ class PurchaseOrderController extends Controller
 
     public function create()
     {
+        $this->authorize('purchase_orders', 'create');
         $model = new PurchaseOrder();
         $orderCode = $model->generateCode();
         $suppliers = Database::fetchAll("SELECT id, name FROM companies ORDER BY name");
@@ -99,6 +113,7 @@ class PurchaseOrderController extends Controller
 
     public function show($id)
     {
+        $this->authorize('purchase_orders', 'view');
         $order = Database::fetch(
             "SELECT po.*, s.name as supplier_name, s.phone as supplier_phone, s.email as supplier_email, s.address as supplier_address,
                     u.name as owner_name, ua.name as approved_by_name
@@ -114,6 +129,10 @@ class PurchaseOrderController extends Controller
             $this->setFlash('error', 'Đơn mua không tồn tại.');
             return $this->redirect('purchase-orders');
         }
+        if (!$this->canAccessEntity('purchase_order', (int)$id, $order['owner_id'] ?? null)) {
+            $this->setFlash('error', 'Bạn không có quyền truy cập.');
+            return $this->redirect('purchase-orders');
+        }
 
         $model = new PurchaseOrder();
         $items = $model->getItems($id);
@@ -126,6 +145,7 @@ class PurchaseOrderController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('purchase_orders', 'edit');
         $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
         if (!$order) {
             $this->setFlash('error', 'Đơn mua không tồn tại.');
@@ -149,6 +169,7 @@ class PurchaseOrderController extends Controller
 
     public function update($id)
     {
+        $this->authorize('purchase_orders', 'edit');
         if (!$this->isPost()) return $this->redirect('purchase-orders/' . $id);
 
         $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);
@@ -253,6 +274,7 @@ class PurchaseOrderController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('purchase_orders', 'delete');
         if (!$this->isPost()) return $this->redirect('purchase-orders');
 
         $order = Database::fetch("SELECT * FROM purchase_orders WHERE id = ?", [$id]);

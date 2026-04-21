@@ -32,6 +32,7 @@ $hierarchy = [
                     'Báo giá' => ['quotations' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all']],
                     'Hợp đồng bán' => ['contracts' => ['view', 'create', 'edit', 'delete', 'approve', 'payment', 'view_department', 'view_all']],
                     'Đơn hàng bán' => ['orders' => ['view', 'create', 'edit', 'delete', 'approve', 'payment', 'view_department', 'view_all']],
+                    'Đơn hàng mua' => ['purchase_orders' => ['view', 'create', 'edit', 'delete', 'approve', 'view_department', 'view_all']],
                 ],
             ],
             'Dùng chung' => [
