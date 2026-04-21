@@ -24,7 +24,7 @@ if (!function_exists('flattenDeptTree')) {
 }
 flattenDeptTree($tree, 0, $flatList);
 $activeView = $_GET['view'] ?? 'chart';
-$_isAdmin = is_admin();
+$_isAdmin = \App\Services\PermissionService::isInSystemGroup($GLOBALS['user']['id'] ?? 0);
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
