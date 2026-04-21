@@ -8,11 +8,17 @@ class InsightEngine
 {
     private int $tenantId;
     private int $userId;
+    /** @var int[]|null null = unrestricted (admin/view_all), array = scope to these user IDs */
+    private ?array $visibleUserIds = null;
 
-    public function generateDailyInsights(int $tenantId, int $userId): void
+    /**
+     * @param int[]|null $visibleUserIds null = unrestricted (admin or view_all users), otherwise the scope of user IDs whose data this user may see.
+     */
+    public function generateDailyInsights(int $tenantId, int $userId, ?array $visibleUserIds = null): void
     {
         $this->tenantId = $tenantId;
         $this->userId = $userId;
+        $this->visibleUserIds = $visibleUserIds;
 
         Database::query(
             "DELETE FROM smart_insights WHERE tenant_id = ? AND user_id = ? AND DATE(created_at) = CURDATE()",
@@ -27,14 +33,22 @@ class InsightEngine
         $this->getTopPerformers();
     }
 
+    private function scopeSql(string $col): string
+    {
+        if ($this->visibleUserIds === null) return '';
+        if (empty($this->visibleUserIds)) return " AND {$col} = " . (int)$this->userId;
+        return " AND {$col} IN (" . implode(',', array_map('intval', $this->visibleUserIds)) . ")";
+    }
+
     private function getDealsToClose(): void
     {
+        $scope = $this->scopeSql('d.owner_id');
         $deals = Database::fetchAll(
             "SELECT d.id, d.title, d.value, d.expected_close_date, c.first_name, c.last_name
              FROM deals d
              LEFT JOIN contacts c ON d.contact_id = c.id
              WHERE d.tenant_id = ? AND d.status = 'open'
-               AND d.expected_close_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+               AND d.expected_close_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY){$scope}
              ORDER BY d.value DESC
              LIMIT 5",
             [$this->tenantId]
@@ -60,13 +74,14 @@ class InsightEngine
 
     private function getInactiveContacts(): void
     {
+        $scope = $this->scopeSql('c.owner_id');
         $contacts = Database::fetchAll(
             "SELECT c.id, c.first_name, c.last_name, c.email,
                     MAX(a.created_at) as last_activity,
                     DATEDIFF(NOW(), COALESCE(MAX(a.created_at), c.created_at)) as days_inactive
              FROM contacts c
              LEFT JOIN activities a ON a.contact_id = c.id
-             WHERE c.tenant_id = ? AND c.is_deleted = 0
+             WHERE c.tenant_id = ? AND c.is_deleted = 0{$scope}
              GROUP BY c.id, c.first_name, c.last_name, c.email, c.created_at
              HAVING days_inactive >= 30
              ORDER BY days_inactive DESC
@@ -90,12 +105,21 @@ class InsightEngine
 
     private function getOverdueTasks(): void
     {
+        // Task có thể assign nhiều người qua task_users, hoặc chỉ có created_by
+        $assigneeFilter = '';
+        $params = [$this->tenantId];
+        if ($this->visibleUserIds !== null) {
+            $ids = $this->visibleUserIds ?: [$this->userId];
+            $placeholders = implode(',', array_map('intval', $ids));
+            $assigneeFilter = " AND (t.created_by IN ({$placeholders}) OR EXISTS (SELECT 1 FROM task_users tu WHERE tu.task_id = t.id AND tu.user_id IN ({$placeholders})))";
+        }
+
         $result = Database::fetch(
             "SELECT COUNT(*) as count
-             FROM tasks
-             WHERE tenant_id = ? AND is_deleted = 0
-               AND due_date < NOW() AND status != 'done'",
-            [$this->tenantId]
+             FROM tasks t
+             WHERE t.tenant_id = ? AND t.is_deleted = 0
+               AND t.due_date < NOW() AND t.status != 'done'{$assigneeFilter}",
+            $params
         );
 
         $count = (int)($result['count'] ?? 0);
@@ -116,12 +140,14 @@ class InsightEngine
 
     private function getRevenueForecast(): void
     {
+        $scope = $this->scopeSql('owner_id');
+        $scopeD = $this->scopeSql('d.owner_id');
         $thisMonth = Database::fetch(
             "SELECT COALESCE(SUM(value), 0) as total
              FROM deals
              WHERE tenant_id = ? AND status = 'won'
                AND YEAR(actual_close_date) = YEAR(CURDATE())
-               AND MONTH(actual_close_date) = MONTH(CURDATE())",
+               AND MONTH(actual_close_date) = MONTH(CURDATE()){$scope}",
             [$this->tenantId]
         );
 
@@ -130,7 +156,7 @@ class InsightEngine
              FROM deals
              WHERE tenant_id = ? AND status = 'won'
                AND YEAR(actual_close_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
-               AND MONTH(actual_close_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))",
+               AND MONTH(actual_close_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)){$scope}",
             [$this->tenantId]
         );
 
@@ -138,13 +164,15 @@ class InsightEngine
             "SELECT COALESCE(SUM(d.value * COALESCE(ds.probability, 50) / 100), 0) as forecast
              FROM deals d
              LEFT JOIN deal_stages ds ON d.stage_id = ds.id
-             WHERE d.tenant_id = ? AND d.status = 'open'",
+             WHERE d.tenant_id = ? AND d.status = 'open'{$scopeD}",
             [$this->tenantId]
         );
 
         $thisTotal = (float)($thisMonth['total'] ?? 0);
         $lastTotal = (float)($lastMonth['total'] ?? 0);
         $forecast = (float)($pipeline['forecast'] ?? 0);
+
+        if ($thisTotal == 0 && $lastTotal == 0 && $forecast == 0) return;
 
         $change = $lastTotal > 0 ? round(($thisTotal - $lastTotal) / $lastTotal * 100) : 0;
         $arrow = $change >= 0 ? 'tăng' : 'giảm';
@@ -164,12 +192,13 @@ class InsightEngine
 
     private function getAtRiskDeals(): void
     {
+        $scope = $this->scopeSql('d.owner_id');
         $deals = Database::fetchAll(
             "SELECT d.id, d.title, d.value,
                     DATEDIFF(NOW(), COALESCE(MAX(a.created_at), d.created_at)) as days_inactive
              FROM deals d
              LEFT JOIN activities a ON a.deal_id = d.id
-             WHERE d.tenant_id = ? AND d.status = 'open'
+             WHERE d.tenant_id = ? AND d.status = 'open'{$scope}
              GROUP BY d.id, d.title, d.value, d.created_at
              HAVING days_inactive >= 14
              ORDER BY d.value DESC
@@ -194,6 +223,9 @@ class InsightEngine
 
     private function getTopPerformers(): void
     {
+        // Top performers chỉ hiển thị cho user thấy toàn bộ (admin/view_all)
+        if ($this->visibleUserIds !== null) return;
+
         $performers = Database::fetchAll(
             "SELECT u.name, COUNT(d.id) as won_count, SUM(d.value) as total_value
              FROM deals d

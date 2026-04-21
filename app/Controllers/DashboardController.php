@@ -27,8 +27,13 @@ class DashboardController extends Controller
                 [$tid, $uid]
             );
             if (((int)($todayInsights['c'] ?? 0)) === 0) {
+                // null = unrestricted (admin/view_all), array = scope to these user IDs
+                $scopeIds = null;
+                if (!$isAdmin && !\App\Services\PermissionService::can('contacts', 'view_all')) {
+                    $scopeIds = $this->getVisibleUserIds() ?? [$uid];
+                }
                 $engine = new InsightEngine();
-                $engine->generateDailyInsights($tid, $uid);
+                $engine->generateDailyInsights($tid, $uid, $scopeIds);
             }
         } catch (\Exception $e) {
             // Table may not exist yet
