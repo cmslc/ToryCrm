@@ -106,9 +106,21 @@ class PermissionService
     {
         if (self::$isSystemGroup !== null) return self::$isSystemGroup;
 
+        // Check if permissions were updated since last cache
         if (isset($_SESSION['user']['is_system_group'])) {
-            self::$isSystemGroup = $_SESSION['user']['is_system_group'];
-            return self::$isSystemGroup;
+            try {
+                $updated = Database::fetch("SELECT value FROM tenant_settings WHERE setting_key = 'permissions_updated_at' AND tenant_id = ?", [Database::tenantId()]);
+                $cachedAt = $_SESSION['user']['perms_cached_at'] ?? 0;
+                if ($updated && (int)$updated['value'] > (int)$cachedAt) {
+                    unset($_SESSION['user']['is_system_group'], $_SESSION['user']['permission_group_ids']);
+                } else {
+                    self::$isSystemGroup = $_SESSION['user']['is_system_group'];
+                    return self::$isSystemGroup;
+                }
+            } catch (\Exception $e) {
+                self::$isSystemGroup = $_SESSION['user']['is_system_group'];
+                return self::$isSystemGroup;
+            }
         }
 
         $groupIds = self::getUserGroupIds($userId);
@@ -126,6 +138,7 @@ class PermissionService
 
         if (isset($_SESSION['user'])) {
             $_SESSION['user']['is_system_group'] = self::$isSystemGroup;
+            $_SESSION['user']['perms_cached_at'] = time();
         }
 
         return self::$isSystemGroup;
@@ -281,7 +294,16 @@ class PermissionService
         self::$isSystemGroup = null;
         self::$groupPerms = null;
         self::$ancestorCache = [];
-        // Clear session cache
+        // Clear session cache for current user
         unset($_SESSION['user']['permission_group_ids'], $_SESSION['user']['is_system_group']);
+        // Invalidate all permission caches by updating global timestamp
+        try {
+            Database::query("UPDATE tenant_settings SET value = ? WHERE setting_key = 'permissions_updated_at' AND tenant_id = ?", [time(), Database::tenantId()]);
+            if (Database::fetch("SELECT 1 FROM tenant_settings WHERE setting_key = 'permissions_updated_at' AND tenant_id = ?", [Database::tenantId()]) === false) {
+                Database::query("INSERT IGNORE INTO tenant_settings (tenant_id, setting_key, value) VALUES (?, 'permissions_updated_at', ?)", [Database::tenantId(), time()]);
+            }
+        } catch (\Exception $e) {
+            // tenant_settings table may not exist yet
+        }
     }
 }
