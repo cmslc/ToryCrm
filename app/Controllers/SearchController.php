@@ -9,6 +9,15 @@ class SearchController extends Controller
 {
     public function index()
     {
+        // Rate limit to prevent scraping: max 60 searches / user / minute
+        $uid = $_SESSION['user']['id'] ?? 0;
+        if ($uid && !\App\Services\RateLimiter::attempt('search:' . $uid, 60, 1)) {
+            if ($this->input('format') === 'json') {
+                return $this->json(['error' => 'Quá nhiều yêu cầu. Chờ 1 phút.'], 429);
+            }
+            $this->setFlash('error', 'Quá nhiều yêu cầu tìm kiếm. Chờ 1 phút.');
+            return $this->redirect('dashboard');
+        }
         $q = trim($this->input('q') ?? '');
 
         if (empty($q)) {

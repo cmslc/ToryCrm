@@ -94,6 +94,11 @@ class ImportExportController extends Controller
     public function exportContacts()
     {
         $this->authorize('contacts', 'view');
+        // Rate limit export: 10/hour/user (prevents bulk scraping)
+        if (!\App\Services\RateLimiter::attempt('export:' . $this->userId(), 10, 60)) {
+            $this->setFlash('error', 'Vượt giới hạn 10 export/giờ. Thử lại sau.');
+            return $this->redirect('import-export');
+        }
         $filters = [];
 
         $dateFrom = $this->input('date_from');
@@ -122,6 +127,10 @@ class ImportExportController extends Controller
     public function exportProducts()
     {
         $this->authorize('products', 'view');
+        if (!\App\Services\RateLimiter::attempt('export:' . $this->userId(), 10, 60)) {
+            $this->setFlash('error', 'Vượt giới hạn 10 export/giờ. Thử lại sau.');
+            return $this->redirect('import-export');
+        }
         $filters = [];
 
         $dateFrom = $this->input('date_from');
