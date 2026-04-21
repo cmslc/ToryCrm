@@ -71,27 +71,6 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 </li>
                 <?php endif; ?>
 
-                <?php if (canSee('deals')): ?>
-                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns','workflows','automation'], $currentUrl); ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
-                        <i class="ri-hand-coin-line"></i> <span>Marketing</span>
-                    </a>
-                    <div class="collapse menu-dropdown <?= $dealOpen ? 'show' : '' ?>" id="sidebarDeals">
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('deals') ?>" class="nav-link <?= isActive('deals', $currentUrl) && !str_contains($currentUrl, 'pipeline') && !str_contains($currentUrl, 'forecast') ? 'active' : '' ?>">Các cơ hội</a></li>
-                            <li class="nav-item"><a href="<?= url('deals/pipeline') ?>" class="nav-link <?= isActive('deals/pipeline', $currentUrl) ?>">Pipeline</a></li>
-                            <li class="nav-item"><a href="<?= url('deals/forecast') ?>" class="nav-link <?= isActive('deals/forecast', $currentUrl) ?>">Dự báo</a></li>
-                            <?php if (plugin_active('lead-forms')): ?><li class="nav-item"><a href="<?= url('lead-forms') ?>" class="nav-link <?= isActive('lead-forms', $currentUrl) ?>">Lead Forms</a></li><?php endif; ?>
-                            <?php if (canSee('campaigns')): ?>
-                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch Email</a></li>
-                            <?php endif; ?>
-                            <?php if (canSee('automation')): ?><li class="nav-item"><a href="<?= url('workflows') ?>" class="nav-link <?= isActive(['workflows','automation'], $currentUrl) ?>">Tự động hóa</a></li><?php endif; ?>
-                        </ul>
-                    </div>
-                </li>
-                <?php endif; ?>
-
                 <?php if (canSee('products') || canSee('orders')): ?>
                 <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations','contracts','warehouses'], $currentUrl); ?>
                 <li class="nav-item">
@@ -160,6 +139,27 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <?php if (plugin_active('booking')): ?><li class="nav-item"><a href="<?= url('bookings/create') ?>" class="nav-link <?= isActive('bookings', $currentUrl) ?>">Đặt lịch hẹn</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('activities') ?>" class="nav-link <?= isActive('activities', $currentUrl) ?>">Hoạt động</a></li>
                             <?php if (plugin_active('checkin')): ?><li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li><?php endif; ?>
+                        </ul>
+                    </div>
+                </li>
+                <?php endif; ?>
+
+                <?php if (canSee('deals')): ?>
+                <?php $dealOpen = isOpen(['deals','deals/pipeline','deals/forecast','lead-forms','campaigns','workflows','automation'], $currentUrl); ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= $dealOpen ? '' : 'collapsed' ?>" href="#sidebarDeals" data-bs-toggle="collapse" role="button" aria-expanded="<?= $dealOpen ? 'true' : 'false' ?>">
+                        <i class="ri-hand-coin-line"></i> <span>Marketing</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?= $dealOpen ? 'show' : '' ?>" id="sidebarDeals">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item"><a href="<?= url('deals') ?>" class="nav-link <?= isActive('deals', $currentUrl) && !str_contains($currentUrl, 'pipeline') && !str_contains($currentUrl, 'forecast') ? 'active' : '' ?>">Các cơ hội</a></li>
+                            <li class="nav-item"><a href="<?= url('deals/pipeline') ?>" class="nav-link <?= isActive('deals/pipeline', $currentUrl) ?>">Pipeline</a></li>
+                            <li class="nav-item"><a href="<?= url('deals/forecast') ?>" class="nav-link <?= isActive('deals/forecast', $currentUrl) ?>">Dự báo</a></li>
+                            <?php if (plugin_active('lead-forms')): ?><li class="nav-item"><a href="<?= url('lead-forms') ?>" class="nav-link <?= isActive('lead-forms', $currentUrl) ?>">Lead Forms</a></li><?php endif; ?>
+                            <?php if (canSee('campaigns')): ?>
+                            <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch Email</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('automation')): ?><li class="nav-item"><a href="<?= url('workflows') ?>" class="nav-link <?= isActive(['workflows','automation'], $currentUrl) ?>">Tự động hóa</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
