@@ -127,6 +127,7 @@ class ProductController extends Controller
         }
 
         $productId = Database::insert('products', [
+            'tenant_id' => Database::tenantId(),
             'name' => $name,
             'sku' => trim($data['sku'] ?? '') ?: null,
             'category_id' => !empty($data['category_id']) ? $data['category_id'] : null,

@@ -21,6 +21,8 @@ class ContractController extends Controller
 
     public function index()
     {
+        $this->authorize('contracts', 'view');
+        $tid = Database::tenantId();
         $search = trim($this->input('search') ?? '');
         $status = $this->input('status');
         $type = $this->input('type');
@@ -31,8 +33,8 @@ class ContractController extends Controller
         $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
         $offset = ($page - 1) * $perPage;
 
-        $where = ["ct.is_deleted = 0"];
-        $params = [];
+        $where = ["ct.is_deleted = 0", "ct.tenant_id = ?"];
+        $params = [$tid];
 
         if ($search) {
             $where[] = "(ct.contract_number LIKE ? OR ct.title LIKE ? OR ct.contract_code LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR c.company_name LIKE ?)";
@@ -88,18 +90,21 @@ class ContractController extends Controller
 
         $totalPages = ceil($total / $perPage);
 
-        // Stats per status
+        // Stats per status — tenant-scoped + owner-scoped
+        $ownerScopeSql = $this->getOwnerScopeSql('owner_id', 'contracts');
         $statusCounts = Database::fetchAll(
-            "SELECT status, COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 GROUP BY status"
+            "SELECT status, COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 AND tenant_id = ?{$ownerScopeSql} GROUP BY status",
+            [$tid]
         );
         $stats = [];
         $totalAll = 0;
         foreach ($statusCounts as $sc2) { $stats[$sc2['status']] = (int)$sc2['cnt']; $totalAll += (int)$sc2['cnt']; }
         $stats['expiring_soon'] = (int)(Database::fetch(
-            "SELECT COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 AND status IN ('in_progress','active') AND end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND end_date >= CURDATE()"
+            "SELECT COUNT(*) as cnt FROM contracts WHERE is_deleted = 0 AND tenant_id = ? AND status IN ('in_progress','active') AND end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) AND end_date >= CURDATE(){$ownerScopeSql}",
+            [$tid]
         )['cnt'] ?? 0);
 
-        $contactList = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
+        $contactList = Database::fetchAll("SELECT id, first_name, last_name, company_name FROM contacts WHERE is_deleted = 0 AND tenant_id = ? ORDER BY first_name LIMIT 500", [$tid]);
 
         $displayColumns = \App\Services\ColumnService::getColumns('contracts');
 
@@ -127,13 +132,15 @@ class ContractController extends Controller
 
     public function create()
     {
+        $this->authorize('contracts', 'create');
+        $tid = Database::tenantId();
         $contractNumber = $this->generateContractNumber();
-        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name, address, phone, fax, tax_code FROM contacts WHERE is_deleted = 0 ORDER BY first_name LIMIT 500");
-        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
-        $products = Database::fetchAll("SELECT id, sku, name, price, unit, tax_rate FROM products WHERE is_deleted = 0 ORDER BY name LIMIT 500");
-        $companies = Database::fetchAll("SELECT id, name, address, phone, tax_code FROM companies WHERE is_deleted = 0 ORDER BY name LIMIT 500");
-        $allContracts = Database::fetchAll("SELECT id, contract_number, title FROM contracts WHERE is_deleted = 0 ORDER BY created_at DESC LIMIT 200");
-        $quotes = Database::fetchAll("SELECT o.id, o.order_number, CONCAT(c.first_name, ' ', COALESCE(c.last_name,'')) as contact_name FROM orders o LEFT JOIN contacts c ON o.contact_id = c.id WHERE o.type = 'quote' AND o.is_deleted = 0 ORDER BY o.created_at DESC LIMIT 100");
+        $contacts = Database::fetchAll("SELECT id, first_name, last_name, company_name, address, phone, fax, tax_code FROM contacts WHERE is_deleted = 0 AND tenant_id = ? ORDER BY first_name LIMIT 500", [$tid]);
+        $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 AND u.tenant_id = ? ORDER BY d.name, u.name", [$tid]);
+        $products = Database::fetchAll("SELECT id, sku, name, price, unit, tax_rate FROM products WHERE is_deleted = 0 AND tenant_id = ? ORDER BY name LIMIT 500", [$tid]);
+        $companies = Database::fetchAll("SELECT id, name, address, phone, tax_code FROM companies WHERE is_deleted = 0 AND tenant_id = ? ORDER BY name LIMIT 500", [$tid]);
+        $allContracts = Database::fetchAll("SELECT id, contract_number, title FROM contracts WHERE is_deleted = 0 AND tenant_id = ? ORDER BY created_at DESC LIMIT 200", [$tid]);
+        $quotes = Database::fetchAll("SELECT q.id, q.quote_number as order_number, CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) as contact_name FROM quotations q LEFT JOIN contacts c ON q.contact_id = c.id WHERE q.tenant_id = ? ORDER BY q.created_at DESC LIMIT 100", [$tid]);
 
         $branding = \App\Services\BrandingService::get();
 
@@ -167,6 +174,11 @@ class ContractController extends Controller
         if (empty($data['title'])) {
             $this->setFlash('error', 'Vui lòng nhập tiêu đề hợp đồng.');
             return $this->back();
+        }
+
+        if (!empty($data['contact_id'])) {
+            $contactOk = Database::fetch("SELECT id FROM contacts WHERE id = ? AND tenant_id = ?", [$data['contact_id'], Database::tenantId()]);
+            if (!$contactOk) { $this->setFlash('error', 'Khách hàng không hợp lệ.'); return $this->back(); }
         }
 
         $contractNumber = !empty($data['contract_number']) ? $data['contract_number'] : $this->generateContractNumber();
@@ -308,6 +320,11 @@ class ContractController extends Controller
     public function show($id)
     {
         $this->authorize('contracts', 'view');
+        $ownerCheck = Database::fetch("SELECT owner_id FROM contracts WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if ($ownerCheck && !$this->canAccessEntity('contract', (int)$id, (int)($ownerCheck['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Bạn không có quyền xem hợp đồng này.');
+            return $this->redirect('contracts');
+        }
         $contract = Database::fetch(
             "SELECT ct.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
@@ -417,7 +434,11 @@ class ContractController extends Controller
     public function edit($id)
     {
         $this->authorize('contracts', 'edit');
-        $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND is_deleted = 0", [$id]);
+        $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND tenant_id = ? AND is_deleted = 0", [$id, Database::tenantId()]);
+        if ($contract && !$this->canAccessEntity('contract', (int)$id, (int)($contract['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Bạn không có quyền sửa hợp đồng này.');
+            return $this->redirect('contracts');
+        }
         if (!$contract) {
             $this->setFlash('error', 'Hợp đồng không tồn tại.');
             return $this->redirect('contracts');
@@ -483,8 +504,13 @@ class ContractController extends Controller
     public function update($id)
     {
         if (!$this->isPost()) return $this->redirect('contracts/' . $id);
+        $this->authorize('contracts', 'edit');
 
-        $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND is_deleted = 0", [$id]);
+        $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND tenant_id = ? AND is_deleted = 0", [$id, Database::tenantId()]);
+        if ($contract && !$this->canAccessEntity('contract', (int)$id, (int)($contract['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Bạn không có quyền sửa hợp đồng này.');
+            return $this->redirect('contracts');
+        }
         if (!$contract) {
             $this->setFlash('error', 'Hợp đồng không tồn tại.');
             return $this->redirect('contracts');
@@ -841,9 +867,13 @@ class ContractController extends Controller
         $this->authorize('contracts', 'delete');
         if (!$this->isPost()) return $this->redirect('contracts/' . $id);
 
-        $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND is_deleted = 0", [$id]);
+        $contract = Database::fetch("SELECT * FROM contracts WHERE id = ? AND tenant_id = ? AND is_deleted = 0", [$id, Database::tenantId()]);
         if (!$contract) {
             $this->setFlash('error', 'Hợp đồng không tồn tại.');
+            return $this->redirect('contracts');
+        }
+        if (!$this->canAccessEntity('contract', (int)$id, (int)($contract['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
             return $this->redirect('contracts');
         }
 

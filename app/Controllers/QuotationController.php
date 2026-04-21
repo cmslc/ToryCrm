@@ -187,8 +187,14 @@ class QuotationController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('quotations');
         }
+        $this->authorize('quotations', 'create');
 
         $data = $this->allInput();
+        // Verify contact_id belongs to current tenant (prevent cross-tenant reference)
+        if (!empty($data['contact_id'])) {
+            $contactOk = Database::fetch("SELECT id FROM contacts WHERE id = ? AND tenant_id = ?", [$data['contact_id'], Database::tenantId()]);
+            if (!$contactOk) { $this->setFlash('error', 'Khách hàng không hợp lệ.'); return $this->back(); }
+        }
         $quoteNumber = $this->generateQuoteNumber();
         $portalToken = bin2hex(random_bytes(32));
 
@@ -308,6 +314,11 @@ class QuotationController extends Controller
     {
         $this->authorize('quotations', 'view');
         $id = (int)$id;
+        $ownerCheck = Database::fetch("SELECT owner_id FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if ($ownerCheck && !$this->canAccessEntity('quotation', $id, (int)($ownerCheck['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Bạn không có quyền xem báo giá này.');
+            return $this->redirect('quotations');
+        }
         $quotation = Database::fetch(
             "SELECT q.*,
                     c.company_name as c_company_name, c.full_name as c_full_name,
@@ -368,11 +379,16 @@ class QuotationController extends Controller
      */
     public function edit($id)
     {
+        $this->authorize('quotations', 'edit');
         $tid = Database::tenantId();
         $quotation = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, $tid]);
 
         if (!$quotation) {
             $this->setFlash('error', 'Báo giá không tồn tại.');
+            return $this->redirect('quotations');
+        }
+        if (!$this->canAccessEntity('quotation', (int)$id, (int)($quotation['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Bạn không có quyền sửa báo giá này.');
             return $this->redirect('quotations');
         }
 
@@ -534,8 +550,10 @@ class QuotationController extends Controller
     public function submitForApproval($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('quotations', 'edit');
         $q = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$q) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('quotations'); }
+        if (!$this->canAccessEntity('quotation', (int)$id, (int)($q['owner_id'] ?? 0))) { $this->setFlash('error', 'Không có quyền.'); return $this->redirect('quotations'); }
 
         Database::update('quotations', ['status' => 'pending'], 'id = ?', [$id]);
         $this->setFlash('success', 'Đã gửi duyệt báo giá.');
@@ -545,6 +563,7 @@ class QuotationController extends Controller
     public function approve($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('quotations', 'approve');
         $q = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$q) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('quotations'); }
 
@@ -556,6 +575,7 @@ class QuotationController extends Controller
     public function rejectApproval($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('quotations', 'approve');
         $q = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$q) { $this->setFlash('error', 'Không tìm thấy.'); return $this->redirect('quotations'); }
 
@@ -575,14 +595,22 @@ class QuotationController extends Controller
     public function delete($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations');
+        $this->authorize('quotations', 'delete');
 
         $quotation = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$quotation) {
             $this->setFlash('error', 'Báo giá không tồn tại.');
             return $this->redirect('quotations');
         }
+        if (!$this->canAccessEntity('quotation', (int)$id, (int)($quotation['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('quotations');
+        }
 
+        // Cascade delete: items + attachments + followers
         Database::delete('quotation_items', 'quotation_id = ?', [$id]);
+        Database::query("DELETE FROM quotation_attachments WHERE quotation_id = ?", [$id]);
+        Database::query("DELETE FROM quotation_followers WHERE quotation_id = ?", [$id]);
         Database::delete('quotations', 'id = ?', [$id]);
 
         Database::insert('activities', [
@@ -602,11 +630,20 @@ class QuotationController extends Controller
     public function convertToOrder($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('orders', 'create');
 
         $quotation = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$quotation) {
             $this->setFlash('error', 'Báo giá không tồn tại.');
             return $this->redirect('quotations');
+        }
+        if (!$this->canAccessEntity('quotation', (int)$id, (int)($quotation['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('quotations');
+        }
+        if (!empty($quotation['converted_order_id'])) {
+            $this->setFlash('error', 'Báo giá này đã được chuyển thành đơn hàng #' . $quotation['converted_order_id'] . '.');
+            return $this->redirect('quotations/' . $id);
         }
 
         $items = Database::fetchAll("SELECT * FROM quotation_items WHERE quotation_id = ? ORDER BY sort_order", [$id]);
@@ -659,6 +696,7 @@ class QuotationController extends Controller
             // Link order to quotation (don't change status - user can still create contract)
             Database::update('quotations', [
                 'converted_order_id' => $orderId,
+                'status' => 'converted',
             ], 'id = ?', [$id]);
 
             Database::commit();
@@ -682,10 +720,15 @@ class QuotationController extends Controller
     public function convertToContract($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('contracts', 'create');
 
         $quotation = Database::fetch("SELECT * FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$quotation) {
             $this->setFlash('error', 'Báo giá không tồn tại.');
+            return $this->redirect('quotations');
+        }
+        if (!$this->canAccessEntity('quotation', (int)$id, (int)($quotation['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
             return $this->redirect('quotations');
         }
 
@@ -1074,10 +1117,15 @@ class QuotationController extends Controller
     public function uploadAttachment($id)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('quotations', 'edit');
 
-        $quotation = Database::fetch("SELECT id FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        $quotation = Database::fetch("SELECT id, owner_id FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$quotation) {
             $this->setFlash('error', 'Báo giá không tồn tại.');
+            return $this->redirect('quotations');
+        }
+        if (!$this->canAccessEntity('quotation', (int)$id, (int)($quotation['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
             return $this->redirect('quotations');
         }
 
@@ -1121,6 +1169,13 @@ class QuotationController extends Controller
     public function deleteAttachment($id, $attachId)
     {
         if (!$this->isPost()) return $this->redirect('quotations/' . $id);
+        $this->authorize('quotations', 'edit');
+
+        $q = Database::fetch("SELECT owner_id FROM quotations WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$q || !$this->canAccessEntity('quotation', (int)$id, (int)($q['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('quotations');
+        }
 
         $attach = Database::fetch(
             "SELECT * FROM quotation_attachments WHERE id = ? AND quotation_id = ? AND tenant_id = ?",

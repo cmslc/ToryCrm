@@ -201,6 +201,10 @@ class OrderController extends Controller
         $this->authorize('orders', 'create');
 
         $data = $this->allInput();
+        if (!empty($data['contact_id'])) {
+            $contactOk = Database::fetch("SELECT id FROM contacts WHERE id = ? AND tenant_id = ?", [$data['contact_id'], Database::tenantId()]);
+            if (!$contactOk) { $this->setFlash('error', 'Khách hàng không hợp lệ.'); return $this->back(); }
+        }
         $type = $data['type'] ?? 'order';
 
         $orderModel = new Order();
@@ -536,6 +540,7 @@ class OrderController extends Controller
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+        if (!$this->canAccessEntity('order', (int)$id, (int)($order['owner_id'] ?? 0))) { $this->setFlash('error', 'Không có quyền.'); return $this->redirect('orders'); }
 
         if (!in_array($order['status'], ['draft', 'sent'])) {
             $this->setFlash('error', 'Chỉ duyệt được đơn ở trạng thái Nháp hoặc Đã gửi.');
@@ -566,6 +571,7 @@ class OrderController extends Controller
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+        if (!$this->canAccessEntity('order', (int)$id, (int)($order['owner_id'] ?? 0))) { $this->setFlash('error', 'Không có quyền.'); return $this->redirect('orders'); }
 
         if ($order['status'] === 'completed') {
             $this->setFlash('error', 'Không thể hủy đơn đã hoàn thành.');
@@ -643,10 +649,11 @@ class OrderController extends Controller
     public function payment($id)
     {
         if (!$this->isPost()) return $this->redirect('orders/' . $id);
-        $this->authorize('orders', 'edit');
+        $this->authorize('orders', 'payment');
 
         $order = $this->findSecure('orders', (int)$id);
         if (!$order) { $this->setFlash('error', 'Đơn hàng không tồn tại.'); return $this->redirect('orders'); }
+        if (!$this->canAccessEntity('order', (int)$id, (int)($order['owner_id'] ?? 0))) { $this->setFlash('error', 'Không có quyền.'); return $this->redirect('orders'); }
 
         $amount = (float)$this->input('amount');
         $method = trim($this->input('payment_method') ?? '');
@@ -737,8 +744,11 @@ class OrderController extends Controller
         if (!$this->isPost()) return $this->json(['error' => 'Method not allowed'], 405);
         $this->authorize('orders', 'edit');
 
-        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$id]);
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$order) return $this->json(['error' => 'Order not found'], 404);
+        if (!$this->canAccessEntity('order', (int)$id, (int)($order['owner_id'] ?? 0))) {
+            return $this->json(['error' => 'Không có quyền'], 403);
+        }
 
         $newStatus = $this->input('status');
         if (!in_array($newStatus, ['draft','sent','confirmed','processing','completed','cancelled'])) {
