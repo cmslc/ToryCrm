@@ -62,10 +62,10 @@ Dropdown gợi ý nhưng ẩn tên công ty → hiển thị **"+N nơi khác kh
 Dùng cùng `person_id`, mỗi công ty 1 row `contact_persons` với `is_active = 1`.
 
 ### 3.5 Nghỉ việc chuyển công ty
-1. KH cũ: form edit → bỏ tick **"Đang làm việc tại đây"** + điền `end_date`
-2. KH mới: form create/edit → gõ SĐT → chọn gợi ý → điền `start_date`, tick active
+1. KH cũ: form edit → bỏ tick **"Đang làm việc tại đây"** (end_date tuỳ chọn)
+2. KH mới: form create/edit → gõ SĐT → chọn gợi ý → tick active (start_date tuỳ chọn)
 
-Profile hiển thị đầy đủ timeline: rows "Đã nghỉ" bị gạch chân + opacity giảm; rows đang làm hiện ngày vào.
+Cả `start_date` và `end_date` **không bắt buộc** — chỉ điền khi cần ghi nhận mốc thời gian chính xác cho báo cáo. Profile hiển thị: rows "Đã nghỉ" gạch chân + opacity giảm; nếu có ngày thì hiện kèm, không có thì chỉ badge.
 
 ### 3.6 Race condition 2 sale cùng tạo person cùng SĐT
 `PersonService::findOrCreate` dùng transaction + re-check dưới lock + retry read khi rollback → chỉ có 1 person được tạo.
