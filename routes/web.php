@@ -720,7 +720,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/data-definition/{module}/update-field', 'DataDefinitionController@updateField');
     Router::post('settings/data-definition/{module}/delete-field', 'DataDefinitionController@deleteField');
     Router::post('settings/data-definition/{module}/toggle-show', 'DataDefinitionController@toggleShowInList');
-    Router::get('settings/positions', function() { header('Location: ' . url('departments?view=positions')); exit; });
+    Router::get('settings/positions', 'PositionController@index');
     Router::post('settings/positions/store', 'PositionController@store');
     Router::post('settings/positions/{id}/update', 'PositionController@update');
     Router::post('settings/positions/{id}/delete', 'PositionController@delete');

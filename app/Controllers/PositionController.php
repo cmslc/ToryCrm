@@ -9,16 +9,7 @@ class PositionController extends Controller
 {
     public function index()
     {
-        $this->authorize('settings', 'manage');
-        $tid = Database::tenantId();
-
-        $positions = Database::fetchAll(
-            "SELECT p.*, (SELECT COUNT(*) FROM users u WHERE u.position_id = p.id) as user_count
-             FROM positions p WHERE p.tenant_id = ? ORDER BY p.sort_order, p.name",
-            [$tid]
-        );
-
-        return $this->view('settings.positions', ['positions' => $positions]);
+        return $this->redirect('departments?view=positions');
     }
 
     public function store()
