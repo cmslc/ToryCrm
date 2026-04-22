@@ -258,7 +258,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     echo '</div>';
                                     break;
                                 case 'account_code':
-                                    echo '<code>' . e($val ?: '-') . '</code>';
+                                    echo $val
+                                        ? '<a href="' . url('contacts/' . $c['id']) . '" class="fw-medium">' . e($val) . '</a>'
+                                        : '<span class="text-muted">-</span>';
                                     break;
                                 case 'email':
                                     $em = $val ?: ($c['company_email'] ?? '');
