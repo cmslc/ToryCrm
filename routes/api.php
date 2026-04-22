@@ -38,4 +38,18 @@ Router::group(['middleware' => 'ApiAuthMiddleware'], function () {
     Router::get('api/v1/ticket', 'Api\TicketApiController@detail');
     Router::post('api/v1/ticket', 'Api\TicketApiController@create');
     Router::post('api/v1/ticket/update', 'Api\TicketApiController@update');
+
+    // Accounting integration (read-only, tenant-scoped)
+    Router::get('api/v1/fund_accounts', 'Api\AccountingApiController@funds');
+    Router::get('api/v1/fund_transactions', 'Api\AccountingApiController@fundTransactions');
+    Router::get('api/v1/warehouses', 'Api\AccountingApiController@warehouses');
+    Router::get('api/v1/stock_movements', 'Api\AccountingApiController@stockMovements');
+    Router::get('api/v1/product_categories', 'Api\AccountingApiController@productCategories');
+    Router::get('api/v1/order_items', 'Api\AccountingApiController@orderItems');
+    Router::get('api/v1/purchase_orders', 'Api\AccountingApiController@purchaseOrders');
+    Router::get('api/v1/purchase_order_items', 'Api\AccountingApiController@purchaseOrderItems');
+    Router::get('api/v1/payrolls', 'Api\AccountingApiController@payrolls');
+    Router::get('api/v1/attendances', 'Api\AccountingApiController@attendances');
+    Router::get('api/v1/debts', 'Api\AccountingApiController@debts');
+    Router::get('api/v1/debt_payments', 'Api\AccountingApiController@debtPayments');
 });
