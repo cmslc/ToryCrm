@@ -112,17 +112,19 @@ class GamificationController extends Controller
         foreach ($users as $user) {
             $uid = $user['id'];
 
-            // Deals won this period
+            // Deals won this period — use actual_close_date (fallback updated_at if null)
             $dealsWon = (int)(Database::fetch(
                 "SELECT COUNT(*) as c FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'
-                 AND MONTH(updated_at) = ? AND YEAR(updated_at) = ?",
+                 AND MONTH(COALESCE(actual_close_date, updated_at)) = ?
+                 AND YEAR(COALESCE(actual_close_date, updated_at)) = ?",
                 [$tid, $uid, $month, $year]
             )['c'] ?? 0);
 
-            // Revenue from won deals
+            // Revenue from won deals (same date source)
             $revenue = (float)(Database::fetch(
                 "SELECT COALESCE(SUM(value), 0) as total FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'
-                 AND MONTH(updated_at) = ? AND YEAR(updated_at) = ?",
+                 AND MONTH(COALESCE(actual_close_date, updated_at)) = ?
+                 AND YEAR(COALESCE(actual_close_date, updated_at)) = ?",
                 [$tid, $uid, $month, $year]
             )['total'] ?? 0);
 
