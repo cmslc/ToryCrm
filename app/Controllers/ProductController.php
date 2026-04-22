@@ -182,9 +182,15 @@ class ProductController extends Controller
     {
         $this->authorize('products', 'view');
         $product = Database::fetch(
-            "SELECT p.*, pc.name as category_name, u.name as created_by_name
+            "SELECT p.*,
+                    pc.name as category_name,
+                    pm.name as manufacturer_name,
+                    po.name as origin_name,
+                    u.name as created_by_name
              FROM products p
              LEFT JOIN product_categories pc ON p.category_id = pc.id
+             LEFT JOIN product_manufacturers pm ON p.manufacturer_id = pm.id
+             LEFT JOIN product_origins po ON p.origin_id = po.id
              LEFT JOIN users u ON p.created_by = u.id
              WHERE p.id = ?",
             [$id]

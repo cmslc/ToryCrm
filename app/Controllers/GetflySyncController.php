@@ -520,6 +520,9 @@ class GetflySyncController extends Controller
         $config = $this->getConfig();
         if (!$config) return $this->json(['error' => 'Chưa cấu hình'], 400);
 
+        // Disable PHP 30s limit — page may download 20 images serially
+        @set_time_limit(0);
+
         $page = max(1, (int)$this->input('page'));
         $tid = Database::tenantId();
 
@@ -771,8 +774,8 @@ class GetflySyncController extends Controller
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 3,
-            CURLOPT_TIMEOUT => 15,
-            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 8,
+            CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
         $data = curl_exec($ch);
