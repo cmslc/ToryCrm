@@ -162,6 +162,28 @@
                 </form>
             </div>
         </div>
+
+        <!-- Import Excel báo giá -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="ri-file-excel-2-line me-1"></i> Import Excel — báo giá lịch sử</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="ri-information-line me-1"></i>
+                    Import lịch sử báo giá từ file <em>Sản phẩm &rarr; Xuất Excel báo giá</em> của Getfly. Match theo
+                    <strong>Mã khách hàng</strong> (cột C) và <strong>Số báo giá</strong> (cột A). Idempotent — upload lại
+                    sẽ cập nhật (xoá dòng sản phẩm cũ, nhập lại). <strong>Lưu ý</strong>: Excel export chỉ có tên SP + mô tả + đơn vị,
+                    <strong>không có đơn giá/số lượng</strong> — line items sẽ nhập với quantity=1, price=0 (tổng tiền của quote thì có).
+                </div>
+                <form method="POST" action="<?= url('settings/getfly-sync/import-quotation-excel') ?>" enctype="multipart/form-data" class="d-flex gap-2 align-items-center flex-wrap">
+                    <?= csrf_field() ?>
+                    <input type="file" name="excel" accept=".xlsx" class="form-control" required style="max-width:400px">
+                    <button type="submit" class="btn btn-success"><i class="ri-upload-2-line me-1"></i> Upload báo giá</button>
+                    <span class="text-muted fs-12">Chỉ nhận file .xlsx.</span>
+                </form>
+            </div>
+        </div>
         <?php endif; ?>
     </div>
 </div>

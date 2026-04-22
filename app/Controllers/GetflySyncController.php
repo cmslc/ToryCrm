@@ -838,6 +838,227 @@ class GetflySyncController extends Controller
         return $this->redirect('settings/getfly-sync');
     }
 
+    /**
+     * Import quotations from a Getfly Excel quote export (danhsachbaogia / databaogia).
+     *
+     * File shape (observed):
+     *   - Header row (has column C=customer code):
+     *     A=quote_number, C=account_code, D=company_name, E=phone,
+     *     F=status ("Đã duyệt"/"Chờ duyệt"), G=date (dd/mm/yyyy), H=owner_name,
+     *     I=creator_name, J=first product SKU, K=name, L=desc, M=unit, N=category,
+     *     O=quote grand total (formatted "29,808,000")
+     *   - Continuation row (C empty): A=product SKU, K=name, L=desc, M=unit, N=category
+     *
+     * Match strategy:
+     *   - Contact by account_code (column C)
+     *   - Owner/creator by full_name (column H/I)
+     *   - Upsert quotation by quote_number (overwrite line items on re-import)
+     */
+    public function importQuotationExcel()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/getfly-sync');
+        $this->authorize('settings', 'manage');
+
+        @set_time_limit(0);
+        @ini_set('memory_limit', '512M');
+
+        if (empty($_FILES['excel']['tmp_name']) || $_FILES['excel']['error'] !== UPLOAD_ERR_OK) {
+            $this->setFlash('error', 'Vui lòng chọn file Excel.');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        $origName = $_FILES['excel']['name'] ?? '';
+        if (!preg_match('/\.xlsx$/i', $origName)) {
+            $this->setFlash('error', 'Chỉ chấp nhận file .xlsx.');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        try {
+            $rows = \App\Services\XlsxReader::readAllRows($_FILES['excel']['tmp_name']);
+        } catch (\Exception $e) {
+            $this->setFlash('error', 'Không đọc được file: ' . $e->getMessage());
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        if (count($rows) < 2) {
+            $this->setFlash('error', 'File rỗng.');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        // Header validation
+        $header = $rows[0] ?? [];
+        if (stripos($header['A'] ?? '', 'STT') === false && stripos($header['C'] ?? '', 'khách hàng') === false) {
+            $this->setFlash('error', 'Header file không đúng định dạng export báo giá của Getfly.');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        $tid = Database::tenantId();
+
+        // Preload lookup maps
+        $contactMap = [];
+        foreach (Database::fetchAll(
+            "SELECT id, account_code FROM contacts WHERE tenant_id = ? AND is_deleted = 0 AND account_code IS NOT NULL",
+            [$tid]
+        ) as $r) { $contactMap[$r['account_code']] = (int)$r['id']; }
+
+        $userMap = [];
+        foreach (Database::fetchAll(
+            "SELECT id, name FROM users WHERE tenant_id = ? AND is_active = 1",
+            [$tid]
+        ) as $u) {
+            $userMap[trim(mb_strtolower($u['name']))] = (int)$u['id'];
+        }
+
+        $productSkuMap = [];
+        foreach (Database::fetchAll(
+            "SELECT id, sku FROM products WHERE tenant_id = ? AND is_deleted = 0 AND sku IS NOT NULL",
+            [$tid]
+        ) as $p) { $productSkuMap[$p['sku']] = (int)$p['id']; }
+
+        // Group rows into quotes
+        $quotes = [];
+        $current = null;
+        for ($i = 1, $n = count($rows); $i < $n; $i++) {
+            $row = $rows[$i];
+            $hasHeader = !empty(trim($row['C'] ?? ''));
+            if ($hasHeader) {
+                if ($current) $quotes[] = $current;
+                $current = [
+                    'quote_number' => trim($row['A'] ?? ''),
+                    'account_code' => trim($row['C'] ?? ''),
+                    'company_name' => trim($row['D'] ?? ''),
+                    'phone' => trim($row['E'] ?? ''),
+                    'status_raw' => trim($row['F'] ?? ''),
+                    'date_raw' => trim($row['G'] ?? ''),
+                    'owner_name' => trim($row['H'] ?? ''),
+                    'creator_name' => trim($row['I'] ?? ''),
+                    'total_raw' => trim($row['O'] ?? ''),
+                    'items' => [],
+                ];
+                // First product in same row
+                $firstSku = trim($row['J'] ?? '');
+                $firstName = trim($row['K'] ?? '');
+                if ($firstName !== '') {
+                    $current['items'][] = [
+                        'sku' => $firstSku,
+                        'name' => $firstName,
+                        'description' => trim($row['L'] ?? ''),
+                        'unit' => trim($row['M'] ?? ''),
+                        'category' => trim($row['N'] ?? ''),
+                    ];
+                }
+            } elseif ($current) {
+                // Continuation row — SKU is in A
+                $sku = trim($row['A'] ?? '');
+                $name = trim($row['K'] ?? '');
+                if ($name !== '') {
+                    $current['items'][] = [
+                        'sku' => $sku,
+                        'name' => $name,
+                        'description' => trim($row['L'] ?? ''),
+                        'unit' => trim($row['M'] ?? ''),
+                        'category' => trim($row['N'] ?? ''),
+                    ];
+                }
+            }
+        }
+        if ($current) $quotes[] = $current;
+
+        $statusMap = [
+            'Đã duyệt' => 'approved',
+            'Chờ duyệt' => 'pending',
+            'Nháp' => 'draft',
+            'Đã gửi' => 'sent',
+            'Đã hủy' => 'cancelled',
+        ];
+
+        $created = 0; $updated = 0; $skippedNoContact = 0; $skippedNoNumber = 0;
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            foreach ($quotes as $q) {
+                if ($q['quote_number'] === '') { $skippedNoNumber++; continue; }
+                $contactId = $contactMap[$q['account_code']] ?? null;
+                if (!$contactId) { $skippedNoContact++; continue; }
+
+                $ownerId = $userMap[mb_strtolower($q['owner_name'])] ?? null;
+                $creatorId = $userMap[mb_strtolower($q['creator_name'])] ?? null;
+
+                $status = $statusMap[$q['status_raw']] ?? 'draft';
+
+                // Date "dd/mm/yyyy" → DATETIME
+                $createdAt = null;
+                if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $q['date_raw'], $m)) {
+                    $createdAt = sprintf('%04d-%02d-%02d 00:00:00', $m[3], $m[2], $m[1]);
+                }
+
+                // Parse total "29,808,000" → 29808000
+                $total = (float) str_replace([',', '.', ' '], '', $q['total_raw']);
+
+                // Upsert quotation by quote_number
+                $existing = Database::fetch(
+                    "SELECT id FROM quotations WHERE quote_number = ? AND tenant_id = ?",
+                    [$q['quote_number'], $tid]
+                );
+
+                $quoteData = [
+                    'quote_number' => $q['quote_number'],
+                    'contact_id' => $contactId,
+                    'contact_phone' => $q['phone'] ?: null,
+                    'status' => $status,
+                    'owner_id' => $ownerId,
+                    'total' => $total,
+                    'subtotal' => $total,
+                    'currency' => 'VND',
+                    'notes' => 'Imported from Getfly Excel export',
+                    'tenant_id' => $tid,
+                ];
+                if ($createdAt) $quoteData['created_at'] = $createdAt;
+
+                if ($existing) {
+                    Database::update('quotations', $quoteData, 'id = ?', [$existing['id']]);
+                    $quoteId = (int) $existing['id'];
+                    // Wipe old line items — re-import as source of truth
+                    Database::query("DELETE FROM quotation_items WHERE quotation_id = ?", [$quoteId]);
+                    $updated++;
+                } else {
+                    $quoteData['created_by'] = $creatorId ?: $this->userId();
+                    $quoteId = (int) Database::insert('quotations', $quoteData);
+                    $created++;
+                }
+
+                // Insert line items
+                $sort = 0;
+                foreach ($q['items'] as $item) {
+                    $productId = !empty($item['sku']) ? ($productSkuMap[$item['sku']] ?? null) : null;
+                    Database::insert('quotation_items', [
+                        'quotation_id' => $quoteId,
+                        'product_id' => $productId,
+                        'product_name' => mb_substr($item['name'], 0, 255),
+                        'description' => $item['description'] !== '' ? mb_substr($item['description'], 0, 65000) : null,
+                        'unit' => $item['unit'] !== '' ? mb_substr($item['unit'], 0, 50) : null,
+                        'quantity' => 1,
+                        'unit_price' => 0,
+                        'total' => 0,
+                        'sort_order' => $sort++,
+                    ]);
+                }
+            }
+            $pdo->commit();
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            $this->setFlash('error', 'Lỗi: ' . $e->getMessage());
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        $this->setFlash('success', sprintf(
+            'Báo giá: %d tạo mới, %d cập nhật. Bỏ qua %d (không tìm KH), %d (thiếu số báo giá).',
+            $created, $updated, $skippedNoContact, $skippedNoNumber
+        ));
+        return $this->redirect('settings/getfly-sync');
+    }
+
     private function fetchUnitsMap(array $config): array
     {
         $r = $this->callApi($config['api_key'], $config['api_domain'] . '/api/v3/products/units');
