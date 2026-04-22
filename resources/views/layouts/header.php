@@ -129,6 +129,14 @@
                     <div class="dropdown-menu dropdown-menu-end">
                         <h6 class="dropdown-header">Xin chào, <?= e($user['name'] ?? '') ?>!</h6>
                         <a class="dropdown-item" href="<?= url('settings') ?>"><i class="mdi mdi-account-circle-outline text-muted fs-16 align-middle me-1"></i> Tài khoản</a>
+                        <a class="dropdown-item" href="<?= url('settings/2fa') ?>">
+                            <i class="mdi mdi-shield-check-outline text-muted fs-16 align-middle me-1"></i> Bảo mật 2FA
+                            <?php if (!empty($user['totp_enabled'])): ?>
+                                <span class="badge bg-success-subtle text-success ms-1">Bật</span>
+                            <?php else: ?>
+                                <span class="badge bg-warning-subtle text-warning ms-1">Tắt</span>
+                            <?php endif; ?>
+                        </a>
                         <a class="dropdown-item" href="<?= url('billing') ?>"><i class="mdi mdi-wallet text-muted fs-16 align-middle me-1"></i> Gói dịch vụ</a>
                         <a class="dropdown-item" href="<?= url('help') ?>"><i class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> Trợ giúp</a>
                         <div class="dropdown-divider"></div>
