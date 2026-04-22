@@ -97,10 +97,24 @@ class ProductController extends Controller
     public function create()
     {
         $this->authorize('products', 'create');
-        $categories = Database::fetchAll("SELECT * FROM product_categories ORDER BY sort_order, name");
+        $tid = Database::tenantId();
+        $categories = Database::fetchAll(
+            "SELECT * FROM product_categories WHERE tenant_id = ? OR tenant_id IS NULL ORDER BY sort_order, name",
+            [$tid]
+        );
+        $manufacturers = Database::fetchAll(
+            "SELECT id, name FROM product_manufacturers WHERE tenant_id = ? OR tenant_id IS NULL ORDER BY name",
+            [$tid]
+        );
+        $origins = Database::fetchAll(
+            "SELECT id, name FROM product_origins WHERE tenant_id = ? OR tenant_id IS NULL ORDER BY name",
+            [$tid]
+        );
 
         return $this->view('products.create', [
             'categories' => $categories,
+            'manufacturers' => $manufacturers,
+            'origins' => $origins,
         ]);
     }
 
@@ -130,14 +144,23 @@ class ProductController extends Controller
             'tenant_id' => Database::tenantId(),
             'name' => $name,
             'sku' => trim($data['sku'] ?? '') ?: null,
-            'category_id' => !empty($data['category_id']) ? $data['category_id'] : null,
+            'barcode' => trim($data['barcode'] ?? '') ?: null,
+            'category_id' => !empty($data['category_id']) ? (int)$data['category_id'] : null,
+            'manufacturer_id' => !empty($data['manufacturer_id']) ? (int)$data['manufacturer_id'] : null,
+            'origin_id' => !empty($data['origin_id']) ? (int)$data['origin_id'] : null,
             'type' => $data['type'] ?? 'product',
             'unit' => trim($data['unit'] ?? 'Cái'),
+            'weight' => isset($data['weight']) && $data['weight'] !== '' ? (float)$data['weight'] : null,
             'price' => (float)($data['price'] ?? 0),
             'cost_price' => (float)($data['cost_price'] ?? 0),
+            'price_wholesale' => (float)($data['price_wholesale'] ?? 0),
+            'price_online' => (float)($data['price_online'] ?? 0),
+            'saleoff_price' => isset($data['saleoff_price']) && $data['saleoff_price'] !== '' ? (float)$data['saleoff_price'] : null,
+            'discount_percent' => (float)($data['discount_percent'] ?? 0),
             'tax_rate' => (float)($data['tax_rate'] ?? 0),
             'stock_quantity' => (int)($data['stock_quantity'] ?? 0),
             'min_stock' => (int)($data['min_stock'] ?? 0),
+            'short_description' => trim($data['short_description'] ?? '') ?: null,
             'description' => trim($data['description'] ?? ''),
             'image' => $imageName,
             'is_active' => 1,
@@ -199,11 +222,25 @@ class ProductController extends Controller
             return $this->redirect('products');
         }
 
-        $categories = Database::fetchAll("SELECT * FROM product_categories ORDER BY sort_order, name");
+        $tid = Database::tenantId();
+        $categories = Database::fetchAll(
+            "SELECT * FROM product_categories WHERE tenant_id = ? OR tenant_id IS NULL ORDER BY sort_order, name",
+            [$tid]
+        );
+        $manufacturers = Database::fetchAll(
+            "SELECT id, name FROM product_manufacturers WHERE tenant_id = ? OR tenant_id IS NULL ORDER BY name",
+            [$tid]
+        );
+        $origins = Database::fetchAll(
+            "SELECT id, name FROM product_origins WHERE tenant_id = ? OR tenant_id IS NULL ORDER BY name",
+            [$tid]
+        );
 
         return $this->view('products.edit', [
             'product' => $product,
             'categories' => $categories,
+            'manufacturers' => $manufacturers,
+            'origins' => $origins,
         ]);
     }
 
@@ -232,14 +269,23 @@ class ProductController extends Controller
         $updateData = [
             'name' => $name,
             'sku' => trim($data['sku'] ?? '') ?: null,
-            'category_id' => !empty($data['category_id']) ? $data['category_id'] : null,
+            'barcode' => trim($data['barcode'] ?? '') ?: null,
+            'category_id' => !empty($data['category_id']) ? (int)$data['category_id'] : null,
+            'manufacturer_id' => !empty($data['manufacturer_id']) ? (int)$data['manufacturer_id'] : null,
+            'origin_id' => !empty($data['origin_id']) ? (int)$data['origin_id'] : null,
             'type' => $data['type'] ?? 'product',
             'unit' => trim($data['unit'] ?? 'Cái'),
+            'weight' => isset($data['weight']) && $data['weight'] !== '' ? (float)$data['weight'] : null,
             'price' => (float)($data['price'] ?? 0),
             'cost_price' => (float)($data['cost_price'] ?? 0),
+            'price_wholesale' => (float)($data['price_wholesale'] ?? 0),
+            'price_online' => (float)($data['price_online'] ?? 0),
+            'saleoff_price' => isset($data['saleoff_price']) && $data['saleoff_price'] !== '' ? (float)$data['saleoff_price'] : null,
+            'discount_percent' => (float)($data['discount_percent'] ?? 0),
             'tax_rate' => (float)($data['tax_rate'] ?? 0),
             'stock_quantity' => (int)($data['stock_quantity'] ?? 0),
             'min_stock' => (int)($data['min_stock'] ?? 0),
+            'short_description' => trim($data['short_description'] ?? '') ?: null,
             'description' => trim($data['description'] ?? ''),
             'is_active' => isset($data['is_active']) ? 1 : 0,
         ];

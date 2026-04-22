@@ -24,65 +24,124 @@
                                     <label class="form-label">Mã SKU</label>
                                     <input type="text" class="form-control" name="sku" value="<?= e($product['sku'] ?? '') ?>">
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label">Loại</label>
                                     <select name="type" class="form-select" id="productType">
                                         <option value="product" <?= $product['type'] === 'product' ? 'selected' : '' ?>>Sản phẩm</option>
                                         <option value="service" <?= $product['type'] === 'service' ? 'selected' : '' ?>>Dịch vụ</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label">Danh mục</label>
                                     <select name="category_id" class="form-select">
-                                        <option value="">Chọn danh mục</option>
+                                        <option value="">-- Chọn --</option>
                                         <?php foreach ($categories ?? [] as $cat): ?>
                                             <option value="<?= $cat['id'] ?>" <?= ($product['category_id'] ?? '') == $cat['id'] ? 'selected' : '' ?>><?= e($cat['name']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Nhà sản xuất</label>
+                                    <select name="manufacturer_id" class="form-select">
+                                        <option value="">-- Chọn --</option>
+                                        <?php foreach ($manufacturers ?? [] as $m): ?>
+                                            <option value="<?= $m['id'] ?>" <?= ($product['manufacturer_id'] ?? '') == $m['id'] ? 'selected' : '' ?>><?= e($m['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Xuất xứ</label>
+                                    <select name="origin_id" class="form-select">
+                                        <option value="">-- Chọn --</option>
+                                        <?php foreach ($origins ?? [] as $o): ?>
+                                            <option value="<?= $o['id'] ?>" <?= ($product['origin_id'] ?? '') == $o['id'] ? 'selected' : '' ?>><?= e($o['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label">Đơn vị tính</label>
                                     <input type="text" class="form-control" name="unit" value="<?= e($product['unit'] ?? 'Cái') ?>">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Khối lượng (kg)</label>
+                                    <input type="number" class="form-control" name="weight" step="0.001" min="0" value="<?= $product['weight'] !== null ? e((string)$product['weight']) : '' ?>">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mã vạch (Barcode)</label>
+                                    <input type="text" class="form-control" name="barcode" value="<?= e($product['barcode'] ?? '') ?>">
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Ảnh sản phẩm</label>
                                     <?php if (!empty($product['image'])): ?>
-                                        <div class="mb-2"><img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded" style="max-height:100px"></div>
+                                        <div class="mb-2">
+                                            <?php
+                                            $imgUrl = str_starts_with($product['image'], 'http') ? $product['image'] : url('uploads/products/' . $product['image']);
+                                            ?>
+                                            <img src="<?= e($imgUrl) ?>" class="rounded" style="max-height:100px" alt="">
+                                        </div>
                                     <?php endif; ?>
                                     <input type="file" class="form-control" name="image" accept="image/*">
                                     <small class="text-muted">Để trống nếu không đổi ảnh.</small>
                                 </div>
                                 <div class="col-12 mb-3">
-                                    <label class="form-label">Mô tả</label>
-                                    <textarea name="description" class="form-control" rows="3"><?= e($product['description'] ?? '') ?></textarea>
+                                    <label class="form-label">Mô tả ngắn</label>
+                                    <textarea name="short_description" class="form-control" rows="2"><?= e($product['short_description'] ?? '') ?></textarea>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Mô tả chi tiết</label>
+                                    <textarea name="description" class="form-control" rows="4"><?= e($product['description'] ?? '') ?></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Giá & Kho</h5></div>
+                        <div class="card-header"><h5 class="card-title mb-0">Giá bán</h5></div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Đơn giá bán (VNĐ)</label>
-                                    <input type="number" class="form-control" name="price" value="<?= $product['price'] ?>" min="0">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Đơn giá bán <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="price" value="<?= (float)($product['price'] ?? 0) ?>" min="0">
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Giá vốn (VNĐ)</label>
-                                    <input type="number" class="form-control" name="cost_price" value="<?= $product['cost_price'] ?>" min="0">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá vốn <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="cost_price" value="<?= (float)($product['cost_price'] ?? 0) ?>" min="0">
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Thuế (%)</label>
-                                    <input type="number" class="form-control" name="tax_rate" value="<?= $product['tax_rate'] ?>" min="0" max="100" step="0.01">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá sỉ <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="price_wholesale" value="<?= (float)($product['price_wholesale'] ?? 0) ?>" min="0">
                                 </div>
-                                <div class="col-md-6 mb-3" id="stockFields" style="<?= $product['type'] === 'service' ? 'display:none' : '' ?>">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá online <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="price_online" value="<?= (float)($product['price_online'] ?? 0) ?>" min="0">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá khuyến mãi <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="saleoff_price" value="<?= $product['saleoff_price'] !== null ? (float)$product['saleoff_price'] : '' ?>" min="0" placeholder="Để trống nếu không có">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giảm giá (%)</label>
+                                    <input type="number" class="form-control" name="discount_percent" value="<?= (float)($product['discount_percent'] ?? 0) ?>" min="0" max="100" step="0.01">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Thuế VAT (%)</label>
+                                    <input type="number" class="form-control" name="tax_rate" value="<?= (float)($product['tax_rate'] ?? 0) ?>" min="0" max="100" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="stockCard" style="<?= $product['type'] === 'service' ? 'display:none' : '' ?>">
+                        <div class="card-header"><h5 class="card-title mb-0">Kho</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Số lượng tồn kho</label>
-                                    <input type="number" class="form-control" name="stock_quantity" value="<?= $product['stock_quantity'] ?>" min="0">
+                                    <input type="number" class="form-control" name="stock_quantity" value="<?= (int)($product['stock_quantity'] ?? 0) ?>" min="0">
                                 </div>
-                                <div class="col-md-6 mb-3" id="minStockField" style="<?= $product['type'] === 'service' ? 'display:none' : '' ?>">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Tồn kho tối thiểu</label>
-                                    <input type="number" class="form-control" name="min_stock" value="<?= $product['min_stock'] ?>" min="0">
+                                    <input type="number" class="form-control" name="min_stock" value="<?= (int)($product['min_stock'] ?? 0) ?>" min="0">
                                 </div>
                             </div>
                         </div>
@@ -96,6 +155,11 @@
                                 <input class="form-check-input" type="checkbox" name="is_active" value="1" id="isActive" <?= $product['is_active'] ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="isActive">Đang hoạt động</label>
                             </div>
+                            <?php if (!empty($product['getfly_id'])): ?>
+                            <div class="alert alert-info py-2 mb-0">
+                                <i class="ri-refresh-line me-1"></i> Sản phẩm này đồng bộ từ Getfly (ID: <?= (int)$product['getfly_id'] ?>). Thay đổi có thể bị ghi đè ở lần sync tiếp theo.
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="card">
@@ -110,8 +174,7 @@
 
         <script>
         document.getElementById('productType')?.addEventListener('change', function() {
-            const isService = this.value === 'service';
-            document.getElementById('stockFields').style.display = isService ? 'none' : '';
-            document.getElementById('minStockField').style.display = isService ? 'none' : '';
+            const stockCard = document.getElementById('stockCard');
+            if (stockCard) stockCard.style.display = this.value === 'service' ? 'none' : '';
         });
         </script>

@@ -24,60 +24,114 @@
                                     <label class="form-label">Mã SKU</label>
                                     <input type="text" class="form-control" name="sku" placeholder="VD: SP001">
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label">Loại</label>
                                     <select name="type" class="form-select" id="productType">
                                         <option value="product">Sản phẩm</option>
                                         <option value="service">Dịch vụ</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label">Danh mục</label>
                                     <select name="category_id" class="form-select">
-                                        <option value="">Chọn danh mục</option>
+                                        <option value="">-- Chọn --</option>
                                         <?php foreach ($categories ?? [] as $cat): ?>
                                             <option value="<?= $cat['id'] ?>"><?= e($cat['name']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Nhà sản xuất</label>
+                                    <select name="manufacturer_id" class="form-select">
+                                        <option value="">-- Chọn --</option>
+                                        <?php foreach ($manufacturers ?? [] as $m): ?>
+                                            <option value="<?= $m['id'] ?>"><?= e($m['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Xuất xứ</label>
+                                    <select name="origin_id" class="form-select">
+                                        <option value="">-- Chọn --</option>
+                                        <?php foreach ($origins ?? [] as $o): ?>
+                                            <option value="<?= $o['id'] ?>"><?= e($o['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label">Đơn vị tính</label>
-                                    <input type="text" class="form-control" name="unit" value="Cái" placeholder="VD: Cái, Tháng, Gói">
+                                    <input type="text" class="form-control" name="unit" value="Cái" placeholder="Cái, Bộ, Tháng...">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Khối lượng (kg)</label>
+                                    <input type="number" class="form-control" name="weight" step="0.001" min="0" placeholder="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Mã vạch (Barcode)</label>
+                                    <input type="text" class="form-control" name="barcode" placeholder="VD: 8935039502345">
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Ảnh sản phẩm</label>
                                     <input type="file" class="form-control" name="image" accept="image/*">
-                                    <small class="text-muted">JPG, PNG, GIF. Tối đa 5MB.</small>
+                                    <small class="text-muted">JPG, PNG, GIF, WebP. Giới hạn theo cài đặt chung.</small>
                                 </div>
                                 <div class="col-12 mb-3">
-                                    <label class="form-label">Mô tả</label>
-                                    <textarea name="description" class="form-control" rows="3"></textarea>
+                                    <label class="form-label">Mô tả ngắn</label>
+                                    <textarea name="short_description" class="form-control" rows="2" placeholder="Tóm tắt 1-2 câu, hiển thị ở trang danh sách"></textarea>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Mô tả chi tiết</label>
+                                    <textarea name="description" class="form-control" rows="4"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div class="card-header"><h5 class="card-title mb-0">Giá & Kho</h5></div>
+                        <div class="card-header"><h5 class="card-title mb-0">Giá bán</h5></div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Đơn giá bán (VNĐ)</label>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Đơn giá bán <span class="text-muted">(VNĐ)</span></label>
                                     <input type="number" class="form-control" name="price" value="0" min="0">
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Giá vốn (VNĐ)</label>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá vốn <span class="text-muted">(VNĐ)</span></label>
                                     <input type="number" class="form-control" name="cost_price" value="0" min="0">
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Thuế (%)</label>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá sỉ <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="price_wholesale" value="0" min="0">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá online <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="price_online" value="0" min="0">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giá khuyến mãi <span class="text-muted">(VNĐ)</span></label>
+                                    <input type="number" class="form-control" name="saleoff_price" min="0" placeholder="Để trống nếu không có">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Giảm giá (%)</label>
+                                    <input type="number" class="form-control" name="discount_percent" value="0" min="0" max="100" step="0.01">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Thuế VAT (%)</label>
                                     <input type="number" class="form-control" name="tax_rate" value="0" min="0" max="100" step="0.01">
                                 </div>
-                                <div class="col-md-6 mb-3" id="stockFields">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" id="stockCard">
+                        <div class="card-header"><h5 class="card-title mb-0">Kho</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Số lượng tồn kho</label>
                                     <input type="number" class="form-control" name="stock_quantity" value="0" min="0">
                                 </div>
-                                <div class="col-md-6 mb-3" id="minStockField">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Tồn kho tối thiểu</label>
                                     <input type="number" class="form-control" name="min_stock" value="0" min="0">
                                 </div>
@@ -98,8 +152,7 @@
 
         <script>
         document.getElementById('productType')?.addEventListener('change', function() {
-            const isService = this.value === 'service';
-            document.getElementById('stockFields').style.display = isService ? 'none' : '';
-            document.getElementById('minStockField').style.display = isService ? 'none' : '';
+            const stockCard = document.getElementById('stockCard');
+            if (stockCard) stockCard.style.display = this.value === 'service' ? 'none' : '';
         });
         </script>
