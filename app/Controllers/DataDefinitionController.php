@@ -168,7 +168,8 @@ class DataDefinitionController extends Controller
         'manufacturer_id' => 'Nhà sản xuất', 'price_wholesale' => 'Giá sỉ',
         'price_online' => 'Giá online', 'saleoff_price' => 'Giá khuyến mãi',
         'weight' => 'Trọng lượng', 'short_description' => 'Mô tả ngắn',
-        'featured_image' => 'Ảnh nổi bật',
+        'featured_image' => 'Ảnh nổi bật', 'dimensions' => 'Kích thước',
+        'getfly_id' => 'Getfly ID', 'discount_percent' => 'Giảm giá (%)',
 
         // Orders extra
         'cancelled_reason' => 'Lý do hủy', 'is_auto_approve' => 'Tự duyệt',
@@ -200,6 +201,8 @@ class DataDefinitionController extends Controller
         'tasks' => ['title' => 'Tiêu đề'],
         'tickets' => ['title' => 'Tiêu đề'],
         'contracts' => ['title' => 'Tiêu đề'],
+        // 'color' is also used by tasks with label 'Màu' — products use full 'Màu sắc'
+        'products' => ['color' => 'Màu sắc'],
     ];
 
     public function index()
@@ -274,7 +277,7 @@ class DataDefinitionController extends Controller
             // Products
             'barcode', 'origin_id', 'manufacturer_id', 'featured_image',
             'price_wholesale', 'price_online', 'discount_percent', 'saleoff_price', 'weight',
-            'short_description',
+            'short_description', 'dimensions', 'color', 'getfly_id',
             // Contracts
             'parent_contract_id', 'signed_date',
             // Tickets
