@@ -293,7 +293,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
 .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
 </style>
 
-<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor/4.22.1/ckeditor.js"></script>
 <script>
 const existingItems = <?= json_encode($items ?? []) ?>;
 
