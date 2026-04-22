@@ -174,7 +174,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     <div class="collapse menu-dropdown <?= $supportOpen ? 'show' : '' ?>" id="sidebarSupport">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item"><a href="<?= url('tickets') ?>" class="nav-link <?= isActive('tickets', $currentUrl) ?>">Ticket</a></li>
-                            <?php if (plugin_active('sla')): ?><li class="nav-item"><a href="<?= url('sla') ?>" class="nav-link <?= isActive('sla', $currentUrl) ?>">Chính sách SLA</a></li><?php endif; ?>
+                            <li class="nav-item"><a href="<?= url('sla') ?>" class="nav-link <?= isActive('sla', $currentUrl) ?>">Chính sách SLA</a></li>
                         </ul>
                     </div>
                 </li>
