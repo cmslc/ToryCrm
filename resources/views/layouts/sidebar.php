@@ -296,6 +296,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                 <?php endif; ?>
                 <?php endif; /* end $_isManager */ ?>
 
+                <?php if ($_isManager || $_isAdmin): ?>
                 <?php $settingsOpen = isOpen(['settings/white-label','settings/api','settings/contact-statuses','settings/data-definition','settings/widgets','settings/api-keys','settings/audit-log','settings/document-templates','settings/company-profiles','custom-fields','tags','data-definition','document-templates'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
@@ -320,6 +321,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                         </ul>
                     </div>
                 </li>
+                <?php endif; ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= isActive('help', $currentUrl) ?>" href="<?= url('help') ?>">
                         <i class="ri-question-line"></i> <span>Trợ giúp</span>
