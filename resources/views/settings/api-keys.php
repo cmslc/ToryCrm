@@ -1,4 +1,8 @@
-<?php $pageTitle = 'API Keys'; ?>
+<?php
+$pageTitle = 'API Keys';
+$newKey = $_SESSION['_new_api_key'] ?? null;
+if ($newKey) unset($_SESSION['_new_api_key']); // one-time reveal
+?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Quản lý API Keys</h4>
@@ -7,6 +11,36 @@
                 <li class="breadcrumb-item active">API Keys</li>
             </ol>
         </div>
+
+        <?php if ($newKey): ?>
+        <div class="alert alert-success d-flex align-items-start gap-2">
+            <i class="ri-key-2-line fs-20 mt-1"></i>
+            <div class="flex-grow-1">
+                <div class="fw-medium mb-1">API Key đã tạo — copy ngay bây giờ!</div>
+                <div class="text-muted small mb-2">Vì lý do bảo mật, key chỉ hiển thị đầy đủ một lần duy nhất. Rời trang hoặc reload là sẽ không xem lại được.</div>
+                <div class="input-group">
+                    <input type="text" class="form-control font-monospace" id="newApiKey" value="<?= e($newKey) ?>" readonly onclick="this.select()">
+                    <button type="button" class="btn btn-primary" id="copyApiKeyBtn"><i class="ri-file-copy-line me-1"></i> Copy</button>
+                </div>
+            </div>
+        </div>
+        <script>
+        document.getElementById('copyApiKeyBtn')?.addEventListener('click', function() {
+            const inp = document.getElementById('newApiKey');
+            inp.select();
+            inp.setSelectionRange(0, 99999);
+            const fallback = () => { document.execCommand('copy'); };
+            (navigator.clipboard?.writeText(inp.value) || Promise.reject())
+                .then(() => {}, fallback).catch(fallback);
+            this.innerHTML = '<i class="ri-check-line me-1"></i> Đã copy';
+            this.classList.replace('btn-primary', 'btn-success');
+            setTimeout(() => {
+                this.innerHTML = '<i class="ri-file-copy-line me-1"></i> Copy';
+                this.classList.replace('btn-success', 'btn-primary');
+            }, 2000);
+        });
+        </script>
+        <?php endif; ?>
 
         <div class="row">
             <div class="col-lg-8">
