@@ -9,7 +9,7 @@
         </div>
 
         <div class="row">
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0">Thông tin</h5></div>
                     <div class="card-body">
@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0">Lịch sử gọi (<?= count($logs) ?> gần nhất)</h5></div>
                     <div class="card-body">

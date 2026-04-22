@@ -19,7 +19,7 @@
 
         <div class="row">
             <!-- Main conversation -->
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="card">
                     <!-- Header -->
                     <div class="card-header">
@@ -119,7 +119,7 @@
             </div>
 
             <!-- Sidebar: info & actions -->
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <!-- Contact info -->
                 <div class="card">
                     <div class="card-header">

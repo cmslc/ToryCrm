@@ -9,7 +9,7 @@
         </div>
 
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Thông tin sản phẩm</h5>
@@ -114,7 +114,7 @@
                 <?php endif; ?>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-price-tag-3-line me-1"></i>Giá bán</h5></div>
                     <div class="card-body">

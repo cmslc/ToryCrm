@@ -52,7 +52,7 @@
 
         <div class="row">
             <!-- Left Column -->
-            <div class="col-xl-4">
+            <div class="col-xl-3">
                 <!-- Deal Value & Actions -->
                 <div class="card">
                     <div class="card-body">
@@ -131,7 +131,7 @@
             </div>
 
             <!-- Right Column -->
-            <div class="col-xl-8">
+            <div class="col-xl-9">
                 <div class="card">
                     <div class="card-header p-2">
                         <ul class="nav nav-tabs nav-tabs-custom" role="tablist">

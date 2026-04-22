@@ -13,7 +13,7 @@ $statusLabels = ['draft'=>'Nháp','confirmed'=>'Đã xác nhận','cancelled'=>'
         </div>
 
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
@@ -98,7 +98,7 @@ $statusLabels = ['draft'=>'Nháp','confirmed'=>'Đã xác nhận','cancelled'=>'
                 </div>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card">
                     <div class="card-body text-center">
                         <a href="<?= url('fund') ?>" class="btn btn-soft-secondary w-100"><i class="ri-arrow-left-line me-1"></i> Quay lại danh sách</a>

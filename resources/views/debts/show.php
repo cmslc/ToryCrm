@@ -17,7 +17,7 @@ $typeLabel = $debt['type'] === 'receivable' ? 'Phải thu' : 'Phải trả';
         </div>
 
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <!-- Debt Info -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -143,7 +143,7 @@ $typeLabel = $debt['type'] === 'receivable' ? 'Phải thu' : 'Phải trả';
                 </div>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <!-- Add Payment -->
                 <?php if ($remaining > 0): ?>
                     <div class="card border-primary">

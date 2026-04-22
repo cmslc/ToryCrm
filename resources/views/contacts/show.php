@@ -61,7 +61,7 @@
 
         <div class="row">
             <!-- Profile Card -->
-            <div class="col-xl-4">
+            <div class="col-xl-3">
                 <div class="card">
                     <div class="card-body text-center">
                         <div class="mx-auto mb-3 position-relative" style="width:80px;height:80px">
@@ -462,7 +462,7 @@
             </div>
 
             <!-- Right Column - Tabbed Layout -->
-            <div class="col-xl-8">
+            <div class="col-xl-9">
                 <!-- Stats Bar -->
                 <?php
                 $realActivities = array_filter($activities ?? [], fn($a) => ($a['type'] ?? '') !== 'system');

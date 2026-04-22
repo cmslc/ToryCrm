@@ -15,7 +15,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
         </div>
 
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <!-- Order Info -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -121,7 +121,7 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
                 <?php if (function_exists('activity_exchange_render')) activity_exchange_render('purchase_order', $order['id']); ?>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <!-- Người liên quan -->
                 <?php $rpEntityType = 'purchase_order'; $rpEntityId = $order['id']; $rpOwnerId = $order['owner_id'] ?? 0; $rpOwnerName = $order['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
 

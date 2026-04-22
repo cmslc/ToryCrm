@@ -105,7 +105,7 @@
         <?php endif; ?>
 
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <div class="card">
                     <div class="card-header d-flex align-items-center justify-content-between">
                         <h5 class="card-title mb-0">Nội dung</h5>
@@ -169,7 +169,7 @@
                 <?php $chatEntityType = 'ticket'; $chatEntityId = $ticket['id']; include BASE_PATH . '/resources/views/components/internal-chat.php'; ?>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0">Thông tin</h5></div>
                     <div class="card-body">

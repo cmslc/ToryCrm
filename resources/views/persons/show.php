@@ -11,7 +11,7 @@ $pageTitle = $person['full_name'];
 </div>
 
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-lg-3">
         <div class="card">
             <div class="card-body text-center">
                 <?php if (!empty($person['avatar'])): ?>
@@ -62,7 +62,7 @@ $pageTitle = $person['full_name'];
         </div>
     </div>
 
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0"><i class="ri-briefcase-line me-1"></i> Lịch sử làm việc <span class="badge bg-primary ms-1"><?= count($employments) ?></span></h5>

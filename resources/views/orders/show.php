@@ -40,7 +40,7 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <!-- Thông tin khách hàng -->
         <div class="card">
             <div class="card-body">
@@ -185,7 +185,7 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
         <?php if (function_exists('activity_exchange_render')) activity_exchange_render('order', $order['id']); ?>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-3">
         <!-- Thông tin -->
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-information-line me-1"></i> Thông tin</h5></div>

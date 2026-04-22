@@ -15,7 +15,7 @@ $tl = ['department'=>'Phòng ban','project'=>'Dự án','campaign'=>'Chiến d�
         </div>
 
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-9">
                 <!-- Header card -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -138,7 +138,7 @@ $tl = ['department'=>'Phòng ban','project'=>'Dự án','campaign'=>'Chiến d�
                 <?php endif; ?>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0">Thông tin</h5></div>
                     <div class="card-body">

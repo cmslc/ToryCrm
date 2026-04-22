@@ -6,7 +6,7 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -100,7 +100,7 @@
         <?php endif; ?>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-3">
         <!-- Map placeholder -->
         <div class="card">
             <div class="card-header">
