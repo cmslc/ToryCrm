@@ -94,7 +94,7 @@
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Mô tả chi tiết</label>
-                                    <textarea name="description" class="form-control" rows="4"><?= e($product['description'] ?? '') ?></textarea>
+                                    <textarea name="description" id="productDescription" class="form-control" rows="8"><?= e($product['description'] ?? '') ?></textarea>
                                 </div>
                             </div>
                         </div>
@@ -177,9 +177,14 @@
             </div>
         </form>
 
+        <script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
         <script>
         document.getElementById('productType')?.addEventListener('change', function() {
             const stockCard = document.getElementById('stockCard');
             if (stockCard) stockCard.style.display = this.value === 'service' ? 'none' : '';
         });
+
+        if (typeof CKEDITOR !== 'undefined') {
+            CKEDITOR.replace('productDescription', { language: 'vi', height: 280, allowedContent: true });
+        }
         </script>

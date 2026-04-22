@@ -65,7 +65,7 @@
                         <?php if (!empty($product['description'])): ?>
                         <hr>
                         <div class="mb-2"><strong>Mô tả chi tiết</strong></div>
-                        <div class="text-muted"><?= nl2br(e($product['description'])) ?></div>
+                        <div class="product-description"><?= $product['description'] ?></div>
                         <?php endif; ?>
                     </div>
                 </div>
