@@ -742,6 +742,10 @@ class GetflySyncController extends Controller
         if (!$this->isPost()) return $this->redirect('settings/getfly-sync');
         $this->authorize('settings', 'manage');
 
+        // Excel import can do ~6k SKU lookups + ~4k updates → often > 30s
+        @set_time_limit(0);
+        @ini_set('memory_limit', '256M');
+
         if (empty($_FILES['excel']['tmp_name']) || $_FILES['excel']['error'] !== UPLOAD_ERR_OK) {
             $this->setFlash('error', 'Vui lòng chọn file Excel.');
             return $this->redirect('settings/getfly-sync');
@@ -753,8 +757,6 @@ class GetflySyncController extends Controller
             $this->setFlash('error', 'Chỉ chấp nhận file .xlsx (không phải .xls).');
             return $this->redirect('settings/getfly-sync');
         }
-
-        @set_time_limit(0);
 
         try {
             $rows = \App\Services\XlsxReader::readAllRows($tmp);
@@ -777,40 +779,56 @@ class GetflySyncController extends Controller
         }
 
         $tid = Database::tenantId();
+
+        // Preload SKU → id map in one query (avoids N+1 fetches)
+        $skuRows = Database::fetchAll(
+            "SELECT id, sku FROM products WHERE tenant_id = ? AND is_deleted = 0 AND sku IS NOT NULL",
+            [$tid]
+        );
+        $skuMap = [];
+        foreach ($skuRows as $r) {
+            $skuMap[$r['sku']] = (int) $r['id'];
+        }
+        unset($skuRows);
+
         $updated = 0; $notFound = 0; $skipped = 0;
+        $pdo = Database::getConnection();
+        $pdo->beginTransaction();
 
-        for ($i = 1, $n = count($rows); $i < $n; $i++) {
-            $row = $rows[$i];
-            $sku = trim($row['A'] ?? '');
-            if ($sku === '') { $skipped++; continue; }
+        try {
+            for ($i = 1, $n = count($rows); $i < $n; $i++) {
+                $row = $rows[$i];
+                $sku = trim($row['A'] ?? '');
+                if ($sku === '') { $skipped++; continue; }
 
-            $dimensions = trim($row['T'] ?? '');
-            $color = trim($row['U'] ?? '');
-            $weightGramRaw = trim($row['V'] ?? '');
+                $dimensions = trim($row['T'] ?? '');
+                $color = trim($row['U'] ?? '');
+                $weightGramRaw = trim($row['V'] ?? '');
 
-            // Skip row if all 3 fields empty — nothing to update
-            if ($dimensions === '' && $color === '' && ($weightGramRaw === '' || $weightGramRaw === '0')) {
-                $skipped++;
-                continue;
+                if ($dimensions === '' && $color === '' && ($weightGramRaw === '' || $weightGramRaw === '0')) {
+                    $skipped++;
+                    continue;
+                }
+
+                $update = [];
+                if ($dimensions !== '' && $dimensions !== '0') $update['dimensions'] = mb_substr($dimensions, 0, 255);
+                if ($color !== '' && $color !== '0') $update['color'] = mb_substr($color, 0, 100);
+                if ($weightGramRaw !== '' && is_numeric($weightGramRaw) && (float)$weightGramRaw > 0) {
+                    $update['weight'] = round((float)$weightGramRaw / 1000, 3);
+                }
+
+                if (empty($update)) { $skipped++; continue; }
+
+                if (!isset($skuMap[$sku])) { $notFound++; continue; }
+
+                Database::update('products', $update, 'id = ?', [$skuMap[$sku]]);
+                $updated++;
             }
-
-            $update = [];
-            if ($dimensions !== '' && $dimensions !== '0') $update['dimensions'] = mb_substr($dimensions, 0, 255);
-            if ($color !== '' && $color !== '0') $update['color'] = mb_substr($color, 0, 100);
-            if ($weightGramRaw !== '' && is_numeric($weightGramRaw) && (float)$weightGramRaw > 0) {
-                $update['weight'] = round((float)$weightGramRaw / 1000, 3); // gram → kg
-            }
-
-            if (empty($update)) { $skipped++; continue; }
-
-            $existing = Database::fetch(
-                "SELECT id FROM products WHERE sku = ? AND tenant_id = ? AND is_deleted = 0 LIMIT 1",
-                [$sku, $tid]
-            );
-            if (!$existing) { $notFound++; continue; }
-
-            Database::update('products', $update, 'id = ?', [$existing['id']]);
-            $updated++;
+            $pdo->commit();
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            $this->setFlash('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
+            return $this->redirect('settings/getfly-sync');
         }
 
         $this->setFlash('success', sprintf(
