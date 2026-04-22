@@ -509,7 +509,9 @@ class GetflySyncController extends Controller
     }
 
     /**
-     * Sync products page by page
+     * Sync products page by page.
+     * On page 1, also refreshes reference tables (categories, origins, manufacturers)
+     * and builds an in-memory units map — these are small, cheap to fetch once per sync run.
      */
     public function syncProductsPage()
     {
@@ -520,6 +522,17 @@ class GetflySyncController extends Controller
 
         $page = max(1, (int)$this->input('page'));
         $tid = Database::tenantId();
+
+        // Sync reference tables on page 1 so subsequent pages can resolve FKs
+        if ($page === 1) {
+            try { $this->syncProductReferences($config, $tid); } catch (\Exception $e) {}
+        }
+
+        // Build lookup maps (cheap queries, small tables)
+        $catMap = $this->buildRefMap('product_categories', $tid);
+        $mfgMap = $this->buildRefMap('product_manufacturers', $tid);
+        $orgMap = $this->buildRefMap('product_origins', $tid);
+        $unitMap = $this->fetchUnitsMap($config);
 
         $url = $config['api_domain'] . '/api/v3/products?page=' . $page . '&num_per_page=20';
         $result = $this->callApi($config['api_key'], $url);
@@ -536,16 +549,82 @@ class GetflySyncController extends Controller
             $name = html_entity_decode(trim($r['product_name'] ?? $r['name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
             if (empty($name)) continue;
 
+            // Fix: decode FIRST, then strip_tags (Getfly returns HTML-encoded HTML)
+            $descRaw = html_entity_decode(trim($r['description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $desc = trim(strip_tags($descRaw));
+            $shortDescRaw = html_entity_decode(trim($r['short_description'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $shortDesc = trim(strip_tags($shortDescRaw));
+
+            // Price: Getfly's real field is cover_price, not price/unit_price
+            $price = (float) str_replace(',', '', (string)($r['cover_price'] ?? $r['price'] ?? '0'));
+            $costPrice = (float) str_replace(',', '', (string)($r['price_average_in'] ?? '0'));
+            $priceWholesale = (float) str_replace(',', '', (string)($r['price_wholesale'] ?? '0'));
+            $priceOnline = (float) str_replace(',', '', (string)($r['price_online'] ?? '0'));
+            $saleoff = (float) str_replace(',', '', (string)($r['saleoff_price'] ?? '0'));
+            $discount = (float) str_replace(',', '', (string)($r['discount'] ?? '0'));
+            $vat = (float) str_replace(',', '', (string)($r['product_vat'] ?? '0'));
+            $weight = ($r['weight'] !== null && $r['weight'] !== '') ? (float) $r['weight'] : null;
+
+            // Image: prefer images[0].origin_src, fall back to thumbnail_file
+            $image = null; $featured = null;
+            if (!empty($r['images']) && is_array($r['images']) && !empty($r['images'][0])) {
+                $image = $r['images'][0]['origin_src'] ?? null;
+                $featured = $r['images'][0]['thumb_src'] ?? ($r['thumbnail_file'] ?? null);
+            } elseif (!empty($r['thumbnail_file'])) {
+                $featured = $r['thumbnail_file'];
+            }
+
+            // Resolve FK IDs from Getfly IDs via our maps (null if not found)
+            $categoryId = $catMap[(int)($r['category_id'] ?? 0)] ?? null;
+            $originId = $orgMap[(int)($r['origin_id'] ?? 0)] ?? null;
+            $mfgId = $mfgMap[(int)($r['manufacturer_id'] ?? 0)] ?? null;
+
+            // Unit: Getfly gives unit_id only; resolve to name string for our schema
+            $unitId = (int)($r['unit_id'] ?? 0);
+            $unit = $unitMap[$unitId] ?? null;
+
+            // Type: services=1 means service, else physical product
+            $type = ($r['services'] ?? '0') === '1' ? 'service' : 'product';
+
             $data = [
                 'tenant_id' => $tid,
+                'getfly_id' => (int)($r['product_id'] ?? 0) ?: null,
                 'sku' => $sku ?: null,
                 'name' => $name,
-                'description' => html_entity_decode(strip_tags(trim($r['description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-                'price' => (float)str_replace(',', '', $r['price'] ?? $r['unit_price'] ?? '0'),
-                'unit' => trim($r['unit'] ?? $r['unit_name'] ?? '') ?: null,
+                'type' => $type,
+                'category_id' => $categoryId,
+                'origin_id' => $originId,
+                'manufacturer_id' => $mfgId,
+                'unit' => $unit,
+                'short_description' => $shortDesc ?: null,
+                'description' => $desc,
+                'price' => $price,
+                'cost_price' => $costPrice,
+                'price_wholesale' => $priceWholesale,
+                'price_online' => $priceOnline,
+                'saleoff_price' => $saleoff ?: null,
+                'discount_percent' => $discount,
+                'tax_rate' => $vat,
+                'weight' => $weight,
+                'image' => $image,
+                'featured_image' => $featured,
             ];
 
-            $existing = $sku ? Database::fetch("SELECT id FROM products WHERE sku = ? AND tenant_id = ?", [$sku, $tid]) : null;
+            // Prefer getfly_id match; fall back to sku for legacy rows
+            $existing = null;
+            if (!empty($data['getfly_id'])) {
+                $existing = Database::fetch(
+                    "SELECT id FROM products WHERE getfly_id = ? AND tenant_id = ?",
+                    [$data['getfly_id'], $tid]
+                );
+            }
+            if (!$existing && $sku) {
+                $existing = Database::fetch(
+                    "SELECT id FROM products WHERE sku = ? AND tenant_id = ?",
+                    [$sku, $tid]
+                );
+            }
+
             if ($existing) {
                 Database::update('products', $data, 'id = ?', [$existing['id']]);
             } else {
@@ -561,6 +640,94 @@ class GetflySyncController extends Controller
             'total_pages' => $totalPages,
             'has_more' => $page < $totalPages,
         ]);
+    }
+
+    /**
+     * Sync product reference tables (categories, origins, manufacturers).
+     * Each endpoint returns small data (<100 records typical) — single call each.
+     * Upserts by (tenant_id, getfly_id) unique key.
+     */
+    private function syncProductReferences(array $config, int $tid): void
+    {
+        // Categories
+        $r = $this->callApi($config['api_key'], $config['api_domain'] . '/api/v3/products/categories');
+        if ($r['success'] && is_array($r['data'])) {
+            foreach ($r['data'] as $c) {
+                $gid = (int)($c['category_id'] ?? 0);
+                if ($gid <= 0) continue;
+                $name = html_entity_decode(trim($c['category_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                if ($name === '') continue;
+                Database::query(
+                    "INSERT INTO product_categories (tenant_id, getfly_id, name, description)
+                     VALUES (?, ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description)",
+                    [$tid, $gid, $name, $c['description'] ?? null]
+                );
+            }
+        }
+
+        // Manufacturers
+        $r = $this->callApi($config['api_key'], $config['api_domain'] . '/api/v3/products/manufacturers');
+        if ($r['success'] && is_array($r['data'])) {
+            foreach ($r['data'] as $m) {
+                $gid = (int)($m['manufacturer_id'] ?? 0);
+                if ($gid <= 0) continue;
+                $name = html_entity_decode(trim($m['manufacturer_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                if ($name === '') continue;
+                Database::query(
+                    "INSERT INTO product_manufacturers (tenant_id, getfly_id, name)
+                     VALUES (?, ?, ?)
+                     ON DUPLICATE KEY UPDATE name = VALUES(name)",
+                    [$tid, $gid, $name]
+                );
+            }
+        }
+
+        // Origins
+        $r = $this->callApi($config['api_key'], $config['api_domain'] . '/api/v3/products/origins');
+        if ($r['success'] && is_array($r['data'])) {
+            foreach ($r['data'] as $o) {
+                $gid = (int)($o['origin_id'] ?? 0);
+                if ($gid <= 0) continue;
+                $name = html_entity_decode(trim($o['origin_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                if ($name === '') continue;
+                Database::query(
+                    "INSERT INTO product_origins (tenant_id, getfly_id, name)
+                     VALUES (?, ?, ?)
+                     ON DUPLICATE KEY UPDATE name = VALUES(name)",
+                    [$tid, $gid, $name]
+                );
+            }
+        }
+    }
+
+    /** Build a [getfly_id => local_id] map for a reference table. */
+    private function buildRefMap(string $table, int $tid): array
+    {
+        $rows = Database::fetchAll(
+            "SELECT id, getfly_id FROM {$table} WHERE tenant_id = ? AND getfly_id IS NOT NULL",
+            [$tid]
+        );
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int)$row['getfly_id']] = (int)$row['id'];
+        }
+        return $map;
+    }
+
+    /** Fetch [unit_id => unit_name] from Getfly (no local table — we store the name string). */
+    private function fetchUnitsMap(array $config): array
+    {
+        $r = $this->callApi($config['api_key'], $config['api_domain'] . '/api/v3/products/units');
+        $map = [];
+        if ($r['success'] && is_array($r['data'])) {
+            foreach ($r['data'] as $u) {
+                $uid = (int)($u['unit_id'] ?? 0);
+                if ($uid <= 0) continue;
+                $map[$uid] = html_entity_decode(trim($u['unit_name'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+        }
+        return $map;
     }
 
     /**
