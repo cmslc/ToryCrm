@@ -81,7 +81,10 @@ class PersonController extends Controller
      */
     public function duplicates()
     {
-        $this->authorize('contacts', 'edit');
+        if (!$this->isSystemAdmin()) {
+            $this->setFlash('error', 'Chỉ admin mới được gộp người liên hệ trùng.');
+            return $this->redirect('contacts');
+        }
         $tid = Database::tenantId();
 
         // Groups by phone (more reliable than email for VN data)
@@ -129,7 +132,10 @@ class PersonController extends Controller
     public function merge()
     {
         if (!$this->isPost()) return $this->redirect('persons/duplicates');
-        $this->authorize('contacts', 'edit');
+        if (!$this->isSystemAdmin()) {
+            $this->setFlash('error', 'Chỉ admin mới được gộp người liên hệ trùng.');
+            return $this->redirect('contacts');
+        }
         $tid = Database::tenantId();
 
         $targetId = (int)$this->input('target_id');
