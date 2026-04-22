@@ -171,6 +171,18 @@ class DataDefinitionController extends Controller
         'featured_image' => 'Ảnh nổi bật', 'dimensions' => 'Kích thước',
         'getfly_id' => 'Getfly ID', 'discount_percent' => 'Giảm giá (%)',
 
+        // Quotations extra
+        'contact_person_id' => 'Người liên hệ', 'sent_at' => 'Ngày gửi',
+        'submitted_at' => 'Ngày trình', 'revision' => 'Phiên bản',
+        'converted_order_id' => 'Đơn hàng chuyển đổi',
+
+        // Users extra (HR info)
+        'id_number' => 'Số CCCD/CMND', 'id_issued_date' => 'Ngày cấp CCCD',
+        'id_issued_place' => 'Nơi cấp CCCD', 'bank_name' => 'Ngân hàng',
+        'bank_account' => 'STK ngân hàng', 'bank_branch' => 'Chi nhánh NH',
+        'join_date' => 'Ngày vào làm', 'emergency_contact' => 'Liên hệ khẩn cấp',
+        'emergency_phone' => 'SĐT khẩn cấp',
+
         // Orders extra
         'cancelled_reason' => 'Lý do hủy', 'is_auto_approve' => 'Tự duyệt',
 
@@ -290,6 +302,9 @@ class DataDefinitionController extends Controller
             'department', 'base_salary', 'leave_balance',
             'allowance_lunch', 'allowance_transport', 'allowance_phone', 'allowance_other',
             'dependents',
+            'totp_secret', 'totp_enabled', 'totp_backup_codes', 'totp_enabled_at',
+            // Quotations (all system-set)
+            'sent_at', 'submitted_at', 'revision', 'converted_order_id',
         ];
 
         foreach ($columns as $col) {
