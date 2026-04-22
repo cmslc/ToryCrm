@@ -272,6 +272,9 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
 .product-dropdown .pd-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f3f3f3; }
 .product-dropdown .pd-item:hover { background: #f0f4ff; }
 .product-dropdown .pd-item .pd-sku { color: #888; font-size: 12px; }
+.btn-note-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 2px 4px; color: #5e7394; cursor: pointer; z-index: 2; }
+.btn-note-toggle:hover { color: #405189; }
+.btn-note-toggle .ri-sticky-note-fill { color: #0ab39c; }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor/4.22.1/ckeditor.js"></script>
@@ -374,10 +377,14 @@ function addItem(data) {
             </div>
         </td>
         <td>
-            <div class="product-search-wrap">
-                <input type="text" class="form-control" id="item-namesearch-${idx}" placeholder="Tên SP" value="${data?.product_name || ''}" autocomplete="off" onfocus="searchProduct(this,${idx},'name')" oninput="searchProduct(this,${idx},'name')">
+            <div class="product-search-wrap position-relative">
+                <input type="text" class="form-control pe-5" id="item-namesearch-${idx}" placeholder="Tên SP" value="${data?.product_name || ''}" autocomplete="off" onfocus="searchProduct(this,${idx},'name')" oninput="searchProduct(this,${idx},'name')">
+                <button type="button" class="btn-note-toggle" onclick="toggleNote(${idx})" title="Ghi chú">
+                    <i class="${data?.description ? 'ri-sticky-note-fill' : 'ri-sticky-note-line'}" id="note-icon-${idx}"></i>
+                </button>
                 <div class="product-dropdown" id="item-namedrop-${idx}"></div>
             </div>
+            <textarea class="form-control mt-2 ${data?.description ? '' : 'd-none'}" id="item-note-${idx}" name="items[${idx}][description]" rows="2" placeholder="Ghi chú..." oninput="updateNoteIcon(${idx})">${data?.description || ''}</textarea>
             <input type="hidden" name="items[${idx}][product_id]" id="item-product-${idx}" value="${data?.product_id || ''}">
             <input type="hidden" name="items[${idx}][product_name]" id="item-name-${idx}" value="${data?.product_name || ''}">
         </td>
@@ -453,6 +460,22 @@ function calcDiscountFromPct(idx) {
 function removeItem(idx) {
     document.getElementById('item-row-' + idx)?.remove();
     calculateTotal();
+}
+
+function toggleNote(idx) {
+    const ta = document.getElementById('item-note-' + idx);
+    if (!ta) return;
+    ta.classList.toggle('d-none');
+    if (!ta.classList.contains('d-none')) ta.focus();
+}
+
+function updateNoteIcon(idx) {
+    const ta = document.getElementById('item-note-' + idx);
+    const icon = document.getElementById('note-icon-' + idx);
+    if (!ta || !icon) return;
+    const has = ta.value.trim().length > 0;
+    icon.classList.toggle('ri-sticky-note-line', !has);
+    icon.classList.toggle('ri-sticky-note-fill', has);
 }
 
 function calculateRow(idx) {
