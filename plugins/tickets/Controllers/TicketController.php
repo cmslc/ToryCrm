@@ -33,7 +33,7 @@ class TicketController extends Controller
         $categories = $ticketModel->getCategories();
         $statusStats = $ticketModel->getStatsByStatus();
 
-        return $this->view('tickets.index', [
+        return $this->view('plugin:tickets.index', [
             'tickets' => $tickets,
             'categories' => $categories,
             'statusStats' => $statusStats,
@@ -55,7 +55,7 @@ class TicketController extends Controller
         $categories = $ticketModel->getCategories();
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
-        return $this->view('tickets.create', [
+        return $this->view('plugin:tickets.create', [
             'contacts' => $contacts,
             'companies' => $companies,
             'categories' => $categories,
@@ -145,7 +145,7 @@ class TicketController extends Controller
         $comments = $ticketModel->getComments($id);
         $slaStatus = SlaService::getSlaStatus($ticket);
 
-        return $this->view('tickets.show', [
+        return $this->view('plugin:tickets.show', [
             'ticket' => $ticket,
             'comments' => $comments,
             'slaStatus' => $slaStatus,
@@ -173,7 +173,7 @@ class TicketController extends Controller
         $categories = $ticketModel->getCategories();
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
-        return $this->view('tickets.edit', [
+        return $this->view('plugin:tickets.edit', [
             'ticket' => $ticket,
             'contacts' => $contacts,
             'companies' => $companies,

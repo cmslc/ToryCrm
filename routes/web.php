@@ -231,15 +231,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // SLA Policies → moved to plugins/sla/routes.php
 
     // Tickets
-    Router::get('tickets', 'TicketController@index');
-    Router::get('tickets/create', 'TicketController@create');
-    Router::post('tickets/store', 'TicketController@store');
-    Router::get('tickets/{id}', 'TicketController@show');
-    Router::get('tickets/{id}/edit', 'TicketController@edit');
-    Router::post('tickets/{id}/update', 'TicketController@update');
-    Router::post('tickets/{id}/comment', 'TicketController@comment');
-    Router::post('tickets/{id}/delete', 'TicketController@delete');
-    Router::post('tickets/{id}/quick-update', 'TicketController@quickUpdate');
+    // Tickets → plugins/tickets/routes.php
 
     // Campaigns
     Router::get('campaigns', 'CampaignController@index');
