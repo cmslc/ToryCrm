@@ -8,8 +8,20 @@ use App\Services\DuplicateDetector;
 
 class DuplicateController extends Controller
 {
+    /** All actions in this controller are admin-only. */
+    private function requireAdmin(): bool
+    {
+        if (!$this->isSystemAdmin()) {
+            $this->setFlash('error', 'Chỉ admin mới được truy cập chức năng kiểm tra trùng lặp.');
+            $this->redirect('contacts');
+            return false;
+        }
+        return true;
+    }
+
     public function index()
     {
+        if (!$this->requireAdmin()) return;
         $tenantId = Database::tenantId();
         $entityType = $this->input('type', '');
 
@@ -35,6 +47,7 @@ class DuplicateController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('duplicates');
         }
+        if (!$this->requireAdmin()) return;
 
         $tenantId = Database::tenantId();
 
@@ -50,6 +63,7 @@ class DuplicateController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('duplicates');
         }
+        if (!$this->requireAdmin()) return;
 
         $keepId = (int) $this->input('keep_id', 0);
 
@@ -74,6 +88,7 @@ class DuplicateController extends Controller
         if (!$this->isPost()) {
             return $this->redirect('duplicates');
         }
+        if (!$this->requireAdmin()) return;
 
         DuplicateDetector::ignore((int) $groupId);
 

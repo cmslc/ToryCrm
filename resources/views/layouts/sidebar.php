@@ -285,7 +285,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                     </a>
                     <div class="collapse menu-dropdown <?= $sysOpen ? 'show' : '' ?>" id="sidebarSystem">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li>
+                            <?php if ($_isAdmin): ?><li class="nav-item"><a href="<?= url('duplicates') ?>" class="nav-link <?= isActive('duplicates', $currentUrl) ?>">Trùng lặp</a></li><?php endif; ?>
                             <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins') ?>" class="nav-link <?= isActive(['plugins','integrations'], $currentUrl) ?>">Plugin</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('settings/getfly-sync') ?>" class="nav-link <?= isActive('getfly-sync', $currentUrl) ?>">Getfly Sync</a></li>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>

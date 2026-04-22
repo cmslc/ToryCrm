@@ -178,7 +178,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
         <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="<?= url('contacts/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
+            <?php if (\App\Services\PermissionService::isInSystemGroup($_SESSION['user']['id'] ?? 0)): ?>
             <li><a class="dropdown-item" href="<?= url('duplicates') ?>"><i class="ri-file-copy-line me-2"></i>Kiểm tra trùng</a></li>
+            <?php endif; ?>
         </ul>
     </div>
     <script>
