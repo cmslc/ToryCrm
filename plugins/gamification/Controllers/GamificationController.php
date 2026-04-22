@@ -23,7 +23,7 @@ class GamificationController extends Controller
              FROM leaderboard_snapshots ls
              JOIN users u ON ls.user_id = u.id
              WHERE ls.tenant_id = ? AND ls.period = ?
-             ORDER BY ls.revenue DESC, ls.deals_won DESC",
+             ORDER BY ls.revenue DESC, u.id ASC",
             [$tid, $period]
         );
 
@@ -112,19 +112,21 @@ class GamificationController extends Controller
         foreach ($users as $user) {
             $uid = $user['id'];
 
-            // Deals won this period — use actual_close_date (fallback updated_at if null)
+            // Approved orders this period — use issued_date (fallback created_at if null)
             $dealsWon = (int)(Database::fetch(
-                "SELECT COUNT(*) as c FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'
-                 AND MONTH(COALESCE(actual_close_date, updated_at)) = ?
-                 AND YEAR(COALESCE(actual_close_date, updated_at)) = ?",
+                "SELECT COUNT(*) as c FROM orders
+                 WHERE tenant_id = ? AND owner_id = ? AND type = 'order' AND status = 'approved'
+                 AND MONTH(COALESCE(issued_date, DATE(created_at))) = ?
+                 AND YEAR(COALESCE(issued_date, DATE(created_at))) = ?",
                 [$tid, $uid, $month, $year]
             )['c'] ?? 0);
 
-            // Revenue from won deals (same date source)
+            // Revenue from approved orders (same date source)
             $revenue = (float)(Database::fetch(
-                "SELECT COALESCE(SUM(value), 0) as total FROM deals WHERE tenant_id = ? AND owner_id = ? AND status = 'won'
-                 AND MONTH(COALESCE(actual_close_date, updated_at)) = ?
-                 AND YEAR(COALESCE(actual_close_date, updated_at)) = ?",
+                "SELECT COALESCE(SUM(total), 0) as total FROM orders
+                 WHERE tenant_id = ? AND owner_id = ? AND type = 'order' AND status = 'approved'
+                 AND MONTH(COALESCE(issued_date, DATE(created_at))) = ?
+                 AND YEAR(COALESCE(issued_date, DATE(created_at))) = ?",
                 [$tid, $uid, $month, $year]
             )['total'] ?? 0);
 
@@ -157,9 +159,9 @@ class GamificationController extends Controller
             );
         }
 
-        // Update ranks — by revenue first (matches display order)
+        // Update ranks — revenue only (matches display order)
         $ranked = Database::fetchAll(
-            "SELECT id FROM leaderboard_snapshots WHERE tenant_id = ? AND period = ? ORDER BY revenue DESC, deals_won DESC, points DESC",
+            "SELECT id FROM leaderboard_snapshots WHERE tenant_id = ? AND period = ? ORDER BY revenue DESC, user_id ASC",
             [$tid, $period]
         );
         foreach ($ranked as $i => $r) {

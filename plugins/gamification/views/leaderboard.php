@@ -49,7 +49,7 @@ $podiumOrder = [1, 0, 2]; // Display 2nd, 1st, 3rd
                             <?= number_format((float)($entry['revenue'] ?? 0), 0, ',', '.') ?> VNĐ
                         </p>
                         <div class="d-flex justify-content-center gap-3 text-muted">
-                            <small><i class="ri-hand-coin-line me-1"></i><?= (int)($entry['deals_won'] ?? 0) ?> deal</small>
+                            <small><i class="ri-hand-coin-line me-1"></i><?= (int)($entry['deals_won'] ?? 0) ?> đơn</small>
                             <small><i class="ri-calendar-check-line me-1"></i><?= (int)($entry['activities_count'] ?? 0) ?> hoạt động</small>
                         </div>
                     </div>
@@ -78,7 +78,7 @@ $podiumOrder = [1, 0, 2]; // Display 2nd, 1st, 3rd
                     <tr>
                         <th style="width:60px">Hạng</th>
                         <th>Nhân viên</th>
-                        <th class="text-center">Deal thắng</th>
+                        <th class="text-center">Đơn hàng</th>
                         <th class="text-end">Doanh thu</th>
                         <th class="text-center">Hoạt động</th>
                     </tr>
