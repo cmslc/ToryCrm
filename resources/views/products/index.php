@@ -135,7 +135,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                             case 'name': ?>
                                                 <div class="d-flex align-items-center">
                                                     <?php if (!empty($product['image'])): ?>
-                                                        <img src="<?= url('uploads/products/' . $product['image']) ?>" class="rounded me-2" style="width:40px;height:40px;object-fit:cover">
+                                                        <img src="<?= e(product_image_url($product['image'])) ?>" class="rounded me-2" style="width:40px;height:40px;object-fit:cover" alt="">
                                                     <?php else: ?>
                                                         <div class="avatar-sm me-2 flex-shrink-0"><span class="avatar-title bg-light rounded"><i class="ri-image-line text-muted"></i></span></div>
                                                     <?php endif; ?>

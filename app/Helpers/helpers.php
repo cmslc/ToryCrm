@@ -107,6 +107,14 @@ function time_ago(string $datetime): string
     return format_date($datetime);
 }
 
+function product_image_url(?string $image): ?string
+{
+    if (empty($image)) return null;
+    // Already an absolute URL (e.g. synced from Getfly)
+    if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) return $image;
+    return url('uploads/products/' . $image);
+}
+
 function tenant_setting(string $key, $default = null)
 {
     static $cache = null;

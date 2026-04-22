@@ -74,10 +74,7 @@
                                     <label class="form-label">Ảnh sản phẩm</label>
                                     <?php if (!empty($product['image'])): ?>
                                         <div class="mb-2">
-                                            <?php
-                                            $imgUrl = str_starts_with($product['image'], 'http') ? $product['image'] : url('uploads/products/' . $product['image']);
-                                            ?>
-                                            <img src="<?= e($imgUrl) ?>" class="rounded" style="max-height:100px" alt="">
+                                            <img src="<?= e(product_image_url($product['image'])) ?>" class="rounded" style="max-height:100px" alt="">
                                         </div>
                                     <?php endif; ?>
                                     <input type="file" class="form-control" name="image" accept="image/*">
