@@ -30,7 +30,7 @@ class SlaController extends Controller
              FROM tickets WHERE resolved_at IS NOT NULL AND sla_policy_id IS NOT NULL"
         );
 
-        return $this->view('plugin:sla.index', [
+        return $this->view('plugin:tickets.sla.index', [
             'policies' => $policies,
             'stats' => [
                 'total_tickets' => $totalTickets,
@@ -45,7 +45,7 @@ class SlaController extends Controller
     {
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
-        return $this->view('plugin:sla.create', [
+        return $this->view('plugin:tickets.sla.create', [
             'users' => $users,
         ]);
     }
@@ -87,7 +87,7 @@ class SlaController extends Controller
 
         $users = Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.is_active = 1 ORDER BY d.name, u.name");
 
-        return $this->view('plugin:sla.edit', [
+        return $this->view('plugin:tickets.sla.edit', [
             'policy' => $policy,
             'users' => $users,
         ]);
