@@ -566,13 +566,18 @@ class GetflySyncController extends Controller
             $weight = ($r['weight'] !== null && $r['weight'] !== '') ? (float) $r['weight'] : null;
 
             // Image: prefer images[0].origin_src, fall back to thumbnail_file
-            $image = null; $featured = null;
+            $imageUrl = null; $featuredUrl = null;
             if (!empty($r['images']) && is_array($r['images']) && !empty($r['images'][0])) {
-                $image = $r['images'][0]['origin_src'] ?? null;
-                $featured = $r['images'][0]['thumb_src'] ?? ($r['thumbnail_file'] ?? null);
+                $imageUrl = $r['images'][0]['origin_src'] ?? null;
+                $featuredUrl = $r['images'][0]['thumb_src'] ?? ($r['thumbnail_file'] ?? null);
             } elseif (!empty($r['thumbnail_file'])) {
-                $featured = $r['thumbnail_file'];
+                $featuredUrl = $r['thumbnail_file'];
             }
+
+            // Download to local so we don't depend on Getfly uptime later
+            $getflyProductId = (int)($r['product_id'] ?? 0);
+            $image = $imageUrl ? $this->downloadProductImage($imageUrl, $getflyProductId, $config) : null;
+            $featured = $featuredUrl ? $this->downloadProductImage($featuredUrl, $getflyProductId, $config, 'thumb') : null;
 
             // Resolve FK IDs from Getfly IDs via our maps (null if not found)
             $categoryId = $catMap[(int)($r['category_id'] ?? 0)] ?? null;
@@ -728,6 +733,59 @@ class GetflySyncController extends Controller
             }
         }
         return $map;
+    }
+
+    /**
+     * Download an image from Getfly to the local uploads dir so we don't
+     * depend on Getfly's availability or CDN long-term.
+     *
+     * Returns the local filename on success, or the original URL as fallback
+     * if download failed (so the image still renders via the remote link).
+     *
+     * Stores as /uploads/products/gf_<product_id>[_thumb].<ext>. If the file
+     * already exists (same product_id), re-uses it — the getfly_id is stable
+     * per product.
+     */
+    private function downloadProductImage(string $url, int $getflyProductId, array $config, string $suffix = ''): ?string
+    {
+        if ($getflyProductId <= 0 || !filter_var($url, FILTER_VALIDATE_URL)) return $url ?: null;
+
+        // SSRF defense: only accept images from the configured Getfly domain
+        $urlHost = parse_url($url, PHP_URL_HOST);
+        $cfgHost = parse_url($config['api_domain'] ?? '', PHP_URL_HOST);
+        if (!$urlHost || !$cfgHost || $urlHost !== $cfgHost) return $url;
+
+        $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) $ext = 'jpg';
+
+        $filename = 'gf_' . $getflyProductId . ($suffix ? '_' . $suffix : '') . '.' . $ext;
+        $dir = BASE_PATH . '/public/uploads/products/';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        $dest = $dir . $filename;
+
+        // Skip if already downloaded this run/previously
+        if (file_exists($dest) && filesize($dest) > 100) return $filename;
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $data = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?? '';
+        curl_close($ch);
+
+        if (!$data || $code !== 200 || strlen($data) < 100 || !str_starts_with($contentType, 'image/')) {
+            return $url; // Fallback to remote URL
+        }
+
+        if (@file_put_contents($dest, $data) === false) return $url;
+        return $filename;
     }
 
     /**
