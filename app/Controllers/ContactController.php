@@ -240,10 +240,15 @@ class ContactController extends Controller
         ];
     }
 
-    private function saveContactPersons(int $contactId, array $data): void
+    /**
+     * @return array list of blocked entries (each: [name, phone, email, existing_person_id])
+     *               that the user couldn't add because the phone/email belongs to a
+     *               person they lack access to. Caller can surface these + offer merge request.
+     */
+    private function saveContactPersons(int $contactId, array $data): array
     {
         $names = $data['cp_name'] ?? [];
-        if (empty($names)) return;
+        if (empty($names)) return [];
 
         // Delete existing and re-insert
         Database::query("DELETE FROM contact_persons WHERE contact_id = ?", [$contactId]);
@@ -261,6 +266,7 @@ class ContactController extends Controller
         $endDates = $data['cp_end_date'] ?? [];
         $activeMap = $data['cp_active'] ?? []; // keyed by $idx
         $tid = Database::tenantId();
+        $blocked = [];
 
         foreach ($names as $i => $name) {
             $name = trim($name);
@@ -278,6 +284,46 @@ class ContactController extends Controller
                 $exists = Database::fetch("SELECT id FROM persons WHERE id = ? AND tenant_id = ?", [$personId, $tid]);
                 if (!$exists) $personId = 0;
             }
+
+            // STRICT RULE: if phone/email matches existing person and user has no
+            // access to any of that person's employments → BLOCK. Caller gets the
+            // option to send a merge request through the approval workflow.
+            if ($personId === 0 && ($phone || $email)) {
+                $match = null;
+                if ($phone) {
+                    $match = Database::fetch("SELECT id FROM persons WHERE tenant_id = ? AND phone = ? LIMIT 1", [$tid, $phone]);
+                }
+                if (!$match && $email) {
+                    $match = Database::fetch("SELECT id FROM persons WHERE tenant_id = ? AND email = ? LIMIT 1", [$tid, $email]);
+                }
+                if ($match) {
+                    $matchedPid = (int)$match['id'];
+                    $hasAccess = false;
+                    $owners = Database::fetchAll(
+                        "SELECT DISTINCT c.owner_id FROM contact_persons cp
+                         JOIN contacts c ON c.id = cp.contact_id
+                         WHERE cp.person_id = ? AND cp.tenant_id = ?",
+                        [$matchedPid, $tid]
+                    );
+                    foreach ($owners as $o) {
+                        if ($this->canAccessOwner((int)$o['owner_id'], 'contacts')) { $hasAccess = true; break; }
+                    }
+                    if (!$hasAccess) {
+                        $blocked[] = [
+                            'name' => $name,
+                            'phone' => $phone,
+                            'email' => $email,
+                            'position' => trim($positions[$i] ?? '') ?: null,
+                            'title' => trim($titles[$i] ?? '') ?: null,
+                            'existing_person_id' => $matchedPid,
+                        ];
+                        continue; // skip this row
+                    }
+                    // Has access → reuse
+                    $personId = $matchedPid;
+                }
+            }
+
             if ($personId === 0) {
                 $personId = \App\Services\PersonService::findOrCreate($tid, $phone, $email, $name, [
                     'gender' => $gender,
@@ -306,6 +352,7 @@ class ContactController extends Controller
                 'sort_order' => $i,
             ]);
         }
+        return $blocked;
     }
 
     private function handleAvatarUpload(int $contactId, ?string $oldAvatar = null): void
@@ -504,7 +551,10 @@ class ContactController extends Controller
         $contactId = Database::insert('contacts', $contactData);
 
         $this->handleAvatarUpload($contactId);
-        $this->saveContactPersons($contactId, $data);
+        $blocked = $this->saveContactPersons($contactId, $data);
+        if (!empty($blocked)) {
+            $_SESSION['_cp_blocked'] = ['contact_id' => $contactId, 'items' => $blocked];
+        }
 
         $displayName = $contactData['company_name'] ?: ($contactData['first_name'] . ' ' . $contactData['last_name']);
 
@@ -678,7 +728,10 @@ class ContactController extends Controller
         Database::update('contacts', $contactData, 'id = ?', [$id]);
 
         $this->handleAvatarUpload($id, $contact['avatar'] ?? null);
-        $this->saveContactPersons($id, $data);
+        $blocked = $this->saveContactPersons($id, $data);
+        if (!empty($blocked)) {
+            $_SESSION['_cp_blocked'] = ['contact_id' => $id, 'items' => $blocked];
+        }
 
         // Log activity
         $name = trim($contactData['company_name'] ?? $contactData['full_name'] ?? '');

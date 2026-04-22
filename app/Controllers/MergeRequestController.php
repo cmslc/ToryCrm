@@ -126,17 +126,146 @@ class MergeRequestController extends Controller
     }
 
     /**
-     * Approve a merge request (Sale 1 approves).
+     * Request access to an existing person (strict Option 1 flow).
+     * Called when saveContactPersons was blocked because phone/email matched a
+     * person outside the user's scope.
+     */
+    public function storePerson()
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'Invalid'], 400);
+        $this->authorize('contacts', 'create');
+        $tid = Database::tenantId();
+
+        $personId = (int)$this->input('existing_person_id');
+        $targetContactId = (int)$this->input('target_contact_id');
+        $name = trim($this->input('cp_name') ?? '');
+
+        if (!$personId || !$targetContactId || !$name) {
+            return $this->json(['error' => 'Thiếu thông tin'], 422);
+        }
+
+        // Verify both belong to tenant
+        $person = Database::fetch("SELECT id FROM persons WHERE id = ? AND tenant_id = ?", [$personId, $tid]);
+        $target = Database::fetch("SELECT id, owner_id FROM contacts WHERE id = ? AND tenant_id = ?", [$targetContactId, $tid]);
+        if (!$person || !$target) return $this->json(['error' => 'Không hợp lệ'], 404);
+        if (!$this->canAccessEntity('contact', $targetContactId, (int)($target['owner_id'] ?? 0))) {
+            return $this->json(['error' => 'Không có quyền với KH đích'], 403);
+        }
+
+        // Avoid duplicate pending request for same person+target
+        $dup = Database::fetch(
+            "SELECT id FROM contact_merge_requests
+             WHERE existing_person_id = ? AND target_contact_id = ? AND status = 'pending'",
+            [$personId, $targetContactId]
+        );
+        if ($dup) return $this->json(['error' => 'Đã có yêu cầu chờ duyệt.']);
+
+        // Find one of the person's employment owners as approver pool
+        $ownerRow = Database::fetch(
+            "SELECT c.owner_id FROM contact_persons cp JOIN contacts c ON c.id = cp.contact_id
+             WHERE cp.person_id = ? AND cp.tenant_id = ? LIMIT 1",
+            [$personId, $tid]
+        );
+
+        Database::insert('contact_merge_requests', [
+            'tenant_id' => $tid,
+            'existing_contact_id' => null,
+            'existing_person_id' => $personId,
+            'target_contact_id' => $targetContactId,
+            'requested_by' => $this->userId(),
+            'cp_title' => trim($this->input('cp_title') ?? '') ?: null,
+            'cp_name' => $name,
+            'cp_phone' => trim($this->input('cp_phone') ?? '') ?: null,
+            'cp_email' => trim($this->input('cp_email') ?? '') ?: null,
+            'cp_position' => trim($this->input('cp_position') ?? '') ?: null,
+        ]);
+
+        if ($ownerRow && !empty($ownerRow['owner_id'])) {
+            $requesterName = $_SESSION['user']['name'] ?? 'Ai đó';
+            Database::insert('notifications', [
+                'tenant_id' => $tid,
+                'user_id' => (int)$ownerRow['owner_id'],
+                'type' => 'info',
+                'title' => $requesterName . ' yêu cầu thêm người liên hệ vào KH của họ',
+                'message' => 'Liên quan đến: ' . $name,
+                'link' => 'approvals/pending',
+                'icon' => 'ri-user-add-line',
+            ]);
+        }
+
+        return $this->json(['success' => true, 'message' => 'Đã gửi yêu cầu. Chờ duyệt.']);
+    }
+
+    /**
+     * Approve a merge request.
+     * Handles both flows: company-level (existing_contact_id set) and
+     * person-level (existing_person_id + target_contact_id set).
      */
     public function approve($id)
     {
         if (!$this->isPost()) return $this->redirect('approvals/pending');
 
-        $req = Database::fetch("SELECT mr.*, c.owner_id FROM contact_merge_requests mr JOIN contacts c ON mr.existing_contact_id = c.id WHERE mr.id = ?", [$id]);
+        $req = Database::fetch("SELECT * FROM contact_merge_requests WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
         if (!$req) {
             $this->setFlash('error', 'Yêu cầu không tồn tại.');
             return $this->redirect('approvals/pending');
         }
+
+        // ---------- Person-access request ----------
+        if (!empty($req['existing_person_id']) && !empty($req['target_contact_id'])) {
+            // Approver must own one of the person's current employments (or be admin)
+            $canApprove = $this->isSystemAdmin();
+            if (!$canApprove) {
+                $ownersRows = Database::fetchAll(
+                    "SELECT DISTINCT c.owner_id FROM contact_persons cp
+                     JOIN contacts c ON c.id = cp.contact_id
+                     WHERE cp.person_id = ?",
+                    [$req['existing_person_id']]
+                );
+                foreach ($ownersRows as $or) {
+                    if ((int)$or['owner_id'] === (int)$this->userId()) { $canApprove = true; break; }
+                }
+            }
+            if (!$canApprove) {
+                $this->setFlash('error', 'Bạn không có quyền duyệt.');
+                return $this->redirect('approvals/pending');
+            }
+
+            Database::insert('contact_persons', [
+                'tenant_id' => Database::tenantId(),
+                'contact_id' => (int)$req['target_contact_id'],
+                'person_id' => (int)$req['existing_person_id'],
+                'title' => $req['cp_title'],
+                'full_name' => $req['cp_name'],
+                'position' => $req['cp_position'],
+                'phone' => $req['cp_phone'],
+                'email' => $req['cp_email'],
+                'is_active' => 1,
+                'is_primary' => 0,
+            ]);
+
+            Database::update('contact_merge_requests', [
+                'status' => 'approved',
+                'approved_by' => $this->userId(),
+            ], 'id = ?', [$id]);
+
+            Database::insert('notifications', [
+                'tenant_id' => Database::tenantId(),
+                'user_id' => (int)$req['requested_by'],
+                'type' => 'success',
+                'title' => 'Yêu cầu người liên hệ đã được duyệt',
+                'message' => $req['cp_name'] . ' đã được thêm vào KH của bạn.',
+                'link' => 'contacts/' . $req['target_contact_id'],
+                'icon' => 'ri-check-double-line',
+            ]);
+
+            $this->setFlash('success', 'Đã duyệt.');
+            return $this->redirect('approvals/pending');
+        }
+
+        // ---------- Original company-level flow ----------
+        $contact = Database::fetch("SELECT owner_id FROM contacts WHERE id = ?", [$req['existing_contact_id']]);
+        $req['owner_id'] = $contact['owner_id'] ?? null;
 
         // Only contact owner or admin can approve
         if ($req['owner_id'] != $this->userId() && !$this->isSystemAdmin()) {

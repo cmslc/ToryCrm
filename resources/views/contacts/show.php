@@ -1,5 +1,50 @@
 <?php $pageTitle = e($contact['company_name'] ?? ($contact['first_name'] . ' ' . ($contact['last_name'] ?? ''))); ?>
 
+        <?php if (!empty($_SESSION['_cp_blocked']) && $_SESSION['_cp_blocked']['contact_id'] == $contact['id']): ?>
+        <div class="alert alert-warning alert-dismissible mb-3">
+            <h6 class="alert-heading"><i class="ri-alert-line me-1"></i>Một số người liên hệ không thể thêm do trùng SĐT/Email</h6>
+            <p class="mb-2 fs-13">Những người dưới đây đã có trong hệ thống do sale khác quản. Gửi yêu cầu để được thêm vào KH này.</p>
+            <?php foreach ($_SESSION['_cp_blocked']['items'] as $bi): ?>
+            <div class="d-flex align-items-center gap-2 p-2 bg-white rounded border mb-2">
+                <div class="flex-grow-1">
+                    <strong><?= e($bi['name']) ?></strong>
+                    <span class="text-muted fs-12">· <?= e($bi['phone'] ?? '') ?> <?= e($bi['email'] ?? '') ?></span>
+                </div>
+                <button type="button" class="btn btn-soft-warning" onclick='sendPersonMergeReq(<?= json_encode($bi) ?>, <?= (int)$contact['id'] ?>, this)'>
+                    <i class="ri-send-plane-line me-1"></i> Gửi yêu cầu
+                </button>
+            </div>
+            <?php endforeach; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+        function sendPersonMergeReq(item, contactId, btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ri-loader-4-line ri-spin me-1"></i>Đang gửi...';
+            var fd = new FormData();
+            fd.append('existing_person_id', item.existing_person_id);
+            fd.append('target_contact_id', contactId);
+            fd.append('cp_name', item.name);
+            fd.append('cp_phone', item.phone || '');
+            fd.append('cp_email', item.email || '');
+            fd.append('cp_position', item.position || '');
+            fd.append('cp_title', item.title || '');
+            fd.append('_token', '<?= csrf_token() ?>');
+            fetch('<?= url("merge-requests/person") ?>', { method: 'POST', body: fd })
+                .then(r => r.json()).then(d => {
+                    if (d.success) {
+                        btn.innerHTML = '<i class="ri-check-line me-1"></i>Đã gửi';
+                        btn.classList.replace('btn-soft-warning', 'btn-soft-success');
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="ri-send-plane-line me-1"></i>Gửi lại';
+                        alert(d.error || 'Lỗi');
+                    }
+                });
+        }
+        </script>
+        <?php unset($_SESSION['_cp_blocked']); endif; ?>
+
         <div class="row">
             <div class="col-12">
                 <div class="page-title-box d-flex align-items-center justify-content-between">

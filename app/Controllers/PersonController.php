@@ -39,10 +39,11 @@ class PersonController extends Controller
             );
         }
 
-        // Attach current employments + filter by access (hide company names
-        // of companies the user can't access, so sale B doesn't learn where
-        // sale C's customer lists their contacts).
-        foreach ($persons as &$p) {
+        // STRICT PRIVACY MODE: only include persons where the caller has access
+        // to AT LEAST ONE of their employments. Completely hide persons they
+        // can't see — prevents cross-sale leakage of "person exists in CRM".
+        $filtered = [];
+        foreach ($persons as $p) {
             $rows = Database::fetchAll(
                 "SELECT cp.id, cp.position, c.id as contact_id, c.owner_id,
                         COALESCE(c.company_name, c.full_name, '?') as company_name
@@ -53,7 +54,6 @@ class PersonController extends Controller
                 [$p['id']]
             );
             $visible = [];
-            $hiddenCount = 0;
             foreach ($rows as $r) {
                 if ($this->canAccessOwner((int)($r['owner_id'] ?? 0), 'contacts')) {
                     $visible[] = [
@@ -62,16 +62,18 @@ class PersonController extends Controller
                         'contact_id' => $r['contact_id'],
                         'company_name' => $r['company_name'],
                     ];
-                } else {
-                    $hiddenCount++;
                 }
             }
-            $p['employments'] = array_slice($visible, 0, 5);
-            $p['hidden_count'] = $hiddenCount;
+            // Strict mode: person with zero accessible employments → hidden entirely.
+            // Admin / view_all bypasses this via canAccessOwner returning true globally.
+            if (count($visible) > 0) {
+                $p['employments'] = array_slice($visible, 0, 5);
+                $p['hidden_count'] = 0;
+                $filtered[] = $p;
+            }
         }
-        unset($p);
 
-        return $this->json($persons);
+        return $this->json($filtered);
     }
 
     /**
