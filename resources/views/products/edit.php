@@ -70,6 +70,14 @@
                                     <label class="form-label">Mã vạch (Barcode)</label>
                                     <input type="text" class="form-control" name="barcode" value="<?= e($product['barcode'] ?? '') ?>">
                                 </div>
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Kích thước</label>
+                                    <input type="text" class="form-control" name="dimensions" value="<?= e($product['dimensions'] ?? '') ?>" placeholder="VD: W1400 x D600 x H750mm" maxlength="255">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Màu sắc</label>
+                                    <input type="text" class="form-control" name="color" value="<?= e($product['color'] ?? '') ?>" placeholder="VD: Đen, Nâu" maxlength="100">
+                                </div>
                                 <div class="col-12 mb-3">
                                     <label class="form-label">Ảnh sản phẩm</label>
                                     <?php if (!empty($product['image'])): ?>

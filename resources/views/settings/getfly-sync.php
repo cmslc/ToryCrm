@@ -140,6 +140,29 @@
                 <?php endif; ?>
             </div>
         </div>
+
+        <?php if ($config): ?>
+        <!-- Import Excel (bổ sung kích thước, màu sắc, trọng lượng) -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="ri-file-excel-2-line me-1"></i> Import Excel — bổ sung thông tin sản phẩm</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="ri-information-line me-1"></i>
+                    API Getfly v3 <strong>không trả về</strong> kích thước, màu sắc, trọng lượng. Export Excel từ Getfly
+                    (<em>Sản phẩm &rarr; Xuất Excel</em>) rồi upload tại đây để bổ sung 3 trường này cho toàn bộ sản phẩm đã sync.
+                    Match theo SKU. Không ghi đè các trường khác.
+                </div>
+                <form method="POST" action="<?= url('settings/getfly-sync/import-product-excel') ?>" enctype="multipart/form-data" class="d-flex gap-2 align-items-center flex-wrap">
+                    <?= csrf_field() ?>
+                    <input type="file" name="excel" accept=".xlsx" class="form-control" required style="max-width:400px">
+                    <button type="submit" class="btn btn-success"><i class="ri-upload-2-line me-1"></i> Upload &amp; cập nhật</button>
+                    <span class="text-muted fs-12">Chỉ nhận file .xlsx. Cập nhật: <code>dimensions</code>, <code>color</code>, <code>weight</code>.</span>
+                </form>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 

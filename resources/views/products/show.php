@@ -45,6 +45,12 @@
                                         <?php if ($product['weight'] !== null): ?>
                                         <tr><th>Khối lượng</th><td><?= number_format((float)$product['weight'], 3, ',', '.') ?> kg</td></tr>
                                         <?php endif; ?>
+                                        <?php if (!empty($product['dimensions'])): ?>
+                                        <tr><th>Kích thước</th><td><?= e($product['dimensions']) ?></td></tr>
+                                        <?php endif; ?>
+                                        <?php if (!empty($product['color'])): ?>
+                                        <tr><th>Màu sắc</th><td><?= e($product['color']) ?></td></tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>

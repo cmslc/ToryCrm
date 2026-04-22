@@ -724,6 +724,102 @@ class GetflySyncController extends Controller
     }
 
     /** Fetch [unit_id => unit_name] from Getfly (no local table — we store the name string). */
+    /**
+     * Import dimensions, color, weight from a Getfly Excel product export.
+     * These 3 fields are NOT returned by Getfly API v3, only via Excel export,
+     * so this endpoint fills the gap.
+     *
+     * Expected columns (from Getfly's danhsachsanpham.xlsx export):
+     *   A: MÃ SẢN PHẨM (SKU)
+     *   T: KÍCH THƯỚC (dimensions)
+     *   U: MÀU SẮC (color)
+     *   V: TRỌNG LƯỢNG (GRAM) — converted to kg
+     *
+     * Matches by SKU, updates only non-empty Excel cells (won't wipe manually-edited data).
+     */
+    public function importProductExcel()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/getfly-sync');
+        $this->authorize('settings', 'manage');
+
+        if (empty($_FILES['excel']['tmp_name']) || $_FILES['excel']['error'] !== UPLOAD_ERR_OK) {
+            $this->setFlash('error', 'Vui lòng chọn file Excel.');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        $tmp = $_FILES['excel']['tmp_name'];
+        $origName = $_FILES['excel']['name'] ?? '';
+        if (!preg_match('/\.xlsx$/i', $origName)) {
+            $this->setFlash('error', 'Chỉ chấp nhận file .xlsx (không phải .xls).');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        @set_time_limit(0);
+
+        try {
+            $rows = \App\Services\XlsxReader::readAllRows($tmp);
+        } catch (\Exception $e) {
+            $this->setFlash('error', 'Không đọc được file: ' . $e->getMessage());
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        if (count($rows) < 2) {
+            $this->setFlash('error', 'File rỗng hoặc không đúng định dạng.');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        // Validate header matches Getfly export format
+        $header = $rows[0] ?? [];
+        $expectedA = trim($header['A'] ?? '');
+        if (stripos($expectedA, 'MÃ SẢN PHẨM') === false) {
+            $this->setFlash('error', 'Header không khớp. Cần file export sản phẩm từ Getfly (cột A: MÃ SẢN PHẨM).');
+            return $this->redirect('settings/getfly-sync');
+        }
+
+        $tid = Database::tenantId();
+        $updated = 0; $notFound = 0; $skipped = 0;
+
+        for ($i = 1, $n = count($rows); $i < $n; $i++) {
+            $row = $rows[$i];
+            $sku = trim($row['A'] ?? '');
+            if ($sku === '') { $skipped++; continue; }
+
+            $dimensions = trim($row['T'] ?? '');
+            $color = trim($row['U'] ?? '');
+            $weightGramRaw = trim($row['V'] ?? '');
+
+            // Skip row if all 3 fields empty — nothing to update
+            if ($dimensions === '' && $color === '' && ($weightGramRaw === '' || $weightGramRaw === '0')) {
+                $skipped++;
+                continue;
+            }
+
+            $update = [];
+            if ($dimensions !== '' && $dimensions !== '0') $update['dimensions'] = mb_substr($dimensions, 0, 255);
+            if ($color !== '' && $color !== '0') $update['color'] = mb_substr($color, 0, 100);
+            if ($weightGramRaw !== '' && is_numeric($weightGramRaw) && (float)$weightGramRaw > 0) {
+                $update['weight'] = round((float)$weightGramRaw / 1000, 3); // gram → kg
+            }
+
+            if (empty($update)) { $skipped++; continue; }
+
+            $existing = Database::fetch(
+                "SELECT id FROM products WHERE sku = ? AND tenant_id = ? AND is_deleted = 0 LIMIT 1",
+                [$sku, $tid]
+            );
+            if (!$existing) { $notFound++; continue; }
+
+            Database::update('products', $update, 'id = ?', [$existing['id']]);
+            $updated++;
+        }
+
+        $this->setFlash('success', sprintf(
+            'Đã cập nhật %d sản phẩm từ Excel. Bỏ qua %d dòng (trống), không khớp SKU %d dòng.',
+            $updated, $skipped, $notFound
+        ));
+        return $this->redirect('settings/getfly-sync');
+    }
+
     private function fetchUnitsMap(array $config): array
     {
         $r = $this->callApi($config['api_key'], $config['api_domain'] . '/api/v3/products/units');
