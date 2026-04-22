@@ -66,19 +66,31 @@ function e(?string $value): string
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-function format_date(string $date, string $format = 'd/m/Y'): string
+function format_date(string $date, ?string $format = null): string
 {
+    $format = $format ?? tenant_setting('date_format', 'd/m/Y');
     return date($format, strtotime($date));
 }
 
 function format_datetime(string $date): string
 {
-    return date('d/m/Y H:i', strtotime($date));
+    $format = tenant_setting('date_format', 'd/m/Y');
+    return date($format . ' H:i', strtotime($date));
 }
 
-function format_money($amount): string
+function format_money($amount, ?string $currency = null): string
 {
-    return number_format((float) $amount, 0, ',', '.') . ' đ';
+    $currency = $currency ?? tenant_setting('currency', 'VND');
+    $map = [
+        'VND' => ['sym' => 'đ', 'decimals' => 0, 'right' => true],
+        'USD' => ['sym' => '$', 'decimals' => 2, 'right' => false],
+        'EUR' => ['sym' => '€', 'decimals' => 2, 'right' => false],
+        'JPY' => ['sym' => '¥', 'decimals' => 0, 'right' => false],
+        'CNY' => ['sym' => '¥', 'decimals' => 2, 'right' => false],
+    ];
+    $cfg = $map[$currency] ?? $map['VND'];
+    $num = number_format((float) $amount, $cfg['decimals'], ',', '.');
+    return $cfg['right'] ? ($num . ' ' . $cfg['sym']) : ($cfg['sym'] . $num);
 }
 
 function time_ago(string $datetime): string
@@ -93,6 +105,25 @@ function time_ago(string $datetime): string
     if ($diff < 2592000) return floor($diff / 86400) . ' ngày trước';
 
     return format_date($datetime);
+}
+
+function tenant_setting(string $key, $default = null)
+{
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        try {
+            $row = \Core\Database::fetch(
+                "SELECT settings FROM tenants WHERE id = ?",
+                [$_SESSION['tenant_id'] ?? 1]
+            );
+            $all = json_decode($row['settings'] ?? '{}', true) ?: [];
+            $cache = $all['general'] ?? [];
+        } catch (\Exception $e) {
+            $cache = [];
+        }
+    }
+    return $cache[$key] ?? $default;
 }
 
 function plugin_active(string $slug): bool
@@ -118,7 +149,8 @@ function upload_avatar(string $inputName, string $dir, ?string $oldFile = null):
     $file = $_FILES[$inputName];
     $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!in_array($file['type'], $allowed)) return null;
-    if ($file['size'] > 5 * 1024 * 1024) return null; // 5MB max
+    $maxMb = max(1, min(100, (int) tenant_setting('upload_limit', 10)));
+    if ($file['size'] > $maxMb * 1024 * 1024) return null;
 
     $uploadDir = BASE_PATH . '/public/uploads/' . $dir . '/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);

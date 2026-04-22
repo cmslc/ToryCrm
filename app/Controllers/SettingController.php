@@ -67,7 +67,8 @@ class SettingController extends Controller
             $_SESSION['user']['avatar'] = $filename;
             $this->setFlash('success', 'Đã cập nhật ảnh đại diện.');
         } else {
-            $this->setFlash('error', 'Không thể tải ảnh. Chỉ chấp nhận JPG, PNG, GIF, WebP (tối đa 5MB).');
+            $limit = max(1, min(100, (int) tenant_setting('upload_limit', 10)));
+            $this->setFlash('error', "Không thể tải ảnh. Chỉ chấp nhận JPG, PNG, GIF, WebP (tối đa {$limit}MB).");
         }
 
         return $this->redirect('settings');
@@ -378,5 +379,82 @@ class SettingController extends Controller
         Database::query("DELETE FROM tax_lookup_cache");
         $this->setFlash('success', 'Đã xóa cache tra cứu MST.');
         return $this->redirect('settings/api');
+    }
+
+    public function general()
+    {
+        if (!$this->isSystemAdmin()) {
+            $this->setFlash('error', 'Chỉ admin mới được truy cập Cài đặt chung.');
+            return $this->redirect('dashboard');
+        }
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true) ?: [];
+        $g = $settings['general'] ?? [];
+
+        return $this->view('settings.general', [
+            'pageTitle' => 'Cài đặt chung',
+            'g' => $g,
+        ]);
+    }
+
+    public function saveGeneral()
+    {
+        if (!$this->isPost()) return $this->redirect('settings/general');
+        if (!$this->isSystemAdmin()) {
+            $this->setFlash('error', 'Chỉ admin mới được cấu hình.');
+            return $this->redirect('dashboard');
+        }
+
+        $allowedTz = \DateTimeZone::listIdentifiers();
+        $tz = $this->input('timezone', 'Asia/Ho_Chi_Minh');
+        if (!in_array($tz, $allowedTz, true)) $tz = 'Asia/Ho_Chi_Minh';
+
+        $locale = in_array($this->input('locale'), ['vi', 'en'], true) ? $this->input('locale') : 'vi';
+        $currency = in_array($this->input('currency'), ['VND', 'USD', 'EUR', 'JPY', 'CNY'], true) ? $this->input('currency') : 'VND';
+        $dateFormat = in_array($this->input('date_format'), ['d/m/Y', 'Y-m-d', 'm/d/Y', 'd-m-Y'], true) ? $this->input('date_format') : 'd/m/Y';
+
+        $workStart = preg_match('/^\d{2}:\d{2}$/', $this->input('work_start', '')) ? $this->input('work_start') : '08:00';
+        $workEnd = preg_match('/^\d{2}:\d{2}$/', $this->input('work_end', '')) ? $this->input('work_end') : '17:30';
+
+        $workDaysRaw = $this->input('work_days') ?? [];
+        $workDays = [];
+        foreach ([1, 2, 3, 4, 5, 6, 7] as $d) {
+            if (in_array((string)$d, (array)$workDaysRaw, true)) $workDays[] = $d;
+        }
+        if (empty($workDays)) $workDays = [2, 3, 4, 5, 6];
+
+        $fromName = trim((string)$this->input('email_from_name', ''));
+        $fromEmail = trim((string)$this->input('email_from_email', ''));
+        if ($fromEmail !== '' && !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+            $this->setFlash('error', 'Email gửi không hợp lệ.');
+            return $this->back();
+        }
+
+        $sessionTimeout = max(5, min(1440, (int)$this->input('session_timeout', 120)));
+        $uploadLimit = max(1, min(100, (int)$this->input('upload_limit', 10)));
+
+        $systemName = trim((string)$this->input('system_name', ''));
+        if (mb_strlen($systemName) > 100) $systemName = mb_substr($systemName, 0, 100);
+
+        $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
+        $settings = json_decode($tenant['settings'] ?? '{}', true) ?: [];
+        $settings['general'] = [
+            'system_name' => $systemName,
+            'timezone' => $tz,
+            'locale' => $locale,
+            'currency' => $currency,
+            'date_format' => $dateFormat,
+            'work_start' => $workStart,
+            'work_end' => $workEnd,
+            'work_days' => $workDays,
+            'email_from_name' => $fromName,
+            'email_from_email' => $fromEmail,
+            'session_timeout' => $sessionTimeout,
+            'upload_limit' => $uploadLimit,
+        ];
+        Database::update('tenants', ['settings' => json_encode($settings, JSON_UNESCAPED_UNICODE)], 'id = ?', [$this->tenantId()]);
+
+        $this->setFlash('success', 'Đã lưu cài đặt chung.');
+        return $this->redirect('settings/general');
     }
 }

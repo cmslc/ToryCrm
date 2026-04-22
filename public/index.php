@@ -59,22 +59,9 @@ ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.gc_maxlifetime', '28800'); // 8h absolute
 session_start();
 
-// Session timeout: idle >2h OR absolute >8h → force re-login
-$now = time();
-$idleMax = 7200;      // 2h inactivity
-$absoluteMax = 28800; // 8h total
-if (!empty($_SESSION['user'])) {
-    $loginTime = $_SESSION['login_time'] ?? $now;
-    $lastActivity = $_SESSION['_last_activity'] ?? $now;
-    if (($now - $lastActivity) > $idleMax || ($now - $loginTime) > $absoluteMax) {
-        session_unset();
-        session_destroy();
-        session_start();
-        $_SESSION['flash'] = ['type' => 'warning', 'message' => 'Phiên đã hết hạn. Vui lòng đăng nhập lại.'];
-    } else {
-        $_SESSION['_last_activity'] = $now;
-    }
-}
+// Session timeout check is done after DB init in Application::enforceSessionTimeout()
+// so it can read the tenant-specific idle threshold. A hardcoded 8h absolute cap remains
+// via session.gc_maxlifetime above as a safety floor.
 
 // Load config
 $config = require BASE_PATH . '/config/app.php';

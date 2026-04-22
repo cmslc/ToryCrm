@@ -1032,7 +1032,9 @@ class ContractController extends Controller
             $mailer->Password = $_ENV['MAIL_PASSWORD'] ?? '';
             $mailer->SMTPSecure = 'tls';
             $mailer->CharSet = 'UTF-8';
-            $mailer->setFrom($_ENV['MAIL_FROM'] ?? 'noreply@torycrm.com', $branding['name'] ?? 'ToryCRM');
+            $fromEmail = tenant_setting('email_from_email') ?: ($_ENV['MAIL_FROM'] ?? 'noreply@torycrm.com');
+            $fromName  = tenant_setting('email_from_name')  ?: ($branding['name'] ?? 'ToryCRM');
+            $mailer->setFrom($fromEmail, $fromName);
             $mailer->addAddress($email);
             $mailer->Subject = 'Hợp đồng ' . $contract['contract_number'];
             $mailer->Body = 'Kính gửi Quý khách,\n\nĐính kèm hợp đồng ' . $contract['contract_number'] . '.\n\nTrân trọng,\n' . ($branding['name'] ?? '');

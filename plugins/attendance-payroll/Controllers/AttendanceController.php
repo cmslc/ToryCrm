@@ -70,8 +70,9 @@ class AttendanceController extends Controller
                 $this->setFlash('warning', 'Đã check-out hôm nay rồi.');
             }
         } else {
-            // Check in
-            $status = (date('H:i') > '08:30') ? 'late' : 'present';
+            // Check in — "late" if after configured work_start
+            $workStart = tenant_setting('work_start', '08:00');
+            $status = (date('H:i') > $workStart) ? 'late' : 'present';
             Database::insert('attendances', [
                 'tenant_id' => $tid,
                 'user_id' => $uid,

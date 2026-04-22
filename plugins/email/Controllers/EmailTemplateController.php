@@ -290,9 +290,14 @@ class EmailTemplateController extends Controller
         $html = $this->buildEmailHtml($subject, $body);
 
         // Send email
+        $fromEmail = tenant_setting('email_from_email') ?: ($_ENV['MAIL_FROM'] ?? 'noreply@torycrm.com');
+        $fromName  = tenant_setting('email_from_name')  ?: ($_ENV['MAIL_FROM_NAME'] ?? 'ToryCRM');
+        // Strip any CR/LF from From header components to prevent header injection
+        $fromEmail = preg_replace('/[\r\n]+/', '', $fromEmail);
+        $fromName  = preg_replace('/[\r\n]+/', '', $fromName);
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-        $headers .= "From: ToryCRM <noreply@torycrm.com>\r\n";
+        $headers .= "From: {$fromName} <{$fromEmail}>\r\n";
 
         $sent = @mail($toEmail, $subject, $html, $headers);
 

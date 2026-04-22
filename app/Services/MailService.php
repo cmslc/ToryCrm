@@ -24,10 +24,10 @@ class MailService
             $mail->SMTPSecure = 'tls';
             $mail->CharSet    = 'UTF-8';
 
-            $mail->setFrom(
-                $_ENV['MAIL_FROM'] ?? 'noreply@example.com',
-                $_ENV['MAIL_FROM_NAME'] ?? 'ToryCRM'
-            );
+            // Priority: tenant setting > .env > hardcoded fallback
+            $fromEmail = tenant_setting('email_from_email') ?: ($_ENV['MAIL_FROM'] ?? 'noreply@example.com');
+            $fromName  = tenant_setting('email_from_name')  ?: ($_ENV['MAIL_FROM_NAME'] ?? 'ToryCRM');
+            $mail->setFrom($fromEmail, $fromName);
 
             $mail->addAddress($to, $toName ?? '');
             $mail->isHTML(true);
