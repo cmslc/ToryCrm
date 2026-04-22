@@ -152,7 +152,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                             <?php break; case 'manufacturer_id': ?>
                                                 <?= e($product['manufacturer_name'] ?? '-') ?>
                                             <?php break; case 'price': case 'cost_price': case 'price_wholesale': case 'price_online': case 'saleoff_price': ?>
-                                                <?= ($val + 0) > 0 ? format_money($val) : '-' ?>
+                                                <?= (float)$val > 0 ? format_money($val) : '-' ?>
                                             <?php break; case 'stock_quantity': ?>
                                                 <?php if ($product['type'] === 'product'): ?>
                                                     <?php if ($val <= ($product['min_stock'] ?? 0)): ?>

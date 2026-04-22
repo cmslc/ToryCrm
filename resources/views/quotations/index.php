@@ -165,7 +165,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                             <?php break; case 'company_id': ?>
                                                 <?= !empty($q['company_name']) ? e($q['company_name']) : '-' ?>
                                             <?php break; case 'total': case 'subtotal': case 'tax_amount': case 'discount_amount': ?>
-                                                <?= ($val + 0) > 0 ? format_money($val) : '-' ?>
+                                                <?= (float)$val > 0 ? format_money($val) : '-' ?>
                                             <?php break; case 'valid_until': ?>
                                                 <?php if ($val): $isExpired = $val < date('Y-m-d'); ?>
                                                     <span class="<?= $isExpired ? 'text-danger' : 'text-success' ?>"><?= format_date($val) ?></span>

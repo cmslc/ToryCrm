@@ -186,7 +186,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                             case 'total': case 'subtotal': case 'tax_amount': case 'discount_amount':
                                             case 'transport_amount': case 'installation_amount': case 'paid_amount':
                                             case 'commission_amount':
-                                                echo ($val + 0) > 0 ? format_money($val) : '-';
+                                                echo (float)$val > 0 ? format_money($val) : '-';
                                                 break;
                                             case 'status':
                                                 echo '<span class="badge bg-' . ($sc[$val] ?? 'secondary') . '">' . ($sl[$val] ?? $val) . '</span>';
