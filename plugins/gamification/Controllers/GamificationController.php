@@ -157,9 +157,9 @@ class GamificationController extends Controller
             );
         }
 
-        // Update ranks
+        // Update ranks — by revenue first (matches display order)
         $ranked = Database::fetchAll(
-            "SELECT id FROM leaderboard_snapshots WHERE tenant_id = ? AND period = ? ORDER BY points DESC, revenue DESC",
+            "SELECT id FROM leaderboard_snapshots WHERE tenant_id = ? AND period = ? ORDER BY revenue DESC, deals_won DESC, points DESC",
             [$tid, $period]
         );
         foreach ($ranked as $i => $r) {
