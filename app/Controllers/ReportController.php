@@ -152,9 +152,16 @@ class ReportController extends Controller
             array_merge($baseParams, $dateParams)
         );
 
+        // Load contact status labels for UI rendering
+        $statusLabels = Database::fetchAll(
+            "SELECT slug, name, color FROM contact_statuses WHERE tenant_id = ? ORDER BY sort_order",
+            [$tid]
+        );
+
         return $this->view('reports.customers', [
             'bySource' => $bySource,
             'byStatus' => $byStatus,
+            'statusLabels' => $statusLabels,
             'byOwner' => $byOwner,
             'monthData' => $monthData,
             'byType' => $byType,

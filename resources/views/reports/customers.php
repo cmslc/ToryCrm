@@ -82,8 +82,12 @@
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-bar-chart-line me-1"></i> Theo trạng thái</h5></div>
             <div class="card-body">
                 <?php
-                $sl = ['new'=>'Mới','contacted'=>'Đã liên hệ','qualified'=>'Tiềm năng','converted'=>'Chuyển đổi','lost'=>'Mất'];
-                $sc = ['new'=>'info','contacted'=>'primary','qualified'=>'warning','converted'=>'success','lost'=>'danger'];
+                // Build lookup from contact_statuses table (admin-configurable labels/colors)
+                $sl = []; $sc = [];
+                foreach ($statusLabels ?? [] as $st) {
+                    $sl[$st['slug']] = $st['name'];
+                    $sc[$st['slug']] = $st['color'] ?: 'secondary';
+                }
                 foreach ($byStatus ?? [] as $row): ?>
                 <div class="d-flex align-items-center mb-3">
                     <span class="badge bg-<?= $sc[$row['status']] ?? 'secondary' ?> me-2"><?= $sl[$row['status']] ?? $row['status'] ?></span>
