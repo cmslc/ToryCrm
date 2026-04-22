@@ -329,4 +329,94 @@ class OrderApiController extends Controller
             'payment_status' => $paymentStatus,
         ], 201);
     }
+
+    /**
+     * Write-back endpoint for KT Accounting. Called after KT posts the
+     * journal entry for an order — sends back the issued VAT invoice number
+     * and the legal entity that issued it.
+     *
+     * Accepts PATCH-style payload (POST body):
+     *   { "order_id": 123, "vat_invoice_number": "0001234",
+     *     "accounting_entity": "VNT-HN", "synced_at": "2026-04-22 14:30:00" }
+     *
+     * Only updates the three accounting fields — never the order content.
+     */
+    public function accountingUpdate()
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+
+        $orderId = (int) ($input['order_id'] ?? 0);
+        if ($orderId <= 0) {
+            return $this->json(['error' => 'order_id bắt buộc'], 422);
+        }
+
+        $tid = (int) ($_SESSION['tenant_id'] ?? 1);
+        $order = Database::fetch(
+            "SELECT id, order_number FROM orders WHERE id = ? AND tenant_id = ?",
+            [$orderId, $tid]
+        );
+        if (!$order) {
+            return $this->json(['error' => 'Order không tồn tại'], 404);
+        }
+
+        $invoiceNumber = trim((string) ($input['vat_invoice_number'] ?? ''));
+        if ($invoiceNumber === '') {
+            return $this->json(['error' => 'vat_invoice_number bắt buộc'], 422);
+        }
+        if (mb_strlen($invoiceNumber) > 50) {
+            return $this->json(['error' => 'vat_invoice_number quá dài (max 50)'], 422);
+        }
+
+        $entity = trim((string) ($input['accounting_entity'] ?? ''));
+        if (mb_strlen($entity) > 100) $entity = mb_substr($entity, 0, 100);
+
+        // Allow KT to pass a custom timestamp; fall back to server now
+        $syncedAt = $input['synced_at'] ?? $input['accounting_synced_at'] ?? null;
+        if ($syncedAt && !preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:\d{2})?)?$/', $syncedAt)) {
+            $syncedAt = null;
+        }
+        if (!$syncedAt) $syncedAt = date('Y-m-d H:i:s');
+
+        // Detect duplicate invoice number across tenant — common accounting bug guard
+        $clash = Database::fetch(
+            "SELECT id, order_number FROM orders
+             WHERE tenant_id = ? AND vat_invoice_number = ? AND id != ?
+             LIMIT 1",
+            [$tid, $invoiceNumber, $orderId]
+        );
+        if ($clash) {
+            return $this->json([
+                'error' => 'Số hóa đơn VAT đã gắn cho order khác',
+                'existing_order_id' => (int) $clash['id'],
+                'existing_order_number' => $clash['order_number'],
+            ], 409);
+        }
+
+        Database::update('orders', [
+            'vat_invoice_number' => $invoiceNumber,
+            'accounting_synced_at' => $syncedAt,
+            'accounting_entity' => $entity ?: null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], 'id = ?', [$orderId]);
+
+        // Audit trail
+        try {
+            Database::insert('activities', [
+                'type' => 'system',
+                'title' => "KT Accounting: HDBH {$invoiceNumber} gắn cho {$order['order_number']}",
+                'description' => "Entity: {$entity}; synced_at: {$syncedAt}",
+                'user_id' => $_SESSION['api_user']['user_id'] ?? null,
+                'tenant_id' => $tid,
+            ]);
+        } catch (\Exception $e) { /* non-fatal */ }
+
+        return $this->json([
+            'message' => 'Write-back thành công',
+            'order_id' => $orderId,
+            'order_number' => $order['order_number'],
+            'vat_invoice_number' => $invoiceNumber,
+            'accounting_synced_at' => $syncedAt,
+            'accounting_entity' => $entity ?: null,
+        ]);
+    }
 }

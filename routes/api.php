@@ -30,6 +30,7 @@ Router::group(['middleware' => 'ApiAuthMiddleware'], function () {
     Router::post('api/v1/order', 'Api\OrderApiController@create');
     Router::post('api/v1/order/approve', 'Api\OrderApiController@approve');
     Router::post('api/v1/order/payment', 'Api\OrderApiController@payment');
+    Router::post('api/v1/order/accounting-update', 'Api\OrderApiController@accountingUpdate');
 
     // Tickets
     Router::get('api/v1/ticket/categories', 'Api\TicketApiController@categories');

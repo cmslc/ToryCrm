@@ -249,6 +249,58 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
             </div>
         </div>
 
+        <!-- Kế toán (KT) -->
+        <?php
+        $ktInvoice = null;
+        if (\App\Services\KtAccountingService::isConfigured() && ($order['type'] ?? '') === 'order') {
+            $ktInvoice = \App\Services\KtAccountingService::fetchInvoiceForOrder((int)$order['id']);
+        }
+        $vatNum = $order['vat_invoice_number'] ?? ($ktInvoice['invoice_number'] ?? null);
+        ?>
+        <?php if ($vatNum || $ktInvoice || !empty($order['accounting_synced_at'])): ?>
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="ri-file-text-line me-1"></i> Kế toán</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-borderless mb-0">
+                    <tbody>
+                        <?php if ($vatNum): ?>
+                        <tr>
+                            <td class="text-muted" style="width:40%">Số HDBH</td>
+                            <td class="fw-medium"><?= e($vatNum) ?></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if ($ktInvoice['invoice_date'] ?? null): ?>
+                        <tr>
+                            <td class="text-muted">Ngày HD</td>
+                            <td><?= format_date($ktInvoice['invoice_date']) ?></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if ($ktInvoice['accounting_status'] ?? null): ?>
+                        <tr>
+                            <td class="text-muted">Trạng thái KT</td>
+                            <td><span class="badge bg-success-subtle text-success"><?= e($ktInvoice['accounting_status']) ?></span></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if (!empty($order['accounting_entity'])): ?>
+                        <tr>
+                            <td class="text-muted">Pháp nhân</td>
+                            <td><?= e($order['accounting_entity']) ?></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if (!empty($order['accounting_synced_at'])): ?>
+                        <tr>
+                            <td class="text-muted">Sync lần cuối</td>
+                            <td><?= format_datetime($order['accounting_synced_at']) ?></td>
+                        </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- Thanh toán -->
         <?php if (($order['payment_status'] ?? '') !== 'paid' && ($order['status'] ?? '') !== 'cancelled'): ?>
         <div class="card">

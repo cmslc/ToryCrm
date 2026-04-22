@@ -459,6 +459,50 @@
                 })();
                 </script>
 
+                <!-- KT Accounting — receivable balance + recent txns -->
+                <?php if (\App\Services\KtAccountingService::isConfigured()):
+                    $ktBal = \App\Services\KtAccountingService::fetchCustomerBalance((int)$contact['id']);
+                    $ktTx  = \App\Services\KtAccountingService::fetchCustomerTransactions((int)$contact['id'], 5);
+                ?>
+                <?php if ($ktBal || !empty($ktTx)): ?>
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h6 class="card-title mb-0"><i class="ri-bank-line me-1"></i> Kế toán</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <?php if ($ktBal): ?>
+                        <div class="px-3 py-2 border-bottom">
+                            <div class="text-muted fs-12">Công nợ phải thu (131)</div>
+                            <div class="fs-5 fw-semibold <?= ((float)($ktBal['receivable_balance'] ?? 0)) > 0 ? 'text-danger' : 'text-success' ?>">
+                                <?= format_money($ktBal['receivable_balance'] ?? 0) ?>
+                            </div>
+                            <small class="text-muted">
+                                <?= (int)($ktBal['transaction_count'] ?? 0) ?> giao dịch
+                                <?php if ($ktBal['last_transaction_date'] ?? null): ?>
+                                    · GD gần nhất <?= format_date($ktBal['last_transaction_date']) ?>
+                                <?php endif; ?>
+                            </small>
+                        </div>
+                        <?php endif; ?>
+                        <?php if (!empty($ktTx)): ?>
+                        <div class="px-3 py-2">
+                            <div class="text-muted fs-12 mb-1">Giao dịch gần nhất</div>
+                            <?php foreach (array_slice($ktTx, 0, 5) as $tx): ?>
+                            <div class="d-flex justify-content-between align-items-center py-1">
+                                <div>
+                                    <span class="badge bg-secondary-subtle text-secondary me-1 fs-11"><?= e($tx['doc_type'] ?? '') ?></span>
+                                    <small><?= e($tx['doc_number'] ?? '') ?></small>
+                                </div>
+                                <small class="fw-medium"><?= format_money($tx['total_amount'] ?? 0) ?></small>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php endif; ?>
+
             </div>
 
             <!-- Right Column - Tabbed Layout -->
