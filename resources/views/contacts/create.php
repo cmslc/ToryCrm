@@ -460,7 +460,9 @@ function checkCpPhone(btn) {
             alertDiv.style.fontSize = '13px';
             if (data.found) {
                 alertDiv.className = 'cp-phone-alert mt-2 p-2 border rounded border-warning bg-warning-subtle';
-                if (data.can_see) {
+                if (data.is_person) {
+                    alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-user-search-line text-warning fs-18"></i><span><strong>' + data.name + '</strong> đã có trong hệ thống. Hãy chọn từ gợi ý ở ô Điện thoại/Họ tên phía trên để dùng lại — tránh tạo trùng.</span></div>';
+                } else if (data.can_see) {
                     alertDiv.innerHTML = '<div class="d-flex align-items-center justify-content-between"><span><i class="ri-error-warning-line text-warning me-1"></i>SĐT đã tồn tại: <strong>' + data.name + '</strong>' + (data.account_code ? ' (' + data.account_code + ')' : '') + '</span><a href="<?= url("contacts") ?>/' + data.id + '" target="_blank" class="btn btn-warning py-0 px-2" style="font-size:12px">Mở KH</a></div>';
                 } else {
                     alertDiv.innerHTML = '<div class="d-flex align-items-center gap-2"><i class="ri-error-warning-line text-warning fs-18"></i><span>SĐT này đã tồn tại trong hệ thống, phụ trách: <strong>' + (data.owner_name || 'N/A') + '</strong></span></div>';

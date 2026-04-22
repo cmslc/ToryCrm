@@ -345,6 +345,29 @@ class ContactController extends Controller
         }
 
         $tid = Database::tenantId();
+
+        // For phone/email, also check persons table (Phase 3 person reuse).
+        // If a person with matching phone/email exists, surface as "found" so UI
+        // doesn't mislead user into thinking it's safe to create new.
+        if (in_array($field, ['phone', 'email'])) {
+            $person = Database::fetch(
+                "SELECT id, full_name, phone, email FROM persons WHERE tenant_id = ? AND {$field} = ? LIMIT 1",
+                [$tid, $value]
+            );
+            if ($person) {
+                return $this->json([
+                    'found' => true,
+                    'can_see' => true,
+                    'is_person' => true,
+                    'id' => $person['id'],
+                    'name' => $person['full_name'],
+                    'phone' => $person['phone'],
+                    'email' => $person['email'],
+                    'message' => 'Người liên hệ này đã có trong hệ thống. Hãy chọn từ gợi ý ở ô phía trên thay vì tạo mới.',
+                ]);
+            }
+        }
+
         $where = "c.tenant_id = ? AND c.is_deleted = 0 AND c.{$field} = ?";
         $params = [$tid, $value];
 
