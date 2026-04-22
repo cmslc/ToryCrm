@@ -11,11 +11,8 @@ class WhiteLabelController extends Controller
 {
     public function settings()
     {
-        $branding = BrandingService::get();
-
-        return $this->view('settings.white-label', [
-            'branding' => $branding,
-        ]);
+        // Merged into /settings/general — redirect for bookmarks
+        return $this->redirect('settings/general');
     }
 
     public function save()

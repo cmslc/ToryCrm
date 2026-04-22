@@ -390,10 +390,12 @@ class SettingController extends Controller
         $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
         $settings = json_decode($tenant['settings'] ?? '{}', true) ?: [];
         $g = $settings['general'] ?? [];
+        $branding = \App\Services\BrandingService::get();
 
         return $this->view('settings.general', [
             'pageTitle' => 'Cài đặt chung',
             'g' => $g,
+            'branding' => $branding,
         ]);
     }
 
@@ -454,7 +456,47 @@ class SettingController extends Controller
         ];
         Database::update('tenants', ['settings' => json_encode($settings, JSON_UNESCAPED_UNICODE)], 'id = ?', [$this->tenantId()]);
 
+        // Branding (merged from former /settings/white-label)
+        $this->saveBrandingFromInput();
+
         $this->setFlash('success', 'Đã lưu cài đặt chung.');
         return $this->redirect('settings/general');
+    }
+
+    private function saveBrandingFromInput(): void
+    {
+        $current = \App\Services\BrandingService::get();
+
+        // Keep legacy fields that moved to Company Profiles — pass-through
+        $keepFromCurrent = ['tax_code','address','branch_address','email','phone','fax','website',
+            'representative','representative_title','bank_account','bank_name'];
+        $branding = [];
+        foreach ($keepFromCurrent as $k) $branding[$k] = $current[$k] ?? '';
+
+        $brandName = trim((string)$this->input('brand_name', ''));
+        $branding['name'] = $brandName !== '' ? $brandName : ($current['name'] ?? 'ToryCRM');
+        $branding['primary_color'] = trim((string)$this->input('primary_color', '#405189'));
+        $branding['sidebar_color'] = trim((string)$this->input('sidebar_color', ''));
+        $branding['login_bg'] = trim((string)$this->input('login_bg', ''));
+        $branding['custom_css'] = trim((string)$this->input('custom_css', ''));
+
+        // Carry over existing logo/favicon unless a new file was uploaded
+        $currentLogo = $current['logo_url'] ?? '';
+        if (is_array($currentLogo)) $currentLogo = $currentLogo['file_path'] ?? '';
+        $branding['logo_url'] = $currentLogo;
+        $currentFav = $current['favicon_url'] ?? '';
+        if (is_array($currentFav)) $currentFav = $currentFav['file_path'] ?? '';
+        $branding['favicon_url'] = $currentFav;
+
+        if (!empty($_FILES['logo']['tmp_name'])) {
+            $uploaded = \App\Services\FileUploadService::upload($_FILES['logo'], 'branding');
+            if ($uploaded) $branding['logo_url'] = is_array($uploaded) ? ($uploaded['file_path'] ?? $uploaded) : $uploaded;
+        }
+        if (!empty($_FILES['favicon']['tmp_name'])) {
+            $uploaded = \App\Services\FileUploadService::upload($_FILES['favicon'], 'branding');
+            if ($uploaded) $branding['favicon_url'] = is_array($uploaded) ? ($uploaded['file_path'] ?? $uploaded) : $uploaded;
+        }
+
+        \App\Services\BrandingService::save($branding);
     }
 }

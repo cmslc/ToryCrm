@@ -8,7 +8,7 @@
     </ol>
 </div>
 
-<form method="POST" action="<?= url('settings/general') ?>">
+<form method="POST" action="<?= url('settings/general') ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
     <div class="row">
@@ -160,6 +160,65 @@
                 </div>
             </div>
 
+            <!-- 6. Thương hiệu -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="ri-palette-line me-2"></i>Thương hiệu</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên thương hiệu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="brand_name" value="<?= e($branding['name'] ?? 'ToryCRM') ?>" maxlength="100">
+                        <small class="text-muted">Hiển thị trên sidebar và trang đăng nhập.</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Logo (sidebar & login)</label>
+                            <?php if (!empty($branding['logo_url'])): ?>
+                                <div class="mb-2"><img src="<?= asset($branding['logo_url']) ?>" alt="Logo" class="img-thumbnail" style="max-height:60px"></div>
+                            <?php endif; ?>
+                            <input type="file" class="form-control" name="logo" accept="image/*">
+                            <small class="text-muted">Khuyến nghị PNG, 200×50px.</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Favicon</label>
+                            <?php if (!empty($branding['favicon_url'])): ?>
+                                <div class="mb-2"><img src="<?= e($branding['favicon_url']) ?>" alt="Favicon" class="img-thumbnail" style="max-height:40px"></div>
+                            <?php endif; ?>
+                            <input type="file" class="form-control" name="favicon" accept="image/*,.ico">
+                            <small class="text-muted">ICO hoặc PNG, 32×32px.</small>
+                        </div>
+                    </div>
+                    <?php
+                    $colorFields = [
+                        ['name'=>'primary_color', 'label'=>'Màu chính', 'value'=>$branding['primary_color'] ?? '#405189'],
+                        ['name'=>'sidebar_color', 'label'=>'Màu sidebar', 'value'=>$branding['sidebar_color'] ?? ''],
+                        ['name'=>'login_bg', 'label'=>'Nền trang đăng nhập', 'value'=>$branding['login_bg'] ?? ''],
+                    ];
+                    ?>
+                    <div class="row">
+                        <?php foreach ($colorFields as $cf): ?>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><?= $cf['label'] ?></label>
+                            <div class="input-group">
+                                <input type="color" class="form-control form-control-color" value="<?= e($cf['value'] ?: '#405189') ?>"
+                                       onchange="this.nextElementSibling.value=this.value">
+                                <input type="text" class="form-control" name="<?= $cf['name'] ?>" value="<?= e($cf['value']) ?>"
+                                       placeholder="#405189" maxlength="7"
+                                       oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))this.previousElementSibling.value=this.value">
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label">CSS tùy chỉnh <small class="text-muted">(nâng cao)</small></label>
+                        <textarea class="form-control font-monospace" name="custom_css" rows="4"
+                                  placeholder="/* Thêm CSS tùy chỉnh ở đây */"><?= e($branding['custom_css'] ?? '') ?></textarea>
+                        <small class="text-muted">CSS này được thêm vào cuối trang — dùng cẩn thận.</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="text-end mb-4">
                 <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu cài đặt</button>
             </div>
@@ -176,7 +235,6 @@
                         <li>Các thiết lập này áp dụng <strong>riêng cho tenant</strong> của bạn.</li>
                         <li>Thay đổi <strong>múi giờ</strong>/<strong>ngôn ngữ</strong> có hiệu lực ngay ở lần tải trang kế tiếp.</li>
                         <li>Thay đổi <strong>session timeout</strong> chỉ áp dụng cho phiên đăng nhập mới.</li>
-                        <li>Muốn chỉnh logo, favicon, slogan? Xem <a href="<?= url('settings/white-label') ?>">Thương hiệu</a>.</li>
                         <li>Muốn chỉnh MST, địa chỉ, TK ngân hàng? Xem <a href="<?= url('settings/company-profiles') ?>">Quản lý công ty</a>.</li>
                     </ul>
                 </div>
