@@ -121,7 +121,12 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                                     <?php foreach ($items as $i => $item): ?>
                                     <tr>
                                         <td><?= $i + 1 ?></td>
-                                        <td class="fw-medium"><?= e($item['product_name']) ?></td>
+                                        <td>
+                                            <div class="fw-medium"><?= e($item['product_name']) ?></div>
+                                            <?php if (!empty($item['description'])): ?>
+                                                <small class="text-muted d-block mt-1" style="white-space:pre-wrap"><?= e($item['description']) ?></small>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><code><?= e($item['product_sku'] ?? '-') ?></code></td>
                                         <td class="text-end"><?= $item['quantity'] ?></td>
                                         <td><?= e($item['unit']) ?></td>
