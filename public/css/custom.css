@@ -26,6 +26,14 @@ button {
   font-family: var(--vz-font-sans-serif);
 }
 
+/* Compact info tables — used in sidebar/show-page summary cards
+   (table-borderless is the marker for these non-data tables). */
+.card .table-borderless > tbody > tr > td,
+.card .table-borderless > tbody > tr > th {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
 #page-topbar,
 #page-topbar.topbar-shadow {
   box-shadow: none !important;
