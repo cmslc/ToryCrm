@@ -5,7 +5,7 @@
  * Version: 1.0.0
  * Author: ToryCRM
  * Slug: automation
- * Icon: ri-flow-chart
+ * Icon: ri-node-tree
  * Category: Marketing
  */
 if (!defined('BASE_PATH')) return;
