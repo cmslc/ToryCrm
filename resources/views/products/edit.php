@@ -177,7 +177,7 @@
             </div>
         </form>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor/4.22.1/ckeditor.js"></script>
+        <script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
         <script>
         document.getElementById('productType')?.addEventListener('change', function() {
             const stockCard = document.getElementById('stockCard');
