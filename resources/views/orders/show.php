@@ -8,7 +8,14 @@ $pl = ['unpaid'=>'Chưa thanh toán','partial'=>'Thanh toán một phần','paid
 $cName = $order['c_company_name'] ?: ($order['c_full_name'] ?: trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? '')));
 $cPhone = $order['c_company_phone'] ?: ($order['c_phone'] ?? '');
 $cEmail = $order['c_company_email'] ?: ($order['c_email'] ?? '');
-$cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
+$cAddress = $order['c_address'] ?? '';
+
+$shipParts = array_filter([
+    $order['shipping_address'] ?? '',
+    $order['shipping_district'] ?? '',
+    $order['shipping_province'] ?? '',
+], fn($v) => trim((string)$v) !== '');
+$shipFull = implode(', ', $shipParts);
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -76,13 +83,30 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
                             <?php if ($cp['email']): ?><p class="mb-0 text-muted"><i class="ri-mail-line me-1"></i><?= e($cp['email']) ?></p><?php endif; ?>
                         <?php else: ?><p class="text-muted">-</p><?php endif; ?>
 
-                        <?php if ($order['shipping_address'] ?? ''): ?>
-                        <h6 class="text-muted mb-2 mt-3"><i class="ri-truck-line me-1"></i>Địa chỉ giao hàng</h6>
-                        <p class="mb-0 text-muted"><?= e($order['shipping_address']) ?></p>
-                        <?php if ($order['shipping_contact'] ?? ''): ?><p class="mb-0 text-muted"><i class="ri-user-line me-1"></i><?= e($order['shipping_contact']) ?> <?php if ($order['shipping_phone'] ?? ''): ?>· <i class="ri-phone-line me-1"></i><?= e($order['shipping_phone']) ?><?php endif; ?></p><?php endif; ?>
-                        <?php endif; ?>
                     </div>
                 </div>
+
+                <?php if ($shipFull || ($order['shipping_contact'] ?? '') || ($order['shipping_phone'] ?? '')): ?>
+                <hr class="my-3">
+                <h6 class="text-muted mb-2"><i class="ri-truck-line me-1"></i>Địa chỉ giao hàng</h6>
+                <div class="row">
+                    <?php if ($shipFull): ?>
+                    <div class="col-md-8">
+                        <p class="mb-1"><i class="ri-map-pin-2-line me-1 text-muted"></i><?= e($shipFull) ?></p>
+                    </div>
+                    <?php endif; ?>
+                    <?php if (($order['shipping_contact'] ?? '') || ($order['shipping_phone'] ?? '')): ?>
+                    <div class="col-md-4">
+                        <?php if ($order['shipping_contact'] ?? ''): ?>
+                            <p class="mb-1 text-muted"><i class="ri-user-line me-1"></i><?= e($order['shipping_contact']) ?></p>
+                        <?php endif; ?>
+                        <?php if ($order['shipping_phone'] ?? ''): ?>
+                            <p class="mb-0 text-muted"><i class="ri-phone-line me-1"></i><?= e($order['shipping_phone']) ?></p>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
