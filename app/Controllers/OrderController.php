@@ -214,7 +214,12 @@ class OrderController extends Controller
         $shipContact = trim($data['shipping_contact'] ?? '');
         $shipPhone = trim($data['shipping_phone'] ?? '');
         if ((!$shipContact || !$shipPhone) && !empty($data['contact_person_id'])) {
-            $cp = Database::fetch("SELECT full_name, phone FROM contact_persons WHERE id = ?", [$data['contact_person_id']]);
+            $cp = Database::fetch(
+                "SELECT cp.full_name, cp.phone FROM contact_persons cp
+                 JOIN contacts c ON cp.contact_id = c.id
+                 WHERE cp.id = ? AND c.tenant_id = ?",
+                [$data['contact_person_id'], Database::tenantId()]
+            );
             if ($cp) {
                 if (!$shipContact) $shipContact = $cp['full_name'] ?? '';
                 if (!$shipPhone) $shipPhone = $cp['phone'] ?? '';
@@ -530,7 +535,12 @@ class OrderController extends Controller
         $shipContact = trim($data['shipping_contact'] ?? '');
         $shipPhone = trim($data['shipping_phone'] ?? '');
         if ((!$shipContact || !$shipPhone) && !empty($data['contact_person_id'])) {
-            $cp = Database::fetch("SELECT full_name, phone FROM contact_persons WHERE id = ?", [$data['contact_person_id']]);
+            $cp = Database::fetch(
+                "SELECT cp.full_name, cp.phone FROM contact_persons cp
+                 JOIN contacts c ON cp.contact_id = c.id
+                 WHERE cp.id = ? AND c.tenant_id = ?",
+                [$data['contact_person_id'], Database::tenantId()]
+            );
             if ($cp) {
                 if (!$shipContact) $shipContact = $cp['full_name'] ?? '';
                 if (!$shipPhone) $shipPhone = $cp['phone'] ?? '';
