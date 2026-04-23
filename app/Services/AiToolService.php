@@ -177,6 +177,63 @@ class AiToolService
                     ],
                 ],
             ],
+
+            // ========== BÁO CÁO ==========
+            [
+                'type' => 'function',
+                'function' => [
+                    'name' => 'revenue_breakdown',
+                    'description' => 'Doanh thu chia nhỏ theo ngày/tuần/tháng trong khoảng thời gian. Dùng để vẽ biểu đồ hoặc phân tích xu hướng.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'from_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
+                            'to_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD'],
+                            'group_by' => ['type' => 'string', 'enum' => ['day','week','month'], 'description' => 'Nhóm theo'],
+                        ],
+                        'required' => ['from_date', 'to_date'],
+                    ],
+                ],
+            ],
+            [
+                'type' => 'function',
+                'function' => [
+                    'name' => 'product_sales_stats',
+                    'description' => 'Top 10 sản phẩm bán chạy nhất theo doanh thu trong khoảng thời gian.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'period' => ['type' => 'string', 'enum' => ['today','week','month','quarter','year']],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'type' => 'function',
+                'function' => [
+                    'name' => 'outstanding_orders',
+                    'description' => 'Đơn hàng chưa thanh toán xong (còn nợ). Trả về danh sách + tổng công nợ.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'min_debt' => ['type' => 'number', 'description' => 'Lọc đơn có công nợ >= số này (VNĐ)'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'type' => 'function',
+                'function' => [
+                    'name' => 'quotation_conversion_rate',
+                    'description' => 'Tỉ lệ chuyển đổi từ báo giá → đơn hàng + tổng giá trị.',
+                    'parameters' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'period' => ['type' => 'string', 'enum' => ['month','quarter','year']],
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -195,6 +252,10 @@ class AiToolService
                 'get_revenue'          => self::getRevenue($args, $tenantId, $visibleUserIds),
                 'get_top_customers'    => self::getTopCustomers($args, $tenantId, $visibleUserIds),
                 'get_top_sellers'      => self::getTopSellers($args, $tenantId, $visibleUserIds),
+                'revenue_breakdown'    => self::revenueBreakdown($args, $tenantId, $visibleUserIds),
+                'product_sales_stats'  => self::productSalesStats($args, $tenantId, $visibleUserIds),
+                'outstanding_orders'   => self::outstandingOrders($args, $tenantId, $visibleUserIds),
+                'quotation_conversion_rate' => self::quotationConversionRate($args, $tenantId, $visibleUserIds),
                 default                => ['error' => "Unknown tool: {$name}"],
             };
         } catch (\Throwable $e) {
@@ -431,5 +492,98 @@ class AiToolService
             array_merge([$tid, $from, $to], $sp)
         );
         return ['from' => $from, 'to' => $to, 'top_sellers' => $rows];
+    }
+
+    private static function revenueBreakdown(array $a, int $tid, ?array $vids): array
+    {
+        $from = $a['from_date'] ?? date('Y-m-01');
+        $to = $a['to_date'] ?? date('Y-m-t');
+        $groupBy = in_array($a['group_by'] ?? 'day', ['day','week','month'], true) ? $a['group_by'] : 'day';
+        $expr = match ($groupBy) {
+            'week'  => "DATE_FORMAT(DATE_SUB(o.created_at, INTERVAL WEEKDAY(o.created_at) DAY), '%Y-%m-%d')",
+            'month' => "DATE_FORMAT(o.created_at, '%Y-%m')",
+            default => "DATE(o.created_at)",
+        };
+        [$sc, $sp] = self::scopeClause('o.owner_id', $vids);
+        $rows = Database::fetchAll(
+            "SELECT {$expr} as period, COUNT(*) as orders, COALESCE(SUM(o.total),0) as revenue
+             FROM orders o
+             WHERE o.tenant_id = ? AND o.is_deleted = 0 AND o.type = 'order'
+             AND DATE(o.created_at) BETWEEN ? AND ?{$sc}
+             GROUP BY period ORDER BY period ASC LIMIT 100",
+            array_merge([$tid, $from, $to], $sp)
+        );
+        return ['from' => $from, 'to' => $to, 'group_by' => $groupBy, 'breakdown' => $rows];
+    }
+
+    private static function productSalesStats(array $a, int $tid, ?array $vids): array
+    {
+        [$from, $to] = self::periodRange($a['period'] ?? 'month');
+        [$sc, $sp] = self::scopeClause('o.owner_id', $vids);
+        $rows = Database::fetchAll(
+            "SELECT oi.product_id, oi.product_name,
+                    SUM(oi.quantity) as qty_sold,
+                    COUNT(DISTINCT oi.order_id) as order_count,
+                    COALESCE(SUM(oi.total),0) as revenue
+             FROM order_items oi
+             JOIN orders o ON oi.order_id = o.id
+             WHERE o.tenant_id = ? AND o.is_deleted = 0 AND o.type = 'order'
+             AND DATE(o.created_at) BETWEEN ? AND ?{$sc}
+             GROUP BY oi.product_id, oi.product_name
+             ORDER BY revenue DESC LIMIT 10",
+            array_merge([$tid, $from, $to], $sp)
+        );
+        return ['from' => $from, 'to' => $to, 'top_products' => $rows];
+    }
+
+    private static function outstandingOrders(array $a, int $tid, ?array $vids): array
+    {
+        $minDebt = (float)($a['min_debt'] ?? 0);
+        [$sc, $sp] = self::scopeClause('o.owner_id', $vids);
+        $rows = Database::fetchAll(
+            "SELECT o.id, o.order_number, o.total, o.paid_amount,
+                    (o.total - o.paid_amount) as debt, o.created_at,
+                    c.full_name as customer, c.company_name
+             FROM orders o LEFT JOIN contacts c ON o.contact_id = c.id
+             WHERE o.tenant_id = ? AND o.is_deleted = 0 AND o.type = 'order'
+             AND o.status != 'cancelled'
+             AND o.payment_status != 'paid'
+             AND (o.total - o.paid_amount) >= ?{$sc}
+             ORDER BY debt DESC LIMIT 20",
+            array_merge([$tid, $minDebt], $sp)
+        );
+        $total = 0;
+        foreach ($rows as $r) $total += (float)($r['debt'] ?? 0);
+        return ['count' => count($rows), 'total_debt' => $total, 'orders' => $rows];
+    }
+
+    private static function quotationConversionRate(array $a, int $tid, ?array $vids): array
+    {
+        [$from, $to] = self::periodRange($a['period'] ?? 'month');
+        [$sc, $sp] = self::scopeClause('q.owner_id', $vids);
+        $row = Database::fetch(
+            "SELECT
+                COUNT(*) as total_quotes,
+                COALESCE(SUM(q.total),0) as total_value,
+                SUM(q.status = 'converted') as converted,
+                COALESCE(SUM(CASE WHEN q.status = 'converted' THEN q.total ELSE 0 END),0) as converted_value,
+                SUM(q.status = 'rejected') as rejected,
+                SUM(q.status = 'expired') as expired
+             FROM quotations q
+             WHERE q.tenant_id = ? AND DATE(q.created_at) BETWEEN ? AND ?{$sc}",
+            array_merge([$tid, $from, $to], $sp)
+        );
+        $total = (int)($row['total_quotes'] ?? 0);
+        $converted = (int)($row['converted'] ?? 0);
+        return [
+            'from' => $from, 'to' => $to,
+            'total_quotes' => $total,
+            'converted' => $converted,
+            'conversion_rate_pct' => $total > 0 ? round($converted * 100 / $total, 2) : 0,
+            'total_value' => (float)($row['total_value'] ?? 0),
+            'converted_value' => (float)($row['converted_value'] ?? 0),
+            'rejected' => (int)($row['rejected'] ?? 0),
+            'expired' => (int)($row['expired'] ?? 0),
+        ];
     }
 }

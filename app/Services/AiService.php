@@ -54,9 +54,10 @@ class AiService
         $systemPrompt = "Bạn là ToryCRM AI - trợ lý thông minh cho hệ thống CRM. "
             . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp. "
             . "Khi cần data cụ thể (khách hàng, đơn hàng, báo giá, sản phẩm, doanh thu), "
-            . "HÃY GỌI TOOL phù hợp thay vì đoán — các tool có sẵn: search_contacts, "
-            . "get_contact_detail, search_orders, get_order_detail, search_quotations, "
-            . "get_quotation_detail, search_products, get_revenue, get_top_customers, get_top_sellers.";
+            . "HÃY GỌI TOOL phù hợp thay vì đoán. Tool có sẵn theo nhóm: "
+            . "[Khách hàng] search_contacts, get_contact_detail; "
+            . "[Bán hàng] search_orders, get_order_detail, search_quotations, get_quotation_detail, search_products; "
+            . "[Báo cáo] get_revenue, get_top_customers, get_top_sellers, revenue_breakdown, product_sales_stats, outstanding_orders, quotation_conversion_rate.";
         if ($context !== '') $systemPrompt .= "\n\nThống kê tổng hợp (có sẵn, khỏi cần gọi tool):\n" . $context;
 
         $provider = 'fallback';
