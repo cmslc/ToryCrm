@@ -5,7 +5,6 @@ $pc = $preContact ?? null;
 $pcName = '';
 if ($pc) {
     $pcName = $pc['company_name'] ?: ($pc['full_name'] ?: trim(($pc['first_name'] ?? '') . ' ' . ($pc['last_name'] ?? '')));
-    if (!empty($pc['account_code'])) $pcName .= ' (' . $pc['account_code'] . ')';
 }
 $deptGrouped = [];
 foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; }
@@ -42,6 +41,16 @@ $dv = \App\Services\ColumnService::getDefaultValues('orders');
                                 <div class="border rounded bg-white shadow" id="contactDropdown" style="position:absolute;z-index:1060;width:100%;display:none;top:100%;left:0;margin-top:2px;max-height:250px;overflow-y:auto"></div>
                             </div>
                             <a href="<?= url('contacts/create') ?>" class="btn btn-soft-primary" title="Tạo KH mới"><i class="ri-add-line"></i></a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Mã khách hàng</label>
+                            <input type="text" class="form-control" id="qAccountCode" value="<?= e($pc['account_code'] ?? '') ?>" readonly>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Mã số thuế</label>
+                            <input type="text" class="form-control" id="qTaxCode" value="<?= e($pc['tax_code'] ?? '') ?>" readonly>
                         </div>
                     </div>
                     <div class="row">
@@ -324,9 +333,10 @@ csInput?.addEventListener('blur', function() { setTimeout(function() { csDrop.st
 
 function pickContact(c) {
     var name = c.company_name || c.full_name || ((c.first_name || '') + ' ' + (c.last_name || '')).trim();
-    if (c.account_code) name += ' (' + c.account_code + ')';
     document.getElementById('contactIdInput').value = c.id;
     document.getElementById('contactSearchInput').value = name;
+    var acc = document.getElementById('qAccountCode'); if (acc) acc.value = c.account_code || '';
+    var tax = document.getElementById('qTaxCode');     if (tax) tax.value = c.tax_code || '';
     document.getElementById('qCustomerName').textContent = c.company_name || c.full_name || name;
     document.getElementById('qPhoneDisplay').textContent = c.company_phone || c.phone || '-';
     document.getElementById('qEmailDisplay').textContent = c.company_email || c.email || '-';

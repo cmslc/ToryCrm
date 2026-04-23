@@ -178,7 +178,7 @@ class OrderController extends Controller
         $preContact = null;
         if ($preContactId) {
             $preContact = Database::fetch(
-                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, tax_code, company_phone, company_email, phone, email, address
                  FROM contacts WHERE id = ? AND tenant_id = ?", [$preContactId, $tid]
             );
         }
@@ -452,7 +452,7 @@ class OrderController extends Controller
         $editContact = null;
         if ($order['contact_id']) {
             $editContact = Database::fetch(
-                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, tax_code, company_phone, company_email, phone, email, address
                  FROM contacts WHERE id = ?", [$order['contact_id']]
             );
         }
