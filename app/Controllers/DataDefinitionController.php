@@ -217,6 +217,17 @@ class DataDefinitionController extends Controller
         'products' => ['color' => 'Màu sắc'],
     ];
 
+    // Virtual fields per module — not in the DB table but populated via JOIN
+    // in the list/show queries. Admin can still set label + toggle show_in_list.
+    private array $virtualFields = [
+        'orders' => [
+            'account_code' => 'Mã KH',
+        ],
+        'quotations' => [
+            'account_code' => 'Mã KH',
+        ],
+    ];
+
     public function index()
     {
         $this->authorize('settings', 'manage');
@@ -325,6 +336,26 @@ class DataDefinitionController extends Controller
                 'is_custom' => false,
                 'show_in_list' => $showInList[$col['Field']] ?? ($isSystem ? false : true),
                 'source' => 'database',
+            ];
+        }
+
+        // Virtual fields — read-only, labeled, but not editable from DB
+        foreach (($this->virtualFields[$module] ?? []) as $field => $defaultLabel) {
+            $ov = $overrides[$field] ?? null;
+            $fields[] = [
+                'name' => $field,
+                'label' => $ov ? $ov['label'] : $defaultLabel,
+                'type' => 'virtual',
+                'raw_type' => 'virtual',
+                'nullable' => true,
+                'required' => false,
+                'check_duplicate' => false,
+                'default' => null,
+                'default_value' => null,
+                'is_system' => true,
+                'is_custom' => false,
+                'show_in_list' => $showInList[$field] ?? true,
+                'source' => 'virtual',
             ];
         }
 
