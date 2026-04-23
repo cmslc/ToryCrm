@@ -202,6 +202,8 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('orders/{id}/change-owner', 'OrderController@changeOwner');
     Router::post('orders/{id}/delete', 'OrderController@delete');
     Router::post('orders/{id}/approve', 'OrderController@approve');
+    Router::post('orders/{id}/attachment', 'OrderController@uploadAttachment');
+    Router::post('orders/{id}/attachment/{attachId}/delete', 'OrderController@deleteAttachment');
     Router::post('orders/{id}/cancel', 'OrderController@cancel');
     Router::post('orders/{id}/restore', 'OrderController@restore');
     Router::post('orders/{id}/payment', 'OrderController@payment');

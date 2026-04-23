@@ -461,10 +461,98 @@ class OrderController extends Controller
 
         // Activities loaded by plugin (activity-exchange) in view
 
+        $attachments = Database::fetchAll(
+            "SELECT a.*, u.name as user_name
+             FROM order_attachments a
+             LEFT JOIN users u ON a.user_id = u.id
+             WHERE a.order_id = ?
+             ORDER BY a.created_at DESC",
+            [$id]
+        );
+
         return $this->view('orders.show', [
             'order' => $order,
             'items' => $items,
+            'attachments' => $attachments,
         ]);
+    }
+
+    public function uploadAttachment($id)
+    {
+        if (!$this->isPost()) return $this->redirect('orders/' . $id);
+        $this->authorize('orders', 'edit');
+
+        $order = Database::fetch("SELECT id, owner_id FROM orders WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$order) {
+            $this->setFlash('error', 'Đơn hàng không tồn tại.');
+            return $this->redirect('orders');
+        }
+        if (!$this->canAccessEntity('order', (int)$id, (int)($order['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('orders');
+        }
+
+        if (empty($_FILES['attachment']) || $_FILES['attachment']['error'] !== UPLOAD_ERR_OK) {
+            $this->setFlash('error', 'Vui lòng chọn file để tải lên.');
+            return $this->redirect('orders/' . $id);
+        }
+
+        $file = $_FILES['attachment'];
+        $maxSize = 10 * 1024 * 1024;
+        if ($file['size'] > $maxSize) {
+            $this->setFlash('error', 'File quá lớn (tối đa 10MB).');
+            return $this->redirect('orders/' . $id);
+        }
+
+        $uploadDir = BASE_PATH . '/public/uploads/orders/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'o' . $id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+        if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            $this->setFlash('error', 'Lỗi tải file lên.');
+            return $this->redirect('orders/' . $id);
+        }
+
+        Database::insert('order_attachments', [
+            'tenant_id' => Database::tenantId(),
+            'order_id' => $id,
+            'user_id' => $this->userId(),
+            'filename' => $filename,
+            'original_name' => $file['name'],
+            'file_size' => $file['size'],
+            'mime_type' => $file['type'],
+        ]);
+
+        $this->setFlash('success', 'Đã tải lên tài liệu.');
+        return $this->redirect('orders/' . $id);
+    }
+
+    public function deleteAttachment($id, $attachId)
+    {
+        if (!$this->isPost()) return $this->redirect('orders/' . $id);
+        $this->authorize('orders', 'edit');
+
+        $order = Database::fetch("SELECT owner_id FROM orders WHERE id = ? AND tenant_id = ?", [$id, Database::tenantId()]);
+        if (!$order || !$this->canAccessEntity('order', (int)$id, (int)($order['owner_id'] ?? 0))) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('orders');
+        }
+
+        $attach = Database::fetch(
+            "SELECT * FROM order_attachments WHERE id = ? AND order_id = ? AND tenant_id = ?",
+            [$attachId, $id, Database::tenantId()]
+        );
+
+        if ($attach) {
+            $path = BASE_PATH . '/public/uploads/orders/' . $attach['filename'];
+            if (file_exists($path)) unlink($path);
+            Database::delete('order_attachments', 'id = ?', [$attachId]);
+            $this->setFlash('success', 'Đã xóa tài liệu.');
+        }
+
+        return $this->redirect('orders/' . $id);
     }
 
     public function edit($id)
