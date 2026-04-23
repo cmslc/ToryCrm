@@ -858,6 +858,32 @@ class QuotationController extends Controller
             return $this->back();
         }
 
+        // Carry over attachments into contract_attachments (schema differs:
+        // file_name/file_path/file_type/uploaded_by instead of filename/mime/user_id)
+        $qAtts = Database::fetchAll("SELECT * FROM quotation_attachments WHERE quotation_id = ?", [$id]);
+        if ($qAtts) {
+            $srcDir = BASE_PATH . '/public/uploads/quotations/';
+            $relDir = 'uploads/contracts/' . $contractId;
+            $dstDir = BASE_PATH . '/public/' . $relDir;
+            if (!is_dir($dstDir)) @mkdir($dstDir, 0775, true);
+            foreach ($qAtts as $att) {
+                $srcPath = $srcDir . $att['filename'];
+                if (!is_file($srcPath)) continue;
+                $ext = pathinfo($att['filename'], PATHINFO_EXTENSION);
+                $newFile = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                if (@copy($srcPath, $dstDir . '/' . $newFile)) {
+                    Database::insert('contract_attachments', [
+                        'contract_id' => $contractId,
+                        'file_name' => $att['original_name'],
+                        'file_path' => $relDir . '/' . $newFile,
+                        'file_size' => $att['file_size'],
+                        'file_type' => $att['mime_type'],
+                        'uploaded_by' => $this->userId(),
+                    ]);
+                }
+            }
+        }
+
         $this->setFlash('success', "Đã tạo hợp đồng {$contractNumber} từ báo giá.");
         return $this->redirect('contracts/' . $contractId);
     }
