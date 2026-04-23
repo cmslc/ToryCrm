@@ -16,6 +16,12 @@ $shipParts = array_filter([
     $order['shipping_province'] ?? '',
 ], fn($v) => trim((string)$v) !== '');
 $shipFull = implode(', ', $shipParts);
+// Fallback to customer's registered address when no explicit shipping set
+$shipIsFallback = false;
+if ($shipFull === '' && $cAddress !== '') {
+    $shipFull = $cAddress;
+    $shipIsFallback = true;
+}
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -92,7 +98,12 @@ $shipFull = implode(', ', $shipParts);
                 <div class="row">
                     <?php if ($shipFull): ?>
                     <div class="col-md-8">
-                        <p class="mb-1"><i class="ri-map-pin-2-line me-1 text-muted"></i><?= e($shipFull) ?></p>
+                        <p class="mb-1">
+                            <i class="ri-map-pin-2-line me-1 text-muted"></i><?= e($shipFull) ?>
+                            <?php if ($shipIsFallback): ?>
+                                <small class="text-muted fst-italic">(theo địa chỉ khách hàng)</small>
+                            <?php endif; ?>
+                        </p>
                     </div>
                     <?php endif; ?>
                     <?php if (($order['shipping_contact'] ?? '') || ($order['shipping_phone'] ?? '')): ?>
