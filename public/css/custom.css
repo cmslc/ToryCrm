@@ -6,26 +6,6 @@ Contact: support@themesbrand.com
 File: Custom Css File
 */
 
-/* Native system font stack — no external font load, each OS renders its
-   default UI font (SF Pro on macOS, Segoe UI on Windows, Roboto on
-   Android, Noto on Linux). Fast, no Google Fonts dependency. */
-:root {
-  --vz-font-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --vz-body-font-family: var(--vz-font-sans-serif);
-}
-body,
-.btn,
-.form-control,
-.form-select,
-.dropdown-menu,
-.modal,
-input,
-textarea,
-select,
-button {
-  font-family: var(--vz-font-sans-serif);
-}
-
 /* Compact info tables — used in sidebar/show-page summary cards
    (table-borderless is the marker for these non-data tables). */
 .card .table-borderless > tbody > tr > td,
