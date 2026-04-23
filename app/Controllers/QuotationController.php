@@ -382,12 +382,21 @@ class QuotationController extends Controller
             [$id, Database::tenantId()]
         );
 
+        $relatedContracts = Database::fetchAll(
+            "SELECT id, contract_number, title, status, value, created_at
+             FROM contracts
+             WHERE quotation_id = ? AND tenant_id = ? AND is_deleted = 0
+             ORDER BY created_at DESC",
+            [$id, Database::tenantId()]
+        );
+
         return $this->view('quotations.show', [
             'quotation' => $quotation,
             'items' => $items,
             'attachments' => $attachments,
             'pdfTemplates' => $pdfTemplates,
             'relatedOrders' => $relatedOrders,
+            'relatedContracts' => $relatedContracts,
         ]);
     }
 
@@ -803,6 +812,7 @@ class QuotationController extends Controller
 
             $contractId = Database::insert('contracts', [
                 'contract_number' => $contractNumber,
+                'quotation_id' => $id,
                 'title' => 'HĐ từ BG ' . $quotation['quote_number'],
                 'type' => 'Mới',
                 'status' => 'pending',

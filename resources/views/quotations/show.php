@@ -355,6 +355,35 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                 </div>
                 <?php endif; ?>
 
+                <!-- Hợp đồng đã tạo -->
+                <?php if (!empty($relatedContracts)): ?>
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-file-shield-line me-1"></i> Hợp đồng đã tạo (<?= count($relatedContracts) ?>)</h5></div>
+                    <div class="card-body p-0">
+                        <?php
+                        $csc = ['pending'=>'warning','active'=>'success','completed'=>'success','cancelled'=>'danger','expired'=>'secondary'];
+                        $csl = ['pending'=>'Chờ duyệt','active'=>'Đang hiệu lực','completed'=>'Hoàn thành','cancelled'=>'Đã hủy','expired'=>'Hết hạn'];
+                        ?>
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($relatedContracts as $ct): ?>
+                            <a href="<?= url('contracts/' . $ct['id']) ?>" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-truncate me-2">
+                                        <div class="fw-medium"><?= e($ct['contract_number']) ?></div>
+                                        <small class="text-muted"><?= format_date($ct['created_at']) ?></small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-<?= $csc[$ct['status']] ?? 'secondary' ?>"><?= $csl[$ct['status']] ?? $ct['status'] ?></span>
+                                        <div class="fw-medium small"><?= format_money($ct['value']) ?></div>
+                                    </div>
+                                </div>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Người liên quan -->
                 <?php $rpEntityType = 'quotation'; $rpEntityId = $quotation['id']; $rpOwnerId = $quotation['owner_id'] ?? 0; $rpOwnerName = $quotation['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
 
