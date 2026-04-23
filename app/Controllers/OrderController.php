@@ -341,17 +341,32 @@ class OrderController extends Controller
         $noLayout = true;
 
         $templateId = (int)($this->input('template_id') ?: 0);
-        $replacements = \App\Services\DocumentService::orderReplacements($order, $items);
-        $rendered = \App\Services\DocumentService::render('order', $templateId ?: null, $replacements);
+        $copies = max(1, min(10, (int)($this->input('copies') ?: 2)));
+        $baseReplacements = \App\Services\DocumentService::orderReplacements($order, $items);
 
-        if ($rendered !== null) {
+        $pages = [];
+        for ($i = 1; $i <= $copies; $i++) {
+            $baseReplacements['{{lien_so}}'] = $i . '/' . $copies;
+            $page = \App\Services\DocumentService::render('order', $templateId ?: null, $baseReplacements);
+            if ($page === null) break;
+            $pages[] = $page;
+        }
+
+        if (!empty($pages)) {
+            $rendered = '';
+            foreach ($pages as $idx => $p) {
+                if ($idx > 0) $rendered .= '<div style="page-break-before:always"></div>';
+                $rendered .= '<div class="liên">' . $p . '</div>';
+            }
+
             $title = 'ĐƠN HÀNG ' . ($order['order_number'] ?? '');
             echo '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>' . htmlspecialchars($title) . '</title>'
                 . '<style>body{font-family:"Segoe UI",Arial,sans-serif;font-size:13px;color:#333;padding:40px;max-width:900px;margin:0 auto}'
                 . 'table{width:100%;border-collapse:collapse;margin:10px 0}th,td{padding:8px;border:1px solid #ddd;font-size:12px}'
                 . 'h2{color:#405189}.no-print{text-align:center;margin-bottom:20px}@media print{.no-print{display:none}body{padding:20px}}</style>'
-                . '</head><body><div class="no-print"><button onclick="window.print()" style="padding:10px 30px;background:#405189;color:#fff;border:none;border-radius:4px;cursor:pointer">In / Lưu PDF</button></div>'
+                . '</head><body><div class="no-print"><button onclick="window.print()" style="padding:10px 30px;background:#405189;color:#fff;border:none;border-radius:4px;cursor:pointer">In / Lưu PDF (' . count($pages) . ' liên)</button></div>'
                 . $rendered
+                . '<script>setTimeout(function(){window.print();},400);</script>'
                 . '</body></html>';
             return;
         }

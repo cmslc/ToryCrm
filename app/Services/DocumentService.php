@@ -166,6 +166,7 @@ class DocumentService
         $remaining = max(0, $total - $paid);
 
         return [
+            '{{lien_so}}' => '1/1',
             '{{order_number}}' => $order['order_number'] ?? '',
             '{{issued_date}}' => !empty($order['issued_date']) ? date('d/m/Y', strtotime($order['issued_date'])) : '',
             '{{due_date}}' => !empty($order['due_date']) ? date('d/m/Y', strtotime($order['due_date'])) : '',
