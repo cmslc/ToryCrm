@@ -68,15 +68,18 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('ai-chat/clear', 'AiChatController@clear');
 
     // Conversations (Hộp thư)
-    Router::get('conversations', 'ChatController@index');
-    Router::get('conversations/create', 'ChatController@create');
-    Router::get('conversations/canned-responses', 'ChatController@cannedResponses');
-    Router::post('conversations/store', 'ChatController@store');
-    Router::get('conversations/{id}', 'ChatController@show');
-    Router::post('conversations/{id}/reply', 'ChatController@reply');
-    Router::post('conversations/{id}/assign', 'ChatController@assign');
-    Router::post('conversations/{id}/status', 'ChatController@updateStatus');
-    Router::post('conversations/{id}/star', 'ChatController@star');
+    Router::get('chat', 'ChatController@index');
+    Router::get('chat/create', 'ChatController@create');
+    Router::get('chat/canned-responses', 'ChatController@cannedResponses');
+    Router::post('chat/store', 'ChatController@store');
+    Router::get('chat/{id}', 'ChatController@show');
+    Router::post('chat/{id}/reply', 'ChatController@reply');
+    Router::post('chat/{id}/assign', 'ChatController@assign');
+    Router::post('chat/{id}/status', 'ChatController@updateStatus');
+    Router::post('chat/{id}/star', 'ChatController@star');
+    // Back-compat: /conversations → /chat redirects
+    Router::get('conversations', 'ChatController@redirectLegacyIndex');
+    Router::get('conversations/{id}', 'ChatController@redirectLegacyShow');
 
     // Check-in → moved to plugins/checkin/routes.php
 

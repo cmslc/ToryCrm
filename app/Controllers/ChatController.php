@@ -7,6 +7,16 @@ use Core\Database;
 
 class ChatController extends Controller
 {
+    /** Old /conversations URL → permanent redirect to /chat. */
+    public function redirectLegacyIndex()
+    {
+        return $this->redirect('chat');
+    }
+    public function redirectLegacyShow($id)
+    {
+        return $this->redirect('chat/' . (int)$id);
+    }
+
     public function index()
     {
         $tenantId = $this->tenantId();
@@ -172,7 +182,7 @@ class ChatController extends Controller
 
         if (!$conversation) {
             $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
-            return $this->redirect('conversations');
+            return $this->redirect('chat');
         }
 
         $messages = Database::fetchAll(
@@ -227,7 +237,7 @@ class ChatController extends Controller
 
     public function store()
     {
-        if (!$this->isPost()) return $this->redirect('conversations');
+        if (!$this->isPost()) return $this->redirect('chat');
 
         $data = $this->allInput();
         $contactId = !empty($data['contact_id']) ? (int) $data['contact_id'] : null;
@@ -265,12 +275,12 @@ class ChatController extends Controller
         ]);
 
         $this->setFlash('success', 'Cuộc hội thoại đã được tạo.');
-        return $this->redirect('conversations/' . $conversationId);
+        return $this->redirect('chat/' . $conversationId);
     }
 
     public function reply($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
+        if (!$this->isPost()) return $this->redirect('chat?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -280,7 +290,7 @@ class ChatController extends Controller
 
         if (!$conversation) {
             $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
-            return $this->redirect('conversations');
+            return $this->redirect('chat');
         }
 
         $content = trim($this->input('content', ''));
@@ -311,12 +321,12 @@ class ChatController extends Controller
         }
 
         $this->setFlash('success', 'Đã gửi tin nhắn.');
-        return $this->redirect('conversations?active=' . $id);
+        return $this->redirect('chat?active=' . $id);
     }
 
     public function assign($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
+        if (!$this->isPost()) return $this->redirect('chat?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -326,19 +336,19 @@ class ChatController extends Controller
 
         if (!$conversation) {
             $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
-            return $this->redirect('conversations');
+            return $this->redirect('chat');
         }
 
         $assignedTo = !empty($this->input('assigned_to')) ? (int) $this->input('assigned_to') : null;
         Database::update('conversations', ['assigned_to' => $assignedTo], 'id = ?', [$id]);
 
         $this->setFlash('success', 'Đã cập nhật phụ trách.');
-        return $this->redirect('conversations?active=' . $id);
+        return $this->redirect('chat?active=' . $id);
     }
 
     public function updateStatus($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
+        if (!$this->isPost()) return $this->redirect('chat?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -348,7 +358,7 @@ class ChatController extends Controller
 
         if (!$conversation) {
             $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
-            return $this->redirect('conversations');
+            return $this->redirect('chat');
         }
 
         $status = $this->input('status', 'open');
@@ -359,12 +369,12 @@ class ChatController extends Controller
 
         $labels = ['open' => 'Mở', 'pending' => 'Chờ', 'resolved' => 'Đã xử lý', 'closed' => 'Đóng'];
         $this->setFlash('success', 'Trạng thái đã chuyển sang: ' . ($labels[$status] ?? $status));
-        return $this->redirect('conversations?active=' . $id);
+        return $this->redirect('chat?active=' . $id);
     }
 
     public function star($id)
     {
-        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
+        if (!$this->isPost()) return $this->redirect('chat?active=' . $id);
 
         $tenantId = $this->tenantId();
         $conversation = Database::fetch(
@@ -374,14 +384,14 @@ class ChatController extends Controller
 
         if (!$conversation) {
             $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
-            return $this->redirect('conversations');
+            return $this->redirect('chat');
         }
 
         $newVal = $conversation['is_starred'] ? 0 : 1;
         Database::update('conversations', ['is_starred' => $newVal], 'id = ?', [$id]);
 
         $this->setFlash('success', $newVal ? 'Đã đánh dấu.' : 'Đã bỏ đánh dấu.');
-        return $this->redirect('conversations?active=' . $id);
+        return $this->redirect('chat?active=' . $id);
     }
 
     public function cannedResponses()

@@ -12,7 +12,7 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Cuộc hội thoại</h4>
             <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="<?= url('conversations') ?>">Chat</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('chat') ?>">Chat</a></li>
                 <li class="breadcrumb-item active"><?= e($contactName) ?></li>
             </ol>
         </div>
@@ -37,7 +37,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <!-- Star toggle -->
-                                <form method="POST" action="<?= url('conversations/' . $conversation['id'] . '/star') ?>" class="d-inline">
+                                <form method="POST" action="<?= url('chat/' . $conversation['id'] . '/star') ?>" class="d-inline">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-ghost-warning p-1" title="Đánh dấu">
                                         <i class="<?= $conversation['is_starred'] ? 'ri-star-fill' : 'ri-star-line' ?> fs-5"></i>
@@ -85,7 +85,7 @@
 
                     <!-- Reply form -->
                     <div class="card-footer">
-                        <form method="POST" action="<?= url('conversations/' . $conversation['id'] . '/reply') ?>">
+                        <form method="POST" action="<?= url('chat/' . $conversation['id'] . '/reply') ?>">
                             <?= csrf_field() ?>
                             <div class="mb-2">
                                 <textarea name="content" class="form-control" rows="3" placeholder="Nhập tin nhắn..." required id="replyContent"></textarea>
@@ -156,7 +156,7 @@
                         <h6 class="card-title mb-0">Phụ trách</h6>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="<?= url('conversations/' . $conversation['id'] . '/assign') ?>">
+                        <form method="POST" action="<?= url('chat/' . $conversation['id'] . '/assign') ?>">
                             <?= csrf_field() ?>
                             <?php $deptGrouped = []; foreach ($users ?? [] as $u) { $deptGrouped[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
                             <select name="assigned_to" class="form-select mb-2">
@@ -180,7 +180,7 @@
                         <h6 class="card-title mb-0">Trạng thái</h6>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="<?= url('conversations/' . $conversation['id'] . '/status') ?>">
+                        <form method="POST" action="<?= url('chat/' . $conversation['id'] . '/status') ?>">
                             <?= csrf_field() ?>
                             <select name="status" class="form-select mb-2">
                                 <?php foreach ($statusLabels as $sv => $sl): ?>

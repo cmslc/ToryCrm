@@ -3,12 +3,12 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Tạo cuộc hội thoại</h4>
             <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="<?= url('conversations') ?>">Chat</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('chat') ?>">Chat</a></li>
                 <li class="breadcrumb-item active">Tạo mới</li>
             </ol>
         </div>
 
-        <form method="POST" action="<?= url('conversations/store') ?>">
+        <form method="POST" action="<?= url('chat/store') ?>">
             <?= csrf_field() ?>
             <div class="row">
                 <div class="col-lg-8">
@@ -49,7 +49,7 @@
                             </div>
                         </div>
                         <div class="card-footer text-end">
-                            <a href="<?= url('conversations') ?>" class="btn btn-soft-secondary me-2">Hủy</a>
+                            <a href="<?= url('chat') ?>" class="btn btn-soft-secondary me-2">Hủy</a>
                             <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Tạo và gửi</button>
                         </div>
                     </div>

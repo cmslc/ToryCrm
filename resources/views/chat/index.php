@@ -3,7 +3,7 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Chat</h4>
             <div>
-                <a href="<?= url('conversations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo cuộc hội thoại</a>
+                <a href="<?= url('chat/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo cuộc hội thoại</a>
             </div>
         </div>
 
@@ -23,7 +23,7 @@
                     <div class="card-body p-2 d-flex flex-column" style="height:100%">
                         <!-- Search -->
                         <div class="p-3 border-bottom">
-                            <form method="GET" action="<?= url('conversations') ?>">
+                            <form method="GET" action="<?= url('chat') ?>">
                                 <div class="input-group">
                                     <input type="text" class="form-control" name="search" placeholder="Tìm kiếm cuộc hội thoại..." value="<?= e($filters['search'] ?? '') ?>">
                                     <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
@@ -36,16 +36,16 @@
 
                         <!-- Filter buttons -->
                         <div class="p-3 border-bottom d-flex gap-2 flex-wrap">
-                            <a href="<?= url('conversations') ?>" class="btn <?= !$currentFilter ? 'btn-primary' : 'btn-soft-primary' ?>">Tất cả</a>
-                            <a href="<?= url('conversations?filter=unread') ?>" class="btn <?= $currentFilter === 'unread' ? 'btn-primary' : 'btn-soft-primary' ?>">Chưa đọc</a>
-                            <a href="<?= url('conversations?filter=mine') ?>" class="btn <?= $currentFilter === 'mine' ? 'btn-primary' : 'btn-soft-primary' ?>">Đã gán cho tôi</a>
-                            <a href="<?= url('conversations?filter=starred') ?>" class="btn <?= $currentFilter === 'starred' ? 'btn-primary' : 'btn-soft-primary' ?>">Được đánh dấu</a>
+                            <a href="<?= url('chat') ?>" class="btn <?= !$currentFilter ? 'btn-primary' : 'btn-soft-primary' ?>">Tất cả</a>
+                            <a href="<?= url('chat?filter=unread') ?>" class="btn <?= $currentFilter === 'unread' ? 'btn-primary' : 'btn-soft-primary' ?>">Chưa đọc</a>
+                            <a href="<?= url('chat?filter=mine') ?>" class="btn <?= $currentFilter === 'mine' ? 'btn-primary' : 'btn-soft-primary' ?>">Đã gán cho tôi</a>
+                            <a href="<?= url('chat?filter=starred') ?>" class="btn <?= $currentFilter === 'starred' ? 'btn-primary' : 'btn-soft-primary' ?>">Được đánh dấu</a>
                         </div>
 
                         <!-- Conversation list -->
                         <div data-simplebar style="flex:1;overflow-y:auto">
                             <!-- AI Trợ lý - pinned -->
-                            <a href="<?= url('conversations?active=ai') ?>"
+                            <a href="<?= url('chat?active=ai') ?>"
                                class="d-flex align-items-start p-3 border-bottom text-decoration-none <?= ($activeId ?? '') === 'ai' ? 'bg-light' : '' ?>"
                                style="cursor:pointer;">
                                 <div class="flex-shrink-0 me-3">
@@ -71,7 +71,7 @@
                                         $isActive = ($conv['id'] == $activeId);
                                         $ch = $conv['channel'] ?? 'email';
                                     ?>
-                                    <a href="<?= url('conversations?active=' . $conv['id'] . ($currentFilter ? '&filter=' . e($currentFilter) : '') . ($filters['search'] ? '&search=' . urlencode($filters['search']) : '')) ?>"
+                                    <a href="<?= url('chat?active=' . $conv['id'] . ($currentFilter ? '&filter=' . e($currentFilter) : '') . ($filters['search'] ? '&search=' . urlencode($filters['search']) : '')) ?>"
                                        class="d-flex align-items-start p-3 border-bottom text-decoration-none <?= $isActive ? 'bg-light' : '' ?>"
                                        style="cursor:pointer;">
                                         <!-- Avatar -->
@@ -123,7 +123,7 @@
                                     <nav><ul class="pagination pagination mb-0">
                                         <?php for ($i = 1; $i <= $pagination['total_pages']; $i++): ?>
                                             <li class="page-item <?= $i === $pagination['page'] ? 'active' : '' ?>">
-                                                <a class="page-link" href="<?= url('conversations?page=' . $i . ($currentFilter ? '&filter=' . e($currentFilter) : '') . ($filters['search'] ? '&search=' . urlencode($filters['search']) : '')) ?>"><?= $i ?></a>
+                                                <a class="page-link" href="<?= url('chat?page=' . $i . ($currentFilter ? '&filter=' . e($currentFilter) : '') . ($filters['search'] ? '&search=' . urlencode($filters['search']) : '')) ?>"><?= $i ?></a>
                                             </li>
                                         <?php endfor; ?>
                                     </ul></nav>
@@ -258,7 +258,7 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
                                     <!-- Star toggle -->
-                                    <form method="POST" action="<?= url('conversations/' . $activeConversation['id'] . '/star') ?>" class="d-inline">
+                                    <form method="POST" action="<?= url('chat/' . $activeConversation['id'] . '/star') ?>" class="d-inline">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-ghost-warning p-1" title="Đánh dấu">
                                             <i class="<?= $activeConversation['is_starred'] ? 'ri-star-fill' : 'ri-star-line' ?> fs-5"></i>
@@ -272,7 +272,7 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <form method="POST" action="<?= url('conversations/' . $activeConversation['id'] . '/assign') ?>">
+                                                <form method="POST" action="<?= url('chat/' . $activeConversation['id'] . '/assign') ?>">
                                                     <?= csrf_field() ?>
                                                     <input type="hidden" name="assigned_to" value="">
                                                     <button class="dropdown-item">Bỏ gán</button>
@@ -280,7 +280,7 @@
                                             </li>
                                             <?php foreach ($users as $u): ?>
                                                 <li>
-                                                    <form method="POST" action="<?= url('conversations/' . $activeConversation['id'] . '/assign') ?>">
+                                                    <form method="POST" action="<?= url('chat/' . $activeConversation['id'] . '/assign') ?>">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="assigned_to" value="<?= $u['id'] ?>">
                                                         <button class="dropdown-item <?= ($activeConversation['assigned_to'] ?? 0) == $u['id'] ? 'active' : '' ?>"><?= e($u['name']) ?></button>
@@ -298,7 +298,7 @@
                                         <ul class="dropdown-menu">
                                             <?php foreach ($statusLabels as $sv => $sl): ?>
                                                 <li>
-                                                    <form method="POST" action="<?= url('conversations/' . $activeConversation['id'] . '/status') ?>">
+                                                    <form method="POST" action="<?= url('chat/' . $activeConversation['id'] . '/status') ?>">
                                                         <?= csrf_field() ?>
                                                         <input type="hidden" name="status" value="<?= $sv ?>">
                                                         <button class="dropdown-item <?= $activeConversation['status'] === $sv ? 'active' : '' ?>"><?= $sl ?></button>
@@ -309,7 +309,7 @@
                                     </div>
 
                                     <!-- View full page -->
-                                    <a href="<?= url('conversations/' . $activeConversation['id']) ?>" class="btn btn-soft-info" title="Xem trang đầy đủ">
+                                    <a href="<?= url('chat/' . $activeConversation['id']) ?>" class="btn btn-soft-info" title="Xem trang đầy đủ">
                                         <i class="ri-external-link-line me-1"></i> Xem
                                     </a>
                                 </div>
@@ -347,7 +347,7 @@
 
                         <!-- Reply form -->
                         <div class="card-footer">
-                            <form method="POST" action="<?= url('conversations/' . $activeConversation['id'] . '/reply') ?>">
+                            <form method="POST" action="<?= url('chat/' . $activeConversation['id'] . '/reply') ?>">
                                 <?= csrf_field() ?>
                                 <div class="mb-2">
                                     <textarea name="content" class="form-control" rows="3" placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter xuống dòng)" required id="replyContent"></textarea>
