@@ -196,6 +196,28 @@ class DocumentTemplateController extends Controller
             ]);
         }
 
+        if ($type === 'order') {
+            return array_merge($common, [
+                '{{order_number}}' => 'Số đơn hàng',
+                '{{issued_date}}' => 'Ngày đặt hàng',
+                '{{due_date}}' => 'Hạn thanh toán',
+                '{{lading_code}}' => 'Mã vận đơn',
+                '{{payment_method}}' => 'Phương thức thanh toán',
+                '{{shipping_address}}' => 'Địa chỉ giao hàng',
+                '{{shipping_contact}}' => 'Tên người nhận',
+                '{{shipping_phone}}' => 'SĐT người nhận',
+                '{{delivery_type}}' => 'Hình thức giao (Tự giao/Đối tác)',
+                '{{delivery_date}}' => 'Ngày giao hàng',
+                '{{delivery_partner}}' => 'Đối tác giao hàng',
+                '{{delivery_notes}}' => 'Điều khoản giao hàng',
+                '{{transport_amount}}' => 'Phí vận chuyển',
+                '{{installation_amount}}' => 'Phí lắp đặt',
+                '{{paid_amount}}' => 'Đã thanh toán',
+                '{{notes}}' => 'Ghi chú',
+                '{{terms}}' => 'Điều khoản',
+            ]);
+        }
+
         return array_merge($common, [
             '{{contract_number}}' => 'Số hợp đồng',
             '{{contract_title}}' => 'Tên hợp đồng',

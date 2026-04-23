@@ -1,6 +1,14 @@
 <?php
-$pageTitle = 'Tạo mẫu ' . ($type === 'quotation' ? 'báo giá' : 'hợp đồng');
-$typeLabel = $type === 'quotation' ? 'báo giá' : 'hợp đồng';
+$typeLabels = ['quotation' => 'báo giá', 'order' => 'đơn hàng bán', 'contract' => 'hợp đồng'];
+$typeLabel = $typeLabels[$type] ?? 'tài liệu';
+$pageTitle = 'Tạo mẫu ' . $typeLabel;
+
+$defaultContents = [
+    'quotation' => '<h2 style="text-align:center">BÁO GIÁ</h2><p><strong>Số:</strong> {{quote_number}} | Hiệu lực đến: {{valid_until}}</p><p>Kính gửi: {{customer_name}}</p><p>Chúng tôi xin gửi báo giá các sản phẩm/dịch vụ như sau:</p><p>{{items_table}}</p><p><strong>Tổng cộng:</strong> {{total}}</p><p>{{terms}}</p><p>{{notes}}</p>',
+    'contract'  => '<h2 style="text-align:center">HỢP ĐỒNG KINH TẾ</h2><p><strong>Số:</strong> {{contract_number}}</p><p><strong>Bên A:</strong> {{company_name}}</p><p>Địa chỉ: {{company_address}} | ĐT: {{company_phone}} | MST: {{company_tax_code}}</p><p>Đại diện: {{company_representative}} - {{company_position}}</p><p><strong>Bên B:</strong> {{customer_name}}</p><p>Địa chỉ: {{customer_address}} | ĐT: {{customer_phone}} | MST: {{customer_tax_code}}</p><p>Hai bên thỏa thuận ký hợp đồng với nội dung sau:</p><p>{{items_table}}</p><p><strong>Tổng giá trị:</strong> {{total}}</p><p><strong>Hình thức thanh toán:</strong> {{payment_method}}</p><p>{{terms}}</p>',
+    'order'     => '<h2 style="text-align:center">ĐƠN HÀNG BÁN</h2><p><strong>Số:</strong> {{order_number}} | <strong>Ngày:</strong> {{issued_date}}</p><p><strong>Khách hàng:</strong> {{customer_name}}</p><p>Địa chỉ: {{customer_address}} | ĐT: {{customer_phone}} | MST: {{customer_tax_code}}</p><p><strong>Thông tin giao hàng:</strong></p><p>Người nhận: {{shipping_contact}} - ĐT: {{shipping_phone}}</p><p>Địa chỉ giao: {{shipping_address}}</p><p>Ngày giao: {{delivery_date}} - {{delivery_type}} {{delivery_partner}}</p><p>{{items_table}}</p><p><strong>Tổng cộng:</strong> {{total}}</p><p><strong>Hình thức thanh toán:</strong> {{payment_method}}</p><p>{{notes}}</p>',
+];
+$defaultContent = $defaultContents[$type] ?? '';
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -42,7 +50,7 @@ $typeLabel = $type === 'quotation' ? 'báo giá' : 'hợp đồng';
             <div class="card">
                 <div class="card-header"><h5 class="card-title mb-0">Nội dung mẫu</h5></div>
                 <div class="card-body">
-                    <textarea name="content" id="templateContent" rows="20"><?= $type === 'contract' ? e('<h2 style="text-align:center">HỢP ĐỒNG KINH TẾ</h2><p><strong>Số:</strong> {{contract_number}}</p><p><strong>Bên A:</strong> {{company_name}}</p><p>Địa chỉ: {{company_address}} | ĐT: {{company_phone}} | MST: {{company_tax_code}}</p><p>Đại diện: {{company_representative}} - {{company_position}}</p><p><strong>Bên B:</strong> {{customer_name}}</p><p>Địa chỉ: {{customer_address}} | ĐT: {{customer_phone}} | MST: {{customer_tax_code}}</p><p>Hai bên thỏa thuận ký hợp đồng với nội dung sau:</p><p>{{items_table}}</p><p><strong>Tổng giá trị:</strong> {{total}}</p><p><strong>Hình thức thanh toán:</strong> {{payment_method}}</p><p>{{terms}}</p>') : e('<h2 style="text-align:center">BÁO GIÁ</h2><p><strong>Số:</strong> {{quote_number}} | Hiệu lực đến: {{valid_until}}</p><p>Kính gửi: {{customer_name}}</p><p>Chúng tôi xin gửi báo giá các sản phẩm/dịch vụ như sau:</p><p>{{items_table}}</p><p><strong>Tổng cộng:</strong> {{total}}</p><p>{{terms}}</p><p>{{notes}}</p>') ?></textarea>
+                    <textarea name="content" id="templateContent" rows="20"><?= e($defaultContent) ?></textarea>
                 </div>
             </div>
         </div>
