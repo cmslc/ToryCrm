@@ -1,6 +1,9 @@
 <?php $pageTitle = 'Chat'; ?>
 <?php $myId = $_SESSION['user']['id'] ?? 0; ?>
 <?php
+$activeRaw = $_GET['active'] ?? '';
+$isAi = ($activeRaw === 'ai');
+
 // Load groups the user is a member of
 $groups = \Core\Database::fetchAll(
     "SELECT cv.id, cv.name, cv.last_message_at, cv.last_message_preview,
@@ -14,10 +17,13 @@ $groups = \Core\Database::fetchAll(
 );
 
 // If active id loads as group, override $active/$messages
-if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
+if ($isAi) {
+    $isGroup = false;
+    $active = null;
+} elseif (!empty($active) && ($active['channel'] ?? '') === 'internal') {
     $isGroup = false;
 } else {
-    $activeId = (int) ($_GET['active'] ?? 0);
+    $activeId = (int) $activeRaw;
     if ($activeId) {
         $group = \Core\Database::fetch(
             "SELECT cv.* FROM conversations cv
@@ -68,7 +74,7 @@ if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
 
             <div class="flex-grow-1" style="overflow-y:auto">
                 <!-- AI Trợ lý pinned row -->
-                <a href="<?= url('ai-chat') ?>" class="d-block px-3 py-2 border-bottom text-decoration-none text-dark" style="background:#f8f9fa">
+                <a href="<?= url('chat?active=ai') ?>" class="d-block px-3 py-2 border-bottom text-decoration-none text-dark <?= $isAi ? 'bg-primary-subtle' : '' ?>" style="<?= $isAi ? '' : 'background:#f8f9fa' ?>">
                     <div class="d-flex align-items-center">
                         <div class="avatar-sm me-2">
                             <div class="avatar-title rounded-circle bg-primary text-white"><i class="ri-robot-2-line"></i></div>
@@ -143,7 +149,101 @@ if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
 
         <!-- Thread -->
         <div class="flex-grow-1 d-flex flex-column">
-            <?php if ($active): ?>
+            <?php if ($isAi): ?>
+                <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-2">
+                            <div class="avatar-title rounded-circle bg-primary text-white"><i class="ri-robot-2-line"></i></div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">AI Trợ lý</div>
+                            <small class="text-muted">Hỏi bất cứ điều gì về CRM</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-soft-danger" id="aiClearBtn"><i class="ri-delete-bin-line me-1"></i>Xóa lịch sử</button>
+                </div>
+
+                <div id="aiMsgArea" class="flex-grow-1 px-3 py-2" style="overflow-y:auto;background:#fafafa">
+                    <div id="aiWelcome" class="text-center py-5 text-muted">
+                        <div class="avatar-lg mx-auto mb-3">
+                            <div class="avatar-title rounded-circle bg-primary-subtle text-primary" style="width:72px;height:72px;font-size:32px"><i class="ri-robot-2-line"></i></div>
+                        </div>
+                        <h6 class="mb-1">Xin chào! Tôi là AI Trợ lý của ToryCRM</h6>
+                        <p class="small mb-3">Gợi ý câu hỏi:</p>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center">
+                            <button class="btn btn-soft-primary ai-suggest">Doanh thu tháng này</button>
+                            <button class="btn btn-soft-warning ai-suggest">Công việc quá hạn</button>
+                            <button class="btn btn-soft-info ai-suggest">Khách hàng cần liên hệ</button>
+                            <button class="btn btn-soft-success ai-suggest">Thống kê pipeline</button>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="aiForm" class="p-3 border-top d-flex gap-2">
+                    <?= csrf_field() ?>
+                    <input type="text" id="aiInput" class="form-control" placeholder="Nhập câu hỏi cho AI..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary" id="aiSendBtn"><i class="ri-send-plane-line"></i></button>
+                </form>
+
+                <script>
+                (function(){
+                    var area = document.getElementById('aiMsgArea');
+                    var welcome = document.getElementById('aiWelcome');
+                    var form = document.getElementById('aiForm');
+                    var input = document.getElementById('aiInput');
+                    var sendBtn = document.getElementById('aiSendBtn');
+                    var clearBtn = document.getElementById('aiClearBtn');
+                    var token = '<?= csrf_token() ?>';
+
+                    function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+                    function fmtTime(s){ var d = s ? new Date(s.replace(' ','T')) : new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+                    function appendMsg(role, content, ts){
+                        if (welcome) { welcome.remove(); welcome = null; }
+                        var mine = (role === 'user');
+                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2">'
+                                 + '<div class="'+(mine?'bg-primary text-white':'bg-white border')+' rounded px-3 py-2" style="max-width:75%">'
+                                 + '<div style="white-space:pre-wrap">'+esc(content)+'</div>'
+                                 + '<small class="'+(mine?'text-white-50':'text-muted')+' fs-11 d-block mt-1">'+fmtTime(ts)+'</small>'
+                                 + '</div></div>';
+                        area.insertAdjacentHTML('beforeend', html);
+                        area.scrollTop = area.scrollHeight;
+                    }
+
+                    fetch('<?= url('ai-chat/history') ?>').then(r=>r.json()).then(function(d){
+                        (d.messages||[]).forEach(function(m){ appendMsg(m.role, m.message, m.created_at); });
+                    }).catch(function(){});
+
+                    function sendMessage(text){
+                        if (!text.trim()) return;
+                        appendMsg('user', text);
+                        input.value = '';
+                        sendBtn.disabled = true;
+                        var loadingId = 'ai-loading-' + Date.now();
+                        area.insertAdjacentHTML('beforeend', '<div id="'+loadingId+'" class="d-flex mb-2"><div class="bg-white border rounded px-3 py-2"><i class="ri-loader-4-line spin"></i> Đang suy nghĩ...</div></div>');
+                        area.scrollTop = area.scrollHeight;
+                        var fd = new FormData(); fd.append('_token', token); fd.append('message', text);
+                        fetch('<?= url('ai-chat/send') ?>', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
+                            .then(r=>r.json()).then(function(d){
+                                var el = document.getElementById(loadingId); if (el) el.remove();
+                                appendMsg('assistant', d.message || d.error || 'Lỗi không xác định');
+                            }).catch(function(){
+                                var el = document.getElementById(loadingId); if (el) el.remove();
+                                appendMsg('assistant', 'Lỗi kết nối. Vui lòng thử lại.');
+                            }).finally(function(){ sendBtn.disabled = false; input.focus(); });
+                    }
+
+                    form.addEventListener('submit', function(e){ e.preventDefault(); sendMessage(input.value); });
+                    document.querySelectorAll('.ai-suggest').forEach(function(btn){
+                        btn.addEventListener('click', function(){ sendMessage(this.textContent); });
+                    });
+                    clearBtn.addEventListener('click', function(){
+                        if (!confirm('Xóa toàn bộ lịch sử chat với AI?')) return;
+                        var fd = new FormData(); fd.append('_token', token);
+                        fetch('<?= url('ai-chat/clear') ?>', {method:'POST', body:fd}).then(function(){ location.reload(); });
+                    });
+                })();
+                </script>
+            <?php elseif ($active): ?>
                 <?php
                 $isActiveGroup = ($active['channel'] ?? '') === 'group';
                 if ($isActiveGroup) {

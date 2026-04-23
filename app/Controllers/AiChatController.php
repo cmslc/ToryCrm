@@ -9,8 +9,7 @@ class AiChatController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'AI Trợ lý';
-        return $this->view('ai-chat.index', compact('pageTitle'));
+        return $this->redirect('chat?active=ai');
     }
 
     public function send()
