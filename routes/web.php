@@ -79,6 +79,9 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('chat/group/{id}/reply', 'ChatController@internalGroupReply');
     Router::get('chat/group/{id}/poll', 'ChatController@internalGroupPoll');
     Router::post('chat/message/{msgId}/pin', 'ChatController@togglePin');
+    Router::post('chat/message/{msgId}/react', 'ChatController@reactMessage');
+    Router::post('chat/message/{msgId}/edit', 'ChatController@editMessage');
+    Router::post('chat/message/{msgId}/delete', 'ChatController@deleteMessage');
     Router::get('chat/search', 'ChatController@searchMessages');
     Router::get('chat/unread-total', 'ChatController@unreadTotal');
     // Customer chat routes — kept for any legacy caller but UI entry removed

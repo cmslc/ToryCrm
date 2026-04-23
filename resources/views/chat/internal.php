@@ -39,6 +39,7 @@ if ($isAi) {
                  WHERE m.conversation_id = ? ORDER BY m.created_at ASC",
                 [$activeId]
             );
+            $messages = (new \App\Controllers\ChatController())->enrichMessages($messages, $myId);
             \Core\Database::query("UPDATE conversation_members SET unread_count = 0, last_read_at = NOW() WHERE conversation_id = ? AND user_id = ?", [$activeId, $myId]);
             $isGroup = true;
         }
@@ -278,49 +279,122 @@ if ($isAi) {
                 </div>
 
                 <div id="msgArea" class="flex-grow-1 px-3 py-2" style="overflow-y:auto">
-                    <?php foreach ($messages as $m):
+                    <?php
+                    // Build member id->name map (for group mentions autocomplete) once
+                    $groupMembers = [];
+                    if ($isActiveGroup) {
+                        $groupMembers = \Core\Database::fetchAll(
+                            "SELECT u.id, u.name, u.avatar FROM conversation_members cm JOIN users u ON u.id = cm.user_id WHERE cm.conversation_id = ? ORDER BY u.name",
+                            [$active['id']]
+                        );
+                    }
+                    foreach ($messages as $m):
                         $mine = ($m['sender_id'] == $myId);
                         $atts = [];
                         if (!empty($m['attachments'])) $atts = json_decode($m['attachments'], true) ?: [];
+                        $deleted = !empty($m['deleted_at']);
+                        $edited = !empty($m['edited_at']);
+                        $replyTo = $m['reply_to'] ?? null;
+                        $reactions = $m['reactions'] ?? [];
+                        $isMentioned = !empty($m['is_mentioned']);
                     ?>
-                    <div class="d-flex <?= $mine ? 'justify-content-end' : '' ?> mb-2 msg-row" data-msg-id="<?= $m['id'] ?>" data-created-at="<?= e($m['created_at']) ?>" data-mine="<?= $mine ? '1' : '0' ?>">
-                        <div class="<?= $mine ? 'bg-primary text-white' : 'bg-light' ?> rounded px-3 py-2 position-relative" style="max-width:70%">
-                            <?php if ($isActiveGroup && !$mine): ?>
+                    <div class="d-flex <?= $mine ? 'justify-content-end' : '' ?> mb-2 msg-row <?= $isMentioned ? 'mentioned' : '' ?>" data-msg-id="<?= $m['id'] ?>" data-created-at="<?= e($m['created_at']) ?>" data-mine="<?= $mine ? '1' : '0' ?>" data-sender-id="<?= (int)$m['sender_id'] ?>">
+                        <div class="msg-bubble <?= $mine ? 'bg-primary text-white' : 'bg-light' ?> rounded px-3 py-2 position-relative" style="max-width:70%">
+                            <?php if ($isActiveGroup && !$mine && !$deleted): ?>
                                 <small class="d-block fw-semibold text-info"><?= e($m['sender_name'] ?? '') ?></small>
                             <?php endif; ?>
-                            <?php if (!empty($m['content'])): ?>
-                                <div style="white-space:pre-wrap"><?= e($m['content']) ?></div>
+                            <?php if ($replyTo): ?>
+                                <div class="reply-snapshot border-start border-3 ps-2 mb-1 small <?= $mine ? 'border-light opacity-75' : 'border-primary text-muted' ?>">
+                                    <div class="fw-semibold"><?= e($replyTo['sender_name']) ?></div>
+                                    <div class="text-truncate" style="max-width:250px"><?= e($replyTo['preview']) ?></div>
+                                </div>
                             <?php endif; ?>
-                            <?php foreach ($atts as $att): ?>
-                                <?php if (!empty($att['is_image'])): ?>
-                                    <img src="<?= e($att['url']) ?>" style="max-width:200px;max-height:200px;display:block;margin-top:4px;border-radius:4px">
-                                <?php else: ?>
-                                    <a href="<?= e($att['url']) ?>" target="_blank" class="<?= $mine ? 'text-white' : '' ?> d-block"><i class="ri-attachment-2 me-1"></i><?= e($att['name']) ?></a>
+                            <?php if ($deleted): ?>
+                                <div class="fst-italic <?= $mine ? 'text-white-50' : 'text-muted' ?>"><i class="ri-delete-bin-line me-1"></i>Tin nhắn đã được thu hồi</div>
+                            <?php else: ?>
+                                <?php if (!empty($m['content'])): ?>
+                                    <div class="msg-content" style="white-space:pre-wrap"><?= e($m['content']) ?></div>
                                 <?php endif; ?>
-                            <?php endforeach; ?>
-                            <small class="<?= $mine ? 'text-white-50' : 'text-muted' ?> fs-11 d-flex align-items-center gap-1">
+                                <?php foreach ($atts as $att): ?>
+                                    <?php if (!empty($att['is_image'])): ?>
+                                        <img src="<?= e($att['url']) ?>" style="max-width:200px;max-height:200px;display:block;margin-top:4px;border-radius:4px">
+                                    <?php else: ?>
+                                        <a href="<?= e($att['url']) ?>" target="_blank" class="<?= $mine ? 'text-white' : '' ?> d-block"><i class="ri-attachment-2 me-1"></i><?= e($att['name']) ?></a>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                            <?php if (!empty($reactions)): ?>
+                                <div class="reactions-row d-flex flex-wrap gap-1 mt-1">
+                                    <?php foreach ($reactions as $rx): ?>
+                                        <button type="button" class="btn btn-light py-0 px-1 reaction-pill <?= $rx['mine'] ? 'border-primary' : '' ?>" data-msg-id="<?= $m['id'] ?>" data-emoji="<?= e($rx['emoji']) ?>" style="font-size:11px;line-height:1.4">
+                                            <span><?= e($rx['emoji']) ?></span> <span><?= $rx['count'] ?></span>
+                                        </button>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                            <small class="<?= $mine ? 'text-white-50' : 'text-muted' ?> fs-11 d-flex align-items-center gap-1 mt-1">
                                 <span><?= date('H:i d/m', strtotime($m['created_at'])) ?></span>
+                                <?php if ($edited && !$deleted): ?><span class="fst-italic">(đã sửa)</span><?php endif; ?>
                                 <?php if ($m['is_pinned']): ?><i class="ri-pushpin-2-fill"></i><?php endif; ?>
-                                <button type="button" class="btn btn-sm p-0 pin-btn <?= $mine ? 'text-white-50' : 'text-muted' ?>" data-msg-id="<?= $m['id'] ?>" title="Ghim/bỏ ghim" style="font-size:11px"><i class="ri-pushpin-line"></i></button>
                             </small>
+                            <?php if (!$deleted): ?>
+                            <div class="msg-actions" data-msg-id="<?= $m['id'] ?>" data-mine="<?= $mine ? '1' : '0' ?>">
+                                <button type="button" class="act-btn react-btn" title="Thả cảm xúc"><i class="ri-emotion-line"></i></button>
+                                <button type="button" class="act-btn reply-btn" title="Trả lời"><i class="ri-reply-line"></i></button>
+                                <button type="button" class="act-btn pin-btn" title="Ghim"><i class="ri-pushpin-line"></i></button>
+                                <?php if ($mine): ?>
+                                <button type="button" class="act-btn edit-btn" title="Sửa"><i class="ri-edit-line"></i></button>
+                                <button type="button" class="act-btn delete-btn" title="Thu hồi"><i class="ri-delete-bin-line"></i></button>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
+                <style>
+                    .msg-row { position:relative; }
+                    .msg-row.mentioned .msg-bubble { box-shadow:0 0 0 2px rgba(255, 193, 7, 0.4); }
+                    .msg-bubble { position:relative; }
+                    .msg-actions { position:absolute; top:-18px; right:-4px; display:none; gap:2px; background:#fff; border:1px solid #e5e5e5; border-radius:16px; padding:2px 4px; box-shadow:0 1px 3px rgba(0,0,0,.08); white-space:nowrap; z-index:2; }
+                    .msg-row[data-mine="1"] .msg-actions { right:auto; left:-4px; }
+                    .msg-bubble:hover .msg-actions { display:inline-flex; }
+                    .msg-actions .act-btn { background:none; border:none; color:#666; padding:2px 6px; font-size:13px; cursor:pointer; border-radius:12px; }
+                    .msg-actions .act-btn:hover { background:#f0f0f0; color:#0d6efd; }
+                    .reaction-pill { background:#f0f0f0 !important; border:1px solid transparent !important; }
+                    .reaction-pill.border-primary { background:#e7f1ff !important; }
+                    .emoji-picker { position:absolute; background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:6px; box-shadow:0 2px 8px rgba(0,0,0,.1); display:flex; gap:4px; z-index:100; }
+                    .emoji-picker button { background:none; border:none; font-size:20px; cursor:pointer; padding:2px 6px; border-radius:6px; }
+                    .emoji-picker button:hover { background:#f0f0f0; }
+                    .mention-tag { background:#fff3cd; color:#856404; padding:0 4px; border-radius:4px; font-weight:500; }
+                    #mentionPicker { position:absolute; bottom:100%; left:0; background:#fff; border:1px solid #e5e5e5; border-radius:6px; box-shadow:0 -2px 8px rgba(0,0,0,.08); max-height:200px; overflow-y:auto; min-width:260px; z-index:200; display:none; }
+                    #mentionPicker .mention-item { padding:6px 10px; cursor:pointer; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f5f5f5; }
+                    #mentionPicker .mention-item.active, #mentionPicker .mention-item:hover { background:#e7f1ff; }
+                    .reply-banner { background:#f0f4ff; border-left:3px solid #0d6efd; padding:4px 8px; border-radius:4px; font-size:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+                </style>
 
-                <form id="dmForm" class="p-3 border-top d-flex gap-2 align-items-end" enctype="multipart/form-data">
-                    <?= csrf_field() ?>
-                    <input type="hidden" id="dmId" value="<?= $active['id'] ?>">
-                    <label class="btn btn-soft-secondary btn-icon mb-0" title="Đính kèm">
-                        <i class="ri-attachment-2"></i>
-                        <input type="file" id="dmFile" style="display:none">
-                    </label>
-                    <div class="flex-grow-1">
-                        <span id="fileName" class="text-muted small d-block" style="min-height:0"></span>
-                        <textarea id="dmContent" class="form-control" placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter xuống dòng)" rows="1" style="resize:none;max-height:140px;overflow-y:auto"></textarea>
+                <div class="p-3 border-top position-relative">
+                    <div id="replyBanner" class="reply-banner" style="display:none">
+                        <div><i class="ri-reply-line me-1"></i>Trả lời <strong id="replyBannerName"></strong>: <span id="replyBannerText" class="text-muted"></span></div>
+                        <button type="button" class="btn-close" style="font-size:10px" id="replyBannerClose"></button>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line"></i></button>
-                </form>
+                    <div id="mentionPicker"></div>
+                    <form id="dmForm" class="d-flex gap-2 align-items-end" enctype="multipart/form-data">
+                        <?= csrf_field() ?>
+                        <input type="hidden" id="dmReplyTo" value="">
+                        <input type="hidden" id="dmMentions" value="">
+                        <input type="hidden" id="dmId" value="<?= $active['id'] ?>">
+                        <label class="btn btn-soft-secondary btn-icon mb-0" title="Đính kèm">
+                            <i class="ri-attachment-2"></i>
+                            <input type="file" id="dmFile" style="display:none">
+                        </label>
+                        <div class="flex-grow-1">
+                            <span id="fileName" class="text-muted small d-block" style="min-height:0"></span>
+                            <textarea id="dmContent" class="form-control" placeholder="Nhập tin nhắn... (Enter gửi, Shift+Enter xuống dòng<?= $isActiveGroup ? ', @ để tag' : '' ?>)" rows="1" style="resize:none;max-height:140px;overflow-y:auto"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line"></i></button>
+                    </form>
+                </div>
 
                 <script>
                 (function(){
@@ -329,11 +403,21 @@ if ($isAi) {
                     var isGroup = <?= $isActiveGroup ? 'true' : 'false' ?>;
                     var replyPath = <?= json_encode($replyPath) ?>;
                     var pollPath = <?= json_encode($pollPath) ?>;
+                    var groupMembers = <?= $isActiveGroup ? json_encode(array_map(fn($u) => ['id'=>(int)$u['id'],'name'=>$u['name'],'avatar'=>$u['avatar']??''], $groupMembers), JSON_UNESCAPED_UNICODE) : '[]' ?>;
+                    var assetBaseUrl = '<?= rtrim(url(''), '/') ?>/';
+                    var csrfTok = '<?= csrf_token() ?>';
                     var area = document.getElementById('msgArea');
                     var form = document.getElementById('dmForm');
                     var input = document.getElementById('dmContent');
                     var fileInput = document.getElementById('dmFile');
                     var fileName = document.getElementById('fileName');
+                    var replyBanner = document.getElementById('replyBanner');
+                    var replyBannerName = document.getElementById('replyBannerName');
+                    var replyBannerText = document.getElementById('replyBannerText');
+                    var replyToField = document.getElementById('dmReplyTo');
+                    var mentionsField = document.getElementById('dmMentions');
+                    var mentionPicker = document.getElementById('mentionPicker');
+                    var pickedMentions = []; // [{id, name}]
                     var lastId = <?= !empty($messages) ? (int)end($messages)['id'] : 0 ?>;
                     var peerLastRead = <?= !$isActiveGroup ? json_encode(($active['user_a_id'] == $myId ? ($active['last_read_b_at'] ?? null) : ($active['last_read_a_at'] ?? null))) : 'null' ?>;
                     var baseTitle = document.title;
@@ -354,43 +438,102 @@ if ($isAi) {
 
                     function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
                     function formatTime(s){ var d=new Date(s.replace(' ','T')); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+' '+d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0'); }
+                    function renderReactions(m){
+                        if (!m.reactions || !m.reactions.length) return '';
+                        return '<div class="reactions-row d-flex flex-wrap gap-1 mt-1">' + m.reactions.map(function(r){
+                            return '<button type="button" class="btn btn-light py-0 px-1 reaction-pill '+(r.mine?'border-primary':'')+'" data-msg-id="'+m.id+'" data-emoji="'+esc(r.emoji)+'" style="font-size:11px;line-height:1.4"><span>'+esc(r.emoji)+'</span> <span>'+r.count+'</span></button>';
+                        }).join('') + '</div>';
+                    }
+                    function renderReplyTo(m, mine){
+                        if (!m.reply_to) return '';
+                        return '<div class="reply-snapshot border-start border-3 ps-2 mb-1 small '+(mine?'border-light opacity-75':'border-primary text-muted')+'"><div class="fw-semibold">'+esc(m.reply_to.sender_name||'')+'</div><div class="text-truncate" style="max-width:250px">'+esc(m.reply_to.preview||'')+'</div></div>';
+                    }
+                    function renderActions(m, mine, isDeleted){
+                        if (isDeleted) return '';
+                        var base = '<button type="button" class="act-btn react-btn" title="Thả cảm xúc"><i class="ri-emotion-line"></i></button>'
+                                 + '<button type="button" class="act-btn reply-btn" title="Trả lời"><i class="ri-reply-line"></i></button>'
+                                 + '<button type="button" class="act-btn pin-btn" title="Ghim"><i class="ri-pushpin-line"></i></button>';
+                        if (mine) base += '<button type="button" class="act-btn edit-btn" title="Sửa"><i class="ri-edit-line"></i></button>'
+                                        + '<button type="button" class="act-btn delete-btn" title="Thu hồi"><i class="ri-delete-bin-line"></i></button>';
+                        return '<div class="msg-actions" data-msg-id="'+m.id+'" data-mine="'+(mine?'1':'0')+'">'+base+'</div>';
+                    }
                     function appendMsg(m){
-                        if (document.querySelector('[data-msg-id="'+m.id+'"]')) return;
+                        var existing = document.querySelector('[data-msg-id="'+m.id+'"]');
+                        if (existing) { updateMsgRow(existing, m); return; }
                         var mine = m.sender_id == myId;
+                        var isDeleted = !!m.deleted_at;
                         var atts = m.attachments ? (typeof m.attachments === 'string' ? JSON.parse(m.attachments) : m.attachments) : [];
                         var attHtml = '';
                         (atts||[]).forEach(function(a){
                             if (a.is_image) attHtml += '<img src="'+a.url+'" style="max-width:200px;max-height:200px;display:block;margin-top:4px;border-radius:4px">';
                             else attHtml += '<a href="'+a.url+'" target="_blank" class="'+(mine?'text-white':'')+' d-block"><i class="ri-attachment-2 me-1"></i>'+esc(a.name)+'</a>';
                         });
-                        var senderTag = (isGroup && !mine) ? '<small class="d-block fw-semibold text-info">'+esc(m.sender_name||'')+'</small>' : '';
-                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2 msg-row" data-msg-id="'+m.id+'" data-created-at="'+esc(m.created_at||'')+'" data-mine="'+(mine?'1':'0')+'">'
-                                 + '<div class="'+(mine?'bg-primary text-white':'bg-light')+' rounded px-3 py-2 position-relative" style="max-width:70%">'
+                        var senderTag = (isGroup && !mine && !isDeleted) ? '<small class="d-block fw-semibold text-info">'+esc(m.sender_name||'')+'</small>' : '';
+                        var body = isDeleted
+                            ? '<div class="fst-italic '+(mine?'text-white-50':'text-muted')+'"><i class="ri-delete-bin-line me-1"></i>Tin nhắn đã được thu hồi</div>'
+                            : ((m.content ? '<div class="msg-content" style="white-space:pre-wrap">'+esc(m.content)+'</div>' : '') + attHtml);
+                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2 msg-row '+(m.is_mentioned?'mentioned':'')+'" data-msg-id="'+m.id+'" data-created-at="'+esc(m.created_at||'')+'" data-mine="'+(mine?'1':'0')+'" data-sender-id="'+(m.sender_id||0)+'">'
+                                 + '<div class="msg-bubble '+(mine?'bg-primary text-white':'bg-light')+' rounded px-3 py-2 position-relative" style="max-width:70%">'
                                  + senderTag
-                                 + (m.content ? '<div style="white-space:pre-wrap">'+esc(m.content)+'</div>' : '')
-                                 + attHtml
-                                 + '<small class="'+(mine?'text-white-50':'text-muted')+' fs-11 d-flex align-items-center gap-1">'
+                                 + renderReplyTo(m, mine)
+                                 + body
+                                 + renderReactions(m)
+                                 + '<small class="'+(mine?'text-white-50':'text-muted')+' fs-11 d-flex align-items-center gap-1 mt-1">'
                                  + '<span>'+formatTime(m.created_at)+'</span>'
-                                 + '<button type="button" class="btn btn-sm p-0 pin-btn '+(mine?'text-white-50':'text-muted')+'" data-msg-id="'+m.id+'" title="Ghim/bỏ ghim" style="font-size:11px"><i class="ri-pushpin-line"></i></button>'
+                                 + (m.edited_at && !isDeleted ? '<span class="fst-italic">(đã sửa)</span>' : '')
                                  + '</small>'
+                                 + renderActions(m, mine, isDeleted)
                                  + '</div></div>';
                         area.insertAdjacentHTML('beforeend', html);
                         area.scrollTop = area.scrollHeight;
                         if (m.id > lastId) lastId = m.id;
 
-                        // Notification + title blink for incoming messages when tab is hidden
                         if (!mine && document.hidden) {
                             unseenCount++;
                             document.title = '(' + unseenCount + ') ' + baseTitle;
                             if (notifReady) {
                                 try {
-                                    var n = new Notification((m.sender_name || 'Tin nhắn mới'), {
+                                    var n = new Notification((m.sender_name || 'Tin nhắn mới') + (m.is_mentioned ? ' @bạn' : ''), {
                                         body: (m.content || '[Tệp đính kèm]').substring(0, 120),
                                         icon: '/favicon.ico',
                                         tag: 'chat-' + m.id
                                     });
                                     n.onclick = function(){ window.focus(); this.close(); };
                                 } catch(e){}
+                            }
+                        }
+                    }
+                    function updateMsgRow(row, m){
+                        // Used for edits/delete/reaction updates coming from poll on a msg we already rendered
+                        var bubble = row.querySelector('.msg-bubble'); if (!bubble) return;
+                        var mine = row.dataset.mine === '1';
+                        var isDeleted = !!m.deleted_at;
+                        // Replace content
+                        var content = bubble.querySelector('.msg-content');
+                        if (isDeleted) {
+                            if (content) content.remove();
+                            if (!bubble.querySelector('.deleted-marker')) {
+                                bubble.insertAdjacentHTML('afterbegin', '<div class="deleted-marker fst-italic '+(mine?'text-white-50':'text-muted')+'"><i class="ri-delete-bin-line me-1"></i>Tin nhắn đã được thu hồi</div>');
+                            }
+                            var act = bubble.querySelector('.msg-actions'); if (act) act.remove();
+                        } else if (content && m.content !== undefined) {
+                            content.textContent = m.content;
+                        }
+                        // Reactions
+                        var rr = bubble.querySelector('.reactions-row'); if (rr) rr.remove();
+                        var rxHtml = renderReactions(m);
+                        if (rxHtml) {
+                            var footer = bubble.querySelector('small');
+                            if (footer) footer.insertAdjacentHTML('beforebegin', rxHtml);
+                            else bubble.insertAdjacentHTML('beforeend', rxHtml);
+                        }
+                        // Edited label
+                        if (m.edited_at && !isDeleted) {
+                            var footer2 = bubble.querySelector('small');
+                            if (footer2 && !footer2.querySelector('.fst-italic')) {
+                                var sp = document.createElement('span'); sp.className='fst-italic'; sp.textContent='(đã sửa)';
+                                footer2.appendChild(document.createTextNode(' '));
+                                footer2.appendChild(sp);
                             }
                         }
                     }
@@ -422,23 +565,176 @@ if ($isAi) {
                         var content = input.value.trim();
                         if (!content && !fileInput.files[0]) return;
                         var fd = new FormData();
-                        fd.append('_token', '<?= csrf_token() ?>');
+                        fd.append('_token', csrfTok);
                         fd.append('content', content);
                         if (fileInput.files[0]) fd.append('attachment', fileInput.files[0]);
+                        if (replyToField.value) fd.append('reply_to_id', replyToField.value);
+                        // Mentions: filter to only those whose name still appears in content
+                        pickedMentions.filter(function(p){ return content.indexOf('@' + p.name) !== -1; })
+                            .forEach(function(p){ fd.append('mentions[]', p.id); });
                         fetch(replyPath, {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
                             .then(r=>r.json()).then(function(){
                                 input.value = '';
                                 autogrow();
                                 fileInput.value = '';
                                 fileName.textContent = '';
+                                cancelReply();
+                                pickedMentions = [];
                                 poll();
                             });
                     }
+                    function cancelReply(){ replyToField.value = ''; replyBanner.style.display='none'; }
+                    document.getElementById('replyBannerClose').addEventListener('click', cancelReply);
+
+                    // --- Hover action delegation: reply / edit / delete / react ---
+                    area.addEventListener('click', function(e){
+                        var row = e.target.closest('.msg-row'); if (!row) return;
+                        var mid = row.dataset.msgId;
+
+                        if (e.target.closest('.reply-btn')) {
+                            var bubble = row.querySelector('.msg-bubble');
+                            var senderEl = row.querySelector('.fw-semibold') || {textContent: row.dataset.mine==='1' ? 'Bạn' : 'Người gửi'};
+                            var contentEl = bubble.querySelector('.msg-content');
+                            replyToField.value = mid;
+                            replyBannerName.textContent = senderEl.textContent || '';
+                            replyBannerText.textContent = ((contentEl && contentEl.textContent) || '[Tệp]').substring(0, 80);
+                            replyBanner.style.display = 'flex';
+                            input.focus();
+                            return;
+                        }
+                        if (e.target.closest('.edit-btn')) {
+                            var bubble = row.querySelector('.msg-bubble');
+                            var cEl = bubble.querySelector('.msg-content');
+                            if (!cEl) return;
+                            var current = cEl.textContent;
+                            var ta = document.createElement('textarea');
+                            ta.className = 'form-control';
+                            ta.value = current;
+                            ta.rows = 2;
+                            cEl.replaceWith(ta);
+                            ta.focus();
+                            function finish(save){
+                                var next = save ? ta.value.trim() : current;
+                                var span = document.createElement('div');
+                                span.className = 'msg-content';
+                                span.style.whiteSpace = 'pre-wrap';
+                                span.textContent = next;
+                                ta.replaceWith(span);
+                                if (save && next && next !== current) {
+                                    var fd = new FormData(); fd.append('_token', csrfTok); fd.append('content', next);
+                                    fetch('<?= url('chat/message/') ?>'+mid+'/edit', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                        .then(r=>r.json()).then(function(d){
+                                            if (d.error) { alert(d.message || 'Không thể sửa.'); span.textContent = current; }
+                                            else { poll(); }
+                                        });
+                                }
+                            }
+                            ta.addEventListener('keydown', function(ev){
+                                if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); finish(true); }
+                                if (ev.key === 'Escape') { finish(false); }
+                            });
+                            ta.addEventListener('blur', function(){ finish(true); });
+                            return;
+                        }
+                        if (e.target.closest('.delete-btn')) {
+                            if (!confirm('Thu hồi tin nhắn này?')) return;
+                            var fd = new FormData(); fd.append('_token', csrfTok);
+                            fetch('<?= url('chat/message/') ?>'+mid+'/delete', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(){ location.reload(); });
+                            return;
+                        }
+                        if (e.target.closest('.react-btn')) {
+                            // Show emoji picker under bubble
+                            var bubble = row.querySelector('.msg-bubble');
+                            document.querySelectorAll('.emoji-picker').forEach(el => el.remove());
+                            var pk = document.createElement('div');
+                            pk.className = 'emoji-picker';
+                            pk.innerHTML = ['👍','❤️','😂','😮','😢','🎉'].map(em => '<button type="button" data-em="'+em+'">'+em+'</button>').join('');
+                            bubble.appendChild(pk);
+                            pk.addEventListener('click', function(ev){
+                                var b = ev.target.closest('button[data-em]'); if (!b) return;
+                                var em = b.dataset.em;
+                                var fd = new FormData(); fd.append('_token', csrfTok); fd.append('emoji', em);
+                                fetch('<?= url('chat/message/') ?>'+mid+'/react', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
+                                    .then(r=>r.json()).then(function(){ pk.remove(); poll(); });
+                            });
+                            setTimeout(function(){ document.addEventListener('click', function out(ev2){ if (!pk.contains(ev2.target) && !ev2.target.closest('.react-btn')) { pk.remove(); document.removeEventListener('click', out); } }); }, 50);
+                            return;
+                        }
+                        if (e.target.closest('.reaction-pill')) {
+                            var pill = e.target.closest('.reaction-pill');
+                            var em = pill.dataset.emoji;
+                            var fd = new FormData(); fd.append('_token', csrfTok); fd.append('emoji', em);
+                            fetch('<?= url('chat/message/') ?>'+mid+'/react', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(){ poll(); });
+                            return;
+                        }
+                        if (e.target.closest('.pin-btn')) {
+                            var fd = new FormData(); fd.append('_token', csrfTok);
+                            fetch('<?= url('chat/message/') ?>'+mid+'/pin', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
+                                if (d.success) location.reload();
+                            });
+                            return;
+                        }
+                    });
+
+                    // --- @mention autocomplete (groups only) ---
+                    var mentionActiveIdx = 0;
+                    var mentionMatches = [];
+                    function hideMentionPicker(){ mentionPicker.style.display='none'; mentionMatches = []; }
+                    function showMentionPicker(q){
+                        if (!isGroup) return;
+                        var needle = q.toLowerCase();
+                        mentionMatches = groupMembers.filter(function(m){ return m.id !== myId && m.name.toLowerCase().includes(needle); }).slice(0, 6);
+                        if (!mentionMatches.length) { hideMentionPicker(); return; }
+                        mentionActiveIdx = 0;
+                        mentionPicker.innerHTML = mentionMatches.map(function(m, i){
+                            var ava = m.avatar ? '<img src="'+assetBaseUrl+m.avatar+'" class="rounded-circle" width="24" height="24" style="object-fit:cover">'
+                                : '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px">'+esc((m.name||'?').charAt(0).toUpperCase())+'</div>';
+                            return '<div class="mention-item '+(i===0?'active':'')+'" data-idx="'+i+'">'+ava+'<span>'+esc(m.name)+'</span></div>';
+                        }).join('');
+                        mentionPicker.style.display = 'block';
+                    }
+                    function insertMention(m){
+                        var val = input.value;
+                        var caret = input.selectionStart;
+                        var before = val.substring(0, caret);
+                        var at = before.lastIndexOf('@');
+                        if (at < 0) return;
+                        var after = val.substring(caret);
+                        var newVal = val.substring(0, at) + '@' + m.name + ' ' + after;
+                        input.value = newVal;
+                        input.selectionStart = input.selectionEnd = at + 1 + m.name.length + 1;
+                        if (!pickedMentions.find(x => x.id === m.id)) pickedMentions.push(m);
+                        hideMentionPicker();
+                        autogrow();
+                    }
+                    input.addEventListener('input', function(){
+                        if (!isGroup) return;
+                        var caret = input.selectionStart;
+                        var before = input.value.substring(0, caret);
+                        var at = before.lastIndexOf('@');
+                        if (at < 0) { hideMentionPicker(); return; }
+                        // @ must be at start or preceded by whitespace
+                        if (at > 0 && !/\s/.test(before.charAt(at - 1))) { hideMentionPicker(); return; }
+                        var query = before.substring(at + 1);
+                        if (query.length > 20 || /\s/.test(query)) { hideMentionPicker(); return; }
+                        showMentionPicker(query);
+                    });
+                    mentionPicker.addEventListener('mousedown', function(e){
+                        var it = e.target.closest('.mention-item'); if (!it) return;
+                        e.preventDefault();
+                        insertMention(mentionMatches[+it.dataset.idx]);
+                    });
 
                     form.addEventListener('submit', function(e){ e.preventDefault(); sendMessage(); });
 
-                    // Enter to send, Shift+Enter = newline
+                    // Enter to send (with mention handling), Shift+Enter = newline
                     input.addEventListener('keydown', function(e){
+                        if (mentionPicker.style.display === 'block' && mentionMatches.length) {
+                            if (e.key === 'ArrowDown') { e.preventDefault(); mentionActiveIdx = (mentionActiveIdx + 1) % mentionMatches.length; mentionPicker.querySelectorAll('.mention-item').forEach((it,i)=>it.classList.toggle('active', i===mentionActiveIdx)); return; }
+                            if (e.key === 'ArrowUp') { e.preventDefault(); mentionActiveIdx = (mentionActiveIdx - 1 + mentionMatches.length) % mentionMatches.length; mentionPicker.querySelectorAll('.mention-item').forEach((it,i)=>it.classList.toggle('active', i===mentionActiveIdx)); return; }
+                            if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertMention(mentionMatches[mentionActiveIdx]); return; }
+                            if (e.key === 'Escape') { e.preventDefault(); hideMentionPicker(); return; }
+                        }
                         if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendMessage(); }
                     });
 
@@ -493,18 +789,6 @@ if ($isAi) {
                         }).catch(function(){});
                     }
                     setInterval(poll, 5000);
-
-                    // Pin
-                    document.addEventListener('click', function(e){
-                        var btn = e.target.closest('.pin-btn');
-                        if (!btn) return;
-                        e.preventDefault();
-                        var mid = btn.dataset.msgId;
-                        var fd = new FormData(); fd.append('_token', '<?= csrf_token() ?>');
-                        fetch('<?= url('chat/message/') ?>'+mid+'/pin', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
-                            if (d.success) location.reload();
-                        });
-                    });
 
                     input.focus();
                 })();

@@ -450,6 +450,7 @@ class ChatController extends Controller
                      WHERE m.conversation_id = ? ORDER BY m.created_at ASC",
                     [$activeId]
                 );
+                $messages = $this->enrichMessages($messages, $uid);
                 $this->markDmRead($activeId, $uid);
             }
         }
@@ -529,8 +530,14 @@ class ChatController extends Controller
 
         $peerIsA = ($dm['user_a_id'] != $uid); // if I'm B, peer is A, so increment unread_a
         $contentType = !empty($attachments) && !empty($attachments[0]['is_image']) ? 'image' : (!empty($attachments) ? 'file' : 'text');
+        $replyTo = (int) $this->input('reply_to_id', 0);
+        if ($replyTo) {
+            $ok = Database::fetch("SELECT 1 FROM messages WHERE id = ? AND conversation_id = ?", [$replyTo, $id]);
+            if (!$ok) $replyTo = 0;
+        }
         Database::insert('messages', [
             'conversation_id' => $id,
+            'reply_to_id' => $replyTo ?: null,
             'direction' => 'outbound',
             'sender_type' => 'user',
             'sender_id' => $uid,
@@ -573,6 +580,7 @@ class ChatController extends Controller
              ORDER BY m.created_at ASC",
             [$id, $after]
         );
+        $messages = $this->enrichMessages($messages, $uid);
         if ($messages) $this->markDmRead((int)$id, $uid);
         $peerLastRead = ($dm['user_a_id'] == $uid) ? ($dm['last_read_b_at'] ?? null) : ($dm['last_read_a_at'] ?? null);
         // Re-fetch to get fresh peer read timestamp (peer may have read while we were away)
@@ -707,8 +715,14 @@ class ChatController extends Controller
         }
 
         $contentType = !empty($attachments) && !empty($attachments[0]['is_image']) ? 'image' : (!empty($attachments) ? 'file' : 'text');
-        Database::insert('messages', [
+        $replyTo = (int) $this->input('reply_to_id', 0);
+        if ($replyTo) {
+            $ok = Database::fetch("SELECT 1 FROM messages WHERE id = ? AND conversation_id = ?", [$replyTo, $id]);
+            if (!$ok) $replyTo = 0;
+        }
+        $newMsgId = Database::insert('messages', [
             'conversation_id' => $id,
+            'reply_to_id' => $replyTo ?: null,
             'direction' => 'outbound',
             'sender_type' => 'user',
             'sender_id' => $uid,
@@ -716,6 +730,24 @@ class ChatController extends Controller
             'content_type' => $contentType,
             'attachments' => $attachments ? json_encode($attachments, JSON_UNESCAPED_UNICODE) : null,
         ]);
+
+        // Save @mentions: trust only user IDs that belong to this group
+        $mentionIds = array_filter(array_map('intval', (array) $this->input('mentions', [])));
+        if ($mentionIds && $newMsgId) {
+            $validMembers = Database::fetchAll(
+                "SELECT user_id FROM conversation_members WHERE conversation_id = ? AND user_id IN (" . implode(',', array_fill(0, count($mentionIds), '?')) . ")",
+                array_merge([(int)$id], $mentionIds)
+            );
+            foreach ($validMembers as $mm) {
+                if ((int)$mm['user_id'] === $uid) continue;
+                try {
+                    Database::query(
+                        "INSERT IGNORE INTO message_mentions (message_id, user_id) VALUES (?, ?)",
+                        [$newMsgId, (int)$mm['user_id']]
+                    );
+                } catch (\Throwable $e) {}
+            }
+        }
 
         // Bump unread for every other member
         $preview = $content !== '' ? mb_substr($content, 0, 255) : ($attachments[0]['name'] ?? '📎');
@@ -766,6 +798,155 @@ class ChatController extends Controller
         return $this->json(['success' => true, 'is_pinned' => $newVal]);
     }
 
+    /** Toggle a reaction (emoji) on a message. Membership enforced. */
+    public function reactMessage($msgId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $emoji = trim((string) $this->input('emoji', ''));
+        if ($emoji === '' || mb_strlen($emoji) > 16) return $this->json(['error' => 'invalid'], 400);
+        if (!$this->canAccessMessage((int)$msgId, $uid, $tid)) return $this->json(['error' => 'forbidden'], 403);
+
+        $existing = Database::fetch("SELECT id FROM message_reactions WHERE message_id = ? AND user_id = ? AND emoji = ?", [$msgId, $uid, $emoji]);
+        if ($existing) {
+            Database::query("DELETE FROM message_reactions WHERE id = ?", [$existing['id']]);
+            $action = 'removed';
+        } else {
+            Database::query("INSERT INTO message_reactions (message_id, user_id, emoji) VALUES (?, ?, ?)", [$msgId, $uid, $emoji]);
+            $action = 'added';
+        }
+        return $this->json(['success' => true, 'action' => $action, 'reactions' => $this->reactionsFor((int)$msgId, $uid)]);
+    }
+
+    /** Edit a message (only own, only within 5 minutes). */
+    public function editMessage($msgId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $content = trim((string) $this->input('content', ''));
+        if ($content === '') return $this->json(['error' => 'empty'], 400);
+
+        $msg = Database::fetch(
+            "SELECT m.id, m.sender_id, m.created_at, m.deleted_at, cv.tenant_id
+             FROM messages m JOIN conversations cv ON m.conversation_id = cv.id
+             WHERE m.id = ?",
+            [$msgId]
+        );
+        if (!$msg || (int)$msg['tenant_id'] !== $tid) return $this->json(['error' => 'not_found'], 404);
+        if ((int)$msg['sender_id'] !== $uid) return $this->json(['error' => 'forbidden'], 403);
+        if ($msg['deleted_at']) return $this->json(['error' => 'deleted'], 400);
+        if (strtotime($msg['created_at']) < time() - 300) return $this->json(['error' => 'expired', 'message' => 'Chỉ có thể sửa tin nhắn trong 5 phút đầu.'], 400);
+
+        Database::update('messages', ['content' => $content, 'edited_at' => date('Y-m-d H:i:s')], 'id = ?', [$msgId]);
+        return $this->json(['success' => true, 'content' => $content, 'edited_at' => date('Y-m-d H:i:s')]);
+    }
+
+    /** Soft-delete a message (only own). */
+    public function deleteMessage($msgId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $msg = Database::fetch(
+            "SELECT m.id, m.sender_id, cv.tenant_id
+             FROM messages m JOIN conversations cv ON m.conversation_id = cv.id
+             WHERE m.id = ?",
+            [$msgId]
+        );
+        if (!$msg || (int)$msg['tenant_id'] !== $tid) return $this->json(['error' => 'not_found'], 404);
+        if ((int)$msg['sender_id'] !== $uid) return $this->json(['error' => 'forbidden'], 403);
+
+        Database::update('messages', ['deleted_at' => date('Y-m-d H:i:s'), 'content' => '', 'attachments' => null], 'id = ?', [$msgId]);
+        return $this->json(['success' => true]);
+    }
+
+    /** Permission check: user can read/act on message if DM peer or group member. */
+    private function canAccessMessage(int $msgId, int $uid, int $tid): bool
+    {
+        $r = Database::fetch(
+            "SELECT cv.id, cv.channel, cv.user_a_id, cv.user_b_id, cv.tenant_id
+             FROM messages m JOIN conversations cv ON m.conversation_id = cv.id
+             WHERE m.id = ?",
+            [$msgId]
+        );
+        if (!$r || (int)$r['tenant_id'] !== $tid) return false;
+        if ($r['channel'] === 'internal') return ((int)$r['user_a_id'] === $uid || (int)$r['user_b_id'] === $uid);
+        if ($r['channel'] === 'group') {
+            return (bool) Database::fetch("SELECT 1 FROM conversation_members WHERE conversation_id = ? AND user_id = ?", [$r['id'], $uid]);
+        }
+        return false;
+    }
+
+    /** Fetch reactions for a message grouped by emoji with a my-reacted flag. */
+    private function reactionsFor(int $msgId, int $uid): array
+    {
+        $rows = Database::fetchAll(
+            "SELECT emoji, COUNT(*) as cnt, SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as mine
+             FROM message_reactions WHERE message_id = ? GROUP BY emoji ORDER BY cnt DESC, emoji",
+            [$uid, $msgId]
+        );
+        return array_map(fn($r) => ['emoji' => $r['emoji'], 'count' => (int)$r['cnt'], 'mine' => (int)$r['mine'] > 0], $rows);
+    }
+
+    /** Enrich a list of messages with reactions, mentions, reply snapshot. */
+    public function enrichMessages(array $messages, int $uid): array
+    {
+        if (empty($messages)) return $messages;
+        $ids = array_column($messages, 'id');
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        // Reactions grouped per message
+        $reactionRows = Database::fetchAll(
+            "SELECT message_id, emoji, COUNT(*) as cnt, SUM(CASE WHEN user_id = ? THEN 1 ELSE 0 END) as mine
+             FROM message_reactions WHERE message_id IN ($placeholders) GROUP BY message_id, emoji",
+            array_merge([$uid], $ids)
+        );
+        $rxByMsg = [];
+        foreach ($reactionRows as $r) {
+            $rxByMsg[$r['message_id']][] = ['emoji' => $r['emoji'], 'count' => (int)$r['cnt'], 'mine' => (int)$r['mine'] > 0];
+        }
+
+        // Reply snapshots
+        $replyIds = array_filter(array_column($messages, 'reply_to_id'));
+        $replyMap = [];
+        if ($replyIds) {
+            $rph = implode(',', array_fill(0, count($replyIds), '?'));
+            $replies = Database::fetchAll(
+                "SELECT m.id, m.content, m.sender_id, m.deleted_at, u.name as sender_name
+                 FROM messages m LEFT JOIN users u ON m.sender_id = u.id
+                 WHERE m.id IN ($rph)",
+                array_values($replyIds)
+            );
+            foreach ($replies as $r) $replyMap[$r['id']] = $r;
+        }
+
+        // Mentions: which user ids are tagged per message
+        $mentionRows = Database::fetchAll(
+            "SELECT message_id, user_id FROM message_mentions WHERE message_id IN ($placeholders)",
+            $ids
+        );
+        $mentionMap = [];
+        foreach ($mentionRows as $r) $mentionMap[$r['message_id']][] = (int)$r['user_id'];
+
+        foreach ($messages as &$m) {
+            $m['reactions'] = $rxByMsg[$m['id']] ?? [];
+            $m['reply_to'] = null;
+            if (!empty($m['reply_to_id']) && isset($replyMap[$m['reply_to_id']])) {
+                $rp = $replyMap[$m['reply_to_id']];
+                $m['reply_to'] = [
+                    'id' => (int)$rp['id'],
+                    'sender_name' => $rp['sender_name'] ?? '',
+                    'preview' => $rp['deleted_at'] ? '[Đã thu hồi]' : mb_substr((string)$rp['content'], 0, 120),
+                ];
+            }
+            $m['mentions'] = $mentionMap[$m['id']] ?? [];
+            $m['is_mentioned'] = in_array($uid, $m['mentions'], true);
+        }
+        return $messages;
+    }
+
     /** Full-text search across this user's conversations. */
     public function searchMessages()
     {
@@ -812,11 +993,18 @@ class ChatController extends Controller
              ORDER BY m.created_at ASC",
             [$id, $after]
         );
+        $messages = $this->enrichMessages($messages, $uid);
         if ($messages) {
             Database::query(
                 "UPDATE conversation_members SET unread_count = 0, last_read_at = NOW() WHERE conversation_id = ? AND user_id = ?",
                 [$id, $uid]
             );
+            // Mark any mentions as read for this user
+            $ids = array_column($messages, 'id');
+            if ($ids) {
+                $ph = implode(',', array_fill(0, count($ids), '?'));
+                Database::query("UPDATE message_mentions SET is_read = 1 WHERE user_id = ? AND message_id IN ($ph)", array_merge([$uid], $ids));
+            }
         }
         return $this->json(['messages' => $messages, 'my_id' => $uid]);
     }
