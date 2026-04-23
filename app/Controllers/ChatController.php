@@ -4,189 +4,394 @@ namespace App\Controllers;
 
 use Core\Controller;
 use Core\Database;
-use App\Models\Notification;
 
 class ChatController extends Controller
 {
-    private array $allowedEntities = ['deal', 'ticket', 'contact', 'order'];
-
-    public function getMessages($entityType, $entityId)
+    public function index()
     {
-        if (!in_array($entityType, $this->allowedEntities)) {
-            return $this->json(['error' => 'Invalid entity type'], 400);
+        $tenantId = $this->tenantId();
+        $page = max(1, (int) $this->input('page', 1));
+        $perPage = in_array((int)$this->input('per_page'), [10,20,50,100]) ? (int)$this->input('per_page') : 20;
+        $offset = ($page - 1) * $perPage;
+
+        $status = $this->input('status');
+        $channel = $this->input('channel');
+        $assignedTo = $this->input('assigned_to');
+        $search = $this->input('search');
+        $filter = $this->input('filter'); // unread, mine, starred
+
+        $conditions = ['cv.tenant_id = ?'];
+        $params = [$tenantId];
+
+        if ($status) {
+            $conditions[] = 'cv.status = ?';
+            $params[] = $status;
+        }
+        if ($channel) {
+            $conditions[] = 'cv.channel = ?';
+            $params[] = $channel;
+        }
+        if ($assignedTo) {
+            $conditions[] = 'cv.assigned_to = ?';
+            $params[] = (int) $assignedTo;
+        }
+        if ($search) {
+            $conditions[] = '(c.first_name LIKE ? OR c.last_name LIKE ? OR cv.subject LIKE ? OR cv.last_message_preview LIKE ?)';
+            $s = '%' . $search . '%';
+            $params = array_merge($params, [$s, $s, $s, $s]);
+        }
+        if ($filter === 'unread') {
+            $conditions[] = 'cv.unread_count > 0';
+        } elseif ($filter === 'mine') {
+            $conditions[] = 'cv.assigned_to = ?';
+            $params[] = $this->userId();
+        } elseif ($filter === 'starred') {
+            $conditions[] = 'cv.is_starred = 1';
+        }
+
+        $where = implode(' AND ', $conditions);
+
+        $total = (int) Database::fetch(
+            "SELECT COUNT(*) as cnt FROM conversations cv
+             LEFT JOIN contacts c ON cv.contact_id = c.id
+             WHERE {$where}",
+            $params
+        )['cnt'];
+
+        $totalPages = max(1, (int) ceil($total / $perPage));
+
+        $conversations = Database::fetchAll(
+            "SELECT cv.*,
+                    CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) as contact_name,
+                    c.email as contact_email,
+                    c.phone as contact_phone,
+                    u.name as assigned_name
+             FROM conversations cv
+             LEFT JOIN contacts c ON cv.contact_id = c.id
+             LEFT JOIN users u ON cv.assigned_to = u.id
+             WHERE {$where}
+             ORDER BY cv.last_message_at DESC
+             LIMIT {$perPage} OFFSET {$offset}",
+            $params
+        );
+
+        // Get unread total for badge
+        $unreadTotal = (int) Database::fetch(
+            "SELECT COUNT(*) as cnt FROM conversations WHERE tenant_id = ? AND unread_count > 0",
+            [$tenantId]
+        )['cnt'];
+
+        // Active conversation (first one or selected)
+        $activeId = (int) $this->input('active');
+        $activeConversation = null;
+        $messages = [];
+        $cannedResponses = [];
+
+        if ($activeId) {
+            $activeConversation = Database::fetch(
+                "SELECT cv.*,
+                        CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) as contact_name,
+                        c.email as contact_email, c.phone as contact_phone,
+                        u.name as assigned_name
+                 FROM conversations cv
+                 LEFT JOIN contacts c ON cv.contact_id = c.id
+                 LEFT JOIN users u ON cv.assigned_to = u.id
+                 WHERE cv.id = ? AND cv.tenant_id = ?",
+                [$activeId, $tenantId]
+            );
+
+            if ($activeConversation) {
+                $messages = Database::fetchAll(
+                    "SELECT cm.*, u.name as sender_name
+                     FROM messages cm
+                     LEFT JOIN users u ON cm.sender_id = u.id
+                     WHERE cm.conversation_id = ?
+                     ORDER BY cm.created_at ASC",
+                    [$activeId]
+                );
+
+                // Mark unread messages as read
+                Database::query(
+                    "UPDATE messages SET is_read = 1
+                     WHERE conversation_id = ? AND is_read = 0 AND direction = 'inbound'",
+                    [$activeId]
+                );
+                Database::update('conversations', ['unread_count' => 0], 'id = ?', [$activeId]);
+            }
+        }
+
+        $users = Database::fetchAll(
+            "SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name",
+            [$tenantId]
+        );
+
+        $cannedResponses = Database::fetchAll(
+            "SELECT * FROM canned_responses WHERE tenant_id = ? ORDER BY title ASC",
+            [$tenantId]
+        );
+
+        return $this->view('chat.index', [
+            'conversations' => $conversations,
+            'activeConversation' => $activeConversation,
+            'messages' => $messages,
+            'users' => $users,
+            'cannedResponses' => $cannedResponses,
+            'unreadTotal' => $unreadTotal,
+            'filters' => [
+                'status' => $status,
+                'channel' => $channel,
+                'assigned_to' => $assignedTo,
+                'search' => $search,
+                'filter' => $filter,
+            ],
+            'pagination' => [
+                'page' => $page,
+                'total' => $total,
+                'total_pages' => $totalPages,
+                'per_page' => $perPage,
+            ],
+        ]);
+    }
+
+    public function show($id)
+    {
+        $tenantId = $this->tenantId();
+
+        $conversation = Database::fetch(
+            "SELECT cv.*,
+                    CONCAT(COALESCE(c.first_name,''), ' ', COALESCE(c.last_name,'')) as contact_name,
+                    c.email as contact_email, c.phone as contact_phone,
+                    c.id as cid,
+                    u.name as assigned_name
+             FROM conversations cv
+             LEFT JOIN contacts c ON cv.contact_id = c.id
+             LEFT JOIN users u ON cv.assigned_to = u.id
+             WHERE cv.id = ? AND cv.tenant_id = ?",
+            [$id, $tenantId]
+        );
+
+        if (!$conversation) {
+            $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
+            return $this->redirect('conversations');
         }
 
         $messages = Database::fetchAll(
-            "SELECT ic.*, u.name as user_name
-             FROM internal_chats ic
-             LEFT JOIN users u ON ic.user_id = u.id
-             WHERE ic.entity_type = ? AND ic.entity_id = ? AND ic.tenant_id = ?
-             ORDER BY ic.created_at ASC",
-            [$entityType, $entityId, Database::tenantId()]
+            "SELECT cm.*, u.name as sender_name
+             FROM messages cm
+             LEFT JOIN users u ON cm.sender_id = u.id
+             WHERE cm.conversation_id = ?
+             ORDER BY cm.created_at ASC",
+            [$id]
         );
 
-        // Add avatar initial and time_ago
-        foreach ($messages as &$msg) {
-            $msg['avatar_initial'] = mb_strtoupper(mb_substr($msg['user_name'] ?? '?', 0, 1));
-            $msg['time_ago'] = time_ago($msg['created_at']);
-            // Highlight @mentions in content
-            $msg['content_html'] = preg_replace(
-                '/@(\w+)/',
-                '<span class="text-primary fw-medium">@$1</span>',
-                e($msg['content'])
-            );
-        }
+        // Mark unread messages as read
+        Database::query(
+            "UPDATE messages SET is_read = 1
+             WHERE conversation_id = ? AND is_read = 0 AND direction = 'inbound'",
+            [$id]
+        );
+        Database::update('conversations', ['unread_count' => 0], 'id = ?', [$id]);
 
-        return $this->json(['messages' => $messages]);
+        $users = Database::fetchAll(
+            "SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name",
+            [$tenantId]
+        );
+
+        $cannedResponses = Database::fetchAll(
+            "SELECT * FROM canned_responses WHERE tenant_id = ? ORDER BY title ASC",
+            [$tenantId]
+        );
+
+        return $this->view('chat.show', [
+            'conversation' => $conversation,
+            'messages' => $messages,
+            'users' => $users,
+            'cannedResponses' => $cannedResponses,
+        ]);
     }
 
-    public function postMessage($entityType, $entityId)
+    public function create()
     {
-        if (!$this->isPost()) {
-            return $this->json(['error' => 'Method not allowed'], 405);
+        $tenantId = $this->tenantId();
+
+        $contacts = Database::fetchAll(
+            "SELECT id, first_name, last_name, email FROM contacts WHERE tenant_id = ? AND is_deleted = 0 ORDER BY first_name",
+            [$tenantId]
+        );
+
+        return $this->view('chat.create', [
+            'contacts' => $contacts,
+            'selectedContactId' => (int) $this->input('contact_id'),
+        ]);
+    }
+
+    public function store()
+    {
+        if (!$this->isPost()) return $this->redirect('conversations');
+
+        $data = $this->allInput();
+        $contactId = !empty($data['contact_id']) ? (int) $data['contact_id'] : null;
+        $channel = $data['channel'] ?? 'email';
+        $subject = trim($data['subject'] ?? '');
+        $content = trim($data['content'] ?? '');
+
+        if (empty($content)) {
+            $this->setFlash('error', 'Nội dung tin nhắn không được để trống.');
+            return $this->back();
         }
 
-        if (!in_array($entityType, $this->allowedEntities)) {
-            return $this->json(['error' => 'Invalid entity type'], 400);
+        $now = date('Y-m-d H:i:s');
+        $preview = mb_substr(strip_tags($content), 0, 100);
+
+        $conversationId = Database::insert('conversations', [
+            'tenant_id' => $this->tenantId(),
+            'contact_id' => $contactId,
+            'channel' => $channel,
+            'subject' => $subject,
+            'status' => 'open',
+            'assigned_to' => $this->userId(),
+            'last_message_at' => $now,
+            'last_message_preview' => $preview,
+            'unread_count' => 0,
+            'is_starred' => 0,
+        ]);
+
+        Database::insert('messages', [
+            'conversation_id' => $conversationId,
+            'direction' => 'outbound',
+            'content' => $content,
+            'sender_id' => $this->userId(),
+            'is_read' => 1,
+        ]);
+
+        $this->setFlash('success', 'Cuộc hội thoại đã được tạo.');
+        return $this->redirect('conversations/' . $conversationId);
+    }
+
+    public function reply($id)
+    {
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
+
+        $tenantId = $this->tenantId();
+        $conversation = Database::fetch(
+            "SELECT * FROM conversations WHERE id = ? AND tenant_id = ?",
+            [$id, $tenantId]
+        );
+
+        if (!$conversation) {
+            $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
+            return $this->redirect('conversations');
         }
 
         $content = trim($this->input('content', ''));
         if (empty($content)) {
-            return $this->json(['error' => 'Nội dung không được để trống'], 422);
+            $this->setFlash('error', 'Nội dung tin nhắn không được để trống.');
+            return $this->back();
         }
 
-        $chatId = Database::insert('internal_chats', [
-            'entity_type' => $entityType,
-            'entity_id' => $entityId,
-            'user_id' => $this->userId(),
+        $now = date('Y-m-d H:i:s');
+        $preview = mb_substr(strip_tags($content), 0, 100);
+
+        Database::insert('messages', [
+            'conversation_id' => $id,
+            'direction' => 'outbound',
             'content' => $content,
+            'sender_id' => $this->userId(),
+            'is_read' => 1,
         ]);
 
-        // Parse @mentions
-        preg_match_all('/@(\w+)/', $content, $matches);
-        if (!empty($matches[1])) {
-            $mentionedNames = array_unique($matches[1]);
-            foreach ($mentionedNames as $name) {
-                $user = Database::fetch(
-                    "SELECT id, name FROM users WHERE REPLACE(name, ' ', '') LIKE ? AND tenant_id = ? AND is_active = 1 LIMIT 1",
-                    ['%' . $name . '%', Database::tenantId()]
-                );
-                if ($user && $user['id'] !== $this->userId()) {
-                    Database::insert('mentions', [
-                        'chat_id' => $chatId,
-                        'user_id' => $user['id'],
-                    ]);
+        Database::update('conversations', [
+            'last_message_at' => $now,
+            'last_message_preview' => $preview,
+        ], 'id = ?', [$id]);
 
-                    // Create notification
-                    $currentUser = $this->user();
-                    $entityLabel = $this->getEntityLabel($entityType);
-                    Notification::send(
-                        $user['id'],
-                        'mention',
-                        ($currentUser['name'] ?? 'Ai đó') . " đã nhắc bạn trong {$entityLabel}",
-                        mb_substr($content, 0, 100),
-                        "{$entityType}s/{$entityId}",
-                        'ri-at-line'
-                    );
-                }
-            }
+        // If conversation was closed/resolved, reopen
+        if (in_array($conversation['status'], ['closed', 'resolved'])) {
+            Database::update('conversations', ['status' => 'open'], 'id = ?', [$id]);
         }
 
-        // Return the created message
-        $message = Database::fetch(
-            "SELECT ic.*, u.name as user_name
-             FROM internal_chats ic
-             LEFT JOIN users u ON ic.user_id = u.id
-             WHERE ic.id = ?",
-            [$chatId]
-        );
-        $message['avatar_initial'] = mb_strtoupper(mb_substr($message['user_name'] ?? '?', 0, 1));
-        $message['time_ago'] = time_ago($message['created_at']);
-        $message['content_html'] = preg_replace(
-            '/@(\w+)/',
-            '<span class="text-primary fw-medium">@$1</span>',
-            e($message['content'])
-        );
-
-        return $this->json(['success' => true, 'message' => $message]);
+        $this->setFlash('success', 'Đã gửi tin nhắn.');
+        return $this->redirect('conversations?active=' . $id);
     }
 
-    public function pinMessage($id)
+    public function assign($id)
     {
-        if (!$this->isPost()) {
-            return $this->json(['error' => 'Method not allowed'], 405);
-        }
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
-        $chat = Database::fetch(
-            "SELECT * FROM internal_chats WHERE id = ? AND tenant_id = ?",
-            [$id, Database::tenantId()]
+        $tenantId = $this->tenantId();
+        $conversation = Database::fetch(
+            "SELECT * FROM conversations WHERE id = ? AND tenant_id = ?",
+            [$id, $tenantId]
         );
 
-        if (!$chat) {
-            return $this->json(['error' => 'Tin nhắn không tồn tại'], 404);
+        if (!$conversation) {
+            $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
+            return $this->redirect('conversations');
         }
 
-        $newPinned = $chat['is_pinned'] ? 0 : 1;
-        Database::update('internal_chats', ['is_pinned' => $newPinned], 'id = ?', [$id]);
+        $assignedTo = !empty($this->input('assigned_to')) ? (int) $this->input('assigned_to') : null;
+        Database::update('conversations', ['assigned_to' => $assignedTo], 'id = ?', [$id]);
 
-        return $this->json(['success' => true, 'is_pinned' => $newPinned]);
+        $this->setFlash('success', 'Đã cập nhật phụ trách.');
+        return $this->redirect('conversations?active=' . $id);
     }
 
-    public function deleteMessage($id)
+    public function updateStatus($id)
     {
-        if (!$this->isPost()) {
-            return $this->json(['error' => 'Method not allowed'], 405);
-        }
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
-        $chat = Database::fetch(
-            "SELECT * FROM internal_chats WHERE id = ? AND tenant_id = ?",
-            [$id, Database::tenantId()]
+        $tenantId = $this->tenantId();
+        $conversation = Database::fetch(
+            "SELECT * FROM conversations WHERE id = ? AND tenant_id = ?",
+            [$id, $tenantId]
         );
 
-        if (!$chat) {
-            return $this->json(['error' => 'Tin nhắn không tồn tại'], 404);
+        if (!$conversation) {
+            $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
+            return $this->redirect('conversations');
         }
 
-        // Only owner or admin can delete
-        $user = $this->user();
-        if ($chat['user_id'] !== $this->userId() && ($user['role'] ?? '') !== 'admin') {
-            return $this->json(['error' => 'Bạn không có quyền xóa tin nhắn này'], 403);
-        }
+        $status = $this->input('status', 'open');
+        $allowed = ['open', 'pending', 'resolved', 'closed'];
+        if (!in_array($status, $allowed)) $status = 'open';
 
-        Database::delete('mentions', 'chat_id = ?', [$id]);
-        Database::delete('internal_chats', 'id = ?', [$id]);
+        Database::update('conversations', ['status' => $status], 'id = ?', [$id]);
 
-        return $this->json(['success' => true]);
+        $labels = ['open' => 'Mở', 'pending' => 'Chờ', 'resolved' => 'Đã xử lý', 'closed' => 'Đóng'];
+        $this->setFlash('success', 'Trạng thái đã chuyển sang: ' . ($labels[$status] ?? $status));
+        return $this->redirect('conversations?active=' . $id);
     }
 
-    public function searchUsers()
+    public function star($id)
     {
-        $q = trim($this->input('q', ''));
+        if (!$this->isPost()) return $this->redirect('conversations?active=' . $id);
 
-        $where = "tenant_id = ? AND is_active = 1";
-        $params = [Database::tenantId()];
-
-        if ($q !== '') {
-            $where .= " AND name LIKE ?";
-            $params[] = '%' . $q . '%';
-        }
-
-        $users = Database::fetchAll(
-            "SELECT id, name FROM users WHERE {$where} ORDER BY name LIMIT 20",
-            $params
+        $tenantId = $this->tenantId();
+        $conversation = Database::fetch(
+            "SELECT * FROM conversations WHERE id = ? AND tenant_id = ?",
+            [$id, $tenantId]
         );
 
-        return $this->json($users);
+        if (!$conversation) {
+            $this->setFlash('error', 'Cuộc hội thoại không tồn tại.');
+            return $this->redirect('conversations');
+        }
+
+        $newVal = $conversation['is_starred'] ? 0 : 1;
+        Database::update('conversations', ['is_starred' => $newVal], 'id = ?', [$id]);
+
+        $this->setFlash('success', $newVal ? 'Đã đánh dấu.' : 'Đã bỏ đánh dấu.');
+        return $this->redirect('conversations?active=' . $id);
     }
 
-    private function getEntityLabel(string $entityType): string
+    public function cannedResponses()
     {
-        return match ($entityType) {
-            'deal' => 'cơ hội',
-            'ticket' => 'ticket',
-            'contact' => 'khách hàng',
-            'order' => 'đơn hàng',
-            default => $entityType,
-        };
+        $tenantId = $this->tenantId();
+        $responses = Database::fetchAll(
+            "SELECT id, title, content FROM canned_responses WHERE tenant_id = ? ORDER BY title ASC",
+            [$tenantId]
+        );
+
+        return $this->json($responses);
     }
 }

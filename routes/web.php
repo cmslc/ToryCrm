@@ -68,15 +68,15 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('ai-chat/clear', 'AiChatController@clear');
 
     // Conversations (Hộp thư)
-    Router::get('conversations', 'ConversationController@index');
-    Router::get('conversations/create', 'ConversationController@create');
-    Router::get('conversations/canned-responses', 'ConversationController@cannedResponses');
-    Router::post('conversations/store', 'ConversationController@store');
-    Router::get('conversations/{id}', 'ConversationController@show');
-    Router::post('conversations/{id}/reply', 'ConversationController@reply');
-    Router::post('conversations/{id}/assign', 'ConversationController@assign');
-    Router::post('conversations/{id}/status', 'ConversationController@updateStatus');
-    Router::post('conversations/{id}/star', 'ConversationController@star');
+    Router::get('conversations', 'ChatController@index');
+    Router::get('conversations/create', 'ChatController@create');
+    Router::get('conversations/canned-responses', 'ChatController@cannedResponses');
+    Router::post('conversations/store', 'ChatController@store');
+    Router::get('conversations/{id}', 'ChatController@show');
+    Router::post('conversations/{id}/reply', 'ChatController@reply');
+    Router::post('conversations/{id}/assign', 'ChatController@assign');
+    Router::post('conversations/{id}/status', 'ChatController@updateStatus');
+    Router::post('conversations/{id}/star', 'ChatController@star');
 
     // Check-in → moved to plugins/checkin/routes.php
 
@@ -248,11 +248,11 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // Email Templates → moved to plugins/email/routes.php
 
     // Internal Chat
-    Router::get('chat/{entityType}/{entityId}', 'ChatController@getMessages');
-    Router::post('chat/{entityType}/{entityId}', 'ChatController@postMessage');
-    Router::post('chat/{id}/pin', 'ChatController@pinMessage');
-    Router::post('chat/{id}/delete', 'ChatController@deleteMessage');
-    Router::get('api-internal/users', 'ChatController@searchUsers');
+    Router::get('chat/{entityType}/{entityId}', 'InternalChatController@getMessages');
+    Router::post('chat/{entityType}/{entityId}', 'InternalChatController@postMessage');
+    Router::post('chat/{id}/pin', 'InternalChatController@pinMessage');
+    Router::post('chat/{id}/delete', 'InternalChatController@deleteMessage');
+    Router::get('api-internal/users', 'InternalChatController@searchUsers');
 
     // Purchase Orders
     Router::get('purchase-orders', 'PurchaseOrderController@index');
