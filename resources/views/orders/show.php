@@ -63,8 +63,8 @@ if ($shipFull === '' && $cAddress !== '') {
                         <?php if ($cName): ?>
                             <p class="mb-1 fw-medium">
                                 <a href="<?= url('contacts/' . $order['contact_id']) ?>"><?= e($cName) ?></a>
-                                <?php if ($order['c_account_code'] ?? ''): ?><span class="text-muted">(<?= e($order['c_account_code']) ?>)</span><?php endif; ?>
                             </p>
+                            <?php if ($order['c_account_code'] ?? ''): ?><p class="mb-1 text-muted"><i class="ri-user-line me-1"></i>Mã KH: <?= e($order['c_account_code']) ?></p><?php endif; ?>
                             <?php if ($order['c_tax_code'] ?? ''): ?><p class="mb-1 text-muted"><i class="ri-hashtag me-1"></i>MST: <?= e($order['c_tax_code']) ?></p><?php endif; ?>
                             <?php if ($cAddress): ?><p class="mb-1 text-muted"><i class="ri-map-pin-line me-1"></i><?= e($cAddress) ?></p><?php endif; ?>
                             <?php if ($cPhone): ?><p class="mb-1 text-muted"><i class="ri-phone-line me-1"></i><?= e($cPhone) ?></p><?php endif; ?>
