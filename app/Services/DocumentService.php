@@ -155,24 +155,15 @@ class DocumentService
         $pmethods = ['bank_transfer'=>'Chuyển khoản','cash'=>'Tiền mặt','credit_card'=>'Thẻ tín dụng','other'=>'Khác'];
         $dtypes = ['self'=>'Tự giao','partner'=>'Đối tác giao'];
 
+        $cp = Database::fetch(
+            "SELECT * FROM company_profiles WHERE tenant_id = ? AND is_default = 1 AND is_active = 1 LIMIT 1",
+            [Database::tenantId()]
+        ) ?: [];
+
         $subtotal = (float)($order['subtotal'] ?? 0);
         $total = (float)($order['total'] ?? 0);
-
-        $summary = [['label' => '<strong>Tạm tính</strong>', 'value' => number_format($subtotal)]];
-        if (($order['transport_amount'] ?? 0) > 0) {
-            $summary[] = ['label' => 'Phí vận chuyển', 'value' => number_format((float)$order['transport_amount'])];
-        }
-        if (($order['installation_amount'] ?? 0) > 0) {
-            $summary[] = ['label' => 'Phí lắp đặt', 'value' => number_format((float)$order['installation_amount'])];
-        }
-        if (($order['tax_amount'] ?? 0) > 0) {
-            $summary[] = ['label' => 'Thuế VAT', 'value' => number_format((float)$order['tax_amount'])];
-        }
-        if (($order['discount_amount'] ?? 0) > 0) {
-            $summary[] = ['label' => 'Chiết khấu', 'value' => '-' . number_format((float)$order['discount_amount'])];
-        }
-        $summary[] = ['label' => '<strong>Tổng cộng</strong>', 'value' => '<strong>' . number_format($total) . '</strong>'];
-        $summary[] = ['label' => 'Bằng chữ', 'value' => '<em>' . self::numberToWords($total) . ' đồng</em>'];
+        $paid = (float)($order['paid_amount'] ?? 0);
+        $remaining = max(0, $total - $paid);
 
         return [
             '{{order_number}}' => $order['order_number'] ?? '',
@@ -189,32 +180,95 @@ class DocumentService
             '{{delivery_notes}}' => nl2br(htmlspecialchars($order['delivery_notes'] ?? '')),
             '{{notes}}' => nl2br(htmlspecialchars($order['notes'] ?? '')),
             '{{terms}}' => nl2br(htmlspecialchars($order['order_terms'] ?? '')),
-            '{{company_name}}' => $_SESSION['tenant']['name'] ?? '',
-            '{{company_address}}' => $_SESSION['tenant']['address'] ?? '',
-            '{{company_phone}}' => $_SESSION['tenant']['phone'] ?? '',
-            '{{company_tax_code}}' => $_SESSION['tenant']['tax_code'] ?? '',
-            '{{company_representative}}' => $_SESSION['tenant']['representative'] ?? '',
-            '{{company_position}}' => $_SESSION['tenant']['position'] ?? '',
-            '{{company_bank_account}}' => $_SESSION['tenant']['bank_account'] ?? '',
-            '{{company_bank_name}}' => $_SESSION['tenant']['bank_name'] ?? '',
+            '{{company_name}}' => $cp['name'] ?? ($_SESSION['tenant']['name'] ?? ''),
+            '{{company_address}}' => $cp['address'] ?? '',
+            '{{company_phone}}' => $cp['phone'] ?? '',
+            '{{company_email}}' => $cp['email'] ?? '',
+            '{{company_website}}' => $cp['website'] ?? '',
+            '{{company_fax}}' => $cp['fax'] ?? '',
+            '{{company_tax_code}}' => $cp['tax_code'] ?? '',
+            '{{company_representative}}' => $cp['representative'] ?? '',
+            '{{company_position}}' => $cp['representative_title'] ?? '',
+            '{{company_bank_account}}' => $cp['bank_account'] ?? '',
+            '{{company_bank_name}}' => $cp['bank_name'] ?? '',
+            '{{company_logo}}' => !empty($cp['logo']) ? '<img src="' . htmlspecialchars($cp['logo']) . '" style="max-height:70px">' : '',
             '{{customer_name}}' => $order['c_company_name'] ?: ($order['c_full_name'] ?? ''),
             '{{customer_address}}' => $order['c_address'] ?? '',
             '{{customer_phone}}' => $order['c_company_phone'] ?: ($order['contact_phone'] ?? ''),
+            '{{customer_email}}' => $order['c_company_email'] ?: ($order['contact_email'] ?? ''),
             '{{customer_tax_code}}' => $order['c_tax_code'] ?? '',
             '{{customer_representative}}' => $order['cp_full_name'] ?? '',
             '{{customer_position}}' => $order['cp_position'] ?? '',
-            '{{items_table}}' => self::buildItemsTable($items, $summary),
+            '{{items_table}}' => self::buildOrderItemsTable($items, $order),
             '{{subtotal}}' => number_format($subtotal),
             '{{discount}}' => number_format((float)($order['discount_amount'] ?? 0)),
+            '{{discount_amount}}' => number_format((float)($order['discount_amount'] ?? 0)),
+            '{{discount_percent}}' => number_format((float)($order['discount_percent'] ?? 0), 2),
             '{{vat}}' => number_format((float)($order['tax_amount'] ?? 0)),
+            '{{vat_amount}}' => number_format((float)($order['tax_amount'] ?? 0)),
+            '{{vat_percent}}' => number_format((float)($order['tax_rate'] ?? 0), 2),
             '{{total}}' => number_format($total),
-            '{{paid_amount}}' => number_format((float)($order['paid_amount'] ?? 0)),
+            '{{paid_amount}}' => number_format($paid),
+            '{{remaining_amount}}' => number_format($remaining),
             '{{transport_amount}}' => number_format((float)($order['transport_amount'] ?? 0)),
+            '{{transport_percent}}' => number_format((float)($order['transport_percent'] ?? 0), 2),
             '{{installation_amount}}' => number_format((float)($order['installation_amount'] ?? 0)),
+            '{{installation_percent}}' => number_format((float)($order['installation_percent'] ?? 0), 2),
             '{{today}}' => date('d/m/Y'),
             '{{today_text}}' => 'ngày ' . date('d') . ' tháng ' . date('m') . ' năm ' . date('Y'),
             '{{owner_name}}' => $order['owner_name'] ?? '',
+            '{{w_total}}' => self::numberToWords($total) . ' đồng',
         ];
+    }
+
+    /**
+     * Build items table HTML specifically for orders (with SKU + full summary).
+     */
+    public static function buildOrderItemsTable(array $items, array $order): string
+    {
+        $total = (float)($order['total'] ?? 0);
+        $paid = (float)($order['paid_amount'] ?? 0);
+
+        $html  = '<table style="width:100%;border-collapse:collapse" border="1" cellpadding="6">';
+        $html .= '<thead><tr style="background:#f0f0f0;font-weight:bold;text-align:center">'
+              . '<th>STT</th><th>Mã SP</th><th>Tên sản phẩm</th><th>ĐVT</th>'
+              . '<th>SL</th><th>Giá</th><th>CK(%)</th><th>CK(VND)</th><th>VAT(%)</th><th>Thành tiền</th>'
+              . '</tr></thead><tbody>';
+
+        foreach ($items as $i => $it) {
+            $html .= '<tr>'
+                . '<td style="text-align:center">' . ($i + 1) . '</td>'
+                . '<td>' . htmlspecialchars($it['sku'] ?? '') . '</td>'
+                . '<td>' . htmlspecialchars($it['product_name'] ?? '') . '</td>'
+                . '<td style="text-align:center">' . htmlspecialchars($it['unit'] ?? '') . '</td>'
+                . '<td style="text-align:right">' . number_format((float)($it['quantity'] ?? 0), 2) . '</td>'
+                . '<td style="text-align:right">' . number_format((float)($it['unit_price'] ?? 0)) . '</td>'
+                . '<td style="text-align:right">' . number_format((float)($it['discount_percent'] ?? 0), 2) . '</td>'
+                . '<td style="text-align:right">' . number_format((float)($it['discount'] ?? 0)) . '</td>'
+                . '<td style="text-align:right">' . number_format((float)($it['tax_rate'] ?? 0), 2) . '</td>'
+                . '<td style="text-align:right">' . number_format((float)($it['total'] ?? 0)) . '</td>'
+                . '</tr>';
+        }
+
+        $row = function($label, $value, $bold = false) {
+            $b = $bold ? 'font-weight:bold;' : '';
+            return '<tr><td colspan="9" style="text-align:left;' . $b . '">' . $label . '</td>'
+                 . '<td style="text-align:right;' . $b . '">' . $value . '</td></tr>';
+        };
+
+        $html .= $row('Cộng', number_format((float)($order['subtotal'] ?? 0)), true);
+        $html .= $row('Phí vận chuyển (%) sau thuế ' . number_format((float)($order['transport_percent'] ?? 0), 2) . '%', number_format((float)($order['transport_amount'] ?? 0)));
+        $html .= $row('Chiết khấu trước thuế ' . number_format((float)($order['discount_percent'] ?? 0), 2) . '%', number_format((float)($order['discount_amount'] ?? 0)));
+        $html .= $row('Thuế VAT ' . number_format((float)($order['tax_rate'] ?? 0), 2) . '%', number_format((float)($order['tax_amount'] ?? 0)));
+        $html .= $row('Phí lắp đặt ' . number_format((float)($order['installation_percent'] ?? 0), 2) . '%', number_format((float)($order['installation_amount'] ?? 0)));
+        $html .= $row('Tổng cộng', number_format($total), true);
+        if ($paid > 0) {
+            $html .= $row('Đã thanh toán', number_format($paid), true);
+            $html .= $row('Còn lại', number_format(max(0, $total - $paid)), true);
+        }
+
+        $html .= '</tbody></table>';
+        return $html;
     }
 
     /**

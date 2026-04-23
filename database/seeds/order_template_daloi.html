@@ -1,0 +1,66 @@
+<table style="width:100%;border:none;margin-bottom:10px">
+  <tr>
+    <td style="width:130px;border:none;vertical-align:top">{{company_logo}}</td>
+    <td style="border:none;vertical-align:top;padding-left:10px">
+      <div style="font-weight:bold;font-size:14px">{{company_name}}</div>
+      <div><strong>Địa chỉ:</strong> {{company_address}}</div>
+      <div><strong>Email:</strong> {{company_email}} - <strong>Website:</strong> {{company_website}}</div>
+      <div><strong>Đt:</strong> {{company_phone}}</div>
+      <div><strong>Mst:</strong> {{company_tax_code}} - <strong>Fax:</strong> {{company_fax}}</div>
+    </td>
+    <td style="border:none;vertical-align:top;text-align:right;width:100px">Liên số: 1/2</td>
+  </tr>
+</table>
+
+<h2 style="text-align:center;margin:10px 0 15px">ĐƠN HÀNG BÁN - {{order_number}}</h2>
+
+<table border="1" cellpadding="6" style="width:100%;border-collapse:collapse;margin-bottom:10px">
+  <tr>
+    <td style="width:50%"><strong>Kính gửi:</strong> {{customer_name}}</td>
+    <td><strong>Người gửi:</strong> {{owner_name}}</td>
+  </tr>
+  <tr>
+    <td><strong>Địa chỉ:</strong> {{customer_address}}</td>
+    <td><strong>Phòng:</strong> </td>
+  </tr>
+  <tr>
+    <td><strong>Tel:</strong> {{customer_phone}} - <strong>Email:</strong> {{customer_email}}</td>
+    <td><strong>Ngày gửi:</strong> {{issued_date}}</td>
+  </tr>
+  <tr>
+    <td><strong>Người nhận:</strong> {{shipping_contact}} - <strong>SĐT:</strong> {{shipping_phone}}</td>
+    <td><strong>Hình thức thanh toán:</strong> {{payment_method}}</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Địa chỉ giao hàng:</strong> {{shipping_address}}</td>
+  </tr>
+</table>
+
+{{items_table}}
+
+<div style="margin-top:15px">
+  <strong>Điều khoản đi kèm:</strong>
+  <div>{{delivery_notes}}</div>
+  <div>{{notes}}</div>
+</div>
+
+<table style="width:100%;margin-top:40px;border:none;text-align:center">
+  <tr>
+    <td style="border:none;font-weight:bold">Người lập</td>
+    <td style="border:none;font-weight:bold">Khách hàng</td>
+    <td style="border:none;font-weight:bold">NVKD</td>
+    <td style="border:none;font-weight:bold">NV Giao hàng</td>
+    <td style="border:none;font-weight:bold">Kế toán</td>
+    <td style="border:none;font-weight:bold">GĐ Kinh doanh</td>
+    <td style="border:none;font-weight:bold">Giám đốc</td>
+  </tr>
+  <tr>
+    <td style="border:none">(Ký, họ tên)</td>
+    <td style="border:none">(Ký, họ tên)</td>
+    <td style="border:none">(Ký, họ tên)</td>
+    <td style="border:none">(Ký, họ tên)</td>
+    <td style="border:none">(Ký, họ tên)</td>
+    <td style="border:none">(Ký, họ tên)</td>
+    <td style="border:none">(Ký, họ tên)</td>
+  </tr>
+</table>
