@@ -431,9 +431,10 @@ class ChatController extends Controller
         );
 
         $users = Database::fetchAll(
-            "SELECT id, name, avatar, email FROM users
-             WHERE tenant_id = ? AND is_active = 1 AND id != ?
-             ORDER BY name",
+            "SELECT u.id, u.name, u.avatar, u.email, p.name as position_name
+             FROM users u LEFT JOIN positions p ON p.id = u.position_id
+             WHERE u.tenant_id = ? AND u.is_active = 1 AND u.id != ?
+             ORDER BY u.name",
             [$tid, $uid]
         );
 

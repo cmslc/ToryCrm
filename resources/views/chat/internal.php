@@ -122,8 +122,8 @@ if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
                    class="d-block px-3 py-2 border-bottom text-decoration-none text-dark <?= $isActive ? 'bg-primary-subtle' : '' ?>">
                     <div class="d-flex align-items-center">
                         <div class="avatar-sm me-2">
-                            <?php if (!empty($dm['peer_avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $dm['peer_avatar'])): ?>
-                                <img src="<?= url('uploads/avatars/' . $dm['peer_avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
+                            <?php if (!empty($dm['peer_avatar'])): ?>
+                                <img src="<?= asset($dm['peer_avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
                             <?php else: ?>
                                 <div class="avatar-title rounded-circle bg-primary-subtle text-primary"><?= strtoupper(mb_substr($dm['peer_name'] ?? '?', 0, 1)) ?></div>
                             <?php endif; ?>
@@ -165,8 +165,8 @@ if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
                     <div class="avatar-sm me-2">
                         <?php if ($isActiveGroup): ?>
                             <div class="avatar-title rounded-circle bg-info-subtle text-info"><i class="ri-group-line"></i></div>
-                        <?php elseif (!empty($peer['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $peer['avatar'])): ?>
-                            <img src="<?= url('uploads/avatars/' . $peer['avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
+                        <?php elseif (!empty($peer['avatar'])): ?>
+                            <img src="<?= asset($peer['avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
                         <?php else: ?>
                             <div class="avatar-title rounded-circle bg-primary-subtle text-primary"><?= strtoupper(mb_substr($headerName ?: '?', 0, 1)) ?></div>
                         <?php endif; ?>
@@ -327,7 +327,7 @@ if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
                     <label class="form-label">Thành viên (≥ 2) <span class="text-danger">*</span></label>
                     <select name="members[]" class="form-select" multiple size="10" required>
                         <?php foreach ($users as $u): ?>
-                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?> <?= $u['email'] ? '— ' . e($u['email']) : '' ?></option>
+                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?><?= !empty($u['position_name']) ? ' — ' . e($u['position_name']) : '' ?><?= $u['email'] ? ' (' . e($u['email']) . ')' : '' ?></option>
                         <?php endforeach; ?>
                     </select>
                     <small class="text-muted">Giữ Ctrl (Windows) / Cmd (Mac) để chọn nhiều.</small>
@@ -345,18 +345,29 @@ if (!empty($active) && ($active['channel'] ?? '') === 'internal') {
 (function(){
     var searchInput = document.getElementById('userSearch');
     var results = document.getElementById('userPickerResults');
-    var allUsers = <?= json_encode(array_map(fn($u) => ['id'=>$u['id'],'name'=>$u['name'],'email'=>$u['email']], $users), JSON_UNESCAPED_UNICODE) ?>;
+    var allUsers = <?= json_encode(array_map(fn($u) => ['id'=>$u['id'],'name'=>$u['name'],'email'=>$u['email'],'avatar'=>$u['avatar']??'','position'=>$u['position_name']??''], $users), JSON_UNESCAPED_UNICODE) ?>;
+    var assetBase = '<?= rtrim(url(''), '/') ?>/';
+
+    function userAvatarHtml(u){
+        if (u.avatar) return '<img src="'+assetBase+u.avatar+'" class="rounded-circle" width="32" height="32" style="object-fit:cover">';
+        var ini = (u.name||'?').trim().charAt(0).toUpperCase();
+        return '<div class="avatar-xs"><div class="avatar-title rounded-circle bg-primary-subtle text-primary" style="width:32px;height:32px">'+ini+'</div></div>';
+    }
 
     searchInput.addEventListener('input', function(){
         var q = this.value.trim().toLowerCase();
         if (!q) { results.style.display = 'none'; return; }
-        var matched = allUsers.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)).slice(0, 10);
+        var matched = allUsers.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.position||'').toLowerCase().includes(q)).slice(0, 10);
         if (!matched.length) { results.innerHTML = '<div class="text-muted text-center py-2">Không tìm thấy</div>'; results.style.display='block'; return; }
         results.innerHTML = matched.map(u =>
             '<form method="POST" action="<?= url('chat/internal/start/') ?>'+u.id+'" class="d-block">'
             + '<?= csrf_field() ?>'
-            + '<button type="submit" class="btn btn-link text-start w-100 px-2 py-1 text-decoration-none border-bottom">'
-            + '<strong>'+u.name+'</strong> <small class="text-muted">'+(u.email||'')+'</small>'
+            + '<button type="submit" class="btn btn-link text-start w-100 px-2 py-2 text-decoration-none border-bottom d-flex align-items-center gap-2">'
+            + userAvatarHtml(u)
+            + '<div class="flex-grow-1 text-truncate">'
+            + '<div class="fw-semibold text-dark">'+u.name+'</div>'
+            + '<small class="text-muted d-block text-truncate">'+(u.position ? u.position+' · ' : '')+(u.email||'')+'</small>'
+            + '</div>'
             + '</button></form>'
         ).join('');
         results.style.display = 'block';
