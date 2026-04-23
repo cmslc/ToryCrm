@@ -414,32 +414,119 @@ if ($isAi) {
 
 <!-- Create Group Modal -->
 <div class="modal fade" id="createGroupModal" tabindex="-1">
-    <div class="modal-dialog">
-        <form class="modal-content" method="POST" action="<?= url('chat/group/create') ?>">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="POST" action="<?= url('chat/group/create') ?>" id="createGroupForm">
             <?= csrf_field() ?>
-            <div class="modal-header"><h5 class="modal-title">Tạo nhóm chat</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h5 class="modal-title"><i class="ri-group-line me-1"></i>Tạo nhóm chat</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">Tên nhóm <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control" required maxlength="100" placeholder="VD: Team Sales">
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Thành viên (≥ 2) <span class="text-danger">*</span></label>
-                    <select name="members[]" class="form-select" multiple size="10" required>
-                        <?php foreach ($users as $u): ?>
-                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?><?= !empty($u['position_name']) ? ' — ' . e($u['position_name']) : '' ?><?= $u['email'] ? ' (' . e($u['email']) . ')' : '' ?></option>
+                <div class="mb-2">
+                    <label class="form-label d-flex justify-content-between align-items-center">
+                        <span>Thành viên <span class="text-danger">*</span></span>
+                        <small class="text-muted" id="memberCount">0 đã chọn</small>
+                    </label>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-white"><i class="ri-search-line text-muted"></i></span>
+                        <input type="text" id="memberSearch" class="form-control border-start-0" placeholder="Tìm theo tên, chức vụ hoặc email...">
+                    </div>
+                    <div id="selectedChips" class="d-flex flex-wrap gap-1 mb-2" style="min-height:0"></div>
+                    <div id="memberList" class="border rounded" style="max-height:280px;overflow-y:auto">
+                        <?php foreach ($users as $u):
+                            $ini = mb_strtoupper(mb_substr($u['name'] ?? '?', 0, 1));
+                            $search = mb_strtolower(($u['name'] ?? '') . ' ' . ($u['email'] ?? '') . ' ' . ($u['position_name'] ?? ''));
+                        ?>
+                        <label class="member-item d-flex align-items-center px-3 py-2 border-bottom mb-0" style="cursor:pointer" data-search="<?= e($search) ?>">
+                            <input type="checkbox" name="members[]" value="<?= $u['id'] ?>" class="form-check-input me-3 member-checkbox" data-name="<?= e($u['name']) ?>">
+                            <?php if (!empty($u['avatar'])): ?>
+                                <img src="<?= asset($u['avatar']) ?>" class="rounded-circle me-2" width="36" height="36" style="object-fit:cover">
+                            <?php else: ?>
+                                <div class="avatar-title rounded-circle bg-primary-subtle text-primary me-2" style="width:36px;height:36px"><?= $ini ?></div>
+                            <?php endif; ?>
+                            <div class="flex-grow-1 text-truncate">
+                                <div class="fw-medium text-dark"><?= e($u['name']) ?></div>
+                                <small class="text-muted text-truncate d-block"><?= e($u['position_name'] ?? '') ?><?= !empty($u['position_name']) && !empty($u['email']) ? ' · ' : '' ?><?= e($u['email'] ?? '') ?></small>
+                            </div>
+                        </label>
                         <?php endforeach; ?>
-                    </select>
-                    <small class="text-muted">Giữ Ctrl (Windows) / Cmd (Mac) để chọn nhiều.</small>
+                        <div id="memberEmpty" class="text-center text-muted py-3" style="display:none">Không tìm thấy nhân viên phù hợp</div>
+                    </div>
+                    <small class="text-muted d-block mt-1">Chọn tối thiểu 2 thành viên.</small>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-soft-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="submit" class="btn btn-primary"><i class="ri-group-line me-1"></i> Tạo nhóm</button>
+                <button type="submit" class="btn btn-primary" id="createGroupSubmit" disabled><i class="ri-group-line me-1"></i> Tạo nhóm</button>
             </div>
         </form>
     </div>
 </div>
+<style>
+    .member-item:hover { background:#f8f9fa; }
+    .member-item:last-child { border-bottom:none !important; }
+    .member-item input:checked ~ * { }
+    .member-item.is-checked { background:#e7f1ff; }
+    .selected-chip { background:#e7f1ff; color:#0d6efd; padding:2px 8px; border-radius:12px; font-size:12px; display:inline-flex; align-items:center; gap:4px; }
+    .selected-chip .chip-x { cursor:pointer; opacity:.6; }
+    .selected-chip .chip-x:hover { opacity:1; }
+</style>
+<script>
+(function(){
+    var modal = document.getElementById('createGroupModal');
+    if (!modal) return;
+    var search = modal.querySelector('#memberSearch');
+    var list = modal.querySelector('#memberList');
+    var empty = modal.querySelector('#memberEmpty');
+    var chips = modal.querySelector('#selectedChips');
+    var count = modal.querySelector('#memberCount');
+    var submit = modal.querySelector('#createGroupSubmit');
+    var items = modal.querySelectorAll('.member-item');
+    var checkboxes = modal.querySelectorAll('.member-checkbox');
+
+    function updateState(){
+        var selected = Array.from(checkboxes).filter(c => c.checked);
+        count.textContent = selected.length + ' đã chọn';
+        submit.disabled = selected.length < 2;
+        chips.innerHTML = selected.map(c =>
+            '<span class="selected-chip">'+c.dataset.name+'<span class="chip-x" data-id="'+c.value+'">×</span></span>'
+        ).join('');
+        items.forEach(function(it){
+            var cb = it.querySelector('.member-checkbox');
+            it.classList.toggle('is-checked', cb.checked);
+        });
+    }
+
+    checkboxes.forEach(function(cb){ cb.addEventListener('change', updateState); });
+    chips.addEventListener('click', function(e){
+        var x = e.target.closest('.chip-x'); if (!x) return;
+        var cb = modal.querySelector('.member-checkbox[value="'+x.dataset.id+'"]');
+        if (cb) { cb.checked = false; updateState(); }
+    });
+
+    search.addEventListener('input', function(){
+        var q = this.value.trim().toLowerCase();
+        var visible = 0;
+        items.forEach(function(it){
+            var show = !q || (it.dataset.search || '').includes(q);
+            it.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        empty.style.display = visible ? 'none' : 'block';
+    });
+
+    modal.addEventListener('hidden.bs.modal', function(){
+        modal.querySelector('#createGroupForm').reset();
+        checkboxes.forEach(c => c.checked = false);
+        search.value = '';
+        items.forEach(it => it.style.display = '');
+        updateState();
+    });
+
+    updateState();
+})();
+</script>
 
 <script>
 (function(){
