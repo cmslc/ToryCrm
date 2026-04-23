@@ -4,7 +4,7 @@ $currentStatus = $filters['status'] ?? '';
 $qsc = ['pending'=>'warning','approved'=>'primary','has_order'=>'success','no_order'=>'info','deleted'=>'danger'];
 $qsl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','has_order'=>'Đã tạo ĐH','no_order'=>'Chưa tạo ĐH','deleted'=>'Đã xóa'];
 $sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
-$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
+$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã tạo ĐH'];
 $colKeys = array_column($displayColumns ?? [], 'key');
 $totalAll = 0;
 foreach ($stats as $v) $totalAll += (int)$v;

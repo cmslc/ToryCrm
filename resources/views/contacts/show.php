@@ -995,7 +995,7 @@
                                     [$contact['id']]
                                 );
                                 $qColors = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
-                                $qLabels = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã chuyển ĐH'];
+                                $qLabels = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã tạo ĐH'];
                                 ?>
                                 <?php if (!empty($quotations)): ?>
                                     <div class="table-responsive">
