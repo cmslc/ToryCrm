@@ -759,7 +759,7 @@ class ContactController extends Controller
         $like = '%' . $q . '%';
         $scope = $this->getOwnerScopeSql('owner_id', 'contacts');
         $results = Database::fetchAll(
-            "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+            "SELECT id, first_name, last_name, full_name, company_name, account_code, tax_code, company_phone, company_email, phone, email, address
              FROM contacts WHERE tenant_id = ? AND is_deleted = 0
              AND (company_name LIKE ? OR full_name LIKE ? OR first_name LIKE ? OR account_code LIKE ? OR phone LIKE ? OR company_phone LIKE ? OR tax_code LIKE ?)" . $scope . "
              ORDER BY company_name, full_name LIMIT 20",

@@ -161,7 +161,7 @@ class QuotationController extends Controller
         $preContact = null;
         if ($preContactId) {
             $preContact = Database::fetch(
-                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, tax_code, company_phone, company_email, phone, email, address
                  FROM contacts WHERE id = ? AND tenant_id = ?", [$preContactId, $tid]
             );
         }
@@ -405,7 +405,7 @@ class QuotationController extends Controller
         $editContact = null;
         if ($quotation['contact_id']) {
             $editContact = Database::fetch(
-                "SELECT id, first_name, last_name, full_name, company_name, account_code, company_phone, company_email, phone, email, address
+                "SELECT id, first_name, last_name, full_name, company_name, account_code, tax_code, company_phone, company_email, phone, email, address
                  FROM contacts WHERE id = ?", [$quotation['contact_id']]
             );
         }
