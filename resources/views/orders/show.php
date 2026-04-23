@@ -229,84 +229,81 @@ if ($shipFull === '' && $cAddress !== '') {
         <!-- Thông tin -->
         <div class="card">
             <div class="card-header"><h5 class="card-title mb-0"><i class="ri-information-line me-1"></i> Thông tin</h5></div>
-            <div class="card-body p-0">
-                <table class="table table-borderless mb-0">
-                    <tbody>
-                        <tr>
-                            <td class="text-muted" style="width:40%">Trạng thái</td>
-                            <td><span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?>"><?= $sl[$order['status']] ?? $order['status'] ?></span></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Thanh toán</td>
-                            <td><span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>"><?= $pl[$order['payment_status']] ?? '' ?></span></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Ngày lập</td>
-                            <td><?= ($order['issued_date'] ?? null) ? format_date($order['issued_date']) : '-' ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Hạn thanh toán</td>
-                            <td><?= ($order['due_date'] ?? null) ? format_date($order['due_date']) : '-' ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Phương thức TT</td>
-                            <td><?php
-                                $pmLabels = ['bank_transfer' => 'Chuyển khoản', 'cash' => 'Tiền mặt', 'credit_card' => 'Thẻ tín dụng', 'other' => 'Khác'];
-                                echo e($pmLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?: '-'));
-                            ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Đã thanh toán</td>
-                            <td class="fw-medium text-success"><?= format_money($order['paid_amount'] ?? 0) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Còn nợ</td>
-                            <td class="fw-medium text-danger"><?= format_money(max(0, ($order['total'] ?? 0) - ($order['paid_amount'] ?? 0))) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Người phụ trách</td>
-                            <td class="fw-medium"><?= e($order['owner_name'] ?? '-') ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Người tạo</td>
-                            <td><?= e($order['created_by_name'] ?? '-') ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Ngày tạo</td>
-                            <td><?= format_datetime($order['created_at']) ?></td>
-                        </tr>
-                        <?php if ($order['deal_title'] ?? null): ?>
-                        <tr>
-                            <td class="text-muted">Cơ hội</td>
-                            <td><a href="<?= url('deals/' . $order['deal_id']) ?>"><?= e($order['deal_title']) ?></a></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($order['order_source_name'] ?? null): ?>
-                        <tr>
-                            <td class="text-muted">Nguồn đơn</td>
-                            <td><?= e($order['order_source_name']) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($order['campaign_name'] ?? null): ?>
-                        <tr>
-                            <td class="text-muted">Chiến dịch</td>
-                            <td><a href="<?= url('campaigns/' . $order['campaign_id']) ?>"><?= e($order['campaign_name']) ?></a></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ((float)($order['commission_amount'] ?? 0) > 0): ?>
-                        <tr>
-                            <td class="text-muted">Hoa hồng</td>
-                            <td class="fw-medium"><?= format_money($order['commission_amount']) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($order['lading_code'] ?? null): ?>
-                        <tr>
-                            <td class="text-muted">Mã vận đơn</td>
-                            <td><code><?= e($order['lading_code']) ?></code></td>
-                        </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+            <div class="card-body">
+                <?php
+                $pmLabels = ['bank_transfer' => 'Chuyển khoản', 'cash' => 'Tiền mặt', 'credit_card' => 'Thẻ tín dụng', 'other' => 'Khác'];
+                $remaining = max(0, ($order['total'] ?? 0) - ($order['paid_amount'] ?? 0));
+                ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Trạng thái</span>
+                    <span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?>"><?= $sl[$order['status']] ?? $order['status'] ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Thanh toán</span>
+                    <span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>"><?= $pl[$order['payment_status']] ?? '' ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Ngày lập</span>
+                    <span><?= ($order['issued_date'] ?? null) ? format_date($order['issued_date']) : '-' ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Hạn thanh toán</span>
+                    <span><?= ($order['due_date'] ?? null) ? format_date($order['due_date']) : '-' ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Phương thức TT</span>
+                    <span><?= e($pmLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?: '-')) ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Đã thanh toán</span>
+                    <span class="fw-medium text-success"><?= format_money($order['paid_amount'] ?? 0) ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Còn nợ</span>
+                    <span class="fw-medium text-danger"><?= format_money($remaining) ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Người phụ trách</span>
+                    <span class="fw-medium"><?= e($order['owner_name'] ?? '-') ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Người tạo</span>
+                    <span><?= e($order['created_by_name'] ?? '-') ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Ngày tạo</span>
+                    <span><?= format_datetime($order['created_at']) ?></span>
+                </div>
+                <?php if ($order['deal_title'] ?? null): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Cơ hội</span>
+                    <a href="<?= url('deals/' . $order['deal_id']) ?>"><?= e($order['deal_title']) ?></a>
+                </div>
+                <?php endif; ?>
+                <?php if ($order['order_source_name'] ?? null): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Nguồn đơn</span>
+                    <span><?= e($order['order_source_name']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if ($order['campaign_name'] ?? null): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Chiến dịch</span>
+                    <a href="<?= url('campaigns/' . $order['campaign_id']) ?>"><?= e($order['campaign_name']) ?></a>
+                </div>
+                <?php endif; ?>
+                <?php if ((float)($order['commission_amount'] ?? 0) > 0): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Hoa hồng</span>
+                    <span class="fw-medium"><?= format_money($order['commission_amount']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if ($order['lading_code'] ?? null): ?>
+                <div class="d-flex justify-content-between mb-0">
+                    <span class="text-muted">Mã vận đơn</span>
+                    <code><?= e($order['lading_code']) ?></code>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -323,41 +320,37 @@ if ($shipFull === '' && $cAddress !== '') {
             <div class="card-header">
                 <h5 class="card-title mb-0"><i class="ri-file-text-line me-1"></i> Kế toán</h5>
             </div>
-            <div class="card-body p-0">
-                <table class="table table-borderless mb-0">
-                    <tbody>
-                        <?php if ($vatNum): ?>
-                        <tr>
-                            <td class="text-muted" style="width:40%">Số HDBH</td>
-                            <td class="fw-medium"><?= e($vatNum) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($ktInvoice['invoice_date'] ?? null): ?>
-                        <tr>
-                            <td class="text-muted">Ngày HD</td>
-                            <td><?= format_date($ktInvoice['invoice_date']) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($ktInvoice['accounting_status'] ?? null): ?>
-                        <tr>
-                            <td class="text-muted">Trạng thái KT</td>
-                            <td><span class="badge bg-success-subtle text-success"><?= e($ktInvoice['accounting_status']) ?></span></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if (!empty($order['accounting_entity'])): ?>
-                        <tr>
-                            <td class="text-muted">Pháp nhân</td>
-                            <td><?= e($order['accounting_entity']) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if (!empty($order['accounting_synced_at'])): ?>
-                        <tr>
-                            <td class="text-muted">Sync lần cuối</td>
-                            <td><?= format_datetime($order['accounting_synced_at']) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+            <div class="card-body">
+                <?php if ($vatNum): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Số HDBH</span>
+                    <span class="fw-medium"><?= e($vatNum) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if ($ktInvoice['invoice_date'] ?? null): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Ngày HD</span>
+                    <span><?= format_date($ktInvoice['invoice_date']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if ($ktInvoice['accounting_status'] ?? null): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Trạng thái KT</span>
+                    <span class="badge bg-success-subtle text-success"><?= e($ktInvoice['accounting_status']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($order['accounting_entity'])): ?>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Pháp nhân</span>
+                    <span><?= e($order['accounting_entity']) ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($order['accounting_synced_at'])): ?>
+                <div class="d-flex justify-content-between mb-0">
+                    <span class="text-muted">Sync lần cuối</span>
+                    <span><?= format_datetime($order['accounting_synced_at']) ?></span>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
         <?php endif; ?>
