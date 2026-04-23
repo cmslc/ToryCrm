@@ -712,6 +712,32 @@ class QuotationController extends Controller
             return $this->back();
         }
 
+        // Carry over attachments — copy files to /uploads/orders/ so deleting
+        // the original quotation attachment later doesn't break the order.
+        $qAtts = Database::fetchAll("SELECT * FROM quotation_attachments WHERE quotation_id = ?", [$id]);
+        if ($qAtts) {
+            $srcDir = BASE_PATH . '/public/uploads/quotations/';
+            $dstDir = BASE_PATH . '/public/uploads/orders/';
+            if (!is_dir($dstDir)) @mkdir($dstDir, 0775, true);
+            foreach ($qAtts as $att) {
+                $srcPath = $srcDir . $att['filename'];
+                if (!is_file($srcPath)) continue;
+                $ext = pathinfo($att['filename'], PATHINFO_EXTENSION);
+                $newName = 'o' . $orderId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                if (@copy($srcPath, $dstDir . $newName)) {
+                    Database::insert('order_attachments', [
+                        'tenant_id' => Database::tenantId(),
+                        'order_id' => $orderId,
+                        'user_id' => $this->userId(),
+                        'filename' => $newName,
+                        'original_name' => $att['original_name'],
+                        'file_size' => $att['file_size'],
+                        'mime_type' => $att['mime_type'],
+                    ]);
+                }
+            }
+        }
+
         Database::insert('activities', [
             'type' => 'deal',
             'title' => "Chuyển báo giá {$quotation['quote_number']} thành đơn hàng {$orderNumber}",
