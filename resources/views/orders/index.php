@@ -1,8 +1,8 @@
 <?php
 $pageTitle = 'Đơn hàng bán';
 $currentStatus = $filters['status'] ?? '';
-$sc = ['pending'=>'warning','approved'=>'primary','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'dark','collected'=>'secondary'];
-$sl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Đã hoàn thành','collected'=>'Đã thu trong kỳ'];
+$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','processing'=>'info','cancelled'=>'danger','unpaid'=>'info','paid'=>'success','completed'=>'success','collected'=>'secondary'];
+$sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','processing'=>'Đang xử lý','cancelled'=>'Đã hủy','unpaid'=>'Chưa thanh toán','paid'=>'Đã thanh toán','completed'=>'Hoàn thành','collected'=>'Đã thu trong kỳ'];
 $colKeys = array_column($displayColumns ?? [], 'key');
 ?>
 
