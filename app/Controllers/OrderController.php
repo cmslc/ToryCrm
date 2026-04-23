@@ -112,6 +112,7 @@ class OrderController extends Controller
             "SELECT o.*,
                     c.first_name as contact_first_name, c.last_name as contact_last_name,
                     c.company_name, c.avatar as contact_avatar,
+                    c.account_code as contact_account_code,
                     u.name as owner_name, u.avatar as owner_avatar,
                     u2.name as creator_name, u2.avatar as creator_avatar
              FROM orders o

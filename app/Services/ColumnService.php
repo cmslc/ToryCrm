@@ -57,6 +57,7 @@ class ColumnService
             'type' => 'Loại',
             'status' => 'Trạng thái',
             'contact_id' => 'Khách hàng',
+            'account_code' => 'Mã KH',
             'company_id' => 'Công ty',
             'deal_id' => 'Cơ hội',
             'contract_id' => 'Hợp đồng',

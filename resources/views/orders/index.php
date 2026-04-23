@@ -177,6 +177,12 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                                 $contactName = trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? ''));
                                                 echo $val ? '<a href="' . url('contacts/' . $val) . '">' . e($contactName ?: '-') . '</a>' : '-';
                                                 break;
+                                            case 'account_code':
+                                                $ac = $order['contact_account_code'] ?? '';
+                                                echo $ac
+                                                    ? '<a href="' . url('contacts/' . ($order['contact_id'] ?? 0)) . '" class="fw-medium">' . e($ac) . '</a>'
+                                                    : '<span class="text-muted">-</span>';
+                                                break;
                                             case 'company_id':
                                                 echo !empty($order['company_name']) ? e($order['company_name']) : '-';
                                                 break;
