@@ -148,6 +148,76 @@ class DocumentService
     }
 
     /**
+     * Build common replacements for orders.
+     */
+    public static function orderReplacements(array $order, array $items): array
+    {
+        $pmethods = ['bank_transfer'=>'Chuyển khoản','cash'=>'Tiền mặt','credit_card'=>'Thẻ tín dụng','other'=>'Khác'];
+        $dtypes = ['self'=>'Tự giao','partner'=>'Đối tác giao'];
+
+        $subtotal = (float)($order['subtotal'] ?? 0);
+        $total = (float)($order['total'] ?? 0);
+
+        $summary = [['label' => '<strong>Tạm tính</strong>', 'value' => number_format($subtotal)]];
+        if (($order['transport_amount'] ?? 0) > 0) {
+            $summary[] = ['label' => 'Phí vận chuyển', 'value' => number_format((float)$order['transport_amount'])];
+        }
+        if (($order['installation_amount'] ?? 0) > 0) {
+            $summary[] = ['label' => 'Phí lắp đặt', 'value' => number_format((float)$order['installation_amount'])];
+        }
+        if (($order['tax_amount'] ?? 0) > 0) {
+            $summary[] = ['label' => 'Thuế VAT', 'value' => number_format((float)$order['tax_amount'])];
+        }
+        if (($order['discount_amount'] ?? 0) > 0) {
+            $summary[] = ['label' => 'Chiết khấu', 'value' => '-' . number_format((float)$order['discount_amount'])];
+        }
+        $summary[] = ['label' => '<strong>Tổng cộng</strong>', 'value' => '<strong>' . number_format($total) . '</strong>'];
+        $summary[] = ['label' => 'Bằng chữ', 'value' => '<em>' . self::numberToWords($total) . ' đồng</em>'];
+
+        return [
+            '{{order_number}}' => $order['order_number'] ?? '',
+            '{{issued_date}}' => !empty($order['issued_date']) ? date('d/m/Y', strtotime($order['issued_date'])) : '',
+            '{{due_date}}' => !empty($order['due_date']) ? date('d/m/Y', strtotime($order['due_date'])) : '',
+            '{{lading_code}}' => $order['lading_code'] ?? '',
+            '{{payment_method}}' => $pmethods[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?? ''),
+            '{{shipping_address}}' => $order['shipping_address'] ?? '',
+            '{{shipping_contact}}' => $order['shipping_contact'] ?? '',
+            '{{shipping_phone}}' => $order['shipping_phone'] ?? '',
+            '{{delivery_type}}' => $dtypes[$order['delivery_type'] ?? 'self'] ?? 'Tự giao',
+            '{{delivery_date}}' => !empty($order['delivery_date']) ? date('d/m/Y', strtotime($order['delivery_date'])) : '',
+            '{{delivery_partner}}' => $order['delivery_partner'] ?? '',
+            '{{delivery_notes}}' => nl2br(htmlspecialchars($order['delivery_notes'] ?? '')),
+            '{{notes}}' => nl2br(htmlspecialchars($order['notes'] ?? '')),
+            '{{terms}}' => nl2br(htmlspecialchars($order['order_terms'] ?? '')),
+            '{{company_name}}' => $_SESSION['tenant']['name'] ?? '',
+            '{{company_address}}' => $_SESSION['tenant']['address'] ?? '',
+            '{{company_phone}}' => $_SESSION['tenant']['phone'] ?? '',
+            '{{company_tax_code}}' => $_SESSION['tenant']['tax_code'] ?? '',
+            '{{company_representative}}' => $_SESSION['tenant']['representative'] ?? '',
+            '{{company_position}}' => $_SESSION['tenant']['position'] ?? '',
+            '{{company_bank_account}}' => $_SESSION['tenant']['bank_account'] ?? '',
+            '{{company_bank_name}}' => $_SESSION['tenant']['bank_name'] ?? '',
+            '{{customer_name}}' => $order['c_company_name'] ?: ($order['c_full_name'] ?? ''),
+            '{{customer_address}}' => $order['c_address'] ?? '',
+            '{{customer_phone}}' => $order['c_company_phone'] ?: ($order['contact_phone'] ?? ''),
+            '{{customer_tax_code}}' => $order['c_tax_code'] ?? '',
+            '{{customer_representative}}' => $order['cp_full_name'] ?? '',
+            '{{customer_position}}' => $order['cp_position'] ?? '',
+            '{{items_table}}' => self::buildItemsTable($items, $summary),
+            '{{subtotal}}' => number_format($subtotal),
+            '{{discount}}' => number_format((float)($order['discount_amount'] ?? 0)),
+            '{{vat}}' => number_format((float)($order['tax_amount'] ?? 0)),
+            '{{total}}' => number_format($total),
+            '{{paid_amount}}' => number_format((float)($order['paid_amount'] ?? 0)),
+            '{{transport_amount}}' => number_format((float)($order['transport_amount'] ?? 0)),
+            '{{installation_amount}}' => number_format((float)($order['installation_amount'] ?? 0)),
+            '{{today}}' => date('d/m/Y'),
+            '{{today_text}}' => 'ngày ' . date('d') . ' tháng ' . date('m') . ' năm ' . date('Y'),
+            '{{owner_name}}' => $order['owner_name'] ?? '',
+        ];
+    }
+
+    /**
      * Generate PDF from HTML content.
      * @return string PDF binary content
      */
