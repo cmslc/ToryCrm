@@ -30,7 +30,7 @@ class ChatController extends Controller
         $search = $this->input('search');
         $filter = $this->input('filter'); // unread, mine, starred
 
-        $conditions = ['cv.tenant_id = ?'];
+        $conditions = ['cv.tenant_id = ?', "cv.channel != 'internal'"];
         $params = [$tenantId];
 
         if ($status) {
@@ -403,5 +403,192 @@ class ChatController extends Controller
         );
 
         return $this->json($responses);
+    }
+
+    // ==========================================================
+    // Internal DM — nhân viên nội bộ
+    // ==========================================================
+
+    /** List of DM threads the current user is part of. */
+    public function internalIndex()
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+
+        // All DMs where current user is A or B, with peer info and unread count
+        $dms = Database::fetchAll(
+            "SELECT cv.id, cv.user_a_id, cv.user_b_id, cv.unread_a, cv.unread_b,
+                    cv.last_message_at, cv.last_message_preview,
+                    IF(cv.user_a_id = ?, cv.user_b_id, cv.user_a_id) as peer_id,
+                    IF(cv.user_a_id = ?, cv.unread_a, cv.unread_b) as my_unread,
+                    u.name as peer_name, u.avatar as peer_avatar, u.email as peer_email
+             FROM conversations cv
+             LEFT JOIN users u ON u.id = IF(cv.user_a_id = ?, cv.user_b_id, cv.user_a_id)
+             WHERE cv.tenant_id = ? AND cv.channel = 'internal'
+             AND (cv.user_a_id = ? OR cv.user_b_id = ?)
+             ORDER BY cv.last_message_at DESC",
+            [$uid, $uid, $uid, $tid, $uid, $uid]
+        );
+
+        $users = Database::fetchAll(
+            "SELECT id, name, avatar, email FROM users
+             WHERE tenant_id = ? AND is_active = 1 AND id != ?
+             ORDER BY name",
+            [$tid, $uid]
+        );
+
+        $activeId = (int) $this->input('active');
+        $active = null;
+        $messages = [];
+        if ($activeId) {
+            $active = $this->loadDm($activeId, $uid, $tid);
+            if ($active) {
+                $messages = Database::fetchAll(
+                    "SELECT m.*, u.name as sender_name, u.avatar as sender_avatar
+                     FROM messages m LEFT JOIN users u ON m.sender_id = u.id
+                     WHERE m.conversation_id = ? ORDER BY m.created_at ASC",
+                    [$activeId]
+                );
+                $this->markDmRead($activeId, $uid);
+            }
+        }
+
+        return $this->view('chat.internal', [
+            'dms' => $dms,
+            'users' => $users,
+            'active' => $active,
+            'messages' => $messages,
+        ]);
+    }
+
+    /** Open (or create) a 1-1 DM with another user. Redirects to /chat/internal?active=X */
+    public function internalStart($peerId)
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $peer = (int) $peerId;
+        if ($peer === $uid || $peer <= 0) {
+            $this->setFlash('error', 'Không thể chat với chính mình.');
+            return $this->redirect('chat/internal');
+        }
+
+        $peerRow = Database::fetch(
+            "SELECT id FROM users WHERE id = ? AND tenant_id = ? AND is_active = 1",
+            [$peer, $tid]
+        );
+        if (!$peerRow) {
+            $this->setFlash('error', 'Người dùng không tồn tại.');
+            return $this->redirect('chat/internal');
+        }
+
+        // Canonical pair: smaller id is user_a
+        [$a, $b] = $uid < $peer ? [$uid, $peer] : [$peer, $uid];
+
+        $dm = Database::fetch(
+            "SELECT id FROM conversations
+             WHERE tenant_id = ? AND channel = 'internal' AND user_a_id = ? AND user_b_id = ?",
+            [$tid, $a, $b]
+        );
+
+        if (!$dm) {
+            $newId = Database::insert('conversations', [
+                'tenant_id' => $tid,
+                'channel' => 'internal',
+                'status' => 'open',
+                'user_a_id' => $a,
+                'user_b_id' => $b,
+                'created_by' => $uid,
+                'last_message_at' => date('Y-m-d H:i:s'),
+            ]);
+            return $this->redirect('chat/internal?active=' . $newId);
+        }
+        return $this->redirect('chat/internal?active=' . $dm['id']);
+    }
+
+    /** Send a message in a DM thread. */
+    public function internalReply($id)
+    {
+        if (!$this->isPost()) return $this->redirect('chat/internal?active=' . (int)$id);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $content = trim((string) $this->input('content', ''));
+        if ($content === '') return $this->redirect('chat/internal?active=' . (int)$id);
+
+        $dm = $this->loadDm((int)$id, $uid, $tid);
+        if (!$dm) {
+            $this->setFlash('error', 'Không có quyền.');
+            return $this->redirect('chat/internal');
+        }
+
+        $peerIsA = ($dm['user_a_id'] != $uid); // if I'm B, peer is A, so increment unread_a
+        Database::insert('messages', [
+            'conversation_id' => $id,
+            'direction' => 'outbound',
+            'sender_type' => 'user',
+            'sender_id' => $uid,
+            'content' => $content,
+            'content_type' => 'text',
+        ]);
+
+        $updates = [
+            'last_message_at' => date('Y-m-d H:i:s'),
+            'last_message_preview' => mb_substr($content, 0, 255),
+        ];
+        // bump peer's unread counter
+        Database::query(
+            "UPDATE conversations SET last_message_at = NOW(), last_message_preview = ?, "
+            . ($peerIsA ? 'unread_a = unread_a + 1' : 'unread_b = unread_b + 1')
+            . " WHERE id = ?",
+            [mb_substr($content, 0, 255), $id]
+        );
+
+        if ($this->isAjax()) {
+            return $this->json(['success' => true]);
+        }
+        return $this->redirect('chat/internal?active=' . $id);
+    }
+
+    /** Poll endpoint: returns messages since the given message id. */
+    public function internalPoll($id)
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $after = (int) $this->input('after', 0);
+        $dm = $this->loadDm((int)$id, $uid, $tid);
+        if (!$dm) return $this->json(['error' => 'forbidden'], 403);
+
+        $messages = Database::fetchAll(
+            "SELECT m.*, u.name as sender_name, u.avatar as sender_avatar
+             FROM messages m LEFT JOIN users u ON m.sender_id = u.id
+             WHERE m.conversation_id = ? AND m.id > ?
+             ORDER BY m.created_at ASC",
+            [$id, $after]
+        );
+        if ($messages) $this->markDmRead((int)$id, $uid);
+        return $this->json(['messages' => $messages, 'my_id' => $uid]);
+    }
+
+    /** Private helpers */
+    private function loadDm(int $id, int $uid, int $tid): ?array
+    {
+        return Database::fetch(
+            "SELECT * FROM conversations
+             WHERE id = ? AND tenant_id = ? AND channel = 'internal'
+             AND (user_a_id = ? OR user_b_id = ?)",
+            [$id, $tid, $uid, $uid]
+        );
+    }
+
+    private function markDmRead(int $id, int $uid): void
+    {
+        $col = Database::fetch("SELECT user_a_id FROM conversations WHERE id = ?", [$id]);
+        if (!$col) return;
+        $field = ($col['user_a_id'] == $uid) ? 'unread_a' : 'unread_b';
+        Database::query("UPDATE conversations SET {$field} = 0 WHERE id = ?", [$id]);
+    }
+
+    private function isAjax(): bool
+    {
+        return ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
     }
 }

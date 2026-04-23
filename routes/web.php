@@ -69,6 +69,11 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Conversations (Hộp thư)
     Router::get('chat', 'ChatController@index');
+    // Internal DM
+    Router::get('chat/internal', 'ChatController@internalIndex');
+    Router::post('chat/internal/start/{peerId}', 'ChatController@internalStart');
+    Router::post('chat/internal/{id}/reply', 'ChatController@internalReply');
+    Router::get('chat/internal/{id}/poll', 'ChatController@internalPoll');
     Router::get('chat/create', 'ChatController@create');
     Router::get('chat/canned-responses', 'ChatController@cannedResponses');
     Router::post('chat/store', 'ChatController@store');

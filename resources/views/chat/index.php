@@ -7,6 +7,12 @@
             </div>
         </div>
 
+        <!-- Tab switch -->
+        <ul class="nav nav-pills mb-3">
+            <li class="nav-item"><a class="nav-link active" href="<?= url('chat') ?>"><i class="ri-user-3-line me-1"></i>Khách hàng</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?= url('chat/internal') ?>"><i class="ri-team-line me-1"></i>Nội bộ</a></li>
+        </ul>
+
         <?php
             $channelColors = ['email' => 'info', 'zalo' => 'success', 'facebook' => 'primary', 'sms' => 'warning', 'livechat' => 'danger'];
             $channelLabels = ['email' => 'Email', 'zalo' => 'Zalo', 'facebook' => 'Facebook', 'sms' => 'SMS', 'livechat' => 'Live Chat'];

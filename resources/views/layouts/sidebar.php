@@ -24,7 +24,18 @@ function canSee(string $module, string $action = 'view'): bool {
 }
 
 $convUnread = 0;
-try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM conversations WHERE tenant_id = ? AND unread_count > 0", [$_SESSION['tenant_id'] ?? 1])['cnt'] ?? 0); } catch (\Throwable $e) {}
+try {
+    $tid_cv = $_SESSION['tenant_id'] ?? 1;
+    $uid_cv = $_SESSION['user']['id'] ?? 0;
+    $convUnread = (int) (\Core\Database::fetch(
+        "SELECT
+            SUM(CASE WHEN channel != 'internal' AND unread_count > 0 THEN 1 ELSE 0 END) +
+            SUM(CASE WHEN channel = 'internal' AND user_a_id = ? AND unread_a > 0 THEN 1 ELSE 0 END) +
+            SUM(CASE WHEN channel = 'internal' AND user_b_id = ? AND unread_b > 0 THEN 1 ELSE 0 END)
+            AS cnt FROM conversations WHERE tenant_id = ?",
+        [$uid_cv, $uid_cv, $tid_cv]
+    )['cnt'] ?? 0);
+} catch (\Throwable $e) {}
 ?>
 
 <div class="app-menu navbar-menu">
