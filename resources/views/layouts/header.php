@@ -22,9 +22,9 @@
             </div>
 
             <div class="d-flex align-items-center">
-                <!-- Conversations (Hộp thư) -->
+                <!-- Conversations (Chat) -->
                 <div class="ms-1 header-item">
-                    <a href="<?= url('conversations') ?>" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative" title="Hộp thư">
+                    <a href="<?= url('conversations') ?>" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative" title="Chat">
                         <i class="ri-chat-1-line fs-22"></i>
                         <?php if ($convUnread ?? 0): ?><span class="position-absolute topbar-badge badge rounded-pill bg-danger"><?= $convUnread ?></span><?php endif; ?>
                     </a>

@@ -1,7 +1,7 @@
-<?php $pageTitle = 'Hộp thư'; ?>
+<?php $pageTitle = 'Chat'; ?>
 
         <div class="page-title-box d-flex align-items-center justify-content-between">
-            <h4 class="mb-0">Hộp thư</h4>
+            <h4 class="mb-0">Chat</h4>
             <div>
                 <a href="<?= url('conversations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo cuộc hội thoại</a>
             </div>

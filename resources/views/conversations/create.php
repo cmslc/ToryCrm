@@ -3,7 +3,7 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Tạo cuộc hội thoại</h4>
             <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="<?= url('conversations') ?>">Hộp thư</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('conversations') ?>">Chat</a></li>
                 <li class="breadcrumb-item active">Tạo mới</li>
             </ol>
         </div>
