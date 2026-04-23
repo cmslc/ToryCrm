@@ -228,6 +228,7 @@ class OrderController extends Controller
                 'type' => $type,
                 'status' => $data['status'] ?? 'draft',
                 'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
+                'contact_person_id' => !empty($data['contact_person_id']) ? $data['contact_person_id'] : null,
                 'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
                 'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
                 'discount_amount' => (float)($data['discount_amount'] ?? 0),
@@ -507,6 +508,7 @@ class OrderController extends Controller
         Database::update('orders', [
             'status' => $data['status'] ?? $order['status'],
             'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
+            'contact_person_id' => !empty($data['contact_person_id']) ? $data['contact_person_id'] : null,
             'company_id' => !empty($data['company_id']) ? $data['company_id'] : null,
             'deal_id' => !empty($data['deal_id']) ? $data['deal_id'] : null,
             'discount_amount' => (float)($data['discount_amount'] ?? 0),
