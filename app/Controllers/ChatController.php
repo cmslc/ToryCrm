@@ -760,7 +760,70 @@ class ChatController extends Controller
             [$id, $uid]
         );
 
+        // @AI mention in group: trigger AI reply inline
+        if ($content !== '' && preg_match('/(^|\s)@AI(\s|$)/iu', $content)) {
+            $question = trim(preg_replace('/(^|\s)@AI(\s|$)/iu', ' ', $content));
+            if ($question !== '') {
+                try {
+                    $tid2 = $this->tenantId();
+                    $answer = \App\Services\AiService::ask($question, $tid2, $uid, []);
+                    if (is_string($answer) && $answer !== '') {
+                        Database::insert('messages', [
+                            'conversation_id' => $id,
+                            'reply_to_id' => $newMsgId ?: null,
+                            'direction' => 'outbound',
+                            'sender_type' => 'system',
+                            'sender_id' => 0,
+                            'content' => $answer,
+                            'content_type' => 'text',
+                        ]);
+                        Database::query(
+                            "UPDATE conversations SET last_message_at = NOW(), last_message_preview = ? WHERE id = ?",
+                            [mb_substr('🤖 AI: ' . $answer, 0, 255), $id]
+                        );
+                        Database::query(
+                            "UPDATE conversation_members SET unread_count = unread_count + 1 WHERE conversation_id = ? AND user_id != ?",
+                            [$id, $uid]
+                        );
+                    }
+                } catch (\Throwable $e) {
+                    error_log('[chat@AI] ' . $e->getMessage());
+                }
+            }
+        }
+
         return $this->isAjax() ? $this->json(['success' => true]) : $this->redirect('chat/internal?active=' . $id);
+    }
+
+    /** Create a task from a message (title = message content, assigned to creator). */
+    public function messageToTask($msgId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        if (!$this->canAccessMessage((int)$msgId, $uid, $tid)) return $this->json(['error' => 'forbidden'], 403);
+
+        $msg = Database::fetch("SELECT content, sender_id FROM messages WHERE id = ?", [$msgId]);
+        $title = trim((string)$this->input('title', $msg['content'] ?? ''));
+        if ($title === '') return $this->json(['error' => 'empty'], 400);
+        $title = mb_substr($title, 0, 180);
+        $dueDate = $this->input('due_date');
+
+        try {
+            $taskId = Database::insert('tasks', array_filter([
+                'tenant_id' => $tid,
+                'user_id' => $uid,
+                'assigned_to' => $uid,
+                'title' => $title,
+                'description' => 'Tạo từ chat (msg #' . (int)$msgId . ')',
+                'status' => 'todo',
+                'priority' => 'medium',
+                'due_date' => $dueDate ?: null,
+            ], fn($v) => $v !== null && $v !== ''));
+            return $this->json(['success' => true, 'task_id' => $taskId, 'url' => url('tasks/' . $taskId)]);
+        } catch (\Throwable $e) {
+            return $this->json(['error' => 'Không thể tạo task', 'detail' => $e->getMessage()], 500);
+        }
     }
 
     /** Upload-only endpoint for DM (adds attachment to a new message). */

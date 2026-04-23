@@ -82,6 +82,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('chat/message/{msgId}/react', 'ChatController@reactMessage');
     Router::post('chat/message/{msgId}/edit', 'ChatController@editMessage');
     Router::post('chat/message/{msgId}/delete', 'ChatController@deleteMessage');
+    Router::post('chat/message/{msgId}/to-task', 'ChatController@messageToTask');
     // Phase 2b: group admin
     Router::get('chat/group/{id}/members', 'ChatController@groupMembers');
     Router::post('chat/group/{id}/rename', 'ChatController@renameGroup');

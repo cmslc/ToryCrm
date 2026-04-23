@@ -294,7 +294,8 @@ if ($isAi) {
                         );
                     }
                     foreach ($messages as $m):
-                        $mine = ($m['sender_id'] == $myId);
+                        $isBot = (($m['sender_type'] ?? '') === 'system' && (int)$m['sender_id'] === 0);
+                        $mine = !$isBot && ($m['sender_id'] == $myId);
                         $atts = [];
                         if (!empty($m['attachments'])) $atts = json_decode($m['attachments'], true) ?: [];
                         $deleted = !empty($m['deleted_at']);
@@ -302,10 +303,13 @@ if ($isAi) {
                         $replyTo = $m['reply_to'] ?? null;
                         $reactions = $m['reactions'] ?? [];
                         $isMentioned = !empty($m['is_mentioned']);
+                        $bubbleCls = $isBot ? 'bg-warning-subtle border border-warning' : ($mine ? 'bg-primary text-white' : 'bg-light');
                     ?>
-                    <div class="d-flex <?= $mine ? 'justify-content-end' : '' ?> mb-2 msg-row <?= $isMentioned ? 'mentioned' : '' ?>" data-msg-id="<?= $m['id'] ?>" data-created-at="<?= e($m['created_at']) ?>" data-mine="<?= $mine ? '1' : '0' ?>" data-sender-id="<?= (int)$m['sender_id'] ?>">
-                        <div class="msg-bubble <?= $mine ? 'bg-primary text-white' : 'bg-light' ?> rounded px-3 py-2 position-relative" style="max-width:70%">
-                            <?php if ($isActiveGroup && !$mine && !$deleted): ?>
+                    <div class="d-flex <?= $mine ? 'justify-content-end' : '' ?> mb-2 msg-row <?= $isMentioned ? 'mentioned' : '' ?>" data-msg-id="<?= $m['id'] ?>" data-created-at="<?= e($m['created_at']) ?>" data-mine="<?= $mine ? '1' : '0' ?>" data-sender-id="<?= (int)$m['sender_id'] ?>" data-bot="<?= $isBot ? '1' : '0' ?>">
+                        <div class="msg-bubble <?= $bubbleCls ?> rounded px-3 py-2 position-relative" style="max-width:70%">
+                            <?php if ($isBot): ?>
+                                <small class="d-block fw-semibold text-warning"><i class="ri-robot-2-line me-1"></i>AI Trợ lý</small>
+                            <?php elseif ($isActiveGroup && !$mine && !$deleted): ?>
                                 <small class="d-block fw-semibold text-info"><?= e($m['sender_name'] ?? '') ?></small>
                             <?php endif; ?>
                             <?php if ($replyTo): ?>
@@ -457,7 +461,8 @@ if ($isAi) {
                         if (isDeleted) return '';
                         var base = '<button type="button" class="act-btn react-btn" title="Thả cảm xúc"><i class="ri-emotion-line"></i></button>'
                                  + '<button type="button" class="act-btn reply-btn" title="Trả lời"><i class="ri-reply-line"></i></button>'
-                                 + '<button type="button" class="act-btn pin-btn" title="Ghim"><i class="ri-pushpin-line"></i></button>';
+                                 + '<button type="button" class="act-btn pin-btn" title="Ghim"><i class="ri-pushpin-line"></i></button>'
+                                 + '<button type="button" class="act-btn totask-btn" title="Tạo task"><i class="ri-task-line"></i></button>';
                         if (mine) base += '<button type="button" class="act-btn edit-btn" title="Sửa"><i class="ri-edit-line"></i></button>'
                                         + '<button type="button" class="act-btn delete-btn" title="Thu hồi"><i class="ri-delete-bin-line"></i></button>';
                         return '<div class="msg-actions" data-msg-id="'+m.id+'" data-mine="'+(mine?'1':'0')+'">'+base+'</div>';
@@ -465,7 +470,8 @@ if ($isAi) {
                     function appendMsg(m){
                         var existing = document.querySelector('[data-msg-id="'+m.id+'"]');
                         if (existing) { updateMsgRow(existing, m); return; }
-                        var mine = m.sender_id == myId;
+                        var isBot = (m.sender_type === 'system' && (m.sender_id|0) === 0);
+                        var mine = !isBot && m.sender_id == myId;
                         var isDeleted = !!m.deleted_at;
                         var atts = m.attachments ? (typeof m.attachments === 'string' ? JSON.parse(m.attachments) : m.attachments) : [];
                         var attHtml = '';
@@ -473,12 +479,14 @@ if ($isAi) {
                             if (a.is_image) attHtml += '<img src="'+a.url+'" style="max-width:200px;max-height:200px;display:block;margin-top:4px;border-radius:4px">';
                             else attHtml += '<a href="'+a.url+'" target="_blank" class="'+(mine?'text-white':'')+' d-block"><i class="ri-attachment-2 me-1"></i>'+esc(a.name)+'</a>';
                         });
-                        var senderTag = (isGroup && !mine && !isDeleted) ? '<small class="d-block fw-semibold text-info">'+esc(m.sender_name||'')+'</small>' : '';
+                        var bubbleCls = isBot ? 'bg-warning-subtle border border-warning' : (mine?'bg-primary text-white':'bg-light');
+                        var senderTag = isBot ? '<small class="d-block fw-semibold text-warning"><i class="ri-robot-2-line me-1"></i>AI Trợ lý</small>'
+                            : ((isGroup && !mine && !isDeleted) ? '<small class="d-block fw-semibold text-info">'+esc(m.sender_name||'')+'</small>' : '');
                         var body = isDeleted
                             ? '<div class="fst-italic '+(mine?'text-white-50':'text-muted')+'"><i class="ri-delete-bin-line me-1"></i>Tin nhắn đã được thu hồi</div>'
                             : ((m.content ? '<div class="msg-content" style="white-space:pre-wrap">'+esc(m.content)+'</div>' : '') + attHtml);
-                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2 msg-row '+(m.is_mentioned?'mentioned':'')+'" data-msg-id="'+m.id+'" data-created-at="'+esc(m.created_at||'')+'" data-mine="'+(mine?'1':'0')+'" data-sender-id="'+(m.sender_id||0)+'">'
-                                 + '<div class="msg-bubble '+(mine?'bg-primary text-white':'bg-light')+' rounded px-3 py-2 position-relative" style="max-width:70%">'
+                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2 msg-row '+(m.is_mentioned?'mentioned':'')+'" data-msg-id="'+m.id+'" data-created-at="'+esc(m.created_at||'')+'" data-mine="'+(mine?'1':'0')+'" data-sender-id="'+(m.sender_id||0)+'" data-bot="'+(isBot?'1':'0')+'">'
+                                 + '<div class="msg-bubble '+bubbleCls+' rounded px-3 py-2 position-relative" style="max-width:70%">'
                                  + senderTag
                                  + renderReplyTo(m, mine)
                                  + body
@@ -679,6 +687,20 @@ if ($isAi) {
                             });
                             return;
                         }
+                        if (e.target.closest('.totask-btn')) {
+                            var bubble = row.querySelector('.msg-bubble');
+                            var cEl = bubble.querySelector('.msg-content');
+                            var suggested = (cEl && cEl.textContent) ? cEl.textContent.substring(0, 180) : '';
+                            var title = prompt('Tiêu đề task:', suggested);
+                            if (!title) return;
+                            var fd = new FormData(); fd.append('_token', csrfTok); fd.append('title', title);
+                            fetch('<?= url('chat/message/') ?>'+mid+'/to-task', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
+                                if (d.success) {
+                                    if (confirm('Đã tạo task. Mở task ngay?')) window.open(d.url, '_blank');
+                                } else alert(d.error || 'Lỗi');
+                            });
+                            return;
+                        }
                     });
 
                     // --- @mention autocomplete (groups only) ---
@@ -688,13 +710,17 @@ if ($isAi) {
                     function showMentionPicker(q){
                         if (!isGroup) return;
                         var needle = q.toLowerCase();
-                        mentionMatches = groupMembers.filter(function(m){ return m.id !== myId && m.name.toLowerCase().includes(needle); }).slice(0, 6);
+                        var withAi = [{id: -1, name: 'AI', avatar: '', isAi: true}].concat(groupMembers.filter(function(m){ return m.id !== myId; }));
+                        mentionMatches = withAi.filter(function(m){ return m.name.toLowerCase().includes(needle); }).slice(0, 6);
                         if (!mentionMatches.length) { hideMentionPicker(); return; }
                         mentionActiveIdx = 0;
                         mentionPicker.innerHTML = mentionMatches.map(function(m, i){
-                            var ava = m.avatar ? '<img src="'+assetBaseUrl+m.avatar+'" class="rounded-circle" width="24" height="24" style="object-fit:cover">'
-                                : '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px">'+esc((m.name||'?').charAt(0).toUpperCase())+'</div>';
-                            return '<div class="mention-item '+(i===0?'active':'')+'" data-idx="'+i+'">'+ava+'<span>'+esc(m.name)+'</span></div>';
+                            var ava;
+                            if (m.isAi) ava = '<div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px"><i class="ri-robot-2-line" style="font-size:14px"></i></div>';
+                            else if (m.avatar) ava = '<img src="'+assetBaseUrl+m.avatar+'" class="rounded-circle" width="24" height="24" style="object-fit:cover">';
+                            else ava = '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px">'+esc((m.name||'?').charAt(0).toUpperCase())+'</div>';
+                            var tag = m.isAi ? '<span class="badge bg-warning-subtle text-warning ms-auto">Bot</span>' : '';
+                            return '<div class="mention-item '+(i===0?'active':'')+'" data-idx="'+i+'">'+ava+'<span>'+esc(m.name)+'</span>'+tag+'</div>';
                         }).join('');
                         mentionPicker.style.display = 'block';
                     }
@@ -708,7 +734,8 @@ if ($isAi) {
                         var newVal = val.substring(0, at) + '@' + m.name + ' ' + after;
                         input.value = newVal;
                         input.selectionStart = input.selectionEnd = at + 1 + m.name.length + 1;
-                        if (!pickedMentions.find(x => x.id === m.id)) pickedMentions.push(m);
+                        // AI is handled server-side (content regex); don't push to pickedMentions
+                        if (!m.isAi && !pickedMentions.find(x => x.id === m.id)) pickedMentions.push(m);
                         hideMentionPicker();
                         autogrow();
                     }
