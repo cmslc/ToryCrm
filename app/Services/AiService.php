@@ -52,8 +52,12 @@ class AiService
         $context = $includeContext ? self::buildContext($tenantId, $userId, $visibleUserIds) : '';
 
         $systemPrompt = "Bạn là ToryCRM AI - trợ lý thông minh cho hệ thống CRM. "
-            . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp.";
-        if ($context !== '') $systemPrompt .= " Dữ liệu CRM:\n" . $context;
+            . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp. "
+            . "Khi cần data cụ thể (khách hàng, đơn hàng, báo giá, sản phẩm, doanh thu), "
+            . "HÃY GỌI TOOL phù hợp thay vì đoán — các tool có sẵn: search_contacts, "
+            . "get_contact_detail, search_orders, get_order_detail, search_quotations, "
+            . "get_quotation_detail, search_products, get_revenue, get_top_customers, get_top_sellers.";
+        if ($context !== '') $systemPrompt .= "\n\nThống kê tổng hợp (có sẵn, khỏi cần gọi tool):\n" . $context;
 
         $provider = 'fallback';
         $response = '';
@@ -61,7 +65,7 @@ class AiService
         try {
             if (!empty($deepseekKey)) {
                 $provider = 'deepseek';
-                $response = self::callDeepSeek($deepseekKey, $systemPrompt, $message);
+                $response = self::callDeepSeek($deepseekKey, $systemPrompt, $message, $tenantId, $visibleUserIds);
             } elseif (!empty($openrouterKey)) {
                 $provider = 'openrouter';
                 $response = self::callOpenRouter($openrouterKey, $systemPrompt, $message);
@@ -98,34 +102,68 @@ class AiService
         return $response;
     }
 
-    private static function callDeepSeek(string $apiKey, string $system, string $message): string
+    /**
+     * DeepSeek with function calling support. Accepts optional tool context
+     * (tenantId + visibleUserIds) — when provided, the model can call tools
+     * defined in AiToolService. Loops up to 3 rounds of tool calls before
+     * forcing a final answer.
+     */
+    private static function callDeepSeek(string $apiKey, string $system, string $message, ?int $tenantId = null, ?array $visibleUserIds = null): string
     {
         $url = 'https://api.deepseek.com/chat/completions';
-        $payload = json_encode([
-            'model' => 'deepseek-chat',
-            'messages' => [
-                ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => $message],
-            ],
-            'temperature' => 0.7,
-            'max_tokens' => 500,
-        ]);
+        $messages = [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => $message],
+        ];
+        $useTools = $tenantId !== null;
+        $tools = $useTools ? AiToolService::definitions() : null;
 
-        $response = self::curlPost($url, $payload, [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $apiKey,
-        ]);
+        for ($round = 0; $round < 3; $round++) {
+            $payload = [
+                'model' => 'deepseek-chat',
+                'messages' => $messages,
+                'temperature' => 0.7,
+                'max_tokens' => 800,
+            ];
+            if ($useTools) {
+                $payload['tools'] = $tools;
+                $payload['tool_choice'] = 'auto';
+            }
 
-        if (!$response['success']) {
-            return "⚠️ DeepSeek lỗi: " . $response['error'];
+            $response = self::curlPost($url, json_encode($payload), [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $apiKey,
+            ]);
+            if (!$response['success']) return "⚠️ DeepSeek lỗi: " . $response['error'];
+            $data = json_decode($response['body'], true);
+            if (isset($data['error'])) return "⚠️ DeepSeek: " . ($data['error']['message'] ?? 'Unknown');
+
+            $msg = $data['choices'][0]['message'] ?? [];
+            $toolCalls = $msg['tool_calls'] ?? [];
+
+            if (!empty($toolCalls) && $useTools) {
+                // Append assistant message + tool results, loop
+                $messages[] = $msg;
+                foreach ($toolCalls as $tc) {
+                    $args = json_decode($tc['function']['arguments'] ?? '{}', true) ?: [];
+                    $result = AiToolService::execute(
+                        $tc['function']['name'] ?? '',
+                        $args,
+                        $tenantId,
+                        $visibleUserIds
+                    );
+                    $messages[] = [
+                        'role' => 'tool',
+                        'tool_call_id' => $tc['id'] ?? '',
+                        'content' => json_encode($result, JSON_UNESCAPED_UNICODE),
+                    ];
+                }
+                continue; // ask AI again with tool results
+            }
+
+            return trim($msg['content'] ?? '');
         }
-
-        $data = json_decode($response['body'], true);
-        if (isset($data['error'])) {
-            return "⚠️ DeepSeek: " . ($data['error']['message'] ?? 'Unknown error');
-        }
-
-        return trim($data['choices'][0]['message']['content'] ?? '');
+        return trim($msg['content'] ?? 'AI không đưa ra câu trả lời sau nhiều vòng gọi tool.');
     }
 
     private static function callOpenRouter(string $apiKey, string $system, string $message): string
