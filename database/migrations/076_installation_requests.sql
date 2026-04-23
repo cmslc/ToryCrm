@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `installation_request_items` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Permissions for installation_requests module
-INSERT IGNORE INTO permissions (module, action, description) VALUES
+INSERT IGNORE INTO permissions (module, action, label) VALUES
 ('installation_requests', 'view', 'Xem yêu cầu thi công'),
 ('installation_requests', 'create', 'Thêm yêu cầu thi công'),
 ('installation_requests', 'edit', 'Sửa yêu cầu thi công'),
