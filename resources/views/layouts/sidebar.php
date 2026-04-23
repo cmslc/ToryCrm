@@ -27,14 +27,17 @@ $convUnread = 0;
 try {
     $tid_cv = $_SESSION['tenant_id'] ?? 1;
     $uid_cv = $_SESSION['user']['id'] ?? 0;
-    $convUnread = (int) (\Core\Database::fetch(
-        "SELECT
-            SUM(CASE WHEN channel != 'internal' AND unread_count > 0 THEN 1 ELSE 0 END) +
-            SUM(CASE WHEN channel = 'internal' AND user_a_id = ? AND unread_a > 0 THEN 1 ELSE 0 END) +
-            SUM(CASE WHEN channel = 'internal' AND user_b_id = ? AND unread_b > 0 THEN 1 ELSE 0 END)
-            AS cnt FROM conversations WHERE tenant_id = ?",
-        [$uid_cv, $uid_cv, $tid_cv]
-    )['cnt'] ?? 0);
+    $dmCnt = (int)(\Core\Database::fetch(
+        "SELECT COUNT(*) as c FROM conversations
+         WHERE tenant_id = ? AND channel = 'internal'
+           AND ((user_a_id = ? AND unread_a > 0) OR (user_b_id = ? AND unread_b > 0))",
+        [$tid_cv, $uid_cv, $uid_cv]
+    )['c'] ?? 0);
+    $grCnt = (int)(\Core\Database::fetch(
+        "SELECT COUNT(*) as c FROM conversation_members WHERE user_id = ? AND unread_count > 0",
+        [$uid_cv]
+    )['c'] ?? 0);
+    $convUnread = $dmCnt + $grCnt;
 } catch (\Throwable $e) {}
 ?>
 

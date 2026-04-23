@@ -574,7 +574,11 @@ class ChatController extends Controller
             [$id, $after]
         );
         if ($messages) $this->markDmRead((int)$id, $uid);
-        return $this->json(['messages' => $messages, 'my_id' => $uid]);
+        $peerLastRead = ($dm['user_a_id'] == $uid) ? ($dm['last_read_b_at'] ?? null) : ($dm['last_read_a_at'] ?? null);
+        // Re-fetch to get fresh peer read timestamp (peer may have read while we were away)
+        $fresh = Database::fetch("SELECT last_read_a_at, last_read_b_at FROM conversations WHERE id = ?", [$id]);
+        if ($fresh) $peerLastRead = ($dm['user_a_id'] == $uid) ? $fresh['last_read_b_at'] : $fresh['last_read_a_at'];
+        return $this->json(['messages' => $messages, 'my_id' => $uid, 'peer_last_read_at' => $peerLastRead]);
     }
 
     /** Private helpers */
@@ -592,13 +596,34 @@ class ChatController extends Controller
     {
         $col = Database::fetch("SELECT user_a_id FROM conversations WHERE id = ?", [$id]);
         if (!$col) return;
-        $field = ($col['user_a_id'] == $uid) ? 'unread_a' : 'unread_b';
-        Database::query("UPDATE conversations SET {$field} = 0 WHERE id = ?", [$id]);
+        if ($col['user_a_id'] == $uid) {
+            Database::query("UPDATE conversations SET unread_a = 0, last_read_a_at = NOW() WHERE id = ?", [$id]);
+        } else {
+            Database::query("UPDATE conversations SET unread_b = 0, last_read_b_at = NOW() WHERE id = ?", [$id]);
+        }
     }
 
     private function isAjax(): bool
     {
         return ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
+    }
+
+    /** Global unread count across DMs + groups — used by topbar badge. */
+    public function unreadTotal()
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $dm = (int)(Database::fetch(
+            "SELECT COUNT(*) as c FROM conversations
+             WHERE tenant_id = ? AND channel = 'internal'
+               AND ((user_a_id = ? AND unread_a > 0) OR (user_b_id = ? AND unread_b > 0))",
+            [$tid, $uid, $uid]
+        )['c'] ?? 0);
+        $gr = (int)(Database::fetch(
+            "SELECT COUNT(*) as c FROM conversation_members WHERE user_id = ? AND unread_count > 0",
+            [$uid]
+        )['c'] ?? 0);
+        return $this->json(['total' => $dm + $gr]);
     }
 
     // ==========================================================

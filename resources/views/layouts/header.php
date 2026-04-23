@@ -26,7 +26,7 @@
                 <div class="ms-1 header-item">
                     <a href="<?= url('chat') ?>" class="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle position-relative" title="Chat">
                         <i class="ri-chat-1-line fs-22"></i>
-                        <?php if ($convUnread ?? 0): ?><span class="position-absolute topbar-badge badge rounded-pill bg-danger"><?= $convUnread ?></span><?php endif; ?>
+                        <span id="chat-unread-badge" class="position-absolute topbar-badge badge rounded-pill bg-danger" style="<?= ($convUnread ?? 0) ? '' : 'display:none' ?>"><?= $convUnread ?? 0 ?></span>
                     </a>
                 </div>
 

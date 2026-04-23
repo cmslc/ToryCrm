@@ -197,5 +197,23 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
         navigator.serviceWorker.register('/sw.js').catch(function() {});
     }
     </script>
+
+    <!-- Chat unread badge poller -->
+    <script>
+    (function(){
+        var badge = document.getElementById('chat-unread-badge');
+        if (!badge) return;
+        var url = '<?= url('chat/unread-total') ?>';
+        function tick(){
+            fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.ok?r.json():null).then(function(d){
+                if (!d) return;
+                var n = parseInt(d.total||0, 10);
+                if (n > 0) { badge.textContent = n > 99 ? '99+' : n; badge.style.display = ''; }
+                else { badge.style.display = 'none'; }
+            }).catch(function(){});
+        }
+        setInterval(tick, 20000);
+    })();
+    </script>
 </body>
 </html>

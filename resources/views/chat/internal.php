@@ -283,7 +283,7 @@ if ($isAi) {
                         $atts = [];
                         if (!empty($m['attachments'])) $atts = json_decode($m['attachments'], true) ?: [];
                     ?>
-                    <div class="d-flex <?= $mine ? 'justify-content-end' : '' ?> mb-2 msg-row" data-msg-id="<?= $m['id'] ?>">
+                    <div class="d-flex <?= $mine ? 'justify-content-end' : '' ?> mb-2 msg-row" data-msg-id="<?= $m['id'] ?>" data-created-at="<?= e($m['created_at']) ?>" data-mine="<?= $mine ? '1' : '0' ?>">
                         <div class="<?= $mine ? 'bg-primary text-white' : 'bg-light' ?> rounded px-3 py-2 position-relative" style="max-width:70%">
                             <?php if ($isActiveGroup && !$mine): ?>
                                 <small class="d-block fw-semibold text-info"><?= e($m['sender_name'] ?? '') ?></small>
@@ -308,15 +308,17 @@ if ($isAi) {
                     <?php endforeach; ?>
                 </div>
 
-                <form id="dmForm" class="p-3 border-top d-flex gap-2 align-items-center" enctype="multipart/form-data">
+                <form id="dmForm" class="p-3 border-top d-flex gap-2 align-items-end" enctype="multipart/form-data">
                     <?= csrf_field() ?>
                     <input type="hidden" id="dmId" value="<?= $active['id'] ?>">
                     <label class="btn btn-soft-secondary btn-icon mb-0" title="Đính kèm">
                         <i class="ri-attachment-2"></i>
                         <input type="file" id="dmFile" style="display:none">
                     </label>
-                    <span id="fileName" class="text-muted small"></span>
-                    <input type="text" id="dmContent" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+                    <div class="flex-grow-1">
+                        <span id="fileName" class="text-muted small d-block" style="min-height:0"></span>
+                        <textarea id="dmContent" class="form-control" placeholder="Nhập tin nhắn... (Enter để gửi, Shift+Enter xuống dòng)" rows="1" style="resize:none;max-height:140px;overflow-y:auto"></textarea>
+                    </div>
                     <button type="submit" class="btn btn-primary"><i class="ri-send-plane-line"></i></button>
                 </form>
 
@@ -333,14 +335,25 @@ if ($isAi) {
                     var fileInput = document.getElementById('dmFile');
                     var fileName = document.getElementById('fileName');
                     var lastId = <?= !empty($messages) ? (int)end($messages)['id'] : 0 ?>;
+                    var peerLastRead = <?= !$isActiveGroup ? json_encode(($active['user_a_id'] == $myId ? ($active['last_read_b_at'] ?? null) : ($active['last_read_a_at'] ?? null))) : 'null' ?>;
+                    var baseTitle = document.title;
+                    var unseenCount = 0;
+                    var notifReady = ('Notification' in window) && Notification.permission === 'granted';
+                    if ('Notification' in window && Notification.permission === 'default') {
+                        Notification.requestPermission().then(function(p){ notifReady = (p === 'granted'); });
+                    }
                     area.scrollTop = area.scrollHeight;
 
+                    // Auto-grow textarea
+                    function autogrow(){ input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; }
+                    input.addEventListener('input', autogrow);
+
                     fileInput.addEventListener('change', function(){
-                        fileName.textContent = this.files[0] ? this.files[0].name : '';
+                        fileName.textContent = this.files[0] ? '📎 ' + this.files[0].name : '';
                     });
 
                     function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-                    function formatTime(s){ var d=new Date(s); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+' '+d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0'); }
+                    function formatTime(s){ var d=new Date(s.replace(' ','T')); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+' '+d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0'); }
                     function appendMsg(m){
                         if (document.querySelector('[data-msg-id="'+m.id+'"]')) return;
                         var mine = m.sender_id == myId;
@@ -351,20 +364,61 @@ if ($isAi) {
                             else attHtml += '<a href="'+a.url+'" target="_blank" class="'+(mine?'text-white':'')+' d-block"><i class="ri-attachment-2 me-1"></i>'+esc(a.name)+'</a>';
                         });
                         var senderTag = (isGroup && !mine) ? '<small class="d-block fw-semibold text-info">'+esc(m.sender_name||'')+'</small>' : '';
-                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2 msg-row" data-msg-id="'+m.id+'">'
+                        var html = '<div class="d-flex '+(mine?'justify-content-end':'')+' mb-2 msg-row" data-msg-id="'+m.id+'" data-created-at="'+esc(m.created_at||'')+'" data-mine="'+(mine?'1':'0')+'">'
                                  + '<div class="'+(mine?'bg-primary text-white':'bg-light')+' rounded px-3 py-2 position-relative" style="max-width:70%">'
                                  + senderTag
                                  + (m.content ? '<div style="white-space:pre-wrap">'+esc(m.content)+'</div>' : '')
                                  + attHtml
-                                 + '<small class="'+(mine?'text-white-50':'text-muted')+' fs-11">'+formatTime(m.created_at)+'</small>'
+                                 + '<small class="'+(mine?'text-white-50':'text-muted')+' fs-11 d-flex align-items-center gap-1">'
+                                 + '<span>'+formatTime(m.created_at)+'</span>'
+                                 + '<button type="button" class="btn btn-sm p-0 pin-btn '+(mine?'text-white-50':'text-muted')+'" data-msg-id="'+m.id+'" title="Ghim/bỏ ghim" style="font-size:11px"><i class="ri-pushpin-line"></i></button>'
+                                 + '</small>'
                                  + '</div></div>';
                         area.insertAdjacentHTML('beforeend', html);
                         area.scrollTop = area.scrollHeight;
                         if (m.id > lastId) lastId = m.id;
+
+                        // Notification + title blink for incoming messages when tab is hidden
+                        if (!mine && document.hidden) {
+                            unseenCount++;
+                            document.title = '(' + unseenCount + ') ' + baseTitle;
+                            if (notifReady) {
+                                try {
+                                    var n = new Notification((m.sender_name || 'Tin nhắn mới'), {
+                                        body: (m.content || '[Tệp đính kèm]').substring(0, 120),
+                                        icon: '/favicon.ico',
+                                        tag: 'chat-' + m.id
+                                    });
+                                    n.onclick = function(){ window.focus(); this.close(); };
+                                } catch(e){}
+                            }
+                        }
                     }
 
-                    form.addEventListener('submit', function(e){
-                        e.preventDefault();
+                    // Read-receipt renderer: show "Đã xem" under last mine-msg <= peerLastRead
+                    function renderReadReceipt(){
+                        document.querySelectorAll('.read-receipt').forEach(el => el.remove());
+                        if (isGroup || !peerLastRead) return;
+                        var mineRows = area.querySelectorAll('.msg-row[data-mine="1"]');
+                        var lastSeen = null;
+                        mineRows.forEach(function(r){
+                            var ca = r.dataset.createdAt;
+                            if (ca && ca <= peerLastRead) lastSeen = r;
+                        });
+                        if (lastSeen) {
+                            var bubble = lastSeen.querySelector('div');
+                            if (bubble) {
+                                var rr = document.createElement('small');
+                                rr.className = 'read-receipt text-muted d-block text-end mt-1';
+                                rr.style.fontSize = '11px';
+                                rr.innerHTML = '<i class="ri-check-double-line text-info"></i> Đã xem';
+                                bubble.parentNode.appendChild(rr);
+                            }
+                        }
+                    }
+                    renderReadReceipt();
+
+                    function sendMessage(){
                         var content = input.value.trim();
                         if (!content && !fileInput.files[0]) return;
                         var fd = new FormData();
@@ -374,15 +428,68 @@ if ($isAi) {
                         fetch(replyPath, {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
                             .then(r=>r.json()).then(function(){
                                 input.value = '';
+                                autogrow();
                                 fileInput.value = '';
                                 fileName.textContent = '';
                                 poll();
                             });
+                    }
+
+                    form.addEventListener('submit', function(e){ e.preventDefault(); sendMessage(); });
+
+                    // Enter to send, Shift+Enter = newline
+                    input.addEventListener('keydown', function(e){
+                        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendMessage(); }
+                    });
+
+                    // Clipboard paste image
+                    input.addEventListener('paste', function(e){
+                        var items = (e.clipboardData || {}).items || [];
+                        for (var i = 0; i < items.length; i++) {
+                            if (items[i].type && items[i].type.startsWith('image/')) {
+                                var file = items[i].getAsFile();
+                                if (file) {
+                                    var dt = new DataTransfer();
+                                    dt.items.add(file);
+                                    fileInput.files = dt.files;
+                                    fileName.textContent = '📎 ' + (file.name || 'clipboard-image.png');
+                                    e.preventDefault();
+                                }
+                                break;
+                            }
+                        }
+                    });
+
+                    // Drag-drop file onto message area
+                    ['dragenter','dragover'].forEach(function(ev){
+                        area.addEventListener(ev, function(e){ e.preventDefault(); area.style.background = '#e7f1ff'; });
+                    });
+                    ['dragleave','drop'].forEach(function(ev){
+                        area.addEventListener(ev, function(e){ e.preventDefault(); area.style.background = ''; });
+                    });
+                    area.addEventListener('drop', function(e){
+                        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                        if (f) {
+                            var dt = new DataTransfer(); dt.items.add(f);
+                            fileInput.files = dt.files;
+                            fileName.textContent = '📎 ' + f.name;
+                            input.focus();
+                        }
+                    });
+
+                    // Title reset on focus
+                    window.addEventListener('focus', function(){
+                        unseenCount = 0;
+                        document.title = baseTitle;
                     });
 
                     function poll(){
                         fetch(pollPath + '?after='+lastId).then(r=>r.json()).then(function(d){
                             (d.messages||[]).forEach(appendMsg);
+                            if (d.peer_last_read_at && d.peer_last_read_at !== peerLastRead) {
+                                peerLastRead = d.peer_last_read_at;
+                                renderReadReceipt();
+                            }
                         }).catch(function(){});
                     }
                     setInterval(poll, 5000);
@@ -398,6 +505,8 @@ if ($isAi) {
                             if (d.success) location.reload();
                         });
                     });
+
+                    input.focus();
                 })();
                 </script>
             <?php else: ?>
