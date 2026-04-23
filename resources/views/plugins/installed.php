@@ -24,15 +24,18 @@
                                 <?php foreach ($plugins as $plugin): ?>
                                 <tr>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-xs me-3">
+                                        <div class="d-flex align-items-start">
+                                            <div class="avatar-xs me-3 mt-1">
                                                 <div class="avatar-title bg-primary-subtle text-primary rounded fs-18">
                                                     <i class="<?= e($plugin['icon']) ?>"></i>
                                                 </div>
                                             </div>
                                             <div>
                                                 <h6 class="mb-0"><?= e($plugin['name']) ?></h6>
-                                                <small class="text-muted"><?= e($plugin['author']) ?></small>
+                                                <small class="text-muted d-block"><i class="ri-user-line me-1"></i><?= e($plugin['author']) ?></small>
+                                                <?php if (!empty($plugin['description'])): ?>
+                                                    <div class="text-muted fs-12 mt-1" style="max-width:420px"><?= e($plugin['description']) ?></div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </td>
