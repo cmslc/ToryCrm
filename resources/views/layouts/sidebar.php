@@ -312,7 +312,7 @@ try { $convUnread = (int) (\Core\Database::fetch("SELECT COUNT(*) as cnt FROM co
                             <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive(['settings/contact-statuses','tags'], $currentUrl) ?>">Nhãn & Trạng thái</a></li>
                             <li class="nav-item"><a href="<?= url('settings/data-definition') ?>" class="nav-link <?= isActive('settings/data-definition', $currentUrl) ?>">Định nghĩa dữ liệu</a></li>
                             <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
-                            <li class="nav-item"><a href="<?= url('settings/document-templates') ?>" class="nav-link <?= isActive('settings/document-templates', $currentUrl) ?>">Mẫu báo giá & HĐ</a></li>
+                            <li class="nav-item"><a href="<?= url('settings/document-templates') ?>" class="nav-link <?= isActive('settings/document-templates', $currentUrl) ?>">Mẫu tài liệu</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api-keys') ?>" class="nav-link <?= isActive('settings/api-keys', $currentUrl) ?>">API Keys</a></li>
                             <li class="nav-item"><a href="<?= url('settings/audit-log') ?>" class="nav-link <?= isActive('settings/audit-log', $currentUrl) ?>">Audit Log</a></li>
                             <?php endif; ?>
