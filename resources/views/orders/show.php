@@ -109,7 +109,12 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
                             <?php foreach ($items as $i => $item): ?>
                             <tr>
                                 <td><?= $i + 1 ?></td>
-                                <td class="fw-medium"><?= e($item['product_name']) ?></td>
+                                <td>
+                                    <div class="fw-medium"><?= e($item['product_name']) ?></div>
+                                    <?php if (!empty($item['description'])): ?>
+                                        <small class="text-muted d-block mt-1" style="white-space:pre-wrap"><?= e($item['description']) ?></small>
+                                    <?php endif; ?>
+                                </td>
                                 <td><code><?= e($item['product_sku'] ?? '-') ?></code></td>
                                 <td class="text-end"><?= $item['quantity'] ?></td>
                                 <td><?= e($item['unit']) ?></td>
@@ -127,25 +132,25 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
                             </tr>
                             <?php if (($order['tax_amount'] ?? 0) > 0): ?>
                             <tr>
-                                <td colspan="8" class="text-end">Thuế VAT:</td>
+                                <td colspan="8" class="text-end">Thuế VAT<?= ((float)($order['tax_rate'] ?? 0) > 0) ? ' (' . rtrim(rtrim(number_format((float)$order['tax_rate'], 2, ',', '.'), '0'), ',') . '%)' : '' ?>:</td>
                                 <td class="text-end"><?= format_money($order['tax_amount']) ?></td>
                             </tr>
                             <?php endif; ?>
                             <?php if (($order['discount_amount'] ?? 0) > 0): ?>
                             <tr>
-                                <td colspan="8" class="text-end">Chiết khấu:</td>
+                                <td colspan="8" class="text-end">Chiết khấu<?= ((float)($order['discount_percent'] ?? 0) > 0) ? ' (' . rtrim(rtrim(number_format((float)$order['discount_percent'], 2, ',', '.'), '0'), ',') . '%)' : '' ?><?= !empty($order['discount_after_tax']) ? ' <small class="text-muted">(sau thuế)</small>' : '' ?>:</td>
                                 <td class="text-end text-danger">-<?= format_money($order['discount_amount']) ?></td>
                             </tr>
                             <?php endif; ?>
                             <?php if (($order['transport_amount'] ?? $order['shipping_fee'] ?? 0) > 0): ?>
                             <tr>
-                                <td colspan="8" class="text-end">Phí vận chuyển:</td>
+                                <td colspan="8" class="text-end">Phí vận chuyển<?= ((float)($order['transport_percent'] ?? $order['shipping_percent'] ?? 0) > 0) ? ' (' . rtrim(rtrim(number_format((float)($order['transport_percent'] ?? $order['shipping_percent']), 2, ',', '.'), '0'), ',') . '%)' : '' ?><?= !empty($order['shipping_after_tax']) ? ' <small class="text-muted">(sau thuế)</small>' : '' ?>:</td>
                                 <td class="text-end"><?= format_money($order['transport_amount'] ?? $order['shipping_fee'] ?? 0) ?></td>
                             </tr>
                             <?php endif; ?>
                             <?php if (($order['installation_amount'] ?? $order['installation_fee'] ?? 0) > 0): ?>
                             <tr>
-                                <td colspan="8" class="text-end">Phí lắp đặt:</td>
+                                <td colspan="8" class="text-end">Phí lắp đặt<?= ((float)($order['installation_percent'] ?? 0) > 0) ? ' (' . rtrim(rtrim(number_format((float)$order['installation_percent'], 2, ',', '.'), '0'), ',') . '%)' : '' ?>:</td>
                                 <td class="text-end"><?= format_money($order['installation_amount'] ?? $order['installation_fee'] ?? 0) ?></td>
                             </tr>
                             <?php endif; ?>
@@ -236,6 +241,24 @@ $cAddress = $order['shipping_address'] ?: ($order['c_address'] ?? '');
                         <tr>
                             <td class="text-muted">Cơ hội</td>
                             <td><a href="<?= url('deals/' . $order['deal_id']) ?>"><?= e($order['deal_title']) ?></a></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if ($order['order_source_name'] ?? null): ?>
+                        <tr>
+                            <td class="text-muted">Nguồn đơn</td>
+                            <td><?= e($order['order_source_name']) ?></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if ($order['campaign_name'] ?? null): ?>
+                        <tr>
+                            <td class="text-muted">Chiến dịch</td>
+                            <td><a href="<?= url('campaigns/' . $order['campaign_id']) ?>"><?= e($order['campaign_name']) ?></a></td>
+                        </tr>
+                        <?php endif; ?>
+                        <?php if ((float)($order['commission_amount'] ?? 0) > 0): ?>
+                        <tr>
+                            <td class="text-muted">Hoa hồng</td>
+                            <td class="fw-medium"><?= format_money($order['commission_amount']) ?></td>
                         </tr>
                         <?php endif; ?>
                         <?php if ($order['lading_code'] ?? null): ?>

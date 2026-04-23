@@ -366,12 +366,16 @@ class OrderController extends Controller
                     c.address as c_address, c.tax_code as c_tax_code, c.account_code as c_account_code,
                     u.name as owner_name,
                     d.title as deal_title,
-                    uc.name as created_by_name
+                    uc.name as created_by_name,
+                    os.name as order_source_name,
+                    cp.name as campaign_name
              FROM orders o
              LEFT JOIN contacts c ON o.contact_id = c.id
              LEFT JOIN users u ON o.owner_id = u.id
              LEFT JOIN deals d ON o.deal_id = d.id
              LEFT JOIN users uc ON o.created_by = uc.id
+             LEFT JOIN order_sources os ON o.order_source_id = os.id
+             LEFT JOIN campaigns cp ON o.campaign_id = cp.id
              WHERE o.id = ?",
             [$id]
         );
