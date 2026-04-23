@@ -250,7 +250,10 @@ if ($shipFull === '' && $cAddress !== '') {
                         </tr>
                         <tr>
                             <td class="text-muted">Phương thức TT</td>
-                            <td><?= e($order['payment_method'] ?? '-') ?></td>
+                            <td><?php
+                                $pmLabels = ['bank_transfer' => 'Chuyển khoản', 'cash' => 'Tiền mặt', 'credit_card' => 'Thẻ tín dụng', 'other' => 'Khác'];
+                                echo e($pmLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?: '-'));
+                            ?></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Đã thanh toán</td>

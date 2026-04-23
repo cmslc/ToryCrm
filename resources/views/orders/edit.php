@@ -241,11 +241,13 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('orders'));
                     <h6 class="fw-bold mb-3"><i class="ri-money-dollar-circle-line me-1"></i> Thông tin thanh toán</h6>
                     <div class="mb-2 d-flex align-items-center gap-2">
                         <span class="flex-shrink-0" style="width:140px">Phương thức TT</span>
+                        <?php $pm = $o['payment_method'] ?? ''; ?>
                         <select name="payment_method" class="form-select" style="width:200px">
-                            <option value="bank_transfer">Chuyển khoản</option>
-                            <option value="cash">Tiền mặt</option>
-                            <option value="credit_card">Thẻ tín dụng</option>
-                            <option value="other">Khác</option>
+                            <option value="" <?= $pm === '' ? 'selected' : '' ?>>Mời chọn</option>
+                            <option value="bank_transfer" <?= $pm === 'bank_transfer' ? 'selected' : '' ?>>Chuyển khoản</option>
+                            <option value="cash" <?= $pm === 'cash' ? 'selected' : '' ?>>Tiền mặt</option>
+                            <option value="credit_card" <?= $pm === 'credit_card' ? 'selected' : '' ?>>Thẻ tín dụng</option>
+                            <option value="other" <?= $pm === 'other' ? 'selected' : '' ?>>Khác</option>
                         </select>
                     </div>
                     <div class="mb-2 d-flex align-items-center justify-content-between">
