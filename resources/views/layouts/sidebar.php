@@ -83,7 +83,7 @@ try {
                 <?php endif; ?>
 
                 <?php if (canSee('products') || canSee('orders')): ?>
-                <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations','contracts','warehouses'], $currentUrl); ?>
+                <?php $prodOpen = isOpen(['products','orders','purchase-orders','quotations','contracts','warehouses','installation-requests'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $prodOpen ? '' : 'collapsed' ?>" href="#sidebarProducts" data-bs-toggle="collapse" role="button" aria-expanded="<?= $prodOpen ? 'true' : 'false' ?>">
                         <i class="ri-shopping-bag-line"></i> <span>Bán hàng</span>
@@ -101,6 +101,9 @@ try {
                             <?php endif; ?>
                             <?php if (canSee('contracts')): ?>
                             <li class="nav-item"><a href="<?= url('contracts') ?>" class="nav-link <?= isActive('contracts', $currentUrl) ?>">Hợp đồng</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('installation_requests')): ?>
+                            <li class="nav-item"><a href="<?= url('installation-requests') ?>" class="nav-link <?= isActive('installation-requests', $currentUrl) ?>">Yêu cầu thi công</a></li>
                             <?php endif; ?>
                             <?php if (canSee('products')): ?>
                             <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Sản phẩm</a></li>

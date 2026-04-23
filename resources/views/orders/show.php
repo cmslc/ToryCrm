@@ -41,6 +41,9 @@ if ($shipFull === '' && $cAddress !== '') {
                 <?= csrf_field() ?><button class="btn btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
             </form>
         <?php endif; ?>
+        <?php if (in_array($order['status'], ['confirmed','approved','processing','completed'], true) && function_exists('canSee') && canSee('installation_requests')): ?>
+            <a href="<?= url('installation-requests/create?order_id=' . $order['id']) ?>" class="btn btn-info"><i class="ri-tools-line me-1"></i>Tạo YC thi công</a>
+        <?php endif; ?>
         <?php if (!in_array($order['status'], ['completed','cancelled'])): ?>
             <form method="POST" action="<?= url('orders/' . $order['id'] . '/cancel') ?>" class="d-inline" data-confirm="Hủy đơn hàng này?">
                 <?= csrf_field() ?><button class="btn btn-soft-warning"><i class="ri-close-circle-line me-1"></i>Hủy</button>

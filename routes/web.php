@@ -228,6 +228,17 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('orders/{id}/pdf/invoice', 'OrderController@invoicePdf');
     Router::get('orders/{id}/pdf/quotation', 'OrderController@quotationPdf');
 
+    // Installation Requests (Yêu cầu thi công)
+    Router::get('installation-requests', 'InstallationRequestController@index');
+    Router::get('installation-requests/create', 'InstallationRequestController@create');
+    Router::post('installation-requests/store', 'InstallationRequestController@store');
+    Router::get('installation-requests/{id}', 'InstallationRequestController@show');
+    Router::get('installation-requests/{id}/edit', 'InstallationRequestController@edit');
+    Router::post('installation-requests/{id}/update', 'InstallationRequestController@update');
+    Router::post('installation-requests/{id}/delete', 'InstallationRequestController@delete');
+    Router::post('installation-requests/{id}/status', 'InstallationRequestController@updateStatus');
+    Router::get('installation-requests/{id}/pdf', 'InstallationRequestController@pdf');
+
     // Calendar
     Router::get('calendar', 'CalendarController@index');
     Router::get('calendar/events', 'CalendarController@events');

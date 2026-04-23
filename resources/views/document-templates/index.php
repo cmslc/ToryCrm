@@ -4,6 +4,7 @@ $activeTab = ($filters['type'] ?? '') ?: 'quotation';
 $quotationTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'quotation');
 $contractTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'contract');
 $orderTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'order');
+$installationTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'installation');
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -12,6 +13,7 @@ $orderTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'order
         <a href="<?= url('settings/document-templates/create?type=quotation') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo mẫu báo giá</a>
         <a href="<?= url('settings/document-templates/create?type=order') ?>" class="btn btn-info"><i class="ri-add-line me-1"></i> Tạo mẫu đơn hàng</a>
         <a href="<?= url('settings/document-templates/create?type=contract') ?>" class="btn btn-success"><i class="ri-add-line me-1"></i> Tạo mẫu hợp đồng</a>
+        <a href="<?= url('settings/document-templates/create?type=installation') ?>" class="btn btn-warning"><i class="ri-add-line me-1"></i> Tạo mẫu YC thi công</a>
     </div>
 </div>
 
@@ -31,6 +33,11 @@ $orderTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'order
             <li class="nav-item">
                 <a class="nav-link <?= $activeTab === 'contract' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-contract" role="tab">
                     <i class="ri-file-text-line me-1"></i> Mẫu hợp đồng <span class="badge bg-success ms-1"><?= count($contractTemplates) ?></span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= $activeTab === 'installation' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tab-installation" role="tab">
+                    <i class="ri-tools-line me-1"></i> Mẫu YC thi công <span class="badge bg-warning ms-1"><?= count($installationTemplates) ?></span>
                 </a>
             </li>
         </ul>
@@ -113,6 +120,59 @@ $orderTemplates = array_filter($templates ?? [], fn($t) => $t['type'] === 'order
                         </thead>
                         <tbody>
                             <?php foreach ($orderTemplates as $t): ?>
+                            <tr>
+                                <td>
+                                    <a href="<?= url('settings/document-templates/' . $t['id'] . '/edit') ?>" class="fw-medium"><?= e($t['name']) ?></a>
+                                    <?php if ($t['description'] ?? null): ?><br><small class="text-muted"><?= e($t['description']) ?></small><?php endif; ?>
+                                </td>
+                                <td class="text-center"><?php if ($t['is_default'] ?? 0): ?><span class="badge bg-warning">Mặc định</span><?php endif; ?></td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input" type="checkbox" <?= ($t['is_active'] ?? 0) ? 'checked' : '' ?> onchange="toggleTemplate(<?= $t['id'] ?>, this.checked)">
+                                    </div>
+                                </td>
+                                <td><?= e($t['creator_name'] ?? '-') ?></td>
+                                <td><?= !empty($t['created_at']) ? date('d/m/Y H:i', strtotime($t['created_at'])) : '-' ?></td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a href="<?= url('settings/document-templates/' . $t['id'] . '/edit') ?>" class="btn btn-soft-primary btn-icon"><i class="ri-pencil-line"></i></a>
+                                        <form method="POST" action="<?= url('settings/document-templates/' . $t['id'] . '/delete') ?>" class="d-inline" data-confirm="Xóa mẫu này?">
+                                            <?= csrf_field() ?>
+                                            <button class="btn btn-soft-danger btn-icon"><i class="ri-delete-bin-line"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Tab YC thi công -->
+            <div class="tab-pane <?= $activeTab === 'installation' ? 'active show' : '' ?>" id="tab-installation" role="tabpanel">
+                <?php if (empty($installationTemplates)): ?>
+                <div class="text-center text-muted py-5">
+                    <i class="ri-tools-line" style="font-size:48px"></i>
+                    <p class="mt-3 mb-2">Chưa có mẫu yêu cầu thi công nào</p>
+                    <a href="<?= url('settings/document-templates/create?type=installation') ?>" class="btn btn-warning"><i class="ri-add-line me-1"></i> Tạo mẫu YC thi công</a>
+                </div>
+                <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-nowrap align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên mẫu</th>
+                                <th class="text-center">Mặc định</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th>Người tạo</th>
+                                <th>Ngày tạo</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($installationTemplates as $t): ?>
                             <tr>
                                 <td>
                                     <a href="<?= url('settings/document-templates/' . $t['id'] . '/edit') ?>" class="fw-medium"><?= e($t['name']) ?></a>

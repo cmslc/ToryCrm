@@ -218,6 +218,37 @@ class DocumentTemplateController extends Controller
             ]);
         }
 
+        if ($type === 'installation') {
+            return [
+                '{{cf_number}}' => 'Số CF (mã YCTC)',
+                '{{customer_code}}' => 'Mã khách hàng',
+                '{{department}}' => 'Bộ phận',
+                '{{requester_name}}' => 'Người yêu cầu',
+                '{{requester_phone}}' => 'SĐT người yêu cầu',
+                '{{contractor}}' => 'Đơn vị thi công',
+                '{{installation_address}}' => 'Địa chỉ lắp đặt',
+                '{{customer_name}}' => 'Tên khách hàng',
+                '{{customer_contact_name}}' => 'Người liên hệ tại công trình',
+                '{{customer_contact_phone}}' => 'SĐT liên hệ',
+                '{{requested_date}}' => 'Ngày yêu cầu thi công',
+                '{{execution_date}}' => 'Ngày tiến hành thi công',
+                '{{installer_name}}' => 'Người thi công',
+                '{{condition_report}}' => 'Báo cáo tình trạng hàng hóa',
+                '{{notes}}' => 'Ghi chú',
+                '{{order_number}}' => 'Số đơn hàng gốc',
+                '{{items_table}}' => 'Bảng nội dung thi công',
+                '{{company_name}}' => 'Tên công ty',
+                '{{company_address}}' => 'Địa chỉ công ty',
+                '{{company_phone}}' => 'Điện thoại công ty',
+                '{{company_email}}' => 'Email công ty',
+                '{{company_website}}' => 'Website công ty',
+                '{{company_fax}}' => 'Fax công ty',
+                '{{company_logo}}' => 'Logo công ty',
+                '{{today}}' => 'Ngày hiện tại',
+                '{{today_text}}' => 'Ngày hiện tại (dạng text)',
+            ];
+        }
+
         return array_merge($common, [
             '{{contract_number}}' => 'Số hợp đồng',
             '{{contract_title}}' => 'Tên hợp đồng',

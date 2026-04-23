@@ -223,6 +223,66 @@ class DocumentService
     }
 
     /**
+     * Build common replacements for installation requests (YCTC).
+     */
+    public static function installationReplacements(array $request, array $items): array
+    {
+        $cp = Database::fetch(
+            "SELECT * FROM company_profiles WHERE tenant_id = ? AND is_default = 1 AND is_active = 1 LIMIT 1",
+            [Database::tenantId()]
+        ) ?: [];
+
+        $customerName = $request['c_company_name'] ?: ($request['c_full_name'] ?? '');
+
+        $itemsHtml = '<table style="width:100%;border-collapse:collapse" border="1" cellpadding="6">';
+        $itemsHtml .= '<thead><tr style="background:#f2f2f2;font-weight:bold;text-align:center">'
+            . '<th>STT</th><th>Tên hàng (Mã SP)</th><th>Check hàng</th><th>Kích thước, màu sắc</th><th>ĐVT</th><th>SL</th><th>Ghi chú</th>'
+            . '</tr></thead><tbody>';
+        foreach ($items as $i => $it) {
+            $sku = $it['product_sku'] ?: ($it['p_sku'] ?? '');
+            $itemsHtml .= '<tr>'
+                . '<td style="text-align:center">' . ($i + 1) . '</td>'
+                . '<td><strong>' . htmlspecialchars($sku) . '</strong>' . ($it['product_name'] ? '<br>' . htmlspecialchars($it['product_name']) : '') . '</td>'
+                . '<td style="text-align:center">' . htmlspecialchars($it['check_status'] ?? '') . '</td>'
+                . '<td style="text-align:center">' . htmlspecialchars($it['size_color'] ?? '') . '</td>'
+                . '<td style="text-align:center">' . htmlspecialchars($it['unit'] ?? '') . '</td>'
+                . '<td style="text-align:right">' . rtrim(rtrim(number_format((float)($it['quantity'] ?? 0), 2), '0'), '.') . '</td>'
+                . '<td>' . htmlspecialchars($it['notes'] ?? '') . '</td>'
+                . '</tr>';
+        }
+        $itemsHtml .= '</tbody></table>';
+
+        return [
+            '{{cf_number}}' => $request['code'] ?? '',
+            '{{customer_code}}' => $request['c_account_code'] ?? '',
+            '{{department}}' => $request['department'] ?? '',
+            '{{requester_name}}' => $request['requester_name'] ?? '',
+            '{{requester_phone}}' => $request['requester_phone'] ?? '',
+            '{{contractor}}' => $request['contractor'] ?? '',
+            '{{installation_address}}' => $request['installation_address'] ?? '',
+            '{{customer_name}}' => $customerName,
+            '{{customer_contact_name}}' => $request['customer_contact_name'] ?? '',
+            '{{customer_contact_phone}}' => $request['customer_contact_phone'] ?? '',
+            '{{requested_date}}' => !empty($request['requested_date']) ? date('d/m/Y', strtotime($request['requested_date'])) : '',
+            '{{execution_date}}' => !empty($request['execution_date']) ? date('d/m/Y H:i', strtotime($request['execution_date'])) : '',
+            '{{installer_name}}' => $request['installer_name'] ?? '',
+            '{{condition_report}}' => nl2br(htmlspecialchars($request['condition_report'] ?? '')),
+            '{{notes}}' => nl2br(htmlspecialchars($request['notes'] ?? '')),
+            '{{order_number}}' => $request['order_number'] ?? '',
+            '{{items_table}}' => $itemsHtml,
+            '{{company_name}}' => $cp['name'] ?? ($_SESSION['tenant']['name'] ?? ''),
+            '{{company_address}}' => $cp['address'] ?? '',
+            '{{company_phone}}' => $cp['phone'] ?? '',
+            '{{company_email}}' => $cp['email'] ?? '',
+            '{{company_website}}' => $cp['website'] ?? '',
+            '{{company_fax}}' => $cp['fax'] ?? '',
+            '{{company_logo}}' => !empty($cp['logo']) ? '<img src="' . htmlspecialchars($cp['logo']) . '" style="max-height:70px">' : '',
+            '{{today}}' => date('d/m/Y'),
+            '{{today_text}}' => 'ngày ' . date('d') . ' tháng ' . date('m') . ' năm ' . date('Y'),
+        ];
+    }
+
+    /**
      * Build items table HTML specifically for orders (with SKU + full summary).
      */
     public static function buildOrderItemsTable(array $items, array $order): string

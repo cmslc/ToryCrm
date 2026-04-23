@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Sửa mẫu: ' . $template['name'];
-$typeLabel = $template['type'] === 'quotation' ? 'báo giá' : 'hợp đồng';
+$typeLabel = ['quotation'=>'báo giá','order'=>'đơn hàng','contract'=>'hợp đồng','installation'=>'yêu cầu thi công'][$template['type']] ?? 'tài liệu';
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -71,7 +71,8 @@ $typeLabel = $template['type'] === 'quotation' ? 'báo giá' : 'hợp đồng';
             <div class="card">
                 <div class="card-body">
                     <small class="text-muted">
-                        Loại: <span class="badge bg-<?= $template['type'] === 'quotation' ? 'primary' : 'success' ?>"><?= $typeLabel ?></span><br>
+                        <?php $typeColor = ['quotation'=>'primary','order'=>'info','contract'=>'success','installation'=>'warning'][$template['type']] ?? 'secondary'; ?>
+                        Loại: <span class="badge bg-<?= $typeColor ?>"><?= $typeLabel ?></span><br>
                         Tạo: <?= date('d/m/Y H:i', strtotime($template['created_at'])) ?><br>
                         Cập nhật: <?= date('d/m/Y H:i', strtotime($template['updated_at'])) ?>
                     </small>
