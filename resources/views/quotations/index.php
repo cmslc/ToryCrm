@@ -1,8 +1,8 @@
 <?php
 $pageTitle = 'Báo giá';
 $currentStatus = $filters['status'] ?? '';
-$qsc = ['pending'=>'warning','approved'=>'primary','has_order'=>'success','no_order'=>'info','deleted'=>'danger'];
-$qsl = ['pending'=>'Chờ duyệt','approved'=>'Đã duyệt','has_order'=>'Đã tạo ĐH','no_order'=>'Chưa tạo ĐH','deleted'=>'Đã xóa'];
+$qsc = ['draft'=>'secondary','pending'=>'warning','approved'=>'success','converted'=>'info','no_order'=>'primary','deleted'=>'danger'];
+$qsl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','converted'=>'Đã tạo ĐH','no_order'=>'Chưa tạo ĐH','deleted'=>'Đã xóa'];
 $sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'success','rejected'=>'danger','expired'=>'warning','converted'=>'info'];
 $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã tạo ĐH'];
 $colKeys = array_column($displayColumns ?? [], 'key');

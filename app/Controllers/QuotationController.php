@@ -39,10 +39,11 @@ class QuotationController extends Controller
         // Stats
         $stats = Database::fetch(
             "SELECT
-                SUM(status = 'draft' OR status = 'pending') as pending,
+                SUM(status = 'draft') as draft,
+                SUM(status = 'pending') as pending,
                 SUM(status = 'approved') as approved,
-                SUM(status = 'converted') as has_order,
-                SUM(status NOT IN ('draft','pending','approved','converted','rejected') OR status IS NULL) as no_order,
+                SUM(status = 'converted') as converted,
+                SUM(status = 'approved' AND (converted_order_id IS NULL OR converted_order_id = 0)) as no_order,
                 SUM(status = 'rejected' OR status = 'expired') as deleted
              FROM quotations WHERE tenant_id = ?" . $this->getOwnerScopeSql('owner_id', 'quotations'),
             [$tid]
@@ -61,8 +62,14 @@ class QuotationController extends Controller
         }
 
         if ($status) {
-            $where[] = "q.status = ?";
-            $params[] = $status;
+            if ($status === 'no_order') {
+                $where[] = "q.status = 'approved' AND (q.converted_order_id IS NULL OR q.converted_order_id = 0)";
+            } elseif ($status === 'deleted') {
+                $where[] = "q.status IN ('rejected','expired')";
+            } else {
+                $where[] = "q.status = ?";
+                $params[] = $status;
+            }
         }
 
         if ($contactId) {
