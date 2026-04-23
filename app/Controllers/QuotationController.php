@@ -374,11 +374,20 @@ class QuotationController extends Controller
             [Database::tenantId()]
         );
 
+        $relatedOrders = Database::fetchAll(
+            "SELECT id, order_number, status, total, created_at
+             FROM orders
+             WHERE quotation_id = ? AND tenant_id = ? AND is_deleted = 0
+             ORDER BY created_at DESC",
+            [$id, Database::tenantId()]
+        );
+
         return $this->view('quotations.show', [
             'quotation' => $quotation,
             'items' => $items,
             'attachments' => $attachments,
             'pdfTemplates' => $pdfTemplates,
+            'relatedOrders' => $relatedOrders,
         ]);
     }
 
@@ -657,10 +666,7 @@ class QuotationController extends Controller
             $this->setFlash('error', 'Không có quyền.');
             return $this->redirect('quotations');
         }
-        if (!empty($quotation['converted_order_id'])) {
-            $this->setFlash('error', 'Báo giá này đã được chuyển thành đơn hàng #' . $quotation['converted_order_id'] . '.');
-            return $this->redirect('quotations/' . $id);
-        }
+        // Note: multiple orders per quotation allowed — no guard on converted_order_id.
 
         $items = Database::fetchAll("SELECT * FROM quotation_items WHERE quotation_id = ? ORDER BY sort_order", [$id]);
 
@@ -680,6 +686,7 @@ class QuotationController extends Controller
                 'contact_person_id' => $quotation['contact_person_id'] ?? null,
                 'company_id' => $quotation['company_id'],
                 'deal_id' => $quotation['deal_id'],
+                'quotation_id' => $id,
                 'subtotal' => $quotation['subtotal'],
                 'tax_amount' => $quotation['tax_amount'],
                 'discount_amount' => $quotation['discount_amount'],
@@ -715,11 +722,14 @@ class QuotationController extends Controller
                 ]);
             }
 
-            // Link order to quotation (don't change status - user can still create contract)
-            Database::update('quotations', [
-                'converted_order_id' => $orderId,
-                'status' => 'converted',
-            ], 'id = ?', [$id]);
+            // Link order to quotation. On the FIRST convert, set
+            // converted_order_id (kept as first-order pointer for legacy)
+            // + flip status. Subsequent orders only add the reverse link
+            // via orders.quotation_id (already inserted above).
+            $updateQ = [];
+            if (empty($quotation['converted_order_id'])) $updateQ['converted_order_id'] = $orderId;
+            if ($quotation['status'] !== 'converted') $updateQ['status'] = 'converted';
+            if ($updateQ) Database::update('quotations', $updateQ, 'id = ?', [$id]);
 
             Database::commit();
         } catch (\Exception $e) {

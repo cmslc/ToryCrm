@@ -29,7 +29,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectApprovalModal"><i class="ri-close-line me-1"></i>Từ chối</button>
                 <?php endif; ?>
 
-                <?php if ($quotation['status'] === 'approved'): ?>
+                <?php if (in_array($quotation['status'], ['approved', 'converted'], true)): ?>
                     <form method="POST" action="<?= url('quotations/' . $quotation['id'] . '/convert') ?>" class="d-inline" data-confirm="Tạo đơn hàng từ báo giá này?">
                         <?= csrf_field() ?><button class="btn btn-soft-success"><i class="ri-shopping-cart-line me-1"></i>Tạo đơn hàng</button>
                     </form>
@@ -325,6 +325,35 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Đơn hàng đã tạo -->
+                <?php if (!empty($relatedOrders)): ?>
+                <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-shopping-cart-line me-1"></i> Đơn hàng đã tạo (<?= count($relatedOrders) ?>)</h5></div>
+                    <div class="card-body p-0">
+                        <?php
+                        $osc = ['draft'=>'secondary','pending'=>'warning','approved'=>'success','processing'=>'info','completed'=>'success','cancelled'=>'danger'];
+                        $osl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','processing'=>'Đang xử lý','completed'=>'Hoàn thành','cancelled'=>'Đã hủy'];
+                        ?>
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($relatedOrders as $o): ?>
+                            <a href="<?= url('orders/' . $o['id']) ?>" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-medium"><?= e($o['order_number']) ?></div>
+                                        <small class="text-muted"><?= format_date($o['created_at']) ?></small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-<?= $osc[$o['status']] ?? 'secondary' ?>"><?= $osl[$o['status']] ?? $o['status'] ?></span>
+                                        <div class="fw-medium small"><?= format_money($o['total']) ?></div>
+                                    </div>
+                                </div>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <!-- Người liên quan -->
                 <?php $rpEntityType = 'quotation'; $rpEntityId = $quotation['id']; $rpOwnerId = $quotation['owner_id'] ?? 0; $rpOwnerName = $quotation['owner_name'] ?? '-'; include BASE_PATH . '/resources/views/partials/related-people.php'; ?>
