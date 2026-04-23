@@ -19,13 +19,13 @@ $dv = \App\Services\ColumnService::getDefaultValues('quotations');
     </div>
     <div class="d-flex gap-2">
         <a href="<?= url('quotations') ?>" class="btn btn-soft-secondary">Quay lại</a>
-        <button type="submit" form="quotationForm" class="btn btn-primary"><i class="ri-save-line me-1"></i> Cập nhật</button>
+        <button type="submit" form="quotationForm" name="action" value="draft" class="btn btn-soft-secondary"><i class="ri-draft-line me-1"></i> Lưu nháp</button>
+        <button type="submit" form="quotationForm" name="action" value="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Lưu &amp; Gửi duyệt</button>
     </div>
 </div>
 
 <form method="POST" action="<?= url('quotations/store') ?>" id="quotationForm" enctype="multipart/form-data">
     <?= csrf_field() ?>
-    <input type="hidden" name="action" id="formAction" value="draft">
 
     <!-- ROW 1: 2 cột thông tin -->
     <div class="card">

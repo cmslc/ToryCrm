@@ -18,7 +18,12 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
     </div>
     <div class="d-flex gap-2">
         <a href="<?= url('quotations/' . $q['id']) ?>" class="btn btn-soft-secondary">Quay lại</a>
-        <button type="submit" form="quotationForm" class="btn btn-primary"><i class="ri-save-line me-1"></i> Cập nhật</button>
+        <?php if (($q['status'] ?? 'draft') === 'draft'): ?>
+            <button type="submit" form="quotationForm" name="action" value="draft" class="btn btn-soft-secondary"><i class="ri-draft-line me-1"></i> Lưu nháp</button>
+            <button type="submit" form="quotationForm" name="action" value="submit" class="btn btn-primary"><i class="ri-send-plane-line me-1"></i> Lưu &amp; Gửi duyệt</button>
+        <?php else: ?>
+            <button type="submit" form="quotationForm" class="btn btn-primary"><i class="ri-save-line me-1"></i> Cập nhật</button>
+        <?php endif; ?>
     </div>
 </div>
 

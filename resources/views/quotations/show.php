@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Báo giá ' . $quotation['quote_number'];
-$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'primary','rejected'=>'danger','expired'=>'warning','converted'=>'dark'];
+$sc = ['draft'=>'secondary','pending'=>'warning','approved'=>'success','rejected'=>'danger','expired'=>'warning','converted'=>'info'];
 $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','rejected'=>'Từ chối','expired'=>'Hết hạn','converted'=>'Đã tạo ĐH'];
 ?>
 

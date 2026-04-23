@@ -200,9 +200,10 @@ class QuotationController extends Controller
 
         Database::beginTransaction();
         try {
+            $submitStatus = ($data['action'] ?? 'draft') === 'submit' ? 'pending' : 'draft';
             $quotationId = Database::insert('quotations', [
                 'quote_number' => $quoteNumber,
-                'status' => 'draft',
+                'status' => $submitStatus,
                 'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
                 'contact_person_id' => !empty($data['contact_person_id']) ? $data['contact_person_id'] : null,
                 'address' => trim($data['address'] ?? '') ?: null,
@@ -447,9 +448,15 @@ class QuotationController extends Controller
 
         $data = $this->allInput();
 
+        // If editing a draft, allow the 'Lưu & Gửi duyệt' button to also flip status
+        $newStatus = null;
+        if (($quotation['status'] ?? '') === 'draft' && ($data['action'] ?? '') === 'submit') {
+            $newStatus = 'pending';
+        }
+
         Database::beginTransaction();
         try {
-            Database::update('quotations', [
+            $updateData = [
                 'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
                 'contact_person_id' => !empty($data['contact_person_id']) ? $data['contact_person_id'] : null,
                 'address' => trim($data['address'] ?? '') ?: null,
@@ -477,7 +484,9 @@ class QuotationController extends Controller
                 'installation_fee' => (float)($data['installation_fee'] ?? 0),
                 'installation_percent' => (float)($data['installation_percent'] ?? 0),
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
-            ], 'id = ?', [$id]);
+            ];
+            if ($newStatus) $updateData['status'] = $newStatus;
+            Database::update('quotations', $updateData, 'id = ?', [$id]);
 
             // Re-insert items
             Database::delete('quotation_items', 'quotation_id = ?', [$id]);
