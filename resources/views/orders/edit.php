@@ -63,10 +63,6 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('orders'));
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Địa chỉ giao hàng</label>
-                        <input type="text" class="form-control" name="shipping_address" id="qShippingAddress" value="<?= e($o['shipping_address'] ?? $ec['address'] ?? '') ?>">
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Người liên hệ</label>
                         <select class="form-select" name="contact_person_id" id="contactPersonSelect">
                             <option value="">Chọn người liên hệ</option>
@@ -140,6 +136,42 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('orders'));
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin giao hàng -->
+    <?php $dType = $o['delivery_type'] ?? 'self'; ?>
+    <div class="card">
+        <div class="card-header"><h5 class="card-title mb-0"><i class="ri-truck-line me-1"></i> Thông tin giao hàng</h5></div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="delivery_type" id="deliveryTypeSelf" value="self" <?= $dType === 'self' ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="deliveryTypeSelf">Tự giao</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="delivery_type" id="deliveryTypePartner" value="partner" <?= $dType === 'partner' ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="deliveryTypePartner">Chọn đối tác giao</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Thời gian giao hàng</label>
+                    <input type="date" class="form-control" name="delivery_date" value="<?= e($o['delivery_date'] ?? '') ?>">
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">Địa chỉ giao hàng</label>
+                    <input type="text" class="form-control" name="shipping_address" id="qShippingAddress" value="<?= e($o['shipping_address'] ?? $ec['address'] ?? '') ?>">
+                </div>
+            </div>
+            <div class="mb-3 <?= $dType === 'partner' ? '' : 'd-none' ?>" id="deliveryPartnerRow">
+                <label class="form-label">Đối tác giao</label>
+                <input type="text" class="form-control" name="delivery_partner" placeholder="Tên đối tác giao hàng" value="<?= e($o['delivery_partner'] ?? '') ?>">
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Điều khoản bổ sung</label>
+                <textarea name="delivery_notes" class="form-control" rows="3" placeholder="Ghi chú / điều khoản giao hàng..."><?= e($o['delivery_notes'] ?? '') ?></textarea>
             </div>
         </div>
     </div>
@@ -437,4 +469,9 @@ if (existingItems.length > 0) {
 } else {
     addItem();
 }
+
+// Toggle delivery partner row
+document.querySelectorAll('input[name="delivery_type"]').forEach(r => r.addEventListener('change', function() {
+    document.getElementById('deliveryPartnerRow').classList.toggle('d-none', this.value !== 'partner');
+}));
 </script>
