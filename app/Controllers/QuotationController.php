@@ -936,6 +936,17 @@ class QuotationController extends Controller
         $items = Database::fetchAll("SELECT * FROM quotation_items WHERE quotation_id = ? ORDER BY sort_order", [$id]);
         $templateId = (int)($this->input('template_id') ?: ($_GET['template_id'] ?? 0));
 
+        // Auto-pick default quotation template if none specified
+        if (!$templateId) {
+            $defaultTpl = Database::fetch(
+                "SELECT id FROM document_templates
+                 WHERE tenant_id = ? AND type = 'quotation' AND is_active = 1 AND is_default = 1
+                 LIMIT 1",
+                [Database::tenantId()]
+            );
+            if ($defaultTpl) $templateId = (int)$defaultTpl['id'];
+        }
+
         // Nếu có template_id → render từ document_templates
         if ($templateId) {
             $branding = \App\Services\BrandingService::get();
