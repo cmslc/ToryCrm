@@ -180,7 +180,7 @@ class DocumentService
             '{{delivery_partner}}' => $order['delivery_partner'] ?? '',
             '{{delivery_notes}}' => nl2br(htmlspecialchars($order['delivery_notes'] ?? '')),
             '{{notes}}' => nl2br(htmlspecialchars($order['notes'] ?? '')),
-            '{{terms}}' => nl2br(htmlspecialchars($order['order_terms'] ?? '')),
+            '{{terms}}' => html_entity_decode($order['order_terms'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             '{{company_name}}' => $cp['name'] ?? ($_SESSION['tenant']['name'] ?? ''),
             '{{company_address}}' => $cp['address'] ?? '',
             '{{company_phone}}' => $cp['phone'] ?? '',
