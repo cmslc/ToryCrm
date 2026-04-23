@@ -143,7 +143,7 @@ $defaultCc = $isDraft ? ($draftMsg['cc_emails'] ?? '') : '';
             </div>
         </form>
 
-        <script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
+        <script src="<?= asset('libs/ckeditor/ckeditor.js') ?>"></script>
         <script>
         CKEDITOR.replace('emailBody', {
             height: 300,

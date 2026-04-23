@@ -495,7 +495,7 @@ document.querySelectorAll('input[name="delivery_type"]').forEach(r => r.addEvent
     document.getElementById('deliveryPartnerRow').classList.toggle('d-none', this.value !== 'partner');
 }));
 </script>
-<script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
+<script src="<?= asset('libs/ckeditor/ckeditor.js') ?>"></script>
 <script>
 if (typeof CKEDITOR !== 'undefined') {
     CKEDITOR.replace('orderTerms', { language: 'vi', height: 220, allowedContent: true });

@@ -81,7 +81,7 @@ $typeLabel = $template['type'] === 'quotation' ? 'báo giá' : 'hợp đồng';
     </div>
 </form>
 
-<script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
+<script src="<?= asset('libs/ckeditor/ckeditor.js') ?>"></script>
 <script>
 CKEDITOR.replace('templateContent', {
     language: 'vi',

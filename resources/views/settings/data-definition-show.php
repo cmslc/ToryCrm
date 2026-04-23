@@ -252,7 +252,7 @@
     </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
+<script src="<?= asset('libs/ckeditor/ckeditor.js') ?>"></script>
 <script>
 // Edit field modal
 document.querySelectorAll('.edit-field-btn').forEach(function(btn) {

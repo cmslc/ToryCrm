@@ -306,7 +306,7 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('quotations'));
 .btn-note-toggle .ri-sticky-note-fill { color: #0ab39c; }
 </style>
 
-<script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
+<script src="<?= asset('libs/ckeditor/ckeditor.js') ?>"></script>
 <script>
 const existingItems = <?= json_encode($items ?? []) ?>;
 

@@ -56,7 +56,7 @@ if ($firstAcc): ?>
             </div>
             <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu chữ ký</button>
         </form>
-        <script src="https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js"></script>
+        <script src="<?= asset('libs/ckeditor/ckeditor.js') ?>"></script>
         <script>CKEDITOR.replace('signatureEditor',{height:150,removeButtons:'About',toolbar:[['Bold','Italic','Underline'],['Link','Unlink'],['TextColor'],['Font','FontSize'],['Source']]});</script>
     </div>
 </div>
