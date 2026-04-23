@@ -311,12 +311,18 @@ class OrderController extends Controller
         $this->authorize('orders', 'view');
         $order = Database::fetch(
             "SELECT o.*,
-                    c.first_name as contact_first_name, c.last_name as contact_last_name, c.email as contact_email, c.phone as contact_phone,
-                    comp.name as company_name, u.name as owner_name
+                    c.full_name as c_full_name, c.company_name as c_company_name,
+                    c.account_code as c_account_code, c.tax_code as c_tax_code,
+                    c.address as c_address,
+                    c.email as contact_email, c.phone as contact_phone,
+                    c.company_email as c_company_email, c.company_phone as c_company_phone,
+                    comp.name as company_name, u.name as owner_name,
+                    cp.full_name as cp_full_name, cp.phone as cp_phone, cp.email as cp_email, cp.position as cp_position
              FROM orders o
              LEFT JOIN contacts c ON o.contact_id = c.id
              LEFT JOIN companies comp ON o.company_id = comp.id
              LEFT JOIN users u ON o.owner_id = u.id
+             LEFT JOIN contact_persons cp ON o.contact_person_id = cp.id
              WHERE o.id = ?",
             [$id]
         );
@@ -327,7 +333,7 @@ class OrderController extends Controller
         }
 
         $items = Database::fetchAll(
-            "SELECT oi.* FROM order_items oi WHERE oi.order_id = ? ORDER BY oi.sort_order",
+            "SELECT oi.*, p.sku FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ? ORDER BY oi.sort_order",
             [$id]
         );
 

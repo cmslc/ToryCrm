@@ -162,30 +162,66 @@ class PdfService
                 </div>
             </div>
 
+            <?php
+                $pmLabels = ['bank_transfer' => 'Chuyển khoản', 'cash' => 'Tiền mặt', 'credit_card' => 'Thẻ tín dụng', 'other' => 'Khác'];
+                $pmLabel = $pmLabels[$order['payment_method'] ?? ''] ?? ($order['payment_method'] ?: '-');
+                $custName = $order['c_company_name'] ?: ($order['c_full_name'] ?: '-');
+                $custEmail = $order['c_company_email'] ?: ($order['contact_email'] ?? '');
+                $custPhone = $order['c_company_phone'] ?: ($order['contact_phone'] ?? '');
+            ?>
             <div class="info-grid">
                 <div class="info-box">
                     <h4>Khách hàng</h4>
-                    <p><strong><?= htmlspecialchars(trim(($order['contact_first_name'] ?? '') . ' ' . ($order['contact_last_name'] ?? '')) ?: '-') ?></strong></p>
-                    <?php if (!empty($order['company_name'])): ?><p><?= htmlspecialchars($order['company_name']) ?></p><?php endif; ?>
-                    <?php if (!empty($order['contact_email'])): ?><p><?= htmlspecialchars($order['contact_email']) ?></p><?php endif; ?>
-                    <?php if (!empty($order['contact_phone'])): ?><p><?= htmlspecialchars($order['contact_phone']) ?></p><?php endif; ?>
+                    <p><strong><?= htmlspecialchars($custName) ?></strong></p>
+                    <?php if (!empty($order['c_account_code'])): ?><p>Mã KH: <?= htmlspecialchars($order['c_account_code']) ?></p><?php endif; ?>
+                    <?php if (!empty($order['c_tax_code'])): ?><p>MST: <?= htmlspecialchars($order['c_tax_code']) ?></p><?php endif; ?>
+                    <?php if (!empty($order['c_address'])): ?><p>Địa chỉ: <?= htmlspecialchars($order['c_address']) ?></p><?php endif; ?>
+                    <?php if (!empty($custEmail)): ?><p>Email: <?= htmlspecialchars($custEmail) ?></p><?php endif; ?>
+                    <?php if (!empty($custPhone)): ?><p>ĐT: <?= htmlspecialchars($custPhone) ?></p><?php endif; ?>
+                    <?php if (!empty($order['cp_full_name'])): ?>
+                        <p>Người liên hệ: <?= htmlspecialchars($order['cp_full_name']) ?><?= !empty($order['cp_position']) ? ' - ' . htmlspecialchars($order['cp_position']) : '' ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="info-box">
                     <h4>Thông tin đơn</h4>
+                    <p>Ngày đặt: <?= !empty($order['issued_date']) ? date('d/m/Y', strtotime($order['issued_date'])) : '-' ?></p>
                     <p>Hạn TT: <?= !empty($order['due_date']) ? date('d/m/Y', strtotime($order['due_date'])) : '-' ?></p>
                     <p>Phụ trách: <?= htmlspecialchars($order['owner_name'] ?? '-') ?></p>
-                    <p>Phương thức: <?= htmlspecialchars($order['payment_method'] ?? '-') ?></p>
+                    <p>Phương thức TT: <?= htmlspecialchars($pmLabel) ?></p>
+                    <?php if (!empty($order['lading_code'])): ?><p>Mã vận đơn: <?= htmlspecialchars($order['lading_code']) ?></p><?php endif; ?>
                 </div>
             </div>
+
+            <?php
+                $hasShipping = !empty($order['shipping_address']) || !empty($order['shipping_contact']) || !empty($order['shipping_phone']) || !empty($order['delivery_date']) || !empty($order['delivery_partner']) || !empty($order['delivery_notes']);
+                if ($hasShipping):
+                    $dType = $order['delivery_type'] ?? 'self';
+                    $dTypeLabel = $dType === 'partner' ? 'Đối tác giao' : 'Tự giao';
+            ?>
+            <div class="info-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                <div class="info-box" style="padding: 12px 15px; background: #f8f9fa; border-left: 3px solid #405189;">
+                    <h4>Thông tin giao hàng</h4>
+                    <p><strong>Hình thức:</strong> <?= htmlspecialchars($dTypeLabel) ?><?= $dType === 'partner' && !empty($order['delivery_partner']) ? ' - ' . htmlspecialchars($order['delivery_partner']) : '' ?></p>
+                    <?php if (!empty($order['delivery_date'])): ?><p><strong>Ngày giao:</strong> <?= date('d/m/Y', strtotime($order['delivery_date'])) ?></p><?php endif; ?>
+                    <?php if (!empty($order['shipping_address'])): ?><p><strong>Địa chỉ giao:</strong> <?= htmlspecialchars($order['shipping_address']) ?></p><?php endif; ?>
+                    <?php if (!empty($order['shipping_contact']) || !empty($order['shipping_phone'])): ?>
+                        <p><strong>Người nhận:</strong> <?= htmlspecialchars($order['shipping_contact'] ?? '-') ?><?= !empty($order['shipping_phone']) ? ' - ĐT: ' . htmlspecialchars($order['shipping_phone']) : '' ?></p>
+                    <?php endif; ?>
+                    <?php if (!empty($order['delivery_notes'])): ?><p><strong>Điều khoản:</strong> <?= nl2br(htmlspecialchars($order['delivery_notes'])) ?></p><?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <table>
                 <thead>
                     <tr>
                         <th>#</th>
+                        <th>Mã SP</th>
                         <th>Sản phẩm / Dịch vụ</th>
                         <th class="text-right">SL</th>
                         <th>ĐVT</th>
                         <th class="text-right">Đơn giá</th>
+                        <th class="text-right">CK</th>
                         <th class="text-right">Thuế</th>
                         <th class="text-right">Thành tiền</th>
                     </tr>
@@ -194,10 +230,12 @@ class PdfService
                     <?php foreach ($items as $i => $item): ?>
                     <tr>
                         <td><?= $i + 1 ?></td>
+                        <td><?= htmlspecialchars($item['sku'] ?? '-') ?></td>
                         <td><?= htmlspecialchars($item['product_name'] ?? '') ?></td>
                         <td class="text-right"><?= $item['quantity'] ?? 0 ?></td>
                         <td><?= htmlspecialchars($item['unit'] ?? '') ?></td>
                         <td class="text-right"><?= number_format((float)($item['unit_price'] ?? 0), 0, ',', '.') ?></td>
+                        <td class="text-right"><?= (float)($item['discount'] ?? 0) > 0 ? number_format((float)$item['discount'], 0, ',', '.') : '-' ?></td>
                         <td class="text-right"><?= ($item['tax_rate'] ?? 0) ?>%</td>
                         <td class="text-right"><?= number_format((float)($item['total'] ?? 0), 0, ',', '.') ?></td>
                     </tr>
@@ -207,11 +245,21 @@ class PdfService
 
             <table class="totals">
                 <tr><td>Tạm tính:</td><td class="text-right"><?= number_format((float)($order['subtotal'] ?? 0), 0, ',', '.') ?> đ</td></tr>
+                <?php if (($order['transport_amount'] ?? 0) > 0): ?>
+                <tr><td>Phí vận chuyển:</td><td class="text-right"><?= number_format((float)$order['transport_amount'], 0, ',', '.') ?> đ</td></tr>
+                <?php endif; ?>
+                <?php if (($order['installation_amount'] ?? 0) > 0): ?>
+                <tr><td>Phí lắp đặt:</td><td class="text-right"><?= number_format((float)$order['installation_amount'], 0, ',', '.') ?> đ</td></tr>
+                <?php endif; ?>
                 <tr><td>Thuế:</td><td class="text-right"><?= number_format((float)($order['tax_amount'] ?? 0), 0, ',', '.') ?> đ</td></tr>
                 <?php if (($order['discount_amount'] ?? 0) > 0): ?>
-                <tr><td>Giảm giá:</td><td class="text-right">-<?= number_format((float)$order['discount_amount'], 0, ',', '.') ?> đ</td></tr>
+                <tr><td>Chiết khấu:</td><td class="text-right">-<?= number_format((float)$order['discount_amount'], 0, ',', '.') ?> đ</td></tr>
                 <?php endif; ?>
                 <tr class="grand-total"><td>TỔNG CỘNG:</td><td class="text-right"><?= number_format((float)($order['total'] ?? 0), 0, ',', '.') ?> đ</td></tr>
+                <?php if (($order['paid_amount'] ?? 0) > 0): ?>
+                <tr><td>Đã thanh toán:</td><td class="text-right"><?= number_format((float)$order['paid_amount'], 0, ',', '.') ?> đ</td></tr>
+                <tr><td>Còn lại:</td><td class="text-right"><?= number_format(max(0, (float)($order['total'] ?? 0) - (float)($order['paid_amount'] ?? 0)), 0, ',', '.') ?> đ</td></tr>
+                <?php endif; ?>
             </table>
 
             <?php if (!empty($order['notes'])): ?>
