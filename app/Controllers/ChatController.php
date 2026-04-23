@@ -1009,6 +1009,136 @@ class ChatController extends Controller
         return $this->json(['messages' => $messages, 'my_id' => $uid]);
     }
 
+    /** Rename a group — admin only. */
+    public function renameGroup($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        if (!$this->isGroupAdmin((int)$id, $uid)) return $this->json(['error' => 'forbidden'], 403);
+        $name = trim((string)$this->input('name', ''));
+        if ($name === '') return $this->json(['error' => 'empty'], 400);
+        Database::update('conversations', ['name' => mb_substr($name, 0, 100)], 'id = ? AND tenant_id = ? AND channel = \'group\'', [$id, $tid]);
+        return $this->json(['success' => true, 'name' => $name]);
+    }
+
+    /** Add members to a group — admin only. */
+    public function addGroupMembers($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        if (!$this->isGroupAdmin((int)$id, $uid)) return $this->json(['error' => 'forbidden'], 403);
+        $members = array_values(array_unique(array_filter(array_map('intval', (array) $this->input('members', [])))));
+        if (!$members) return $this->json(['error' => 'empty'], 400);
+
+        $ph = implode(',', array_fill(0, count($members), '?'));
+        $valid = Database::fetchAll(
+            "SELECT id FROM users WHERE id IN ({$ph}) AND tenant_id = ? AND is_active = 1",
+            array_merge($members, [$tid])
+        );
+        $added = 0;
+        foreach ($valid as $v) {
+            try {
+                Database::query(
+                    "INSERT IGNORE INTO conversation_members (conversation_id, user_id) VALUES (?, ?)",
+                    [$id, (int)$v['id']]
+                );
+                $added++;
+            } catch (\Throwable $e) {}
+        }
+        // System message
+        Database::insert('messages', [
+            'conversation_id' => $id,
+            'direction' => 'outbound',
+            'sender_type' => 'system',
+            'sender_id' => $uid,
+            'content' => "Đã thêm $added thành viên mới vào nhóm.",
+            'content_type' => 'text',
+        ]);
+        return $this->json(['success' => true, 'added' => $added]);
+    }
+
+    /** Remove a member from a group — admin only. */
+    public function removeGroupMember($id, $userId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $uid = $this->userId();
+        if (!$this->isGroupAdmin((int)$id, $uid)) return $this->json(['error' => 'forbidden'], 403);
+        if ((int)$userId === $uid) return $this->json(['error' => 'cant_remove_self'], 400);
+        Database::query("DELETE FROM conversation_members WHERE conversation_id = ? AND user_id = ?", [$id, $userId]);
+        $removed = Database::fetch("SELECT name FROM users WHERE id = ?", [$userId]);
+        Database::insert('messages', [
+            'conversation_id' => $id,
+            'direction' => 'outbound',
+            'sender_type' => 'system',
+            'sender_id' => $uid,
+            'content' => "Đã xóa " . ($removed['name'] ?? 'một thành viên') . " khỏi nhóm.",
+            'content_type' => 'text',
+        ]);
+        return $this->json(['success' => true]);
+    }
+
+    /** Leave a group (any member). If last admin, promote the oldest remaining member. */
+    public function leaveGroup($id)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $group = $this->loadGroup((int)$id, $uid, $tid);
+        if (!$group) return $this->json(['error' => 'not_member'], 404);
+
+        $me = Database::fetch("SELECT role FROM conversation_members WHERE conversation_id = ? AND user_id = ?", [$id, $uid]);
+        Database::query("DELETE FROM conversation_members WHERE conversation_id = ? AND user_id = ?", [$id, $uid]);
+
+        // Promote if I was the last admin
+        if ($me && $me['role'] === 'admin') {
+            $adminLeft = (int)(Database::fetch("SELECT COUNT(*) as c FROM conversation_members WHERE conversation_id = ? AND role = 'admin'", [$id])['c'] ?? 0);
+            if ($adminLeft === 0) {
+                $oldest = Database::fetch("SELECT user_id FROM conversation_members WHERE conversation_id = ? ORDER BY joined_at ASC LIMIT 1", [$id]);
+                if ($oldest) {
+                    Database::query("UPDATE conversation_members SET role = 'admin' WHERE conversation_id = ? AND user_id = ?", [$id, $oldest['user_id']]);
+                }
+            }
+        }
+
+        $myName = Database::fetch("SELECT name FROM users WHERE id = ?", [$uid])['name'] ?? 'Một thành viên';
+        Database::insert('messages', [
+            'conversation_id' => $id,
+            'direction' => 'outbound',
+            'sender_type' => 'system',
+            'sender_id' => $uid,
+            'content' => $myName . " đã rời nhóm.",
+            'content_type' => 'text',
+        ]);
+        return $this->json(['success' => true]);
+    }
+
+    /** Get members list for the group settings modal. */
+    public function groupMembers($id)
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        if (!$this->loadGroup((int)$id, $uid, $tid)) return $this->json(['error' => 'forbidden'], 403);
+        $rows = Database::fetchAll(
+            "SELECT u.id, u.name, u.avatar, u.email, cm.role, p.name as position_name
+             FROM conversation_members cm
+             JOIN users u ON u.id = cm.user_id
+             LEFT JOIN positions p ON p.id = u.position_id
+             WHERE cm.conversation_id = ?
+             ORDER BY cm.role DESC, u.name ASC",
+            [$id]
+        );
+        $isAdmin = $this->isGroupAdmin((int)$id, $uid);
+        return $this->json(['members' => $rows, 'is_admin' => $isAdmin, 'my_id' => $uid]);
+    }
+
+    private function isGroupAdmin(int $gid, int $uid): bool
+    {
+        $r = Database::fetch("SELECT role FROM conversation_members WHERE conversation_id = ? AND user_id = ?", [$gid, $uid]);
+        return $r && $r['role'] === 'admin';
+    }
+
     private function loadGroup(int $id, int $uid, int $tid): ?array
     {
         return Database::fetch(

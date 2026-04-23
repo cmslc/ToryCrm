@@ -262,20 +262,25 @@ if ($isAi) {
                     $pollPath = url('chat/internal/' . $active['id'] . '/poll');
                 }
                 ?>
-                <div class="p-3 border-bottom d-flex align-items-center">
-                    <div class="avatar-sm me-2">
-                        <?php if ($isActiveGroup): ?>
-                            <div class="avatar-title rounded-circle bg-info-subtle text-info"><i class="ri-group-line"></i></div>
-                        <?php elseif (!empty($peer['avatar'])): ?>
-                            <img src="<?= asset($peer['avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
-                        <?php else: ?>
-                            <div class="avatar-title rounded-circle bg-primary-subtle text-primary"><?= strtoupper(mb_substr($headerName ?: '?', 0, 1)) ?></div>
-                        <?php endif; ?>
+                <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-2">
+                            <?php if ($isActiveGroup): ?>
+                                <div class="avatar-title rounded-circle bg-info-subtle text-info"><i class="ri-group-line"></i></div>
+                            <?php elseif (!empty($peer['avatar'])): ?>
+                                <img src="<?= asset($peer['avatar']) ?>" class="rounded-circle" width="36" height="36" style="object-fit:cover">
+                            <?php else: ?>
+                                <div class="avatar-title rounded-circle bg-primary-subtle text-primary"><?= strtoupper(mb_substr($headerName ?: '?', 0, 1)) ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <div class="fw-semibold"><?= e($headerName) ?></div>
+                            <small class="text-muted"><?= e($headerSub) ?></small>
+                        </div>
                     </div>
-                    <div>
-                        <div class="fw-semibold"><?= e($headerName) ?></div>
-                        <small class="text-muted"><?= e($headerSub) ?></small>
-                    </div>
+                    <?php if ($isActiveGroup): ?>
+                    <button type="button" class="btn btn-soft-secondary btn-icon" id="groupSettingsBtn" title="Quản lý nhóm" data-bs-toggle="modal" data-bs-target="#groupSettingsModal"><i class="ri-settings-3-line"></i></button>
+                    <?php endif; ?>
                 </div>
 
                 <div id="msgArea" class="flex-grow-1 px-3 py-2" style="overflow-y:auto">
@@ -856,6 +861,161 @@ if ($isAi) {
         </form>
     </div>
 </div>
+
+<?php if ($isActiveGroup ?? false): ?>
+<!-- Group Settings Modal -->
+<div class="modal fade" id="groupSettingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ri-settings-3-line me-1"></i>Quản lý nhóm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#gsInfo">Thông tin</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#gsMembers">Thành viên</button></li>
+                    <li class="nav-item"><button class="nav-link text-danger" data-bs-toggle="tab" data-bs-target="#gsDanger">Hành động</button></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="gsInfo">
+                        <div class="mb-3">
+                            <label class="form-label">Tên nhóm</label>
+                            <div class="input-group">
+                                <input type="text" id="gsName" class="form-control" value="<?= e($active['name'] ?? '') ?>" maxlength="100">
+                                <button type="button" class="btn btn-primary" id="gsSaveName">Lưu</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="gsMembers">
+                        <div class="mb-2" id="gsAddArea" style="display:none">
+                            <label class="form-label">Thêm thành viên</label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="gsAddSearch" class="form-control" placeholder="Tìm nhân viên để thêm...">
+                                <button type="button" class="btn btn-soft-primary" id="gsAddBtn" disabled>Thêm <span id="gsAddCount">0</span></button>
+                            </div>
+                            <div id="gsAddResults" class="border rounded" style="max-height:180px;overflow-y:auto;display:none"></div>
+                        </div>
+                        <div id="gsMemberList" class="border rounded" style="max-height:320px;overflow-y:auto">
+                            <div class="text-center text-muted py-3">Đang tải...</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="gsDanger">
+                        <p class="text-muted small">Rời nhóm sẽ xóa bạn khỏi danh sách thành viên. Bạn sẽ không thấy tin nhắn mới.</p>
+                        <button type="button" class="btn btn-outline-danger" id="gsLeaveBtn"><i class="ri-logout-box-line me-1"></i>Rời nhóm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function(){
+    var gid = <?= (int)$active['id'] ?>;
+    var myId = <?= (int)$myId ?>;
+    var tok = '<?= csrf_token() ?>';
+    var assetBase = '<?= rtrim(url(''), '/') ?>/';
+    var modal = document.getElementById('groupSettingsModal');
+    if (!modal) return;
+    var nameInput = document.getElementById('gsName');
+    var memberList = document.getElementById('gsMemberList');
+    var addArea = document.getElementById('gsAddArea');
+    var addSearch = document.getElementById('gsAddSearch');
+    var addResults = document.getElementById('gsAddResults');
+    var addBtn = document.getElementById('gsAddBtn');
+    var addCount = document.getElementById('gsAddCount');
+    var addSelected = {}; // id -> name
+    var allUsers = <?= json_encode(array_map(fn($u) => ['id'=>(int)$u['id'],'name'=>$u['name'],'email'=>$u['email'],'avatar'=>$u['avatar']??'','position'=>$u['position_name']??''], $users), JSON_UNESCAPED_UNICODE) ?>;
+    var isAdmin = false;
+
+    function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function avatar(u, size){ size = size||32; return u.avatar ? '<img src="'+assetBase+u.avatar+'" class="rounded-circle" width="'+size+'" height="'+size+'" style="object-fit:cover">' : '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:'+size+'px;height:'+size+'px">'+esc((u.name||'?').charAt(0).toUpperCase())+'</div>'; }
+
+    function loadMembers(){
+        fetch('<?= url('chat/group/') ?>'+gid+'/members').then(r=>r.json()).then(function(d){
+            isAdmin = !!d.is_admin;
+            addArea.style.display = isAdmin ? '' : 'none';
+            nameInput.disabled = !isAdmin;
+            document.getElementById('gsSaveName').style.display = isAdmin ? '' : 'none';
+            memberList.innerHTML = (d.members||[]).map(function(m){
+                var canRemove = isAdmin && m.id != myId;
+                return '<div class="d-flex align-items-center px-3 py-2 border-bottom">'
+                     + avatar(m, 36)
+                     + '<div class="flex-grow-1 ms-2 text-truncate">'
+                     + '<div class="fw-medium text-dark">'+esc(m.name)+' '+(m.role==='admin'?'<span class="badge bg-info-subtle text-info ms-1">Admin</span>':'')+(m.id==myId?'<span class="badge bg-secondary-subtle text-secondary ms-1">Bạn</span>':'')+'</div>'
+                     + '<small class="text-muted text-truncate d-block">'+esc(m.position_name||'')+(m.position_name&&m.email?' · ':'')+esc(m.email||'')+'</small>'
+                     + '</div>'
+                     + (canRemove ? '<button class="btn btn-light btn-icon text-danger remove-mem-btn" data-uid="'+m.id+'" data-name="'+esc(m.name)+'" title="Xóa khỏi nhóm"><i class="ri-close-line"></i></button>' : '')
+                     + '</div>';
+            }).join('');
+        });
+    }
+
+    modal.addEventListener('show.bs.modal', loadMembers);
+
+    document.getElementById('gsSaveName').addEventListener('click', function(){
+        var n = nameInput.value.trim(); if (!n) return;
+        var fd = new FormData(); fd.append('_token', tok); fd.append('name', n);
+        fetch('<?= url('chat/group/') ?>'+gid+'/rename', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
+            if (d.success) { alert('Đã đổi tên nhóm.'); location.reload(); }
+            else alert(d.error || 'Lỗi');
+        });
+    });
+
+    memberList.addEventListener('click', function(e){
+        var b = e.target.closest('.remove-mem-btn'); if (!b) return;
+        if (!confirm('Xóa ' + b.dataset.name + ' khỏi nhóm?')) return;
+        var fd = new FormData(); fd.append('_token', tok);
+        fetch('<?= url('chat/group/') ?>'+gid+'/members/'+b.dataset.uid+'/remove', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
+            if (d.success) loadMembers();
+            else alert(d.error || 'Lỗi');
+        });
+    });
+
+    function refreshAddCount(){ var n = Object.keys(addSelected).length; addCount.textContent = n; addBtn.disabled = n === 0; }
+    addSearch.addEventListener('input', function(){
+        var q = this.value.trim().toLowerCase();
+        if (!q) { addResults.style.display='none'; return; }
+        var matched = allUsers.filter(u => u.name.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)).slice(0, 10);
+        addResults.innerHTML = matched.map(u =>
+            '<div class="d-flex align-items-center px-2 py-2 border-bottom" data-uid="'+u.id+'" data-name="'+esc(u.name)+'" style="cursor:pointer">'
+            + '<input type="checkbox" class="form-check-input me-2" '+(addSelected[u.id]?'checked':'')+'>'
+            + avatar(u, 28)
+            + '<div class="ms-2 text-truncate"><div class="fw-medium text-dark">'+esc(u.name)+'</div><small class="text-muted">'+esc(u.position||'')+(u.position&&u.email?' · ':'')+esc(u.email||'')+'</small></div>'
+            + '</div>'
+        ).join('');
+        addResults.style.display = matched.length ? 'block' : 'none';
+    });
+    addResults.addEventListener('click', function(e){
+        var row = e.target.closest('[data-uid]'); if (!row) return;
+        var uid = row.dataset.uid;
+        if (addSelected[uid]) { delete addSelected[uid]; } else { addSelected[uid] = row.dataset.name; }
+        row.querySelector('input').checked = !!addSelected[uid];
+        refreshAddCount();
+    });
+    addBtn.addEventListener('click', function(){
+        var ids = Object.keys(addSelected);
+        if (!ids.length) return;
+        var fd = new FormData(); fd.append('_token', tok);
+        ids.forEach(id => fd.append('members[]', id));
+        fetch('<?= url('chat/group/') ?>'+gid+'/members/add', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
+            if (d.success) { addSelected = {}; addSearch.value=''; addResults.style.display='none'; refreshAddCount(); loadMembers(); }
+            else alert(d.error || 'Lỗi');
+        });
+    });
+
+    document.getElementById('gsLeaveBtn').addEventListener('click', function(){
+        if (!confirm('Rời nhóm "<?= e($active['name'] ?? '') ?>"?')) return;
+        var fd = new FormData(); fd.append('_token', tok);
+        fetch('<?= url('chat/group/') ?>'+gid+'/leave', {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.json()).then(function(d){
+            if (d.success) window.location.href = '<?= url('chat') ?>';
+            else alert(d.error || 'Lỗi');
+        });
+    });
+})();
+</script>
+<?php endif; ?>
+
 <style>
     .member-item:hover { background:#f8f9fa; }
     .member-item:last-child { border-bottom:none !important; }

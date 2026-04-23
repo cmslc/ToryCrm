@@ -82,6 +82,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('chat/message/{msgId}/react', 'ChatController@reactMessage');
     Router::post('chat/message/{msgId}/edit', 'ChatController@editMessage');
     Router::post('chat/message/{msgId}/delete', 'ChatController@deleteMessage');
+    // Phase 2b: group admin
+    Router::get('chat/group/{id}/members', 'ChatController@groupMembers');
+    Router::post('chat/group/{id}/rename', 'ChatController@renameGroup');
+    Router::post('chat/group/{id}/members/add', 'ChatController@addGroupMembers');
+    Router::post('chat/group/{id}/members/{userId}/remove', 'ChatController@removeGroupMember');
+    Router::post('chat/group/{id}/leave', 'ChatController@leaveGroup');
     Router::get('chat/search', 'ChatController@searchMessages');
     Router::get('chat/unread-total', 'ChatController@unreadTotal');
     // Customer chat routes — kept for any legacy caller but UI entry removed
