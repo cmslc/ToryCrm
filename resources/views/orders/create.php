@@ -164,6 +164,16 @@ $dv = \App\Services\ColumnService::getDefaultValues('orders');
                     <input type="text" class="form-control" name="shipping_address" id="qShippingAddress" value="<?= e($pc['address'] ?? '') ?>">
                 </div>
             </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tên người nhận <small class="text-muted">(không nhập sẽ lấy người liên hệ)</small></label>
+                    <input type="text" class="form-control" name="shipping_contact" placeholder="Để trống để dùng người liên hệ">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">SĐT người nhận <small class="text-muted">(không nhập sẽ lấy người liên hệ)</small></label>
+                    <input type="text" class="form-control" name="shipping_phone" placeholder="Để trống để dùng SĐT người liên hệ">
+                </div>
+            </div>
             <div class="mb-3 d-none" id="deliveryPartnerRow">
                 <label class="form-label">Đối tác giao</label>
                 <input type="text" class="form-control" name="delivery_partner" placeholder="Tên đối tác giao hàng">

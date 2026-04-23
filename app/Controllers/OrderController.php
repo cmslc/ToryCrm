@@ -211,6 +211,16 @@ class OrderController extends Controller
         $orderModel = new Order();
         $orderNumber = $orderModel->generateOrderNumber($type);
 
+        $shipContact = trim($data['shipping_contact'] ?? '');
+        $shipPhone = trim($data['shipping_phone'] ?? '');
+        if ((!$shipContact || !$shipPhone) && !empty($data['contact_person_id'])) {
+            $cp = Database::fetch("SELECT full_name, phone FROM contact_persons WHERE id = ?", [$data['contact_person_id']]);
+            if ($cp) {
+                if (!$shipContact) $shipContact = $cp['full_name'] ?? '';
+                if (!$shipPhone) $shipPhone = $cp['phone'] ?? '';
+            }
+        }
+
         Database::beginTransaction();
         try {
             $orderId = Database::insert('orders', [
@@ -230,8 +240,8 @@ class OrderController extends Controller
                 'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : $this->userId(),
                 'created_by' => $this->userId(),
                 'shipping_address' => trim($data['shipping_address'] ?? '') ?: null,
-                'shipping_contact' => trim($data['shipping_contact'] ?? '') ?: null,
-                'shipping_phone' => trim($data['shipping_phone'] ?? '') ?: null,
+                'shipping_contact' => $shipContact ?: null,
+                'shipping_phone' => $shipPhone ?: null,
                 'shipping_province' => trim($data['shipping_province'] ?? '') ?: null,
                 'shipping_district' => trim($data['shipping_district'] ?? '') ?: null,
                 'delivery_type' => in_array($data['delivery_type'] ?? '', ['self','partner'], true) ? $data['delivery_type'] : 'self',
@@ -478,6 +488,16 @@ class OrderController extends Controller
 
         $data = $this->allInput();
 
+        $shipContact = trim($data['shipping_contact'] ?? '');
+        $shipPhone = trim($data['shipping_phone'] ?? '');
+        if ((!$shipContact || !$shipPhone) && !empty($data['contact_person_id'])) {
+            $cp = Database::fetch("SELECT full_name, phone FROM contact_persons WHERE id = ?", [$data['contact_person_id']]);
+            if ($cp) {
+                if (!$shipContact) $shipContact = $cp['full_name'] ?? '';
+                if (!$shipPhone) $shipPhone = $cp['phone'] ?? '';
+            }
+        }
+
         Database::update('orders', [
             'status' => $data['status'] ?? $order['status'],
             'contact_id' => !empty($data['contact_id']) ? $data['contact_id'] : null,
@@ -493,8 +513,8 @@ class OrderController extends Controller
             'issued_date' => !empty($data['issued_date']) ? $data['issued_date'] : null,
             'owner_id' => !empty($data['owner_id']) ? $data['owner_id'] : null,
             'shipping_address' => trim($data['shipping_address'] ?? '') ?: null,
-            'shipping_contact' => trim($data['shipping_contact'] ?? '') ?: null,
-            'shipping_phone' => trim($data['shipping_phone'] ?? '') ?: null,
+            'shipping_contact' => $shipContact ?: null,
+            'shipping_phone' => $shipPhone ?: null,
             'shipping_province' => trim($data['shipping_province'] ?? '') ?: null,
             'shipping_district' => trim($data['shipping_district'] ?? '') ?: null,
             'delivery_type' => in_array($data['delivery_type'] ?? '', ['self','partner'], true) ? $data['delivery_type'] : 'self',
