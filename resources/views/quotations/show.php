@@ -56,15 +56,16 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                 $cCode = $quotation['c_account_code'] ?? '';
                 ?>
                 <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5></div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="text-muted mb-2"><i class="ri-user-3-line me-1"></i>Khách hàng</h6>
+                                <h6 class="text-muted mb-2">Khách hàng</h6>
                                 <?php if ($cName): ?>
                                     <p class="mb-1 fw-medium">
                                         <a href="<?= url('contacts/' . $quotation['contact_id']) ?>"><?= e($cName) ?></a>
-                                        <?php if ($cCode): ?><span class="text-muted">(<?= e($cCode) ?>)</span><?php endif; ?>
                                     </p>
+                                    <?php if ($cCode): ?><p class="mb-1 text-muted"><i class="ri-user-line me-1"></i>Mã KH: <?= e($cCode) ?></p><?php endif; ?>
                                     <?php if ($cTax): ?><p class="mb-1 text-muted"><i class="ri-hashtag me-1"></i>MST: <?= e($cTax) ?></p><?php endif; ?>
                                     <?php if ($cAddress): ?><p class="mb-1 text-muted"><i class="ri-map-pin-line me-1"></i><?= e($cAddress) ?></p><?php endif; ?>
                                     <?php if ($cPhone): ?><p class="mb-1 text-muted"><i class="ri-phone-line me-1"></i><?= e($cPhone) ?></p><?php endif; ?>
@@ -74,7 +75,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                                 <?php endif; ?>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="text-muted mb-2"><i class="ri-contacts-book-line me-1"></i>Người liên hệ</h6>
+                                <h6 class="text-muted mb-2">Người liên hệ</h6>
                                 <?php
                                 $cp = null;
                                 if ($quotation['contact_person_id'] ?? null) {
@@ -101,7 +102,7 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
 
                 <!-- Items Table -->
                 <div class="card">
-                    <div class="card-header"><h5 class="card-title mb-0">Chi tiết sản phẩm / Dịch vụ</h5></div>
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-shopping-bag-line me-1"></i> Chi tiết sản phẩm / Dịch vụ</h5></div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
@@ -182,17 +183,18 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
 
                 <?php if (($quotation['notes'] ?? null) || ($quotation['terms'] ?? null)): ?>
                 <div class="card">
+                    <div class="card-header"><h5 class="card-title mb-0"><i class="ri-sticky-note-line me-1"></i> Ghi chú &amp; Điều khoản</h5></div>
                     <div class="card-body">
                         <div class="row">
                             <?php if ($quotation['notes']): ?>
                             <div class="<?= $quotation['terms'] ? 'col-md-6' : 'col-12' ?>">
-                                <h6 class="text-muted mb-2"><i class="ri-sticky-note-line me-1"></i> Ghi chú</h6>
+                                <h6 class="text-muted mb-2">Ghi chú</h6>
                                 <p class="mb-0"><?= nl2br(e($quotation['notes'])) ?></p>
                             </div>
                             <?php endif; ?>
                             <?php if ($quotation['terms']): ?>
                             <div class="<?= $quotation['notes'] ? 'col-md-6' : 'col-12' ?>">
-                                <h6 class="text-muted mb-2"><i class="ri-shield-check-line me-1"></i> Điều khoản</h6>
+                                <h6 class="text-muted mb-2">Điều khoản</h6>
                                 <p class="mb-0"><?= nl2br(e($quotation['terms'])) ?></p>
                             </div>
                             <?php endif; ?>
@@ -253,78 +255,74 @@ $sl = ['draft'=>'Nháp','pending'=>'Chờ duyệt','approved'=>'Đã duyệt','r
                 <!-- Thông tin -->
                 <div class="card">
                     <div class="card-header"><h5 class="card-title mb-0"><i class="ri-information-line me-1"></i> Thông tin</h5></div>
-                    <div class="card-body p-0">
-                        <table class="table table-borderless mb-0">
-                            <tbody>
-                                <tr>
-                                    <td class="text-muted" style="width:40%">Trạng thái</td>
-                                    <td><span class="badge bg-<?= $sc[$quotation['status']] ?? 'secondary' ?>"><?= $sl[$quotation['status']] ?? '' ?></span></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Hiệu lực đến</td>
-                                    <td>
-                                        <?php if ($quotation['valid_until']):
-                                            $isExpired = $quotation['valid_until'] < date('Y-m-d');
-                                        ?>
-                                            <span class="<?= $isExpired ? 'text-danger' : 'text-success' ?>"><?= format_date($quotation['valid_until']) ?></span>
-                                            <?php if ($isExpired): ?><span class="badge bg-danger ms-1">Hết hạn</span><?php endif; ?>
-                                        <?php else: ?>-<?php endif; ?>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Lần báo giá</td>
-                                    <td><?= (int)($quotation['revision'] ?? 1) ?></td>
-                                </tr>
-                                <?php if ($quotation['description'] ?? null): ?>
-                                <tr>
-                                    <td class="text-muted">Mô tả</td>
-                                    <td><?= e($quotation['description']) ?></td>
-                                </tr>
-                                <?php endif; ?>
-                                <?php if ($quotation['project'] ?? null): ?>
-                                <tr>
-                                    <td class="text-muted">Dự án</td>
-                                    <td><?= e($quotation['project']) ?></td>
-                                </tr>
-                                <?php endif; ?>
-                                <?php if ($quotation['location'] ?? null): ?>
-                                <tr>
-                                    <td class="text-muted">Địa điểm</td>
-                                    <td><?= e($quotation['location']) ?></td>
-                                </tr>
-                                <?php endif; ?>
-                                <?php if ($quotation['campaign_id'] ?? null):
-                                    $campName = \Core\Database::fetch("SELECT name FROM campaigns WHERE id = ?", [$quotation['campaign_id']]);
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Trạng thái</span>
+                            <span class="badge bg-<?= $sc[$quotation['status']] ?? 'secondary' ?>"><?= $sl[$quotation['status']] ?? '' ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Hiệu lực đến</span>
+                            <span>
+                                <?php if ($quotation['valid_until']):
+                                    $isExpired = $quotation['valid_until'] < date('Y-m-d');
                                 ?>
-                                <tr>
-                                    <td class="text-muted">Chiến dịch</td>
-                                    <td><?= e($campName['name'] ?? '-') ?></td>
-                                </tr>
-                                <?php endif; ?>
-                                <tr>
-                                    <td class="text-muted">Người thực hiện</td>
-                                    <td class="fw-medium"><?= e($quotation['owner_name'] ?? '-') ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Người tạo</td>
-                                    <td><?= e($quotation['created_by_name'] ?? '-') ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Ngày tạo</td>
-                                    <td><?= format_datetime($quotation['created_at']) ?></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Lượt xem</td>
-                                    <td><i class="ri-eye-line me-1 text-muted"></i><?= (int)($quotation['view_count'] ?? 0) ?></td>
-                                </tr>
-                                <?php if ($quotation['deal_title']): ?>
-                                <tr>
-                                    <td class="text-muted">Cơ hội</td>
-                                    <td><a href="<?= url('deals/' . $quotation['deal_id']) ?>"><?= e($quotation['deal_title']) ?></a></td>
-                                </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    <span class="<?= $isExpired ? 'text-danger' : 'text-success' ?>"><?= format_date($quotation['valid_until']) ?></span>
+                                    <?php if ($isExpired): ?><span class="badge bg-danger ms-1">Hết hạn</span><?php endif; ?>
+                                <?php else: ?>-<?php endif; ?>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Lần báo giá</span>
+                            <span><?= (int)($quotation['revision'] ?? 1) ?></span>
+                        </div>
+                        <?php if ($quotation['description'] ?? null): ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Mô tả</span>
+                            <span class="text-end"><?= e($quotation['description']) ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ($quotation['project'] ?? null): ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Dự án</span>
+                            <span class="text-end"><?= e($quotation['project']) ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ($quotation['location'] ?? null): ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Địa điểm</span>
+                            <span class="text-end"><?= e($quotation['location']) ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ($quotation['campaign_id'] ?? null):
+                            $campName = \Core\Database::fetch("SELECT name FROM campaigns WHERE id = ?", [$quotation['campaign_id']]);
+                        ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Chiến dịch</span>
+                            <span><?= e($campName['name'] ?? '-') ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Người thực hiện</span>
+                            <span class="fw-medium"><?= e($quotation['owner_name'] ?? '-') ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Người tạo</span>
+                            <span><?= e($quotation['created_by_name'] ?? '-') ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Ngày tạo</span>
+                            <span><?= format_datetime($quotation['created_at']) ?></span>
+                        </div>
+                        <div class="d-flex justify-content-between <?= ($quotation['deal_title'] ?? null) ? 'mb-2' : 'mb-0' ?>">
+                            <span class="text-muted">Lượt xem</span>
+                            <span><i class="ri-eye-line me-1 text-muted"></i><?= (int)($quotation['view_count'] ?? 0) ?></span>
+                        </div>
+                        <?php if ($quotation['deal_title']): ?>
+                        <div class="d-flex justify-content-between mb-0">
+                            <span class="text-muted">Cơ hội</span>
+                            <a href="<?= url('deals/' . $quotation['deal_id']) ?>"><?= e($quotation['deal_title']) ?></a>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
