@@ -213,7 +213,7 @@ if ($shipFull === '' && $cAddress !== '') {
                     <?php if ($order['order_terms'] ?? null): ?>
                     <div class="<?= ($order['notes'] ?? null) ? 'col-md-6' : 'col-12' ?>">
                         <h6 class="text-muted mb-2"><i class="ri-shield-check-line me-1"></i> Điều khoản</h6>
-                        <p class="mb-0"><?= nl2br(e($order['order_terms'])) ?></p>
+                        <div class="mb-0"><?= html_entity_decode($order['order_terms'], ENT_QUOTES | ENT_HTML5, 'UTF-8') ?></div>
                     </div>
                     <?php endif; ?>
                 </div>
