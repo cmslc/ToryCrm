@@ -56,10 +56,11 @@ if ($shipFull === '' && $cAddress !== '') {
     <div class="col-lg-9">
         <!-- Thông tin khách hàng -->
         <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-user-3-line me-1"></i> Thông tin khách hàng</h5></div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="text-muted mb-2"><i class="ri-user-3-line me-1"></i>Khách hàng</h6>
+                        <h6 class="text-muted mb-2">Khách hàng</h6>
                         <?php if ($cName): ?>
                             <p class="mb-1 fw-medium">
                                 <a href="<?= url('contacts/' . $order['contact_id']) ?>"><?= e($cName) ?></a>
@@ -202,17 +203,18 @@ if ($shipFull === '' && $cAddress !== '') {
         <!-- Ghi chú & Điều khoản -->
         <?php if (($order['notes'] ?? null) || ($order['order_terms'] ?? null)): ?>
         <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0"><i class="ri-sticky-note-line me-1"></i> Ghi chú &amp; Điều khoản</h5></div>
             <div class="card-body">
                 <div class="row">
                     <?php if ($order['notes'] ?? null): ?>
                     <div class="<?= ($order['order_terms'] ?? null) ? 'col-md-6' : 'col-12' ?>">
-                        <h6 class="text-muted mb-2"><i class="ri-sticky-note-line me-1"></i> Ghi chú</h6>
+                        <h6 class="text-muted mb-2">Ghi chú</h6>
                         <p class="mb-0"><?= nl2br(e($order['notes'])) ?></p>
                     </div>
                     <?php endif; ?>
                     <?php if ($order['order_terms'] ?? null): ?>
                     <div class="<?= ($order['notes'] ?? null) ? 'col-md-6' : 'col-12' ?>">
-                        <h6 class="text-muted mb-2"><i class="ri-shield-check-line me-1"></i> Điều khoản</h6>
+                        <h6 class="text-muted mb-2">Điều khoản</h6>
                         <div class="mb-0"><?= html_entity_decode($order['order_terms'], ENT_QUOTES | ENT_HTML5, 'UTF-8') ?></div>
                     </div>
                     <?php endif; ?>
