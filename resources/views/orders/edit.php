@@ -198,15 +198,13 @@ $req = array_flip(\App\Services\ColumnService::getRequiredFields('orders'));
     <!-- Ghi chú -->
     <div class="card">
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label"><?= $fl["notes"] ?? "Ghi chú" ?></label>
-                    <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú đơn hàng..."><?= e($o['notes'] ?? '') ?></textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label"><?= $fl["order_terms"] ?? "Điều khoản" ?></label>
-                    <textarea name="order_terms" class="form-control" rows="3" placeholder="Điều khoản thanh toán..."><?= e($o['order_terms'] ?? '') ?></textarea>
-                </div>
+            <div class="mb-3">
+                <label class="form-label"><?= $fl["notes"] ?? "Ghi chú" ?></label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú đơn hàng..."><?= e($o['notes'] ?? '') ?></textarea>
+            </div>
+            <div class="mb-0">
+                <label class="form-label"><?= $fl["order_terms"] ?? "Điều khoản" ?></label>
+                <textarea name="order_terms" id="orderTerms" class="form-control" rows="6"><?= $o['order_terms'] ?? '' ?></textarea>
             </div>
         </div>
     </div>
@@ -496,4 +494,10 @@ if (existingItems.length > 0) {
 document.querySelectorAll('input[name="delivery_type"]').forEach(r => r.addEventListener('change', function() {
     document.getElementById('deliveryPartnerRow').classList.toggle('d-none', this.value !== 'partner');
 }));
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ckeditor/4.22.1/ckeditor.js"></script>
+<script>
+if (typeof CKEDITOR !== 'undefined') {
+    CKEDITOR.replace('orderTerms', { language: 'vi', height: 220, allowedContent: true });
+}
 </script>
