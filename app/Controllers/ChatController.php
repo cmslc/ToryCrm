@@ -512,7 +512,13 @@ class ChatController extends Controller
         $tid = $this->tenantId();
         $uid = $this->userId();
         $content = trim((string) $this->input('content', ''));
-        if ($content === '') return $this->redirect('chat/internal?active=' . (int)$id);
+
+        $attachments = [];
+        if (!empty($_FILES['attachment']['tmp_name']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+            $att = $this->saveChatAttachment($_FILES['attachment'], (int)$id);
+            if ($att) $attachments[] = $att;
+        }
+        if ($content === '' && empty($attachments)) return $this->redirect('chat/internal?active=' . (int)$id);
 
         $dm = $this->loadDm((int)$id, $uid, $tid);
         if (!$dm) {
@@ -521,13 +527,15 @@ class ChatController extends Controller
         }
 
         $peerIsA = ($dm['user_a_id'] != $uid); // if I'm B, peer is A, so increment unread_a
+        $contentType = !empty($attachments) && !empty($attachments[0]['is_image']) ? 'image' : (!empty($attachments) ? 'file' : 'text');
         Database::insert('messages', [
             'conversation_id' => $id,
             'direction' => 'outbound',
             'sender_type' => 'user',
             'sender_id' => $uid,
-            'content' => $content,
-            'content_type' => 'text',
+            'content' => $content ?: ($attachments[0]['name'] ?? ''),
+            'content_type' => $contentType,
+            'attachments' => $attachments ? json_encode($attachments, JSON_UNESCAPED_UNICODE) : null,
         ]);
 
         $updates = [
@@ -590,5 +598,231 @@ class ChatController extends Controller
     private function isAjax(): bool
     {
         return ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
+    }
+
+    // ==========================================================
+    // Phase 2: Groups, attachments, pin, search
+    // ==========================================================
+
+    /** Create a group chat with a name + picked members. */
+    public function internalCreateGroup()
+    {
+        if (!$this->isPost()) return $this->redirect('chat/internal');
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+
+        $name = trim((string) $this->input('name', ''));
+        $members = (array) ($this->input('members') ?? []);
+        $members = array_values(array_unique(array_filter(array_map('intval', $members), fn($i) => $i > 0 && $i !== $uid)));
+
+        if ($name === '' || count($members) < 2) {
+            $this->setFlash('error', 'Cần tên nhóm và ít nhất 2 thành viên khác.');
+            return $this->redirect('chat/internal');
+        }
+
+        // Validate members belong to tenant
+        $ph = implode(',', array_fill(0, count($members), '?'));
+        $valid = Database::fetchAll(
+            "SELECT id FROM users WHERE id IN ({$ph}) AND tenant_id = ? AND is_active = 1",
+            array_merge($members, [$tid])
+        );
+        $validIds = array_column($valid, 'id');
+        if (count($validIds) !== count($members)) {
+            $this->setFlash('error', 'Một số user không hợp lệ.');
+            return $this->redirect('chat/internal');
+        }
+
+        $gid = Database::insert('conversations', [
+            'tenant_id' => $tid,
+            'channel' => 'group',
+            'status' => 'open',
+            'name' => mb_substr($name, 0, 100),
+            'created_by' => $uid,
+            'last_message_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        // Creator is admin, others are members
+        Database::query(
+            "INSERT INTO conversation_members (conversation_id, user_id, role) VALUES (?, ?, 'admin')",
+            [$gid, $uid]
+        );
+        foreach ($validIds as $mid) {
+            Database::query(
+                "INSERT IGNORE INTO conversation_members (conversation_id, user_id) VALUES (?, ?)",
+                [$gid, $mid]
+            );
+        }
+
+        return $this->redirect('chat/internal?active=' . $gid);
+    }
+
+    /** Send a message in a group thread. */
+    public function internalGroupReply($id)
+    {
+        if (!$this->isPost()) return $this->redirect('chat/internal?active=' . (int)$id);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $content = trim((string) $this->input('content', ''));
+
+        // Handle optional file upload
+        $attachments = [];
+        if (!empty($_FILES['attachment']['tmp_name']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+            $att = $this->saveChatAttachment($_FILES['attachment'], (int)$id);
+            if ($att) $attachments[] = $att;
+        }
+
+        if ($content === '' && empty($attachments)) {
+            return $this->isAjax() ? $this->json(['error' => 'Empty']) : $this->redirect('chat/internal?active=' . (int)$id);
+        }
+
+        $group = $this->loadGroup((int)$id, $uid, $tid);
+        if (!$group) {
+            return $this->isAjax() ? $this->json(['error' => 'forbidden'], 403) : $this->redirect('chat/internal');
+        }
+
+        $contentType = !empty($attachments) && !empty($attachments[0]['is_image']) ? 'image' : (!empty($attachments) ? 'file' : 'text');
+        Database::insert('messages', [
+            'conversation_id' => $id,
+            'direction' => 'outbound',
+            'sender_type' => 'user',
+            'sender_id' => $uid,
+            'content' => $content ?: ($attachments[0]['name'] ?? ''),
+            'content_type' => $contentType,
+            'attachments' => $attachments ? json_encode($attachments, JSON_UNESCAPED_UNICODE) : null,
+        ]);
+
+        // Bump unread for every other member
+        $preview = $content !== '' ? mb_substr($content, 0, 255) : ($attachments[0]['name'] ?? '📎');
+        Database::query(
+            "UPDATE conversations SET last_message_at = NOW(), last_message_preview = ? WHERE id = ?",
+            [$preview, $id]
+        );
+        Database::query(
+            "UPDATE conversation_members SET unread_count = unread_count + 1 WHERE conversation_id = ? AND user_id != ?",
+            [$id, $uid]
+        );
+
+        return $this->isAjax() ? $this->json(['success' => true]) : $this->redirect('chat/internal?active=' . $id);
+    }
+
+    /** Upload-only endpoint for DM (adds attachment to a new message). */
+    public function internalReplyWithAttachment($id)
+    {
+        return $this->internalReply($id); // DM path — internalReply already handles content
+    }
+
+    /** Pin / unpin a message. */
+    public function togglePin($msgId)
+    {
+        if (!$this->isPost()) return $this->json(['error' => 'method'], 405);
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $msg = Database::fetch(
+            "SELECT m.id, m.is_pinned, m.conversation_id, cv.channel, cv.user_a_id, cv.user_b_id
+             FROM messages m JOIN conversations cv ON m.conversation_id = cv.id
+             WHERE m.id = ? AND cv.tenant_id = ?",
+            [$msgId, $tid]
+        );
+        if (!$msg) return $this->json(['error' => 'not_found'], 404);
+
+        // Must be a member
+        $ok = false;
+        if ($msg['channel'] === 'internal') {
+            $ok = ($msg['user_a_id'] == $uid || $msg['user_b_id'] == $uid);
+        } elseif ($msg['channel'] === 'group') {
+            $mem = Database::fetch("SELECT 1 FROM conversation_members WHERE conversation_id = ? AND user_id = ?", [$msg['conversation_id'], $uid]);
+            $ok = (bool) $mem;
+        }
+        if (!$ok) return $this->json(['error' => 'forbidden'], 403);
+
+        $newVal = $msg['is_pinned'] ? 0 : 1;
+        Database::update('messages', ['is_pinned' => $newVal], 'id = ?', [$msgId]);
+        return $this->json(['success' => true, 'is_pinned' => $newVal]);
+    }
+
+    /** Full-text search across this user's conversations. */
+    public function searchMessages()
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $q = trim((string) $this->input('q', ''));
+        if (mb_strlen($q) < 2) return $this->json(['results' => []]);
+
+        $like = '%' . $q . '%';
+        $results = Database::fetchAll(
+            "SELECT m.id, m.conversation_id, m.content, m.created_at,
+                    cv.channel, cv.name as group_name,
+                    cv.user_a_id, cv.user_b_id,
+                    u.name as sender_name
+             FROM messages m
+             JOIN conversations cv ON m.conversation_id = cv.id
+             LEFT JOIN users u ON m.sender_id = u.id
+             LEFT JOIN conversation_members cm ON cm.conversation_id = cv.id AND cm.user_id = ?
+             WHERE cv.tenant_id = ?
+             AND (
+                  (cv.channel = 'internal' AND (cv.user_a_id = ? OR cv.user_b_id = ?))
+               OR (cv.channel = 'group' AND cm.user_id = ?)
+             )
+             AND m.content LIKE ?
+             ORDER BY m.created_at DESC LIMIT 30",
+            [$uid, $tid, $uid, $uid, $uid, $like]
+        );
+        return $this->json(['q' => $q, 'results' => $results]);
+    }
+
+    /** Update poll to also cover groups. */
+    public function internalGroupPoll($id)
+    {
+        $tid = $this->tenantId();
+        $uid = $this->userId();
+        $after = (int) $this->input('after', 0);
+        $group = $this->loadGroup((int)$id, $uid, $tid);
+        if (!$group) return $this->json(['error' => 'forbidden'], 403);
+
+        $messages = Database::fetchAll(
+            "SELECT m.*, u.name as sender_name, u.avatar as sender_avatar
+             FROM messages m LEFT JOIN users u ON m.sender_id = u.id
+             WHERE m.conversation_id = ? AND m.id > ?
+             ORDER BY m.created_at ASC",
+            [$id, $after]
+        );
+        if ($messages) {
+            Database::query(
+                "UPDATE conversation_members SET unread_count = 0, last_read_at = NOW() WHERE conversation_id = ? AND user_id = ?",
+                [$id, $uid]
+            );
+        }
+        return $this->json(['messages' => $messages, 'my_id' => $uid]);
+    }
+
+    private function loadGroup(int $id, int $uid, int $tid): ?array
+    {
+        return Database::fetch(
+            "SELECT cv.* FROM conversations cv
+             JOIN conversation_members cm ON cm.conversation_id = cv.id AND cm.user_id = ?
+             WHERE cv.id = ? AND cv.tenant_id = ? AND cv.channel = 'group'",
+            [$uid, $id, $tid]
+        );
+    }
+
+    /** Save uploaded attachment for chat — returns array {name, url, size, mime, is_image}. */
+    private function saveChatAttachment(array $file, int $convId): ?array
+    {
+        $maxSize = 10 * 1024 * 1024;
+        if ($file['size'] > $maxSize) return null;
+        $dir = BASE_PATH . '/public/uploads/chat/';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'];
+        if (!in_array($ext, $allowed, true)) return null;
+        $filename = 'c' . $convId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) return null;
+        return [
+            'name' => mb_substr($file['name'], 0, 200),
+            'url' => '/uploads/chat/' . $filename,
+            'size' => (int)$file['size'],
+            'mime' => $file['type'] ?: '',
+            'is_image' => in_array($ext, ['jpg','jpeg','png','gif','webp'], true),
+        ];
     }
 }

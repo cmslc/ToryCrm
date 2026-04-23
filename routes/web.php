@@ -68,12 +68,20 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('ai-chat/clear', 'AiChatController@clear');
 
     // Conversations (Hộp thư)
-    Router::get('chat', 'ChatController@index');
-    // Internal DM
-    Router::get('chat/internal', 'ChatController@internalIndex');
+    // Unified /chat = internal DM + Group + AI (customer chat no longer exposed)
+    Router::get('chat', 'ChatController@internalIndex');
+    Router::get('chat/internal', 'ChatController@internalIndex'); // legacy redirect
     Router::post('chat/internal/start/{peerId}', 'ChatController@internalStart');
     Router::post('chat/internal/{id}/reply', 'ChatController@internalReply');
     Router::get('chat/internal/{id}/poll', 'ChatController@internalPoll');
+    // Phase 2: groups, pin, search, attachments
+    Router::post('chat/group/create', 'ChatController@internalCreateGroup');
+    Router::post('chat/group/{id}/reply', 'ChatController@internalGroupReply');
+    Router::get('chat/group/{id}/poll', 'ChatController@internalGroupPoll');
+    Router::post('chat/message/{msgId}/pin', 'ChatController@togglePin');
+    Router::get('chat/search', 'ChatController@searchMessages');
+    // Customer chat routes — kept for any legacy caller but UI entry removed
+    Router::get('chat/customer', 'ChatController@index');
     Router::get('chat/create', 'ChatController@create');
     Router::get('chat/canned-responses', 'ChatController@cannedResponses');
     Router::post('chat/store', 'ChatController@store');
