@@ -673,7 +673,7 @@ class QuotationController extends Controller
                 'total' => $quotation['total'],
                 'currency' => 'VND',
                 'notes' => $quotation['notes'],
-                'order_terms' => $quotation['terms'] ?? null,
+                'order_terms' => !empty($quotation['terms']) ? $quotation['terms'] : ($quotation['content'] ?? null),
                 'shipping_address' => $quotation['address'] ?? null,
                 'owner_id' => $quotation['owner_id'],
                 'created_by' => $this->userId(),
