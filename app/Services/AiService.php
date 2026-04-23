@@ -24,8 +24,10 @@ class AiService
         return $val;
     }
 
-    public static function ask(string $message, int $tenantId, int $userId): string
+    public static function ask(string $message, int $tenantId, int $userId, array $options = []): string
     {
+        $t0 = microtime(true);
+
         // Load toggle states from tenant settings
         $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$tenantId]);
         $settings = json_decode($tenant['settings'] ?? '{}', true);
@@ -34,40 +36,66 @@ class AiService
             return !isset($apiEnabled[$key]) || $apiEnabled[$key];
         };
 
+        // Honor include_crm_context from settings (default ON for back-compat)
+        $includeContext = $settings['ai']['include_crm_context'] ?? true;
+        if (isset($options['include_context'])) $includeContext = (bool) $options['include_context'];
+
+        // Owner scope: visible user IDs passed from controller (null = no restriction)
+        $visibleUserIds = $options['visible_user_ids'] ?? null;
+
         // Detect which provider to use
         $deepseekKey = $on('deepseek') ? self::getEnvKey('DEEPSEEK_API_KEY') : '';
         $openrouterKey = $on('openrouter') ? self::getEnvKey('OPENROUTER_API_KEY') : '';
         $groqKey = $on('groq') ? self::getEnvKey('GROQ_API_KEY') : '';
         $geminiKey = $on('gemini') ? self::getEnvKey('GEMINI_API_KEY') : '';
 
-        $context = self::buildContext($tenantId, $userId);
+        $context = $includeContext ? self::buildContext($tenantId, $userId, $visibleUserIds) : '';
 
         $systemPrompt = "Bạn là ToryCRM AI - trợ lý thông minh cho hệ thống CRM. "
-            . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp. "
-            . "Dữ liệu CRM:\n" . $context;
+            . "Trả lời ngắn gọn, chính xác, bằng tiếng Việt. Dùng emoji phù hợp.";
+        if ($context !== '') $systemPrompt .= " Dữ liệu CRM:\n" . $context;
 
-        // Try DeepSeek first (works in Asia/HK)
-        if (!empty($deepseekKey)) {
-            return self::callDeepSeek($deepseekKey, $systemPrompt, $message);
+        $provider = 'fallback';
+        $response = '';
+        $error = null;
+        try {
+            if (!empty($deepseekKey)) {
+                $provider = 'deepseek';
+                $response = self::callDeepSeek($deepseekKey, $systemPrompt, $message);
+            } elseif (!empty($openrouterKey)) {
+                $provider = 'openrouter';
+                $response = self::callOpenRouter($openrouterKey, $systemPrompt, $message);
+            } elseif (!empty($groqKey)) {
+                $provider = 'groq';
+                $response = self::callGroq($groqKey, $systemPrompt, $message);
+            } elseif (!empty($geminiKey)) {
+                $provider = 'gemini';
+                $response = self::callGemini($geminiKey, $systemPrompt, $message);
+            } else {
+                $response = self::fallbackRuleBased($message, $tenantId, $userId);
+            }
+        } catch (\Throwable $e) {
+            $error = mb_substr($e->getMessage(), 0, 250);
+            $response = "Lỗi khi gọi AI: " . $error;
         }
 
-        // Then OpenRouter
-        if (!empty($openrouterKey)) {
-            return self::callOpenRouter($openrouterKey, $systemPrompt, $message);
-        }
+        // Audit log — what context was sent to which provider
+        try {
+            Database::insert('ai_query_logs', [
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'provider' => $provider,
+                'message_len' => mb_strlen($message),
+                'context_included' => $context !== '' ? 1 : 0,
+                'context_size' => mb_strlen($context),
+                'context_preview' => $context !== '' ? mb_substr($context, 0, 500) : null,
+                'response_len' => mb_strlen($response),
+                'response_time_ms' => (int) round((microtime(true) - $t0) * 1000),
+                'error' => $error,
+            ]);
+        } catch (\Exception $e) { /* non-fatal */ }
 
-        // Then Groq
-        if (!empty($groqKey)) {
-            return self::callGroq($groqKey, $systemPrompt, $message);
-        }
-
-        // Then Gemini
-        if (!empty($geminiKey)) {
-            return self::callGemini($geminiKey, $systemPrompt, $message);
-        }
-
-        // Fallback rule-based
-        return self::fallbackRuleBased($message, $tenantId, $userId);
+        return $response;
     }
 
     private static function callDeepSeek(string $apiKey, string $system, string $message): string
@@ -217,20 +245,75 @@ class AiService
         return ['success' => true, 'error' => '', 'body' => $body];
     }
 
-    private static function buildContext(int $tenantId, int $userId): string
+    /**
+     * Build a compact summary of CRM state to prime the LLM.
+     *
+     * $visibleUserIds:
+     *   null → no scope restriction (admin / view_all permission)
+     *   array of user IDs → restrict owner-based entities to these users
+     *
+     * PII-conscious: no phone/email of random customers, only aggregate counts
+     * and top-5 deals with owner context.
+     */
+    private static function buildContext(int $tenantId, int $userId, ?array $visibleUserIds = null): string
     {
-        $lines = [];
-        $contacts = Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE tenant_id = ? AND is_deleted = 0", [$tenantId]);
-        $deals = Database::fetch("SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE tenant_id = ? AND status = 'open'", [$tenantId]);
-        $wonThisMonth = Database::fetch(
-            "SELECT COUNT(*) as c, COALESCE(SUM(value),0) as v FROM deals WHERE tenant_id = ? AND status = 'won' AND MONTH(actual_close_date) = MONTH(CURDATE()) AND YEAR(actual_close_date) = YEAR(CURDATE())",
-            [$tenantId]
-        );
-        $orders = Database::fetch("SELECT COUNT(*) as c, COALESCE(SUM(total),0) as v FROM orders WHERE tenant_id = ? AND is_deleted = 0 AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())", [$tenantId]);
-        $overdueTasks = Database::fetch("SELECT COUNT(*) as c FROM tasks WHERE tenant_id = ? AND is_deleted = 0 AND due_date < NOW() AND status != 'done'", [$tenantId]);
-        $openTickets = Database::fetch("SELECT COUNT(*) as c FROM tickets WHERE tenant_id = ? AND status IN ('open','in_progress')", [$tenantId]);
+        // Build AND clause + param for owner scope on different column names
+        $scopeFor = function (string $col) use ($visibleUserIds) {
+            if ($visibleUserIds === null) return ['', []];
+            $ids = array_values(array_unique(array_map('intval', $visibleUserIds)));
+            if (!$ids) return [" AND {$col} = 0", []]; // no visibility = empty set
+            $ph = implode(',', array_fill(0, count($ids), '?'));
+            return [" AND {$col} IN ({$ph})", $ids];
+        };
 
-        $lines[] = "- Tổng KH: " . ($contacts['c'] ?? 0);
+        $lines = [];
+
+        [$sc, $sp] = $scopeFor('c.owner_id');
+        $contacts = Database::fetch(
+            "SELECT COUNT(*) as c FROM contacts c WHERE c.tenant_id = ? AND c.is_deleted = 0{$sc}",
+            array_merge([$tenantId], $sp)
+        );
+
+        [$sc, $sp] = $scopeFor('d.owner_id');
+        $deals = Database::fetch(
+            "SELECT COUNT(*) as c, COALESCE(SUM(d.value),0) as v FROM deals d WHERE d.tenant_id = ? AND d.status = 'open'{$sc}",
+            array_merge([$tenantId], $sp)
+        );
+
+        [$sc, $sp] = $scopeFor('d.owner_id');
+        $wonThisMonth = Database::fetch(
+            "SELECT COUNT(*) as c, COALESCE(SUM(d.value),0) as v FROM deals d
+             WHERE d.tenant_id = ? AND d.status = 'won'
+             AND MONTH(d.actual_close_date) = MONTH(CURDATE())
+             AND YEAR(d.actual_close_date) = YEAR(CURDATE()){$sc}",
+            array_merge([$tenantId], $sp)
+        );
+
+        [$sc, $sp] = $scopeFor('o.owner_id');
+        $orders = Database::fetch(
+            "SELECT COUNT(*) as c, COALESCE(SUM(o.total),0) as v FROM orders o
+             WHERE o.tenant_id = ? AND o.is_deleted = 0
+             AND MONTH(o.created_at) = MONTH(CURDATE())
+             AND YEAR(o.created_at) = YEAR(CURDATE()){$sc}",
+            array_merge([$tenantId], $sp)
+        );
+
+        [$sc, $sp] = $scopeFor('t.assigned_to');
+        $overdueTasks = Database::fetch(
+            "SELECT COUNT(*) as c FROM tasks t
+             WHERE t.tenant_id = ? AND t.is_deleted = 0 AND t.due_date < NOW() AND t.status != 'done'{$sc}",
+            array_merge([$tenantId], $sp)
+        );
+
+        [$sc, $sp] = $scopeFor('tk.assigned_to');
+        $openTickets = Database::fetch(
+            "SELECT COUNT(*) as c FROM tickets tk
+             WHERE tk.tenant_id = ? AND tk.status IN ('open','in_progress'){$sc}",
+            array_merge([$tenantId], $sp)
+        );
+
+        $scopeNote = $visibleUserIds !== null ? ' (trong phạm vi của bạn)' : '';
+        $lines[] = "- Tổng KH{$scopeNote}: " . ($contacts['c'] ?? 0);
         $lines[] = "- Deal đang mở: " . ($deals['c'] ?? 0) . " (tổng " . number_format($deals['v'] ?? 0) . "đ)";
         $lines[] = "- Deal thắng tháng này: " . ($wonThisMonth['c'] ?? 0) . " (" . number_format($wonThisMonth['v'] ?? 0) . "đ)";
         $lines[] = "- Đơn hàng tháng này: " . ($orders['c'] ?? 0) . " (" . number_format($orders['v'] ?? 0) . "đ)";
@@ -238,37 +321,24 @@ class AiService
         $lines[] = "- Ticket đang mở: " . ($openTickets['c'] ?? 0);
         $lines[] = "- Ngày: " . date('d/m/Y');
 
+        // Top deals — name + value only, no PII (phone/email stripped)
+        [$sc, $sp] = $scopeFor('d.owner_id');
         $topDeals = Database::fetchAll(
-            "SELECT d.title, d.value, c.first_name FROM deals d LEFT JOIN contacts c ON d.contact_id = c.id WHERE d.tenant_id = ? AND d.status = 'open' ORDER BY d.value DESC LIMIT 5",
-            [$tenantId]
+            "SELECT d.title, d.value FROM deals d
+             WHERE d.tenant_id = ? AND d.status = 'open'{$sc}
+             ORDER BY d.value DESC LIMIT 5",
+            array_merge([$tenantId], $sp)
         );
         if (!empty($topDeals)) {
-            $lines[] = "- Top deals:";
+            $lines[] = "- Top 5 deals mở:";
             foreach ($topDeals as $d) {
-                $lines[] = "  + " . $d['title'] . " - " . number_format($d['value']) . "đ (" . ($d['first_name'] ?? '') . ")";
+                $lines[] = "  + " . $d['title'] . " - " . number_format($d['value']) . "đ";
             }
         }
 
-        // Danh sách KH để AI tra cứu theo tên/SĐT/email
-        $allContacts = Database::fetchAll(
-            "SELECT c.first_name, c.last_name, c.phone, c.email, c.status, c.position, comp.name as company_name
-             FROM contacts c LEFT JOIN companies comp ON c.company_id = comp.id
-             WHERE c.tenant_id = ? AND c.is_deleted = 0 ORDER BY c.first_name LIMIT 50",
-            [$tenantId]
-        );
-        if (!empty($allContacts)) {
-            $lines[] = "- Danh sách khách hàng:";
-            foreach ($allContacts as $c) {
-                $name = trim(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? ''));
-                $info = $name;
-                if ($c['phone']) $info .= " | SĐT: " . $c['phone'];
-                if ($c['email']) $info .= " | Email: " . $c['email'];
-                if ($c['company_name']) $info .= " | Cty: " . $c['company_name'];
-                if ($c['position']) $info .= " | " . $c['position'];
-                $info .= " | TT: " . $c['status'];
-                $lines[] = "  + " . $info;
-            }
-        }
+        // NOTE: full customer list (50 rows with phone/email) removed from context.
+        // AI can still answer customer-specific queries via fallbackRuleBased which
+        // does a targeted lookup when user asks about a specific phone/name.
 
         return implode("\n", $lines);
     }

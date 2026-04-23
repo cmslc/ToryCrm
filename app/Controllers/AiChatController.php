@@ -30,8 +30,17 @@ class AiChatController extends Controller
         // Save user message
         $this->saveMessage($tid, $uid, 'user', $message);
 
-        // Process with AI (Gemini API or fallback rule-based)
-        $response = \App\Services\AiService::ask($message, $tid, $uid);
+        // Scope the AI context to what this user is allowed to see —
+        // admins / view_all get full tenant, staff only their own data.
+        $visibleUserIds = null;
+        if (!$this->isSystemAdmin() && !\App\Services\PermissionService::can('contacts', 'view_all')) {
+            $ids = $this->getVisibleUserIds();
+            $visibleUserIds = ($ids && count($ids) > 1) ? $ids : [$uid];
+        }
+
+        $response = \App\Services\AiService::ask($message, $tid, $uid, [
+            'visible_user_ids' => $visibleUserIds,
+        ]);
 
         // Save assistant response
         $this->saveMessage($tid, $uid, 'assistant', $response);
