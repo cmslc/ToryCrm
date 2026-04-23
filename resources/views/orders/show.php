@@ -41,7 +41,7 @@ if ($shipFull === '' && $cAddress !== '') {
                 <?= csrf_field() ?><button class="btn btn-success"><i class="ri-check-line me-1"></i>Duyệt</button>
             </form>
         <?php endif; ?>
-        <?php if (in_array($order['status'], ['confirmed','approved','processing','completed'], true)): ?>
+        <?php if (in_array($order['status'], ['approved','confirmed'], true)): ?>
             <a href="<?= url('installation-requests/create?order_id=' . $order['id']) ?>" class="btn btn-info"><i class="ri-tools-line me-1"></i>Tạo YC thi công</a>
         <?php endif; ?>
         <?php if (!in_array($order['status'], ['completed','cancelled'])): ?>
@@ -54,6 +54,29 @@ if ($shipFull === '' && $cAddress !== '') {
         </form>
     </div>
 </div>
+
+<?php
+$yctcRows = \Core\Database::fetchAll(
+    "SELECT id, code, status, requested_date, execution_date FROM installation_requests WHERE order_id = ? AND is_deleted = 0 ORDER BY id DESC",
+    [$order['id']]
+);
+if (!empty($yctcRows)):
+    $yctcCtrl = \App\Controllers\InstallationRequestController::class;
+?>
+<div class="card border-info mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <i class="ri-tools-line text-info"></i>
+            <strong>Yêu cầu thi công:</strong>
+            <?php foreach ($yctcRows as $yr): ?>
+                <a href="<?= url('installation-requests/' . $yr['id']) ?>" class="text-decoration-none">
+                    <span class="badge bg-<?= $yctcCtrl::statusColor($yr['status']) ?>-subtle text-<?= $yctcCtrl::statusColor($yr['status']) ?>"><?= e($yr['code']) ?> · <?= e($yctcCtrl::statusLabel($yr['status'])) ?></span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="row">
     <div class="col-lg-9">

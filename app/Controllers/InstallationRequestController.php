@@ -225,6 +225,9 @@ class InstallationRequestController extends Controller
             'user_id' => $this->userId(),
         ]);
 
+        $orderLink = !empty($data['order_id']) ? (int)$data['order_id'] : null;
+        $this->syncOrderStatus($orderLink);
+
         $this->setFlash('success', "Đã tạo yêu cầu thi công {$code}.");
         return $this->redirect('installation-requests/' . $requestId);
     }
@@ -314,6 +317,8 @@ class InstallationRequestController extends Controller
             return $this->back();
         }
 
+        $this->syncOrderStatus($request['order_id'] ? (int)$request['order_id'] : null);
+
         $this->setFlash('success', 'Đã cập nhật yêu cầu thi công.');
         return $this->redirect('installation-requests/' . $id);
     }
@@ -332,6 +337,7 @@ class InstallationRequestController extends Controller
         }
 
         Database::update('installation_requests', ['is_deleted' => 1], 'id = ?', [$id]);
+        $this->syncOrderStatus($request['order_id'] ? (int)$request['order_id'] : null);
         $this->setFlash('success', 'Đã xóa yêu cầu thi công.');
         return $this->redirect('installation-requests');
     }
@@ -426,6 +432,38 @@ class InstallationRequestController extends Controller
         return $row;
     }
 
+    /**
+     * Sync the linked order's status based on YCTC states:
+     *   any completed            → order = 'completed'
+     *   any pending/scheduled    → order = 'processing'
+     *   none active (all cancelled / deleted) → order = 'approved'
+     * Only runs when the order is currently in one of the YCTC-driven states.
+     */
+    private function syncOrderStatus(?int $orderId): void
+    {
+        if (!$orderId) return;
+        $order = Database::fetch("SELECT id, status FROM orders WHERE id = ? AND tenant_id = ?", [$orderId, Database::tenantId()]);
+        if (!$order) return;
+        if (!in_array($order['status'], ['approved','confirmed','processing','completed'], true)) return;
+
+        $rows = Database::fetchAll(
+            "SELECT status FROM installation_requests WHERE order_id = ? AND is_deleted = 0 AND tenant_id = ?",
+            [$orderId, Database::tenantId()]
+        );
+
+        $hasCompleted = false;
+        $hasActive = false;
+        foreach ($rows as $r) {
+            if ($r['status'] === 'completed') { $hasCompleted = true; continue; }
+            if (in_array($r['status'], ['pending','scheduled'], true)) { $hasActive = true; }
+        }
+
+        $newStatus = $hasCompleted ? 'completed' : ($hasActive ? 'processing' : 'approved');
+        if ($newStatus !== $order['status']) {
+            Database::update('orders', ['status' => $newStatus], 'id = ?', [$orderId]);
+        }
+    }
+
     public function updateStatus($id)
     {
         if (!$this->isPost()) return $this->redirect('installation-requests/' . $id);
@@ -446,6 +484,7 @@ class InstallationRequestController extends Controller
         }
 
         Database::update('installation_requests', ['status' => $status], 'id = ?', [$id]);
+        $this->syncOrderStatus($request['order_id'] ? (int)$request['order_id'] : null);
         $this->setFlash('success', 'Đã cập nhật trạng thái.');
         return $this->redirect('installation-requests/' . $id);
     }
