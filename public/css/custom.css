@@ -87,3 +87,50 @@ select.searchable-select {
     display: inline-flex !important;
   }
 }
+
+/*
+ * sm-hover: keep sidebar narrow on hover; show only the hovered nav-item's
+ * submenu as a flyout panel beside the icon column. Avoids Velzon default
+ * behavior of expanding the whole sidebar (which shows all menus at once).
+ */
+@media (min-width: 768px) {
+  [data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover {
+    width: var(--vz-vertical-menu-width-sm) !important;
+  }
+  [data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .navbar-brand-box {
+    width: var(--vz-vertical-menu-width-sm) !important;
+  }
+  [data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .nav-link span,
+  [data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .menu-title span {
+    display: none !important;
+  }
+  [data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .menu-title i {
+    display: block !important;
+  }
+  [data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .nav-link::after {
+    display: none !important;
+  }
+  /* Flyout: only the hovered nav-item's submenu appears, absolute-positioned */
+  [data-sidebar-size="sm-hover"] .navbar-nav > .nav-item {
+    position: relative;
+  }
+  [data-sidebar-size="sm-hover"] .navbar-nav > .nav-item:hover > .menu-dropdown {
+    display: block !important;
+    position: absolute !important;
+    left: var(--vz-vertical-menu-width-sm);
+    top: 0;
+    min-width: 220px;
+    background: var(--vz-vertical-menu-bg);
+    padding: 8px 0;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 2px 2px 8px rgba(0,0,0,.15);
+    z-index: 1010;
+  }
+  [data-sidebar-size="sm-hover"] .navbar-nav > .nav-item:hover > .menu-dropdown > .nav {
+    padding: 0 12px;
+  }
+  /* Parent nav-link hover: show a subtle highlight */
+  [data-sidebar-size="sm-hover"] .navbar-nav > .nav-item:hover > .nav-link {
+    background: var(--vz-vertical-menu-item-hover-bg, rgba(255,255,255,.08));
+  }
+}
