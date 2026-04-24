@@ -146,14 +146,15 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
-    <!-- ToryCRM Custom JS -->
-    <script src="<?= asset('js/searchable-select.js') ?>?v=20260416"></script>
-    <script src="<?= asset('js/torycrm.js') ?>?v=<?= time() ?>"></script>
+    <!-- ToryCRM Custom JS (cache-busted via filemtime so browser caches until file changes) -->
+    <?php $__jsVer = fn(string $p) => '?v=' . (@filemtime(BASE_PATH . '/public/' . $p) ?: time()); ?>
+    <script src="<?= asset('js/searchable-select.js') . $__jsVer('js/searchable-select.js') ?>"></script>
+    <script src="<?= asset('js/torycrm.js') . $__jsVer('js/torycrm.js') ?>"></script>
 
     <!-- UI Enhancements -->
-    <script src="<?= asset('js/command-palette.js') ?>?v=<?= time() ?>"></script>
-    <script src="<?= asset('js/split-view.js') ?>?v=<?= time() ?>"></script>
-    <script src="<?= asset('js/activity-feed.js') ?>?v=<?= time() ?>"></script>
+    <script src="<?= asset('js/command-palette.js') . $__jsVer('js/command-palette.js') ?>"></script>
+    <script src="<?= asset('js/split-view.js') . $__jsVer('js/split-view.js') ?>"></script>
+    <script src="<?= asset('js/activity-feed.js') . $__jsVer('js/activity-feed.js') ?>"></script>
 
     <!-- AI Chat Widget (controlled by settings/api toggle) -->
     <?php
@@ -161,7 +162,7 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     $__aiCfg = json_decode($__tenant['settings'] ?? '{}', true)['ai'] ?? [];
     if ($__aiCfg['show_widget'] ?? false):
     ?>
-    <script src="<?= asset('js/ai-chat-widget.js') ?>?v=<?= time() ?>"></script>
+    <script src="<?= asset('js/ai-chat-widget.js') . $__jsVer('js/ai-chat-widget.js') ?>"></script>
     <?php endif; ?>
 
     <!-- Flash Toast -->

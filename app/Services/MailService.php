@@ -44,27 +44,32 @@ class MailService
 
             $mail->send();
 
-            Database::insert('email_logs', [
-                'to_email'   => $to,
-                'to_name'    => $toName,
-                'subject'    => $subject,
-                'body'       => $body,
-                'status'     => 'sent',
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
+            try {
+                Database::insert('email_logs', [
+                    'to_email'   => $to,
+                    'to_name'    => $toName,
+                    'subject'    => $subject,
+                    'body'       => $body,
+                    'status'     => 'sent',
+                    'sent_at'    => date('Y-m-d H:i:s'),
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+            } catch (\Throwable $ignore) {}
 
             return true;
         } catch (\Exception $e) {
-            Database::insert('email_logs', [
-                'to_email'   => $to,
-                'to_name'    => $toName,
-                'subject'    => $subject,
-                'body'       => $body,
-                'status'     => 'failed',
-                'error'      => $e->getMessage(),
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
-
+            try {
+                Database::insert('email_logs', [
+                    'to_email'      => $to,
+                    'to_name'       => $toName,
+                    'subject'       => $subject,
+                    'body'          => $body,
+                    'status'        => 'failed',
+                    'error_message' => $e->getMessage(),
+                    'created_at'    => date('Y-m-d H:i:s'),
+                ]);
+            } catch (\Throwable $ignore) {}
+            error_log('[MailService] ' . $e->getMessage());
             return false;
         }
     }

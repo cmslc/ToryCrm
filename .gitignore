@@ -13,3 +13,10 @@ Thumbs.db
 *.py
 *.sql
 !database/**/*.sql
+
+# Working docs + design artifacts (keep local only)
+*.pdf
+*.Pdf
+*.xlsx
+/LOGOS*.png
+/faicon*.png

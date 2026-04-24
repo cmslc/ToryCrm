@@ -295,7 +295,8 @@ class AuthController extends Controller
                       . "<p>Hoặc copy link này: <br><code>{$resetUrl}</code></p>"
                       . "<p>Nếu không phải bạn yêu cầu, bỏ qua email này.</p>";
 
-                \App\Services\MailService::send(
+                // Password reset is time-sensitive — send synchronously (bypasses queue)
+                \App\Services\QueuedMailService::sendNow(
                     $user['email'],
                     "[{$brand}] Đặt lại mật khẩu",
                     $body,
