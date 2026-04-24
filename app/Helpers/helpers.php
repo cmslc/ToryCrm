@@ -10,6 +10,14 @@ function url(string $path = ''): string
     return $base . '/' . ltrim($path, '/');
 }
 
+function format_bytes(int $bytes, int $precision = 1): string
+{
+    if ($bytes <= 0) return '0 B';
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    $pow = min((int) floor(log($bytes, 1024)), count($units) - 1);
+    return round($bytes / pow(1024, $pow), $precision) . ' ' . $units[$pow];
+}
+
 function asset(string $path): string
 {
     return url($path);

@@ -294,7 +294,7 @@ try {
                 <?php if ($_isManager): ?>
 
                 <?php if (canSee('reports') || canSee('users') || canSee('automation') || canSee('webhooks')): ?>
-                <?php $sysOpen = isOpen(['plugins','integrations','duplicates','billing','getfly-sync'], $currentUrl); ?>
+                <?php $sysOpen = isOpen(['plugins','integrations','duplicates','billing','getfly-sync','backups'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $sysOpen ? '' : 'collapsed' ?>" href="#sidebarSystem" data-bs-toggle="collapse" role="button" aria-expanded="<?= $sysOpen ? 'true' : 'false' ?>">
                         <i class="ri-settings-3-line"></i> <span>Hệ thống</span>
@@ -305,6 +305,7 @@ try {
                             <?php if (canSee('webhooks', 'manage')): ?><li class="nav-item"><a href="<?= url('plugins') ?>" class="nav-link <?= isActive(['plugins','integrations'], $currentUrl) ?>">Plugin</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('settings/getfly-sync') ?>" class="nav-link <?= isActive('getfly-sync', $currentUrl) ?>">Getfly Sync</a></li>
                             <li class="nav-item"><a href="<?= url('billing') ?>" class="nav-link <?= isActive('billing', $currentUrl) ?>">Gói dịch vụ</a></li>
+                            <?php if ($_isAdmin): ?><li class="nav-item"><a href="<?= url('backups') ?>" class="nav-link <?= isActive('backups', $currentUrl) ?>">Backup DB</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('system-info') ?>" class="nav-link <?= isActive('system-info', $currentUrl) ?>">Thông tin hệ thống</a></li>
                         </ul>
                     </div>

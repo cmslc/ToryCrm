@@ -464,6 +464,12 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     // System Info
     Router::get('system-info', 'SystemInfoController@index');
 
+    // Backup management (admin only — enforced in controller)
+    Router::get('backups', 'BackupController@index');
+    Router::get('backups/download', 'BackupController@download');
+    Router::post('backups/delete', 'BackupController@delete');
+    Router::post('backups/run', 'BackupController@runNow');
+
     // Lead Forms → moved to plugins/lead-forms/routes.php
 
     // Tags
