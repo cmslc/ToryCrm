@@ -31,3 +31,36 @@ select.searchable-select {
 }
 /* Hide CKEditor security notification */
 .cke_notification_warning { display: none !important; }
+
+/*
+ * Sticky table header + sticky first column for listing pages.
+ * Wrap a .table with class .table-sticky; the parent .table-responsive
+ * becomes the scroll container. thead stays visible on vertical scroll,
+ * first th/td stays visible on horizontal scroll.
+ */
+.table-responsive:has(.table-sticky) {
+  max-height: calc(100vh - 320px);
+  overflow: auto;
+}
+.table-sticky thead th {
+  position: sticky;
+  top: 0;
+  background: var(--vz-light, #f3f6f9);
+  z-index: 3;
+  box-shadow: inset 0 -1px 0 var(--vz-border-color);
+}
+.table-sticky tbody td:first-child,
+.table-sticky thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--vz-card-bg, #fff);
+  box-shadow: inset -1px 0 0 var(--vz-border-color);
+}
+.table-sticky thead th:first-child {
+  z-index: 4;
+  background: var(--vz-light, #f3f6f9);
+}
+.table-sticky.table-hover tbody tr:hover td:first-child {
+  background: var(--vz-table-hover-bg, #f8f9fa);
+}

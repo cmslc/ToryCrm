@@ -76,7 +76,7 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
 <div class="card">
     <div class="card-body p-2">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle table-sticky mb-0">
                 <thead class="table-light">
                     <tr>
                         <th style="width:30px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
