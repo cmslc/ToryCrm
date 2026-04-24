@@ -16,6 +16,8 @@ foreach (['DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD'] as 
     }
 }
 
+require_once BASE_PATH . '/app/Helpers/helpers.php';
+
 $config = require BASE_PATH . '/config/app.php';
 Core\Database::init($config['database']);
 
