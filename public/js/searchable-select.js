@@ -156,7 +156,24 @@
             });
         }
 
+        // Sync the button label when external JS sets sel.value programmatically
+        // (e.g. edit modal pre-filling the user). Caller should dispatch
+        // `sel.dispatchEvent(new Event('change'))`, or we can detect on open.
+        function syncFromSelect() {
+            if (selectedValue === sel.value) return;
+            selectedValue = sel.value;
+            var match = null;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].value === sel.value) { match = items[i]; break; }
+            }
+            selectedText = match && match.value !== '' ? match.text : '';
+            selectedAvatar = match ? (match.avatar || '') : '';
+            btn.innerHTML = btnContent(selectedText, selectedAvatar, selectedText);
+        }
+        sel.addEventListener('change', syncFromSelect);
+
         function open() {
+            syncFromSelect(); // refresh in case value was changed externally without event
             dd.style.display = 'block';
             searchInput.value = '';
             renderOptions('');

@@ -84,14 +84,14 @@ if ($firstAcc): ?>
                 </div>
                 <div class="col-md-2 mb-3">
                     <label class="form-label">Gán cho</label>
-                    <?php $allUsers = \Core\Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [\Core\Database::tenantId()]); ?>
+                    <?php $allUsers = \Core\Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [\Core\Database::tenantId()]); ?>
                     <?php $deptGroupedEmail = []; foreach ($allUsers as $u) { $deptGroupedEmail[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
-                    <select name="user_id" class="form-select">
+                    <select name="user_id" class="form-select searchable-select">
                         <option value="">Tất cả</option>
                         <?php foreach ($deptGroupedEmail as $dept => $dUsers): ?>
                         <optgroup label="<?= e($dept) ?>">
                             <?php foreach ($dUsers as $u): ?>
-                            <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                            <option value="<?= $u['id'] ?>" data-avatar="<?= e($u['avatar'] ?? '') ?>"><?= e($u['name']) ?></option>
                             <?php endforeach; ?>
                         </optgroup>
                         <?php endforeach; ?>
@@ -180,14 +180,14 @@ if ($firstAcc): ?>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Gán cho</label>
-                        <?php $allUsersEdit = \Core\Database::fetchAll("SELECT u.id, u.name, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [\Core\Database::tenantId()]); ?>
+                        <?php $allUsersEdit = \Core\Database::fetchAll("SELECT u.id, u.name, u.avatar, d.name as dept_name FROM users u LEFT JOIN departments d ON u.department_id = d.id WHERE u.tenant_id = ? AND u.is_active = 1 ORDER BY d.name, u.name", [\Core\Database::tenantId()]); ?>
                         <?php $deptGroupedEdit = []; foreach ($allUsersEdit as $u) { $deptGroupedEdit[$u['dept_name'] ?? 'Chưa phân phòng'][] = $u; } ?>
-                        <select name="user_id" class="form-select" id="editAccUser">
+                        <select name="user_id" class="form-select searchable-select" id="editAccUser">
                             <option value="">Tất cả</option>
                             <?php foreach ($deptGroupedEdit as $dept => $dUsers): ?>
                             <optgroup label="<?= e($dept) ?>">
                                 <?php foreach ($dUsers as $u): ?>
-                                <option value="<?= $u['id'] ?>"><?= e($u['name']) ?></option>
+                                <option value="<?= $u['id'] ?>" data-avatar="<?= e($u['avatar'] ?? '') ?>"><?= e($u['name']) ?></option>
                                 <?php endforeach; ?>
                             </optgroup>
                             <?php endforeach; ?>
@@ -211,7 +211,9 @@ document.querySelectorAll('.edit-acc-btn').forEach(function(btn) {
         document.getElementById('editAccEmail').value = this.dataset.email;
         document.getElementById('editAccToken').value = '';
         document.getElementById('editAccDisplay').value = this.dataset.display;
-        document.getElementById('editAccUser').value = this.dataset.user;
+        var userSel = document.getElementById('editAccUser');
+        userSel.value = this.dataset.user;
+        userSel.dispatchEvent(new Event('change'));
         document.getElementById('editAccDefault').checked = this.dataset.default === '1';
         bootstrap.Modal.getOrCreateInstance(document.getElementById('editAccModal')).show();
     });
