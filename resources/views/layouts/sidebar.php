@@ -115,25 +115,6 @@ try {
                 </li>
                 <?php endif; ?>
 
-                <?php if (canSee('products') || plugin_active('warehouse')): ?>
-                <?php $whOpen = isOpen(['products','warehouses'], $currentUrl); ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= $whOpen ? '' : 'collapsed' ?>" href="#sidebarWarehouse" data-bs-toggle="collapse" role="button" aria-expanded="<?= $whOpen ? 'true' : 'false' ?>">
-                        <i class="ri-archive-2-line"></i> <span>Kho hàng</span>
-                    </a>
-                    <div class="collapse menu-dropdown <?= $whOpen ? 'show' : '' ?>" id="sidebarWarehouse">
-                        <ul class="nav nav-sm flex-column">
-                            <?php if (plugin_active('warehouse')): ?>
-                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho hàng</a></li>
-                            <?php endif; ?>
-                            <?php if (canSee('products')): ?>
-                            <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Sản phẩm</a></li>
-                            <?php endif; ?>
-                        </ul>
-                    </div>
-                </li>
-                <?php endif; ?>
-
                 <?php if (plugin_active('kho-logistics')):
                     $logOpen = isOpen(['logistics'], $currentUrl);
                 ?>
@@ -173,6 +154,25 @@ try {
                             <?php if (plugin_active('booking')): ?><li class="nav-item"><a href="<?= url('bookings/create') ?>" class="nav-link <?= isActive('bookings', $currentUrl) ?>">Đặt lịch hẹn</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('activities') ?>" class="nav-link <?= isActive('activities', $currentUrl) ?>">Hoạt động</a></li>
                             <?php if (plugin_active('checkin')): ?><li class="nav-item"><a href="<?= url('checkins') ?>" class="nav-link <?= isActive('checkins', $currentUrl) ?>">Check-in</a></li><?php endif; ?>
+                        </ul>
+                    </div>
+                </li>
+                <?php endif; ?>
+
+                <?php if (canSee('products') || plugin_active('warehouse')): ?>
+                <?php $whOpen = isOpen(['products','warehouses'], $currentUrl); ?>
+                <li class="nav-item">
+                    <a class="nav-link menu-link <?= $whOpen ? '' : 'collapsed' ?>" href="#sidebarWarehouse" data-bs-toggle="collapse" role="button" aria-expanded="<?= $whOpen ? 'true' : 'false' ?>">
+                        <i class="ri-archive-2-line"></i> <span>Kho hàng</span>
+                    </a>
+                    <div class="collapse menu-dropdown <?= $whOpen ? 'show' : '' ?>" id="sidebarWarehouse">
+                        <ul class="nav nav-sm flex-column">
+                            <?php if (plugin_active('warehouse')): ?>
+                            <li class="nav-item"><a href="<?= url('warehouses') ?>" class="nav-link <?= isActive('warehouses', $currentUrl) ?>">Kho hàng</a></li>
+                            <?php endif; ?>
+                            <?php if (canSee('products')): ?>
+                            <li class="nav-item"><a href="<?= url('products') ?>" class="nav-link <?= isActive('products', $currentUrl) ?>">Sản phẩm</a></li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </li>
