@@ -3,7 +3,7 @@
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Đơn hàng mua</h4>
             <div class="d-flex gap-2">
-                <a href="<?= url('purchase-orders/export?format=csv') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Export</a>
+                <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#exportPurchaseOrdersModal"><i class="ri-download-line me-1"></i> Export</button>
                 <a href="<?= url('purchase-orders/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo đơn mua</a>
             </div>
         </div>
@@ -158,3 +158,22 @@
     });
 })();
 </script>
+
+<?php
+$exportId = 'exportPurchaseOrdersModal';
+$exportUrl = url('purchase-orders/export');
+$exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
+$exportColumns = [
+    'order_code' => 'Mã đơn mua',
+    'supplier_name' => 'Nhà cung cấp',
+    'status' => 'Trạng thái',
+    'payment_status' => 'Thanh toán',
+    'total_amount' => 'Tổng tiền',
+    'discount_amount' => 'Chiết khấu',
+    'expected_date' => 'Ngày dự kiến',
+    'owner_name' => 'Phụ trách',
+    'notes' => 'Ghi chú',
+    'created_at' => 'Ngày tạo',
+];
+include BASE_PATH . '/resources/views/components/export-modal.php';
+?>

@@ -776,6 +776,62 @@ class OrderController extends Controller
         return $this->redirect('orders/' . $id);
     }
 
+    /** Export orders to CSV with column picking. */
+    public function export()
+    {
+        $this->authorize('orders', 'view');
+        $tid = Database::tenantId();
+        $where = ["o.is_deleted = 0", "o.tenant_id = ?"];
+        $params = [$tid];
+
+        // Optional filters reused from index()
+        if ($s = $this->input('search')) {
+            $where[] = "(o.order_number LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR comp.name LIKE ?)";
+            $like = "%{$s}%";
+            $params = array_merge($params, [$like, $like, $like, $like]);
+        }
+        if ($st = $this->input('status')) { $where[] = "o.status = ?"; $params[] = $st; }
+        if ($t = $this->input('type')) { $where[] = "o.type = ?"; $params[] = $t; }
+        if ($ps = $this->input('payment_status')) { $where[] = "o.payment_status = ?"; $params[] = $ps; }
+        if ($oid = $this->input('owner_id')) { $where[] = "o.owner_id = ?"; $params[] = $oid; }
+
+        $scope = $this->ownerScope('o', 'owner_id', 'orders');
+        if ($scope['where']) { $where[] = $scope['where']; $params = array_merge($params, $scope['params']); }
+
+        $rows = Database::fetchAll(
+            "SELECT o.*,
+                    TRIM(CONCAT(COALESCE(c.first_name,''),' ',COALESCE(c.last_name,''))) as contact_name,
+                    c.company_name as contact_company,
+                    u.name as owner_name
+             FROM orders o
+             LEFT JOIN contacts c ON o.contact_id = c.id
+             LEFT JOIN companies comp ON o.company_id = comp.id
+             LEFT JOIN users u ON o.owner_id = u.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY o.created_at DESC",
+            $params
+        );
+
+        $columns = [
+            'order_number'   => ['label' => 'Mã đơn'],
+            'contact_name'   => ['label' => 'Khách hàng'],
+            'contact_company'=> ['label' => 'Công ty'],
+            'type'           => ['label' => 'Loại'],
+            'status'         => ['label' => 'Trạng thái'],
+            'payment_status' => ['label' => 'Thanh toán'],
+            'subtotal'       => ['label' => 'Tạm tính'],
+            'discount_amount'=> ['label' => 'Chiết khấu'],
+            'tax_amount'     => ['label' => 'Thuế'],
+            'total'          => ['label' => 'Tổng tiền'],
+            'owner_name'     => ['label' => 'Phụ trách'],
+            'notes'          => ['label' => 'Ghi chú'],
+            'created_at'     => ['label' => 'Ngày tạo'],
+        ];
+
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'orders_' . date('Ymd_His') . '.csv', $selected);
+    }
+
     // ---- Khôi phục đơn hàng ----
     public function trash()
     {

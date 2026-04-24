@@ -112,6 +112,49 @@ class PurchaseOrderController extends Controller
         return $this->redirect('purchase-orders/' . $orderId);
     }
 
+    /** Export purchase orders to CSV with column picking. */
+    public function export()
+    {
+        $this->authorize('purchase_orders', 'view');
+        $tid = Database::tenantId();
+        $where = ["po.tenant_id = ?"]; $params = [$tid];
+
+        if ($s = $this->input('search')) {
+            $where[] = "(po.order_code LIKE ? OR s.name LIKE ?)";
+            $like = "%{$s}%";
+            $params = array_merge($params, [$like, $like]);
+        }
+        if ($st = $this->input('status')) { $where[] = "po.status = ?"; $params[] = $st; }
+        if ($ps = $this->input('payment_status')) { $where[] = "po.payment_status = ?"; $params[] = $ps; }
+        if ($oid = $this->input('owner_id')) { $where[] = "po.owner_id = ?"; $params[] = $oid; }
+
+        $rows = Database::fetchAll(
+            "SELECT po.*, s.name as supplier_name, u.name as owner_name
+             FROM purchase_orders po
+             LEFT JOIN companies s ON po.supplier_id = s.id
+             LEFT JOIN users u ON po.owner_id = u.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY po.created_at DESC",
+            $params
+        );
+
+        $columns = [
+            'order_code'     => ['label' => 'Mã đơn mua'],
+            'supplier_name'  => ['label' => 'Nhà cung cấp'],
+            'status'         => ['label' => 'Trạng thái'],
+            'payment_status' => ['label' => 'Thanh toán'],
+            'total_amount'   => ['label' => 'Tổng tiền'],
+            'discount_amount'=> ['label' => 'Chiết khấu'],
+            'expected_date'  => ['label' => 'Ngày dự kiến'],
+            'owner_name'     => ['label' => 'Phụ trách'],
+            'notes'          => ['label' => 'Ghi chú'],
+            'created_at'     => ['label' => 'Ngày tạo'],
+        ];
+
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'purchase_orders_' . date('Ymd_His') . '.csv', $selected);
+    }
+
     public function show($id)
     {
         $this->authorize('purchase_orders', 'view');

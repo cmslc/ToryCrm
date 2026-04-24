@@ -14,7 +14,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
             <h4 class="mb-0">Báo giá</h4>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
-                <a href="<?= url('quotations/export?format=csv') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Export</a>
+                <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#exportQuotationsModal"><i class="ri-download-line me-1"></i> Export</button>
                 <a href="<?= url('quotations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo báo giá</a>
             </div>
         </div>
@@ -338,3 +338,27 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     applyColumns(getVisible());
 })();
 </script>
+
+<?php
+$exportId = 'exportQuotationsModal';
+$exportUrl = url('quotations/export');
+$exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
+$exportColumns = [
+    'quote_number' => 'Số báo giá',
+    'contact_name' => 'Khách hàng',
+    'contact_company' => 'Công ty',
+    'contact_person_name' => 'Người liên hệ',
+    'status' => 'Trạng thái',
+    'subtotal' => 'Tạm tính',
+    'discount_amount' => 'Chiết khấu',
+    'tax_amount' => 'Thuế',
+    'total' => 'Tổng',
+    'currency' => 'Tiền tệ',
+    'valid_until' => 'Hiệu lực đến',
+    'owner_name' => 'Phụ trách',
+    'view_count' => 'Lượt xem',
+    'notes' => 'Ghi chú',
+    'created_at' => 'Ngày tạo',
+];
+include BASE_PATH . '/resources/views/components/export-modal.php';
+?>

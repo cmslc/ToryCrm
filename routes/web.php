@@ -216,6 +216,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('orders/pdf/{id}', 'OrderController@pdf');
     Router::get('orders/trash', 'OrderController@trash');
     Router::get('orders', 'OrderController@index');
+    Router::get('orders/export', 'OrderController@export');
     Router::get('orders/create', 'OrderController@create');
     Router::post('orders/store', 'OrderController@store');
     Router::get('orders/{id}', 'OrderController@show');
@@ -290,6 +291,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Purchase Orders
     Router::get('purchase-orders', 'PurchaseOrderController@index');
+    Router::get('purchase-orders/export', 'PurchaseOrderController@export');
     Router::get('purchase-orders/create', 'PurchaseOrderController@create');
     Router::post('purchase-orders/store', 'PurchaseOrderController@store');
     Router::get('purchase-orders/{id}', 'PurchaseOrderController@show');
@@ -304,6 +306,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Quotations (Báo giá)
     Router::get('quotations', 'QuotationController@index');
+    Router::get('quotations/export', 'QuotationController@export');
     Router::get('quotations/create', 'QuotationController@create');
     Router::post('quotations/store', 'QuotationController@store');
     Router::get('quotations/{id}', 'QuotationController@show');

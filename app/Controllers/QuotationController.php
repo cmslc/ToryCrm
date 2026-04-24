@@ -318,6 +318,61 @@ class QuotationController extends Controller
         return $this->redirect('quotations/' . $quotationId);
     }
 
+    /** Export quotations to CSV with column picking. */
+    public function export()
+    {
+        $this->authorize('quotations', 'view');
+        $tid = Database::tenantId();
+        $where = ["q.tenant_id = ?"]; $params = [$tid];
+        $scope = $this->ownerScope('q', 'owner_id', 'quotations');
+        if ($scope['where']) { $where[] = $scope['where']; $params = array_merge($params, $scope['params']); }
+
+        if ($s = $this->input('search')) {
+            $where[] = "(q.quote_number LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR c.company_name LIKE ?)";
+            $like = "%{$s}%";
+            $params = array_merge($params, [$like, $like, $like, $like]);
+        }
+        if ($st = $this->input('status')) { $where[] = "q.status = ?"; $params[] = $st; }
+        if ($cid = $this->input('contact_id')) { $where[] = "q.contact_id = ?"; $params[] = $cid; }
+        if ($oid = $this->input('owner_id')) { $where[] = "q.owner_id = ?"; $params[] = $oid; }
+
+        $rows = Database::fetchAll(
+            "SELECT q.*,
+                    TRIM(CONCAT(COALESCE(c.first_name,''),' ',COALESCE(c.last_name,''))) as contact_name,
+                    c.company_name as contact_company,
+                    u.name as owner_name,
+                    cp.full_name as contact_person_name
+             FROM quotations q
+             LEFT JOIN contacts c ON q.contact_id = c.id
+             LEFT JOIN contact_persons cp ON q.contact_person_id = cp.id
+             LEFT JOIN users u ON q.owner_id = u.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY q.created_at DESC",
+            $params
+        );
+
+        $columns = [
+            'quote_number'       => ['label' => 'Số báo giá'],
+            'contact_name'       => ['label' => 'Khách hàng'],
+            'contact_company'    => ['label' => 'Công ty'],
+            'contact_person_name'=> ['label' => 'Người liên hệ'],
+            'status'             => ['label' => 'Trạng thái'],
+            'subtotal'           => ['label' => 'Tạm tính'],
+            'discount_amount'    => ['label' => 'Chiết khấu'],
+            'tax_amount'         => ['label' => 'Thuế'],
+            'total'              => ['label' => 'Tổng'],
+            'currency'           => ['label' => 'Tiền tệ'],
+            'valid_until'        => ['label' => 'Hiệu lực đến'],
+            'owner_name'         => ['label' => 'Phụ trách'],
+            'view_count'         => ['label' => 'Lượt xem'],
+            'notes'              => ['label' => 'Ghi chú'],
+            'created_at'         => ['label' => 'Ngày tạo'],
+        ];
+
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'quotations_' . date('Ymd_His') . '.csv', $selected);
+    }
+
     /**
      * Show quotation detail
      */
