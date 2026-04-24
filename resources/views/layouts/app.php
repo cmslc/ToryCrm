@@ -5,7 +5,7 @@ $brandName = $branding['name'] ?? 'ToryCRM';
 $userTheme = $_SESSION['user']['theme'] ?? 'light';
 ?>
 <!DOCTYPE html>
-<html lang="vi" data-layout="twocolumn" data-topbar="<?= $userTheme === 'dark' ? 'dark' : 'light' ?>" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-bs-theme="<?= e($userTheme) ?>" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
+<html lang="vi" data-layout="vertical" data-topbar="<?= $userTheme === 'dark' ? 'dark' : 'light' ?>" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none" data-preloader="disable" data-bs-theme="<?= e($userTheme) ?>" data-layout-width="fluid" data-layout-position="fixed" data-layout-style="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
