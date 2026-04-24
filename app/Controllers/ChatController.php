@@ -760,39 +760,57 @@ class ChatController extends Controller
             [$id, $uid]
         );
 
-        // @AI mention in group: trigger AI reply inline
-        if ($content !== '' && preg_match('/(^|\s)@AI(\s|$)/iu', $content)) {
-            $question = trim(preg_replace('/(^|\s)@AI(\s|$)/iu', ' ', $content));
-            if ($question !== '') {
-                try {
-                    $tid2 = $this->tenantId();
-                    $answer = \App\Services\AiService::ask($question, $tid2, $uid, []);
-                    if (is_string($answer) && $answer !== '') {
-                        Database::insert('messages', [
-                            'conversation_id' => $id,
-                            'reply_to_id' => $newMsgId ?: null,
-                            'direction' => 'outbound',
-                            'sender_type' => 'system',
-                            'sender_id' => 0,
-                            'content' => $answer,
-                            'content_type' => 'text',
-                        ]);
-                        Database::query(
-                            "UPDATE conversations SET last_message_at = NOW(), last_message_preview = ? WHERE id = ?",
-                            [mb_substr('🤖 AI: ' . $answer, 0, 255), $id]
-                        );
-                        Database::query(
-                            "UPDATE conversation_members SET unread_count = unread_count + 1 WHERE conversation_id = ? AND user_id != ?",
-                            [$id, $uid]
-                        );
-                    }
-                } catch (\Throwable $e) {
-                    error_log('[chat@AI] ' . $e->getMessage());
-                }
-            }
+        // @AI mention in group: respond to the client first, then process AI in the background
+        $hasAiMention = ($content !== '' && preg_match('/(^|\s)@AI(\s|$)/iu', $content));
+        if (!$hasAiMention) {
+            return $this->isAjax() ? $this->json(['success' => true]) : $this->redirect('chat/internal?active=' . $id);
         }
 
-        return $this->isAjax() ? $this->json(['success' => true]) : $this->redirect('chat/internal?active=' . $id);
+        // Flush the response to the client so they aren't blocked on the AI call
+        if ($this->isAjax()) {
+            http_response_code(200);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => true, 'ai_processing' => true], JSON_UNESCAPED_UNICODE);
+        }
+        @session_write_close();
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } else {
+            if (ob_get_level() > 0) @ob_end_flush();
+            @flush();
+        }
+        ignore_user_abort(true);
+        @set_time_limit(60);
+
+        $question = trim(preg_replace('/(^|\s)@AI(\s|$)/iu', ' ', $content));
+        if ($question !== '') {
+            try {
+                $tid2 = $this->tenantId();
+                $answer = \App\Services\AiService::ask($question, $tid2, $uid, []);
+                if (is_string($answer) && $answer !== '') {
+                    Database::insert('messages', [
+                        'conversation_id' => $id,
+                        'reply_to_id' => $newMsgId ?: null,
+                        'direction' => 'outbound',
+                        'sender_type' => 'system',
+                        'sender_id' => 0,
+                        'content' => $answer,
+                        'content_type' => 'text',
+                    ]);
+                    Database::query(
+                        "UPDATE conversations SET last_message_at = NOW(), last_message_preview = ? WHERE id = ?",
+                        [mb_substr('🤖 AI: ' . $answer, 0, 255), $id]
+                    );
+                    Database::query(
+                        "UPDATE conversation_members SET unread_count = unread_count + 1 WHERE conversation_id = ? AND user_id != ?",
+                        [$id, $uid]
+                    );
+                }
+            } catch (\Throwable $e) {
+                error_log('[chat@AI] ' . $e->getMessage());
+            }
+        }
+        return; // response already sent
     }
 
     /** Create a task from a message (title = message content, assigned to creator). */

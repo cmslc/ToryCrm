@@ -212,7 +212,17 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
                 else { badge.style.display = 'none'; }
             }).catch(function(){});
         }
-        setInterval(tick, 20000);
+        // Poll 20s when visible, 60s when tab hidden
+        var tmr = null;
+        function schedule(){
+            if (tmr) clearTimeout(tmr);
+            var delay = document.hidden ? 60000 : 20000;
+            tmr = setTimeout(function(){ tick(); schedule(); }, delay);
+        }
+        schedule();
+        document.addEventListener('visibilitychange', function(){
+            if (!document.hidden) { tick(); schedule(); } else schedule();
+        });
     })();
     </script>
 </body>

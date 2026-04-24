@@ -820,7 +820,18 @@ if ($isAi) {
                             }
                         }).catch(function(){});
                     }
-                    setInterval(poll, 5000);
+                    // Polling backoff: 5s when tab is visible, 30s when hidden
+                    var pollTimer = null;
+                    function schedulePoll(){
+                        if (pollTimer) clearTimeout(pollTimer);
+                        var delay = document.hidden ? 30000 : 5000;
+                        pollTimer = setTimeout(function(){ poll(); schedulePoll(); }, delay);
+                    }
+                    schedulePoll();
+                    document.addEventListener('visibilitychange', function(){
+                        if (!document.hidden) { poll(); schedulePoll(); } // catch up immediately on focus
+                        else schedulePoll();
+                    });
 
                     input.focus();
                 })();
