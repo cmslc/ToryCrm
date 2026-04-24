@@ -24,11 +24,6 @@
                         <a class="nav-link" id="tab-security" data-bs-toggle="pill" href="#pane-security" role="tab"><i class="ri-shield-keyhole-line me-1"></i> Bảo mật & Giới hạn</a>
                         <a class="nav-link" id="tab-brand" data-bs-toggle="pill" href="#pane-brand" role="tab"><i class="ri-palette-line me-1"></i> Thương hiệu</a>
                     </div>
-
-                    <div class="alert alert-light border mt-3 small mb-0">
-                        <i class="ri-information-line me-1"></i>
-                        Các thiết lập áp dụng <strong>riêng cho tenant</strong>. Muốn chỉnh MST/địa chỉ/TK ngân hàng? Xem <a href="<?= url('settings/company-profiles') ?>">Quản lý công ty</a>.
-                    </div>
                 </div>
 
                 <!-- Right: tab content -->
