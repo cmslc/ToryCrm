@@ -35,7 +35,7 @@
             <div class="card-body p-2">
                 <?php if (!empty($templates)): ?>
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle table-sticky mb-0">
                         <thead class="table-light"><tr><th>Tên mẫu</th><th>Ưu tiên</th><th>Hạn</th><th>Subtasks</th><th>Thao tác</th></tr></thead>
                         <tbody>
                         <?php foreach ($templates as $tpl):

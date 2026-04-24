@@ -26,7 +26,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle table-sticky mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th>Mã hóa đơn</th>

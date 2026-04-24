@@ -8,7 +8,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle table-sticky mb-0">
                 <thead class="table-light">
                     <tr><th>Sản phẩm</th><th>SKU</th><th>Loại</th><th>Danh mục</th><th>Đơn giá</th><th>Ngày xóa</th><th>Thao tác</th></tr>
                 </thead>
