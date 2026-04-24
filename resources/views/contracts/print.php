@@ -141,7 +141,11 @@
 
     <script>
     (function() {
-        var PAGE_HEIGHT = 1122, PADDING = 76, CONTENT_HEIGHT = PAGE_HEIGHT - PADDING * 2;
+        // A4 @ 96dpi ≈ 1122px tall, padding 20mm ≈ 76px. Reserve ~15mm extra at the
+        // bottom so the last line on a page never sits flush against the edge and
+        // section headings don't look cramped.
+        var PAGE_HEIGHT = 1122, PADDING = 76, BOTTOM_SAFETY = 56;
+        var CONTENT_HEIGHT = PAGE_HEIGHT - PADDING * 2 - BOTTOM_SAFETY;
         var watermarkText = '<?= $watermark ?? '' ?>';
         var raw = document.getElementById('rawContent').querySelector('.a4-content');
         var wrapper = document.getElementById('pagesWrapper');
@@ -198,11 +202,33 @@
             return true;
         }
 
-        children.forEach(function(el) {
+        function isHeadingLike(el) {
+            if (!el) return false;
+            if (/^H[1-6]$/i.test(el.tagName)) return true;
+            // Text-only <p> / <strong> starting with "ĐIỀU" / "Điều" acts as a section heading
+            var txt = (el.textContent || '').trim();
+            return /^Điều\s+\d/i.test(txt) || /^ĐIỀU\s+\d/.test(txt);
+        }
+
+        children.forEach(function(el, idx) {
             var clone = el.cloneNode(true);
             currentPage.appendChild(clone);
             var h = clone.offsetHeight;
             if (currentHeight + h <= CONTENT_HEIGHT) {
+                // Orphan protection: if this is a heading and the NEXT element
+                // won't fit together with it on this page, push both to next page.
+                var next = children[idx + 1];
+                if (isHeadingLike(clone) && next) {
+                    var probe = next.cloneNode(true);
+                    currentPage.appendChild(probe);
+                    var together = probe.offsetHeight;
+                    currentPage.removeChild(probe);
+                    if (currentHeight + h + together > CONTENT_HEIGHT) {
+                        currentPage.removeChild(clone);
+                        placeOnNewPage(clone);
+                        return;
+                    }
+                }
                 currentHeight += h;
                 return;
             }
