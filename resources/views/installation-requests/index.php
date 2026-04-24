@@ -31,10 +31,7 @@ foreach ($statusCounts ?? [] as $sc) $countByStatus[$sc['status']] = $sc['count'
             <?php endif; ?>
         </form>
     </div>
-</div>
-
-<div class="card mb-3">
-    <div class="card-body py-2 px-3 d-flex align-items-center gap-1">
+    <div class="card-body py-2 px-3 d-flex align-items-center gap-1 border-top">
         <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;min-width:0">
             <div class="d-flex gap-1 flex-nowrap">
                 <a href="<?= url('installation-requests?' . http_build_query(array_merge($filters, ['status' => '']))) ?>"
