@@ -34,7 +34,7 @@
                     </div>
                     <div class="col-md-3">
                         <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
-                        <a href="<?= url('campaigns') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
+                        <a href="<?= url('campaigns') ?>" class="btn btn-soft-danger btn-icon" title="Xóa lọc"><i class="ri-refresh-line"></i></a>
                     </div>
                 </form>
 

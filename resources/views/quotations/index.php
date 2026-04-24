@@ -95,7 +95,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
                     <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
                     <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
                     <?php if (!empty(array_filter($filters ?? []))): ?>
-                        <a href="<?= url('quotations') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                        <a href="<?= url('quotations') ?>" class="btn btn-soft-danger btn-icon" title="Xóa lọc"><i class="ri-refresh-line"></i></a>
                     <?php endif; ?>
                     <input type="hidden" name="per_page" value="<?= e($filters['per_page'] ?? 20) ?>">
                 </form>

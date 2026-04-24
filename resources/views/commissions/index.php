@@ -112,7 +112,7 @@
                     </div>
                     <div class="col-md-4">
                         <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Lọc</button>
-                        <a href="<?= url('commissions') ?>" class="btn btn-soft-secondary">Xóa lọc</a>
+                        <a href="<?= url('commissions') ?>" class="btn btn-soft-danger btn-icon" title="Xóa lọc"><i class="ri-refresh-line"></i></a>
                     </div>
                 </form>
 

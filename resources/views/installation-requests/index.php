@@ -27,7 +27,7 @@ foreach ($statusCounts ?? [] as $sc) $countByStatus[$sc['status']] = $sc['count'
             <input type="hidden" name="status" value="<?= e($currentStatus) ?>">
             <button type="submit" class="btn btn-primary"><i class="ri-search-line me-1"></i> Tìm</button>
             <?php if (!empty(array_filter($filters ?? []))): ?>
-                <a href="<?= url('installation-requests') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+                <a href="<?= url('installation-requests') ?>" class="btn btn-soft-danger btn-icon" title="Xóa lọc"><i class="ri-refresh-line"></i></a>
             <?php endif; ?>
         </form>
     </div>

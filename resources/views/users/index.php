@@ -66,7 +66,7 @@ $hasFilter = ($filters['search'] ?? '') || ($filters['role'] ?? '') || ($filters
             <?php endif; ?>
             <button type="submit" class="btn btn-primary"><i class="ri-search-line"></i> Lọc</button>
             <?php if ($hasFilter): ?>
-            <a href="<?= url('users') ?>" class="btn btn-soft-danger"><i class="ri-refresh-line me-1"></i> Xóa lọc</a>
+            <a href="<?= url('users') ?>" class="btn btn-soft-danger btn-icon" title="Xóa lọc"><i class="ri-refresh-line"></i></a>
             <?php endif; ?>
         </form>
     </div>
