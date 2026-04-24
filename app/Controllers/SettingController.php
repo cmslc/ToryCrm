@@ -383,13 +383,9 @@ class SettingController extends Controller
         $sessionTimeout = max(5, min(1440, (int)$this->input('session_timeout', 120)));
         $uploadLimit = max(1, min(100, (int)$this->input('upload_limit', 10)));
 
-        $systemName = trim((string)$this->input('system_name', ''));
-        if (mb_strlen($systemName) > 100) $systemName = mb_substr($systemName, 0, 100);
-
         $tenant = Database::fetch("SELECT settings FROM tenants WHERE id = ?", [$this->tenantId()]);
         $settings = json_decode($tenant['settings'] ?? '{}', true) ?: [];
         $settings['general'] = [
-            'system_name' => $systemName,
             'timezone' => $tz,
             'locale' => $locale,
             'currency' => $currency,

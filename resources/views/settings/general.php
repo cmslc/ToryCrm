@@ -17,8 +17,7 @@
                 <!-- Left: vertical nav pills -->
                 <div class="col-lg-3">
                     <div class="nav flex-column nav-pills" id="settingsTab" role="tablist" aria-orientation="vertical">
-                        <a class="nav-link active" id="tab-system" data-bs-toggle="pill" href="#pane-system" role="tab"><i class="ri-settings-4-line me-1"></i> Thông tin hệ thống</a>
-                        <a class="nav-link" id="tab-region" data-bs-toggle="pill" href="#pane-region" role="tab"><i class="ri-global-line me-1"></i> Khu vực & Định dạng</a>
+                        <a class="nav-link active" id="tab-region" data-bs-toggle="pill" href="#pane-region" role="tab"><i class="ri-global-line me-1"></i> Khu vực & Định dạng</a>
                         <a class="nav-link" id="tab-work" data-bs-toggle="pill" href="#pane-work" role="tab"><i class="ri-time-line me-1"></i> Giờ làm việc</a>
                         <a class="nav-link" id="tab-email" data-bs-toggle="pill" href="#pane-email" role="tab"><i class="ri-mail-send-line me-1"></i> Email gửi</a>
                         <a class="nav-link" id="tab-security" data-bs-toggle="pill" href="#pane-security" role="tab"><i class="ri-shield-keyhole-line me-1"></i> Bảo mật & Giới hạn</a>
@@ -30,19 +29,8 @@
                 <div class="col-lg-9">
                     <div class="tab-content">
 
-                        <!-- 1. Thông tin hệ thống -->
-                        <div class="tab-pane fade show active" id="pane-system" role="tabpanel">
-                            <h5 class="mb-3"><i class="ri-settings-4-line me-1"></i> Thông tin hệ thống</h5>
-                            <div class="mb-3">
-                                <label class="form-label">Tên hệ thống</label>
-                                <input type="text" class="form-control" name="system_name" maxlength="100"
-                                       value="<?= e($g['system_name'] ?? '') ?>" placeholder="VD: ToryCRM Công ty ABC">
-                                <small class="text-muted">Hiển thị trong tiêu đề email, báo cáo xuất PDF. Để trống sẽ dùng White-label brand.</small>
-                            </div>
-                        </div>
-
-                        <!-- 2. Khu vực & Định dạng -->
-                        <div class="tab-pane fade" id="pane-region" role="tabpanel">
+                        <!-- 1. Khu vực & Định dạng -->
+                        <div class="tab-pane fade show active" id="pane-region" role="tabpanel">
                             <h5 class="mb-3"><i class="ri-global-line me-1"></i> Khu vực & Định dạng</h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
