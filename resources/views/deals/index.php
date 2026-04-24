@@ -201,16 +201,24 @@ $exportId = 'exportDealsModal';
 $exportUrl = url('deals/export');
 $exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
 $exportColumns = [
+    'deal_code' => 'Mã cơ hội',
     'title' => 'Tên cơ hội',
     'contact_name' => 'Khách hàng',
     'company_name' => 'Công ty',
     'stage_name' => 'Giai đoạn',
     'status' => 'Trạng thái',
+    'priority' => 'Ưu tiên',
     'value' => 'Giá trị',
+    'currency' => 'Tiền tệ',
     'probability' => 'Xác suất %',
     'expected_close_date' => 'Ngày dự kiến',
+    'actual_close_date' => 'Ngày đóng thực tế',
+    'receipt_date' => 'Ngày nhận',
     'owner_name' => 'Phụ trách',
-    'source' => 'Nguồn',
+    'competitor' => 'Đối thủ',
+    'close_reason' => 'Lý do đóng',
+    'lost_reason' => 'Lý do thua',
+    'description' => 'Mô tả',
     'created_at' => 'Ngày tạo',
 ];
 include BASE_PATH . '/resources/views/components/export-modal.php';

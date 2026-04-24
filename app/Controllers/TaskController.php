@@ -1055,16 +1055,22 @@ class TaskController extends Controller
         $pl = ['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn'];
 
         $columns = [
-            'title'         => ['label' => 'Tiêu đề'],
-            'status'        => ['label' => 'Trạng thái', 'format' => fn($r) => $sl[$r['status']] ?? $r['status']],
-            'priority'      => ['label' => 'Ưu tiên',   'format' => fn($r) => $pl[$r['priority']] ?? $r['priority']],
-            'assigned_name' => ['label' => 'Phụ trách'],
-            'due_date'      => ['label' => 'Hạn'],
-            'completed_at'  => ['label' => 'Hoàn thành'],
-            'contact_name'  => ['label' => 'Khách hàng'],
-            'deal_title'    => ['label' => 'Cơ hội'],
-            'description'   => ['label' => 'Mô tả'],
-            'created_at'    => ['label' => 'Ngày tạo'],
+            'task_code'       => ['label' => 'Mã CV'],
+            'title'           => ['label' => 'Tiêu đề'],
+            'status'          => ['label' => 'Trạng thái', 'format' => fn($r) => $sl[$r['status']] ?? $r['status']],
+            'priority'        => ['label' => 'Ưu tiên',   'format' => fn($r) => $pl[$r['priority']] ?? $r['priority']],
+            'is_important'    => ['label' => 'Quan trọng'],
+            'progress'        => ['label' => 'Tiến độ %'],
+            'estimated_hours' => ['label' => 'Giờ ước tính'],
+            'assigned_name'   => ['label' => 'Phụ trách'],
+            'start_date'      => ['label' => 'Bắt đầu'],
+            'due_date'        => ['label' => 'Hạn'],
+            'completed_at'    => ['label' => 'Hoàn thành'],
+            'cancelled_at'    => ['label' => 'Đã hủy'],
+            'contact_name'    => ['label' => 'Khách hàng'],
+            'deal_title'      => ['label' => 'Cơ hội'],
+            'description'     => ['label' => 'Mô tả'],
+            'created_at'      => ['label' => 'Ngày tạo'],
         ];
         $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
         \App\Services\CsvExporter::download($rows, $columns, 'tasks_' . date('Ymd_His') . '.csv', $selected);

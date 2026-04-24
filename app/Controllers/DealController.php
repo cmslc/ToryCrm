@@ -165,17 +165,25 @@ class DealController extends Controller
         );
 
         $columns = [
-            'title'         => ['label' => 'Tên cơ hội'],
-            'contact_name'  => ['label' => 'Khách hàng'],
-            'company_name'  => ['label' => 'Công ty'],
-            'stage_name'    => ['label' => 'Giai đoạn'],
-            'status'        => ['label' => 'Trạng thái'],
-            'value'         => ['label' => 'Giá trị'],
-            'probability'   => ['label' => 'Xác suất %'],
+            'deal_code'           => ['label' => 'Mã cơ hội'],
+            'title'               => ['label' => 'Tên cơ hội'],
+            'contact_name'        => ['label' => 'Khách hàng'],
+            'company_name'        => ['label' => 'Công ty'],
+            'stage_name'          => ['label' => 'Giai đoạn'],
+            'status'              => ['label' => 'Trạng thái'],
+            'priority'            => ['label' => 'Ưu tiên'],
+            'value'               => ['label' => 'Giá trị'],
+            'currency'            => ['label' => 'Tiền tệ'],
+            'probability'         => ['label' => 'Xác suất %'],
             'expected_close_date' => ['label' => 'Ngày dự kiến'],
-            'owner_name'    => ['label' => 'Phụ trách'],
-            'source'        => ['label' => 'Nguồn'],
-            'created_at'    => ['label' => 'Ngày tạo'],
+            'actual_close_date'   => ['label' => 'Ngày đóng thực tế'],
+            'receipt_date'        => ['label' => 'Ngày nhận'],
+            'owner_name'          => ['label' => 'Phụ trách'],
+            'competitor'          => ['label' => 'Đối thủ'],
+            'close_reason'        => ['label' => 'Lý do đóng'],
+            'lost_reason'         => ['label' => 'Lý do thua'],
+            'description'         => ['label' => 'Mô tả'],
+            'created_at'          => ['label' => 'Ngày tạo'],
         ];
         $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
         \App\Services\CsvExporter::download($rows, $columns, 'deals_' . date('Ymd_His') . '.csv', $selected);
