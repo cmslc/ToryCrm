@@ -10,8 +10,12 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> | <?= e($brandName) ?></title>
-    <?php if (!empty($branding['favicon_url'])): ?>
-    <link rel="icon" href="<?= e($branding['favicon_url']) ?>" type="image/x-icon">
+    <?php if (!empty($branding['favicon_url'])):
+        $__favPath = ltrim($branding['favicon_url'], '/');
+        $__favAbs = '/' . $__favPath;
+        $__favVer = @filemtime(BASE_PATH . '/public/' . $__favPath) ?: time();
+    ?>
+    <link rel="icon" href="<?= e($__favAbs) ?>?v=<?= $__favVer ?>" type="image/x-icon">
     <?php endif; ?>
 
     <!-- Velzon CSS -->

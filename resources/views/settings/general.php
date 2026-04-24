@@ -183,7 +183,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Favicon</label>
                             <?php if (!empty($branding['favicon_url'])): ?>
-                                <div class="mb-2"><img src="<?= e($branding['favicon_url']) ?>" alt="Favicon" class="img-thumbnail" style="max-height:40px"></div>
+                                <div class="mb-2"><img src="/<?= ltrim($branding['favicon_url'], '/') ?>" alt="Favicon" class="img-thumbnail" style="max-height:40px"></div>
                             <?php endif; ?>
                             <input type="file" class="form-control" name="favicon" accept="image/*,.ico">
                             <small class="text-muted">ICO hoặc PNG, 32×32px.</small>
