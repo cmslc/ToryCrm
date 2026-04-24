@@ -39,10 +39,31 @@ class AuthController extends Controller
 
         $user = Database::fetch("SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1", [$email]);
 
+        // Account-level lockout: after 10 failed attempts, lock for 30 min
+        if ($user && $user['locked_until'] && strtotime($user['locked_until']) > time()) {
+            AuditLog::loginFailed($email);
+            $minsLeft = (int) ceil((strtotime($user['locked_until']) - time()) / 60);
+            $this->setFlash('error', "Tài khoản tạm khóa sau nhiều lần đăng nhập sai. Thử lại sau {$minsLeft} phút.");
+            return $this->back();
+        }
+
         if (!$user || !Auth::verifyPassword($password, $user['password'])) {
             AuditLog::loginFailed($email);
+            if ($user) {
+                $attempts = (int)$user['login_attempts'] + 1;
+                $lockUntil = $attempts >= 10 ? date('Y-m-d H:i:s', time() + 1800) : null; // 30 min
+                Database::update('users', [
+                    'login_attempts' => $attempts,
+                    'locked_until' => $lockUntil,
+                ], 'id = ?', [$user['id']]);
+            }
             $this->setFlash('error', 'Email hoặc mật khẩu không đúng.');
             return $this->back();
+        }
+
+        // Reset lockout counters on success
+        if ((int)$user['login_attempts'] > 0 || $user['locked_until']) {
+            Database::update('users', ['login_attempts' => 0, 'locked_until' => null], 'id = ?', [$user['id']]);
         }
 
         // Clear rate limit on success
@@ -334,8 +355,9 @@ class AuthController extends Controller
 
         $password = (string) $this->input('password', '');
         $confirm = (string) $this->input('password_confirm', '');
-        if (strlen($password) < 8) {
-            $this->setFlash('error', 'Mật khẩu tối thiểu 8 ký tự.');
+        $errors = \App\Services\PasswordPolicy::validate($password);
+        if ($errors) {
+            $this->setFlash('error', implode(' ', $errors));
             return $this->back();
         }
         if ($password !== $confirm) {
