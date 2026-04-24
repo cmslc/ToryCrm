@@ -77,3 +77,13 @@ select.searchable-select {
   max-width: 100%;
   object-fit: contain;
 }
+
+/* Always show the topbar hamburger/arrow — even in sm-hover mode
+ * (Velzon hides it by default on desktop when sidebar is sm-hover).
+ * Clicking it toggles sidebar sm-hover ↔ lg (see app.js toggleHamburgerMenu). */
+@media (min-width: 768px) {
+  [data-sidebar-size="sm-hover"] .topnav-hamburger,
+  [data-sidebar-size="sm-hover-active"] .topnav-hamburger {
+    display: inline-flex !important;
+  }
+}
