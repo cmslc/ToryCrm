@@ -96,32 +96,50 @@ class ImportExportController extends Controller
         $this->authorize('contacts', 'view');
         if (!\App\Services\RateLimiter::attempt('export:' . $this->userId(), 10, 60)) {
             $this->setFlash('error', 'Vượt giới hạn 10 export/giờ. Thử lại sau.');
-            return $this->redirect('import-export');
+            return $this->redirect('contacts');
         }
         \App\Services\AuditLog::log('export', 'contacts', null, 'Export contacts');
-        $filters = [];
 
-        $dateFrom = $this->input('date_from');
-        $dateTo = $this->input('date_to');
-
-        if ($dateFrom) {
-            $filters['date_from'] = $dateFrom;
+        $tid = \Core\Database::tenantId();
+        $where = ["c.is_deleted = 0", "c.tenant_id = ?"];
+        $params = [$tid];
+        if ($df = $this->input('date_from')) { $where[] = "DATE(c.created_at) >= ?"; $params[] = $df; }
+        if ($dt = $this->input('date_to')) { $where[] = "DATE(c.created_at) <= ?"; $params[] = $dt; }
+        if ($s = $this->input('search')) {
+            $where[] = "(c.first_name LIKE ? OR c.last_name LIKE ? OR c.email LIKE ? OR c.phone LIKE ? OR c.company_name LIKE ?)";
+            $like = "%{$s}%"; $params = array_merge($params, [$like, $like, $like, $like, $like]);
         }
-        if ($dateTo) {
-            $filters['date_to'] = $dateTo;
-        }
+        if ($st = $this->input('status')) { $where[] = "c.status = ?"; $params[] = $st; }
+        if ($sid = $this->input('source_id')) { $where[] = "c.source_id = ?"; $params[] = $sid; }
+        if ($oid = $this->input('owner_id')) { $where[] = "c.owner_id = ?"; $params[] = $oid; }
 
-        $csv = ImportService::exportContacts($filters);
-        $filename = 'contacts_' . date('Y-m-d_His') . '.csv';
+        $rows = \Core\Database::fetchAll(
+            "SELECT c.*, cs.name as source_name, u.name as owner_name, c.company_name
+             FROM contacts c
+             LEFT JOIN contact_sources cs ON c.source_id = cs.id
+             LEFT JOIN users u ON c.owner_id = u.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY c.created_at DESC",
+            $params
+        );
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-
-        echo "\xEF\xBB\xBF"; // UTF-8 BOM
-        echo $csv;
-        exit;
+        $columns = [
+            'account_code' => ['label' => 'Mã KH'],
+            'first_name'   => ['label' => 'Tên'],
+            'last_name'    => ['label' => 'Họ'],
+            'email'        => ['label' => 'Email'],
+            'phone'        => ['label' => 'SĐT'],
+            'company_name' => ['label' => 'Công ty'],
+            'tax_code'     => ['label' => 'Mã số thuế'],
+            'address'      => ['label' => 'Địa chỉ'],
+            'source_name'  => ['label' => 'Nguồn'],
+            'status'       => ['label' => 'Trạng thái'],
+            'owner_name'   => ['label' => 'Phụ trách'],
+            'notes'        => ['label' => 'Ghi chú'],
+            'created_at'   => ['label' => 'Ngày tạo'],
+        ];
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'contacts_' . date('Ymd_His') . '.csv', $selected);
     }
 
     public function exportProducts()
@@ -129,32 +147,54 @@ class ImportExportController extends Controller
         $this->authorize('products', 'view');
         if (!\App\Services\RateLimiter::attempt('export:' . $this->userId(), 10, 60)) {
             $this->setFlash('error', 'Vượt giới hạn 10 export/giờ. Thử lại sau.');
-            return $this->redirect('import-export');
+            return $this->redirect('products');
         }
         \App\Services\AuditLog::log('export', 'products', null, 'Export products');
-        $filters = [];
 
-        $dateFrom = $this->input('date_from');
-        $dateTo = $this->input('date_to');
-
-        if ($dateFrom) {
-            $filters['date_from'] = $dateFrom;
+        $tid = \Core\Database::tenantId();
+        $where = ["p.is_deleted = 0", "p.tenant_id = ?"];
+        $params = [$tid];
+        if ($df = $this->input('date_from')) { $where[] = "DATE(p.created_at) >= ?"; $params[] = $df; }
+        if ($dt = $this->input('date_to')) { $where[] = "DATE(p.created_at) <= ?"; $params[] = $dt; }
+        if ($s = $this->input('search')) {
+            $where[] = "(p.name LIKE ? OR p.sku LIKE ?)";
+            $like = "%{$s}%"; $params = array_merge($params, [$like, $like]);
         }
-        if ($dateTo) {
-            $filters['date_to'] = $dateTo;
-        }
+        if ($cid = $this->input('category_id')) { $where[] = "p.category_id = ?"; $params[] = $cid; }
+        if ($t = $this->input('type')) { $where[] = "p.type = ?"; $params[] = $t; }
 
-        $csv = ImportService::exportProducts($filters);
-        $filename = 'products_' . date('Y-m-d_His') . '.csv';
+        $rows = \Core\Database::fetchAll(
+            "SELECT p.*, pc.name as category_name,
+                    pm.name as manufacturer_name, po.name as origin_name
+             FROM products p
+             LEFT JOIN product_categories pc ON p.category_id = pc.id
+             LEFT JOIN product_manufacturers pm ON p.manufacturer_id = pm.id
+             LEFT JOIN product_origins po ON p.origin_id = po.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY p.created_at DESC",
+            $params
+        );
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-
-        echo "\xEF\xBB\xBF"; // UTF-8 BOM
-        echo $csv;
-        exit;
+        $columns = [
+            'sku'              => ['label' => 'SKU'],
+            'name'             => ['label' => 'Tên sản phẩm'],
+            'type'             => ['label' => 'Loại'],
+            'unit'             => ['label' => 'Đơn vị'],
+            'category_name'    => ['label' => 'Danh mục'],
+            'price'            => ['label' => 'Giá bán'],
+            'cost_price'       => ['label' => 'Giá vốn'],
+            'tax_rate'         => ['label' => 'Thuế %'],
+            'weight'           => ['label' => 'Trọng lượng'],
+            'dimensions'       => ['label' => 'Kích thước'],
+            'color'            => ['label' => 'Màu'],
+            'barcode'          => ['label' => 'Barcode'],
+            'manufacturer_name'=> ['label' => 'Nhà sản xuất'],
+            'origin_name'      => ['label' => 'Xuất xứ'],
+            'description'      => ['label' => 'Mô tả'],
+            'created_at'       => ['label' => 'Ngày tạo'],
+        ];
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'products_' . date('Ymd_His') . '.csv', $selected);
     }
 
     public function downloadTemplate($type)

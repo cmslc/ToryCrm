@@ -1028,12 +1028,21 @@ class TaskController extends Controller
 
         $where = ["t.is_deleted = 0", "t.tenant_id = ?", "t.parent_id IS NULL"];
         $params = [Database::tenantId()];
+        if ($s = $this->input('search')) {
+            $where[] = "(t.title LIKE ? OR t.description LIKE ?)";
+            $like = "%{$s}%"; $params = array_merge($params, [$like, $like]);
+        }
+        if ($st = $this->input('status')) { $where[] = "t.status = ?"; $params[] = $st; }
+        if ($pr = $this->input('priority')) { $where[] = "t.priority = ?"; $params[] = $pr; }
+        if ($a = $this->input('assigned_to')) { $where[] = "t.assigned_to = ?"; $params[] = $a; }
         $ownerScope = $this->ownerScope('t', 'assigned_to', 'tasks');
         if ($ownerScope['where']) { $where[] = $ownerScope['where']; $params = array_merge($params, $ownerScope['params']); }
 
-        $tasks = Database::fetchAll(
-            "SELECT t.title, t.status, t.priority, t.due_date, t.created_at, t.completed_at,
-                    u.name as assigned_name, c.first_name as contact_name, d.title as deal_title
+        $rows = Database::fetchAll(
+            "SELECT t.*,
+                    u.name as assigned_name,
+                    TRIM(CONCAT(COALESCE(c.first_name,''),' ',COALESCE(c.last_name,''))) as contact_name,
+                    d.title as deal_title
              FROM tasks t
              LEFT JOIN users u ON t.assigned_to = u.id
              LEFT JOIN contacts c ON t.contact_id = c.id
@@ -1042,26 +1051,23 @@ class TaskController extends Controller
             $params
         );
 
-        $format = $this->input('format') ?: 'csv';
+        $sl = ['todo'=>'Cần làm','in_progress'=>'Đang làm','review'=>'Review','done'=>'Hoàn thành','cancelled'=>'Hủy'];
+        $pl = ['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn'];
 
-        if ($format === 'csv') {
-            header('Content-Type: text/csv; charset=UTF-8');
-            header('Content-Disposition: attachment; filename="tasks_' . date('Y-m-d') . '.csv"');
-            echo "\xEF\xBB\xBF"; // BOM for Excel
-            $out = fopen('php://output', 'w');
-            fputcsv($out, ['Tiêu đề', 'Trạng thái', 'Ưu tiên', 'Phụ trách', 'Hạn', 'Ngày tạo', 'Hoàn thành', 'Khách hàng', 'Deal']);
-            $sl = ['todo'=>'Cần làm','in_progress'=>'Đang làm','review'=>'Review','done'=>'Hoàn thành'];
-            $pl = ['low'=>'Thấp','medium'=>'TB','high'=>'Cao','urgent'=>'Khẩn'];
-            foreach ($tasks as $t) {
-                fputcsv($out, [
-                    $t['title'], $sl[$t['status']] ?? $t['status'], $pl[$t['priority']] ?? $t['priority'],
-                    $t['assigned_name'] ?? '', $t['due_date'] ?? '', $t['created_at'] ?? '',
-                    $t['completed_at'] ?? '', $t['contact_name'] ?? '', $t['deal_title'] ?? '',
-                ]);
-            }
-            fclose($out);
-            exit;
-        }
+        $columns = [
+            'title'         => ['label' => 'Tiêu đề'],
+            'status'        => ['label' => 'Trạng thái', 'format' => fn($r) => $sl[$r['status']] ?? $r['status']],
+            'priority'      => ['label' => 'Ưu tiên',   'format' => fn($r) => $pl[$r['priority']] ?? $r['priority']],
+            'assigned_name' => ['label' => 'Phụ trách'],
+            'due_date'      => ['label' => 'Hạn'],
+            'completed_at'  => ['label' => 'Hoàn thành'],
+            'contact_name'  => ['label' => 'Khách hàng'],
+            'deal_title'    => ['label' => 'Cơ hội'],
+            'description'   => ['label' => 'Mô tả'],
+            'created_at'    => ['label' => 'Ngày tạo'],
+        ];
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'tasks_' . date('Ymd_His') . '.csv', $selected);
     }
 
     // ---- Dependencies ----

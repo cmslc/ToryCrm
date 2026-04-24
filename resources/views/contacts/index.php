@@ -28,6 +28,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
         <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
+        <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#exportContactsModal"><i class="ri-download-line me-1"></i> Export chọn cột</button>
         <?php if (\App\Services\PermissionService::isInSystemGroup($_SESSION['user']['id'] ?? 0)): ?>
         <a href="<?= url('persons/duplicates') ?>" class="btn btn-soft-warning"><i class="ri-merge-cells-horizontal me-1"></i> Gộp trùng</a>
         <?php endif; ?>
@@ -461,3 +462,25 @@ window.__bulkConfig = {
 </script>
 <script src="<?= asset('js/inline-edit.js') ?>?v=<?= time() ?>"></script>
 <script src="<?= asset('js/bulk-actions.js') ?>?v=<?= time() ?>"></script>
+
+<?php
+$exportId = 'exportContactsModal';
+$exportUrl = url('import-export/export-contacts');
+$exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
+$exportColumns = [
+    'account_code' => 'Mã KH',
+    'first_name' => 'Tên',
+    'last_name' => 'Họ',
+    'email' => 'Email',
+    'phone' => 'SĐT',
+    'company_name' => 'Công ty',
+    'tax_code' => 'Mã số thuế',
+    'address' => 'Địa chỉ',
+    'source_name' => 'Nguồn',
+    'status' => 'Trạng thái',
+    'owner_name' => 'Phụ trách',
+    'notes' => 'Ghi chú',
+    'created_at' => 'Ngày tạo',
+];
+include BASE_PATH . '/resources/views/components/export-modal.php';
+?>

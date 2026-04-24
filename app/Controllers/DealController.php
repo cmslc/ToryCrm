@@ -132,6 +132,55 @@ class DealController extends Controller
         ]);
     }
 
+    public function export()
+    {
+        $this->authorize('deals', 'view');
+        $tid = Database::tenantId();
+        $where = ["d.tenant_id = ?"]; $params = [$tid];
+
+        if ($s = $this->input('search')) {
+            $where[] = "(d.title LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR comp.name LIKE ?)";
+            $like = "%{$s}%"; $params = array_merge($params, [$like, $like, $like, $like]);
+        }
+        if ($st = $this->input('status')) { $where[] = "d.status = ?"; $params[] = $st; }
+        if ($sid = $this->input('stage_id')) { $where[] = "d.stage_id = ?"; $params[] = $sid; }
+        if ($oid = $this->input('owner_id')) { $where[] = "d.owner_id = ?"; $params[] = $oid; }
+        $scope = $this->ownerScope('d', 'owner_id', 'deals');
+        if ($scope['where']) { $where[] = $scope['where']; $params = array_merge($params, $scope['params']); }
+
+        $rows = Database::fetchAll(
+            "SELECT d.*,
+                    TRIM(CONCAT(COALESCE(c.first_name,''),' ',COALESCE(c.last_name,''))) as contact_name,
+                    comp.name as company_name,
+                    u.name as owner_name,
+                    ds.name as stage_name
+             FROM deals d
+             LEFT JOIN contacts c ON d.contact_id = c.id
+             LEFT JOIN companies comp ON d.company_id = comp.id
+             LEFT JOIN users u ON d.owner_id = u.id
+             LEFT JOIN deal_stages ds ON d.stage_id = ds.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY d.created_at DESC",
+            $params
+        );
+
+        $columns = [
+            'title'         => ['label' => 'Tên cơ hội'],
+            'contact_name'  => ['label' => 'Khách hàng'],
+            'company_name'  => ['label' => 'Công ty'],
+            'stage_name'    => ['label' => 'Giai đoạn'],
+            'status'        => ['label' => 'Trạng thái'],
+            'value'         => ['label' => 'Giá trị'],
+            'probability'   => ['label' => 'Xác suất %'],
+            'expected_close_date' => ['label' => 'Ngày dự kiến'],
+            'owner_name'    => ['label' => 'Phụ trách'],
+            'source'        => ['label' => 'Nguồn'],
+            'created_at'    => ['label' => 'Ngày tạo'],
+        ];
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'deals_' . date('Ymd_His') . '.csv', $selected);
+    }
+
     public function create()
     {
         $this->authorize('deals', 'create');

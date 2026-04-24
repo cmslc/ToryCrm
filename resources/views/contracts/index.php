@@ -11,6 +11,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
     <h4 class="mb-0">Hợp đồng</h4>
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
+        <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#exportContractsModal"><i class="ri-download-line me-1"></i> Export</button>
         <a href="<?= url('contracts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo hợp đồng</a>
     </div>
 </div>
@@ -245,3 +246,24 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     applyColumns(getVisible());
 })();
 </script>
+
+<?php
+$exportId = 'exportContractsModal';
+$exportUrl = url('contracts/export');
+$exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
+$exportColumns = [
+    'contract_number' => 'Số hợp đồng',
+    'title' => 'Tiêu đề',
+    'contact_name' => 'Khách hàng',
+    'company_name' => 'Công ty',
+    'type' => 'Loại',
+    'status' => 'Trạng thái',
+    'value' => 'Giá trị',
+    'start_date' => 'Ngày bắt đầu',
+    'end_date' => 'Ngày kết thúc',
+    'owner_name' => 'Phụ trách',
+    'notes' => 'Ghi chú',
+    'created_at' => 'Ngày tạo',
+];
+include BASE_PATH . '/resources/views/components/export-modal.php';
+?>

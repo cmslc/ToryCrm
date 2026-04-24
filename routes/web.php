@@ -141,6 +141,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Deals (Pipeline)
     Router::get('deals', 'DealController@index');
+    Router::get('deals/export', 'DealController@export');
     Router::get('deals/pipeline', 'DealController@pipeline');
     Router::get('deals/forecast', 'DealController@forecast');
     Router::get('deals/create', 'DealController@create');
@@ -367,6 +368,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
 
     // Contracts (Hợp đồng)
     Router::get('contracts', 'ContractController@index');
+    Router::get('contracts/export', 'ContractController@export');
     Router::get('contracts/create', 'ContractController@create');
     Router::post('contracts/store', 'ContractController@store');
     Router::get('contracts/{id}', 'ContractController@show');

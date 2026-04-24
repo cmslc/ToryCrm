@@ -113,7 +113,7 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<?= url('tasks/templates') ?>"><i class="ri-file-copy-line me-2"></i>Mẫu công việc</a></li>
-                        <li><a class="dropdown-item" href="<?= url('tasks/export?format=csv') ?>"><i class="ri-download-line me-2"></i>Xuất CSV</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exportTasksModal"><i class="ri-download-line me-2"></i>Xuất CSV (chọn cột)</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="<?= url('tasks/trash') ?>"><i class="ri-delete-bin-line me-2"></i>Thùng rác</a></li>
                     </ul>
@@ -326,3 +326,22 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     document.querySelectorAll('.row-check').forEach(function(cb) { cb.addEventListener('change', updateBulk); });
 })();
 </script>
+
+<?php
+$exportId = 'exportTasksModal';
+$exportUrl = url('tasks/export');
+$exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
+$exportColumns = [
+    'title' => 'Tiêu đề',
+    'status' => 'Trạng thái',
+    'priority' => 'Ưu tiên',
+    'assigned_name' => 'Phụ trách',
+    'due_date' => 'Hạn',
+    'completed_at' => 'Hoàn thành',
+    'contact_name' => 'Khách hàng',
+    'deal_title' => 'Cơ hội',
+    'description' => 'Mô tả',
+    'created_at' => 'Ngày tạo',
+];
+include BASE_PATH . '/resources/views/components/export-modal.php';
+?>

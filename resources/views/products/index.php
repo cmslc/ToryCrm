@@ -9,6 +9,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
                 <a href="<?= url('products/settings') ?>" class="btn btn-soft-secondary"><i class="ri-folder-settings-line me-1"></i> Danh mục</a>
                 <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportProdModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
+                <button type="button" class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#exportProductsModal"><i class="ri-download-line me-1"></i> Export chọn cột</button>
                 <a href="<?= url('products/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
                 <a href="<?= url('products/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Thêm sản phẩm</a>
             </div>
@@ -282,3 +283,28 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     applyColumns(getVisible());
 })();
 </script>
+
+<?php
+$exportId = 'exportProductsModal';
+$exportUrl = url('import-export/export-products');
+$exportFilters = array_filter($filters ?? [], fn($v) => $v !== '' && $v !== null);
+$exportColumns = [
+    'sku' => 'SKU',
+    'name' => 'Tên sản phẩm',
+    'type' => 'Loại',
+    'unit' => 'Đơn vị',
+    'category_name' => 'Danh mục',
+    'price' => 'Giá bán',
+    'cost_price' => 'Giá vốn',
+    'tax_rate' => 'Thuế %',
+    'weight' => 'Trọng lượng',
+    'dimensions' => 'Kích thước',
+    'color' => 'Màu',
+    'barcode' => 'Barcode',
+    'manufacturer_name' => 'Nhà sản xuất',
+    'origin_name' => 'Xuất xứ',
+    'description' => 'Mô tả',
+    'created_at' => 'Ngày tạo',
+];
+include BASE_PATH . '/resources/views/components/export-modal.php';
+?>

@@ -317,6 +317,53 @@ class ContractController extends Controller
         return $this->redirect('contracts/' . $id);
     }
 
+    public function export()
+    {
+        $this->authorize('contracts', 'view');
+        $tid = Database::tenantId();
+        $where = ["ct.tenant_id = ?"]; $params = [$tid];
+
+        if ($s = $this->input('search')) {
+            $where[] = "(ct.contract_number LIKE ? OR c.first_name LIKE ? OR c.last_name LIKE ? OR c.company_name LIKE ?)";
+            $like = "%{$s}%"; $params = array_merge($params, [$like, $like, $like, $like]);
+        }
+        if ($st = $this->input('status')) { $where[] = "ct.status = ?"; $params[] = $st; }
+        if ($t = $this->input('type')) { $where[] = "ct.type = ?"; $params[] = $t; }
+        if ($oid = $this->input('owner_id')) { $where[] = "ct.owner_id = ?"; $params[] = $oid; }
+        $scope = $this->ownerScope('ct', 'owner_id', 'contracts');
+        if ($scope['where']) { $where[] = $scope['where']; $params = array_merge($params, $scope['params']); }
+
+        $rows = Database::fetchAll(
+            "SELECT ct.*,
+                    TRIM(CONCAT(COALESCE(c.first_name,''),' ',COALESCE(c.last_name,''))) as contact_name,
+                    c.company_name,
+                    u.name as owner_name
+             FROM contracts ct
+             LEFT JOIN contacts c ON ct.contact_id = c.id
+             LEFT JOIN users u ON ct.owner_id = u.id
+             WHERE " . implode(' AND ', $where) . "
+             ORDER BY ct.created_at DESC",
+            $params
+        );
+
+        $columns = [
+            'contract_number' => ['label' => 'Số hợp đồng'],
+            'title'           => ['label' => 'Tiêu đề'],
+            'contact_name'    => ['label' => 'Khách hàng'],
+            'company_name'    => ['label' => 'Công ty'],
+            'type'            => ['label' => 'Loại'],
+            'status'          => ['label' => 'Trạng thái'],
+            'value'           => ['label' => 'Giá trị'],
+            'start_date'      => ['label' => 'Ngày bắt đầu'],
+            'end_date'        => ['label' => 'Ngày kết thúc'],
+            'owner_name'      => ['label' => 'Phụ trách'],
+            'notes'           => ['label' => 'Ghi chú'],
+            'created_at'      => ['label' => 'Ngày tạo'],
+        ];
+        $selected = \App\Services\CsvExporter::parseColumnsParam((string)$this->input('columns', ''), $columns);
+        \App\Services\CsvExporter::download($rows, $columns, 'contracts_' . date('Ymd_His') . '.csv', $selected);
+    }
+
     public function show($id)
     {
         $this->authorize('contracts', 'view');
