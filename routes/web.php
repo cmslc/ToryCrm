@@ -568,8 +568,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('settings/profile', 'SettingController@updateProfile');
     Router::post('settings/avatar', 'SettingController@updateAvatar');
     Router::post('settings/password', 'SettingController@updatePassword');
-    Router::get('settings/widgets', 'SettingController@widgets');
-    Router::post('settings/widgets', 'SettingController@saveWidgets');
     Router::get('settings/general', 'SettingController@general');
     Router::post('settings/general', 'SettingController@saveGeneral');
     Router::get('settings/api', 'SettingController@ai');

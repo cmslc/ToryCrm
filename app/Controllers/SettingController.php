@@ -116,61 +116,6 @@ class SettingController extends Controller
         return $this->redirect('settings');
     }
 
-    // ---- Dashboard Widgets ----
-    public function widgets()
-    {
-        $widgets = [
-            'stats_cards' => 'Thẻ thống kê tổng quan',
-            'revenue_chart' => 'Biểu đồ doanh thu',
-            'pipeline_summary' => 'Tổng quan Pipeline',
-            'recent_contacts' => 'Khách hàng mới',
-            'recent_activities' => 'Hoạt động gần đây',
-            'overdue_tasks' => 'Công việc quá hạn',
-            'task_chart' => 'Biểu đồ công việc',
-            'today_events' => 'Lịch hẹn hôm nay',
-            'orders_stats' => 'Thống kê đơn hàng',
-        ];
-
-        $userSettings = Database::fetchAll(
-            "SELECT * FROM user_widget_settings WHERE user_id = ? ORDER BY sort_order",
-            [$this->userId()]
-        );
-
-        $settingsMap = [];
-        foreach ($userSettings as $s) {
-            $settingsMap[$s['widget_key']] = $s;
-        }
-
-        return $this->view('settings.widgets', [
-            'widgets' => $widgets,
-            'settingsMap' => $settingsMap,
-        ]);
-    }
-
-    public function saveWidgets()
-    {
-        if (!$this->isPost()) return $this->redirect('settings/widgets');
-
-        $data = $this->allInput();
-        $widgetKeys = $data['widgets'] ?? [];
-        $orders = $data['sort_order'] ?? [];
-
-        Database::delete('user_widget_settings', 'user_id = ?', [$this->userId()]);
-
-        $allWidgets = ['stats_cards','revenue_chart','pipeline_summary','recent_contacts','recent_activities','overdue_tasks','task_chart','today_events','orders_stats'];
-        foreach ($allWidgets as $i => $key) {
-            Database::insert('user_widget_settings', [
-                'user_id' => $this->userId(),
-                'widget_key' => $key,
-                'is_visible' => in_array($key, $widgetKeys) ? 1 : 0,
-                'sort_order' => (int)($orders[$key] ?? $i),
-            ]);
-        }
-
-        $this->setFlash('success', 'Đã lưu cài đặt Dashboard.');
-        return $this->redirect('settings/widgets');
-    }
-
     // ---- API Keys ----
     /** Legacy route — now merged into /settings/api (tab 'apikeys'). */
     public function apiKeys()

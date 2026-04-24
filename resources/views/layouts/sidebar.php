@@ -327,17 +327,14 @@ try {
                 <?php endif; ?>
                 <?php endif; /* end $_isManager */ ?>
 
-                <?php if ($_isManager || $_isAdmin): ?>
-                <?php $settingsOpen = isOpen(['settings/general','settings/api','settings/contact-statuses','settings/data-definition','settings/widgets','settings/api-keys','settings/audit-log','settings/document-templates','settings/company-profiles','settings/permissions','custom-fields','tags','data-definition','document-templates'], $currentUrl); ?>
+                <?php if ($_isAdmin): ?>
+                <?php $settingsOpen = isOpen(['settings/general','settings/api','settings/contact-statuses','settings/data-definition','settings/audit-log','settings/document-templates','settings/company-profiles','settings/permissions','custom-fields','tags','data-definition','document-templates'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $settingsOpen ? '' : 'collapsed' ?>" href="#sidebarSettings" data-bs-toggle="collapse" role="button" aria-expanded="<?= $settingsOpen ? 'true' : 'false' ?>">
                         <i class="ri-tools-line"></i> <span>Cài đặt</span>
                     </a>
                     <div class="collapse menu-dropdown <?= $settingsOpen ? 'show' : '' ?>" id="sidebarSettings">
                         <ul class="nav nav-sm flex-column">
-                            <?php if ($_isManager): ?>
-                            <li class="nav-item"><a href="<?= url('settings/widgets') ?>" class="nav-link <?= isActive('settings/widgets', $currentUrl) ?>">Dashboard</a></li>
-                            <?php endif; ?>
                             <?php if ($_isAdmin): ?>
                             <li class="nav-item"><a href="<?= url('settings/general') ?>" class="nav-link <?= isActive('settings/general', $currentUrl) ?>">Cài đặt chung</a></li>
                             <li class="nav-item"><a href="<?= url('settings/company-profiles') ?>" class="nav-link <?= isActive('settings/company-profiles', $currentUrl) ?>">Quản lý công ty</a></li>
