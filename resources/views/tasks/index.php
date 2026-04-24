@@ -16,7 +16,7 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <h4 class="mb-0">Công việc</h4>
     <div class="d-flex gap-2">
-        <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
+        <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
         <a href="<?= url('tasks/kanban') ?>" class="btn btn-soft-info"><i class="ri-layout-masonry-line me-1"></i> Kanban</a>
         <a href="<?= url('tasks/calendar') ?>" class="btn btn-soft-warning"><i class="ri-calendar-line me-1"></i> Lịch</a>
         <a href="<?= url('tasks/gantt') ?>" class="btn btn-soft-secondary"><i class="ri-bar-chart-horizontal-line me-1"></i> Gantt</a>
@@ -247,7 +247,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     var panel = document.getElementById('columnPanel');
     panel.classList.toggle('d-none');
     var isOpen = !panel.classList.contains('d-none');
-    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+    this.classList.toggle('active', isOpen);
 });
 
 (function() {

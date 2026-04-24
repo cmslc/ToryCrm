@@ -6,7 +6,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Sản phẩm & Dịch vụ</h4>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
+                <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
                 <a href="<?= url('products/settings') ?>" class="btn btn-soft-secondary"><i class="ri-folder-settings-line me-1"></i> Danh mục</a>
                 <button class="btn btn-soft-info" data-bs-toggle="modal" data-bs-target="#importExportProdModal"><i class="ri-upload-2-line me-1"></i> Import / Export</button>
                 <a href="<?= url('products/trash') ?>" class="btn btn-soft-danger"><i class="ri-delete-bin-line me-1"></i> Đã xóa</a>
@@ -240,7 +240,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     var panel = document.getElementById('columnPanel');
     panel.classList.toggle('d-none');
     var isOpen = !panel.classList.contains('d-none');
-    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+    this.classList.toggle('active', isOpen);
 });
 
 (function() {

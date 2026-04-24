@@ -13,7 +13,7 @@ foreach ($stats as $v) $totalAll += (int)$v;
         <div class="page-title-box d-flex align-items-center justify-content-between">
             <h4 class="mb-0">Báo giá</h4>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-soft-secondary" id="toggleColumnPanel">Hiển thị cột <i class="ri-arrow-down-s-line ms-1"></i></button>
+                <button type="button" class="btn btn-soft-secondary btn-icon" id="toggleColumnPanel" title="Hiển thị cột"><i class="ri-layout-column-line"></i></button>
                 <a href="<?= url('quotations/export?format=csv') ?>" class="btn btn-soft-info"><i class="ri-download-line me-1"></i> Export</a>
                 <a href="<?= url('quotations/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1"></i> Tạo báo giá</a>
             </div>
@@ -292,7 +292,7 @@ document.getElementById('toggleColumnPanel')?.addEventListener('click', function
     var panel = document.getElementById('columnPanel');
     panel.classList.toggle('d-none');
     var isOpen = !panel.classList.contains('d-none');
-    this.innerHTML = 'Hiển thị cột <i class="ri-arrow-' + (isOpen ? 'up' : 'down') + '-s-line ms-1"></i>';
+    this.classList.toggle('active', isOpen);
 });
 
 (function() {
