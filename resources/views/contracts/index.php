@@ -41,7 +41,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 <?php endif; ?>
 
 <?php $currentStatus = $filters['status'] ?? ''; ?>
-<div class="card">
+<div class="card mb-3">
     <div class="card-header p-2">
         <form method="GET" action="<?= url('contracts') ?>" class="d-flex align-items-center gap-2 flex-wrap">
             <div class="search-box" style="min-width:160px;max-width:200px">
@@ -85,6 +85,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
         </div>
         <button type="button" class="btn btn-link text-muted p-0 px-1 flex-shrink-0 d-none" id="tabScrollRight"><i class="ri-arrow-right-s-line fs-18"></i></button>
     </div>
+</div>
+
+<div class="card">
     <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
