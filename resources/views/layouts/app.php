@@ -19,9 +19,12 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     <link href="<?= asset('libs/simplebar/simplebar.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('libs/node-waves/waves.min.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/icons.min.css') ?>" rel="stylesheet">
-    <link href="<?= asset('css/app.min.css') ?>" rel="stylesheet">
-    <link href="<?= asset('css/custom.css') ?>" rel="stylesheet">
-    <link href="<?= asset('css/app.css') ?>" rel="stylesheet">
+    <?php
+    $__cssVer = fn(string $p) => '?v=' . (@filemtime(BASE_PATH . '/public/' . $p) ?: time());
+    ?>
+    <link href="<?= asset('css/app.min.css') . $__cssVer('css/app.min.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/custom.css') . $__cssVer('css/custom.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/app.css') . $__cssVer('css/app.css') ?>" rel="stylesheet">
 
     <!-- White-label Branding -->
     <?php $brandingCss = \App\Services\BrandingService::getCssVariables(); ?>
