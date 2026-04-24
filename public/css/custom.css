@@ -71,3 +71,30 @@ select.searchable-select {
 .table-sticky.table-hover tbody tr:hover td:first-child {
   background: var(--vz-table-hover-bg, #f8f9fa);
 }
+
+/* Edge button to toggle sidebar expand/collapse — always visible */
+#sidebarEdgeToggle {
+  position: fixed;
+  top: 80px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vz-primary, #405189);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+  z-index: 1004;
+  cursor: pointer;
+  transition: left .2s ease;
+  font-size: 12px;
+}
+#sidebarEdgeToggle:hover { background: var(--vz-primary, #405189); opacity: .9; }
+html[data-sidebar-size="lg"] #sidebarEdgeToggle { left: 240px; }
+html[data-sidebar-size="md"] #sidebarEdgeToggle { left: 180px; }
+html[data-sidebar-size="sm"] #sidebarEdgeToggle,
+html[data-sidebar-size="sm-hover"] #sidebarEdgeToggle { left: 60px; }
+@media (max-width: 767px) { #sidebarEdgeToggle { display: none; } }
