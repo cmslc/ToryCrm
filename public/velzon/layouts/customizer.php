@@ -750,12 +750,14 @@
 </div>
 <script>
 (function(){
-    var btn = document.getElementById('customizer-open-btn');
-    if (btn) {
-        btn.addEventListener('click', function () {
-            var el = document.getElementById('theme-settings-offcanvas');
-            if (el) bootstrap.Offcanvas.getOrCreateInstance(el).toggle();
-        });
+    function openCustomizer(e) {
+        if (e) e.preventDefault();
+        var el = document.getElementById('theme-settings-offcanvas');
+        if (el) bootstrap.Offcanvas.getOrCreateInstance(el).toggle();
     }
+    ['customizer-open-btn', 'customizer-open-dropdown'].forEach(function(id){
+        var btn = document.getElementById(id);
+        if (btn) btn.addEventListener('click', openCustomizer);
+    });
 })();
 </script>

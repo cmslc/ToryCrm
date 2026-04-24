@@ -138,6 +138,7 @@
                             <?php endif; ?>
                         </a>
                         <a class="dropdown-item" href="<?= url('billing') ?>"><i class="mdi mdi-wallet text-muted fs-16 align-middle me-1"></i> Gói dịch vụ</a>
+                        <a class="dropdown-item" href="#" id="customizer-open-dropdown"><i class="mdi mdi-palette-outline text-muted fs-16 align-middle me-1"></i> Tùy chỉnh giao diện</a>
                         <a class="dropdown-item" href="<?= url('help') ?>"><i class="mdi mdi-lifebuoy text-muted fs-16 align-middle me-1"></i> Trợ giúp</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="<?= url('logout') ?>"><i class="mdi mdi-logout text-muted fs-16 align-middle me-1"></i> Đăng xuất</a>
