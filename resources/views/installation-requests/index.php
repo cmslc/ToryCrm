@@ -34,20 +34,25 @@ foreach ($statusCounts ?? [] as $sc) $countByStatus[$sc['status']] = $sc['count'
 </div>
 
 <div class="card mb-3">
-    <div class="card-body py-2">
-        <ul class="nav nav-pills flex-wrap gap-1 mb-0">
-            <li class="nav-item">
-                <a class="nav-link <?= $currentStatus === '' ? 'active' : '' ?>" href="<?= url('installation-requests?' . http_build_query(array_merge($filters, ['status' => '']))) ?>">Tất cả <span class="badge bg-light text-muted ms-1"><?= (int)($totalAll ?? 0) ?></span></a>
-            </li>
-            <?php foreach (['pending','scheduled','completed','cancelled'] as $s): ?>
-                <li class="nav-item">
-                    <a class="nav-link <?= $currentStatus === $s ? 'active' : '' ?>" href="<?= url('installation-requests?' . http_build_query(array_merge($filters, ['status' => $s]))) ?>">
-                        <?= e($ctrl::statusLabel($s)) ?>
-                        <span class="badge bg-<?= $ctrl::statusColor($s) ?>-subtle text-<?= $ctrl::statusColor($s) ?> ms-1"><?= (int)($countByStatus[$s] ?? 0) ?></span>
-                    </a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
+    <div class="card-body py-2 px-3 d-flex align-items-center gap-1">
+        <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;min-width:0">
+            <div class="d-flex gap-1 flex-nowrap">
+                <a href="<?= url('installation-requests?' . http_build_query(array_merge($filters, ['status' => '']))) ?>"
+                   class="btn <?= $currentStatus === '' ? 'btn-dark' : 'btn-soft-dark' ?> rounded-pill text-nowrap waves-effect">
+                    Tất cả <span class="badge rounded-pill bg-danger ms-1"><?= number_format((int)($totalAll ?? 0)) ?></span>
+                </a>
+                <?php foreach (['pending','scheduled','completed','cancelled'] as $s):
+                    $color = $ctrl::statusColor($s);
+                    $isActive = $currentStatus === $s;
+                ?>
+                <a href="<?= url('installation-requests?' . http_build_query(array_merge($filters, ['status' => $s]))) ?>"
+                   class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> rounded-pill text-nowrap waves-effect">
+                    <?= e($ctrl::statusLabel($s)) ?>
+                    <span class="badge rounded-pill bg-danger ms-1"><?= number_format((int)($countByStatus[$s] ?? 0)) ?></span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
     </div>
 </div>
 
