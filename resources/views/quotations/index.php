@@ -164,6 +164,10 @@ foreach ($stats as $v) $totalAll += (int)$v;
                                                     <?= e($cName) ?>
                                                 </div>
                                                 <?php else: ?>-<?php endif; ?>
+                                            <?php break; case 'contact_person_id': ?>
+                                                <?php if (!empty($q['contact_person_name'])): ?>
+                                                    <?= e($q['contact_person_name']) ?><?php if (!empty($q['contact_person_phone'])): ?> <small class="text-muted"><?= e($q['contact_person_phone']) ?></small><?php endif; ?>
+                                                <?php else: ?>-<?php endif; ?>
                                             <?php break; case 'company_id': ?>
                                                 <?= !empty($q['company_name']) ? e($q['company_name']) : '-' ?>
                                             <?php break; case 'total': case 'subtotal': case 'tax_amount': case 'discount_amount': ?>
