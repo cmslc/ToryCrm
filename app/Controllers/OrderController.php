@@ -507,8 +507,10 @@ class OrderController extends Controller
         $uploadDir = BASE_PATH . '/public/uploads/orders/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $filename = 'o' . $id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+        // Sanitize original name — strip path components + keep only basename
+        $safeOriginalName = mb_substr(basename((string)$file['name']), 0, 200);
 
         if (!move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
             $this->setFlash('error', 'Lỗi tải file lên.');
@@ -520,9 +522,9 @@ class OrderController extends Controller
             'order_id' => $id,
             'user_id' => $this->userId(),
             'filename' => $filename,
-            'original_name' => $file['name'],
+            'original_name' => $safeOriginalName,
             'file_size' => $file['size'],
-            'mime_type' => $file['type'],
+            'mime_type' => @mime_content_type($uploadDir . $filename) ?: $file['type'],
         ]);
 
         $this->setFlash('success', 'Đã tải lên tài liệu.');

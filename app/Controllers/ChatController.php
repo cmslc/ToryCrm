@@ -1235,18 +1235,44 @@ class ChatController extends Controller
     {
         $maxSize = 10 * 1024 * 1024;
         if ($file['size'] > $maxSize) return null;
-        $dir = BASE_PATH . '/public/uploads/chat/';
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) return null;
+
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip','rar'];
+        $allowed = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','txt'];
         if (!in_array($ext, $allowed, true)) return null;
-        $filename = 'c' . $convId . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+
+        // MIME sniff — reject mismatches (double-ext bypass, zip disguised as docx etc.)
+        $mimeAllowed = [
+            'jpg' => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png' => ['image/png'],
+            'gif' => ['image/gif'],
+            'webp' => ['image/webp'],
+            'pdf' => ['application/pdf'],
+            'doc' => ['application/msword', 'application/octet-stream'],
+            'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],
+            'xls' => ['application/vnd.ms-excel', 'application/octet-stream'],
+            'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
+            'ppt' => ['application/vnd.ms-powerpoint', 'application/octet-stream'],
+            'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip'],
+            'txt' => ['text/plain', 'text/x-php', 'application/octet-stream'],
+        ];
+        $detectedMime = @mime_content_type($file['tmp_name']);
+        if (!$detectedMime || !in_array($detectedMime, $mimeAllowed[$ext] ?? [], true)) return null;
+
+        // Tenant + conversation scoped path: /uploads/chat/t{tid}/c{cid}/file
+        $tid = $this->tenantId();
+        $dir = BASE_PATH . "/public/uploads/chat/t{$tid}/c{$convId}/";
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+
+        $filename = date('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
         if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) return null;
+
         return [
-            'name' => mb_substr($file['name'], 0, 200),
-            'url' => '/uploads/chat/' . $filename,
+            'name' => basename(mb_substr($file['name'], 0, 200)),
+            'url' => "/uploads/chat/t{$tid}/c{$convId}/" . $filename,
             'size' => (int)$file['size'],
-            'mime' => $file['type'] ?: '',
+            'mime' => $detectedMime,
             'is_image' => in_array($ext, ['jpg','jpeg','png','gif','webp'], true),
         ];
     }

@@ -26,6 +26,13 @@ class AiChatController extends Controller
         $tid = $this->tenantId();
         $uid = $this->userId();
 
+        // Rate limit: 20 AI calls per user per 15 minutes
+        if (!\App\Services\RateLimiter::attempt("ai-chat:u{$uid}", 20, 15)) {
+            return $this->json([
+                'error' => 'Bạn đã gửi quá nhiều câu hỏi cho AI. Vui lòng chờ vài phút rồi thử lại.',
+            ], 429);
+        }
+
         // Save user message
         $this->saveMessage($tid, $uid, 'user', $message);
 

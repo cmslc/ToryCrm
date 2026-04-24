@@ -15,6 +15,8 @@ Router::get('register', 'AuthController@registerForm', ['GuestMiddleware']);
 Router::post('register', 'AuthController@register', ['GuestMiddleware', 'CsrfMiddleware']);
 Router::get('forgot-password', 'AuthController@forgotForm', ['GuestMiddleware']);
 Router::post('forgot-password', 'AuthController@forgot', ['GuestMiddleware']);
+Router::get('reset-password/{token}', 'AuthController@resetForm', ['GuestMiddleware']);
+Router::post('reset-password/{token}', 'AuthController@reset', ['GuestMiddleware', 'CsrfMiddleware']);
 
 // Logout
 Router::get('logout', 'AuthController@logout');

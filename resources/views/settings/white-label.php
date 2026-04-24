@@ -54,7 +54,7 @@
                                         <label class="form-label">Favicon</label>
                                         <?php if (!empty($branding['favicon_url'])): ?>
                                             <div class="mb-2">
-                                                <img src="<?= e($branding['favicon_url']) ?>" alt="Favicon" class="img-thumbnail" style="max-height:40px">
+                                                <img src="<?= asset($branding['favicon_url']) ?>" alt="Favicon" class="img-thumbnail" style="max-height:40px">
                                             </div>
                                         <?php endif; ?>
                                         <input type="file" class="form-control" name="favicon" accept="image/*,.ico">

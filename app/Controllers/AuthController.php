@@ -251,20 +251,122 @@ class AuthController extends Controller
         }
 
         $email = trim($this->input('email'));
-
         if (empty($email)) {
-            $this->setFlash('error', 'Email is required.');
+            $this->setFlash('error', 'Vui lòng nhập email.');
             return $this->back();
         }
 
-        $user = Database::fetch("SELECT id FROM users WHERE email = ? AND is_active = 1 LIMIT 1", [$email]);
-
-        if ($user) {
-            // TODO: Generate reset token, save to DB, send reset email
+        // Basic rate limit: max 5 reset requests / hour / email
+        $recent = Database::fetch(
+            "SELECT COUNT(*) as c FROM password_reset_tokens t
+             JOIN users u ON u.id = t.user_id
+             WHERE u.email = ? AND t.created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)",
+            [$email]
+        );
+        if ((int)($recent['c'] ?? 0) >= 5) {
+            $this->setFlash('success', 'Nếu tài khoản tồn tại, link đặt lại mật khẩu đã được gửi.');
+            return $this->back();
         }
 
-        // Always show success to prevent email enumeration
-        $this->setFlash('success', 'If an account with that email exists, a password reset link has been sent.');
+        $user = Database::fetch(
+            "SELECT id, name, email FROM users WHERE email = ? AND is_active = 1 LIMIT 1",
+            [$email]
+        );
+
+        if ($user) {
+            $token = bin2hex(random_bytes(32)); // 64-char token
+            $tokenHash = hash('sha256', $token);
+            $expires = date('Y-m-d H:i:s', time() + 3600); // 1 hour
+
+            try {
+                Database::insert('password_reset_tokens', [
+                    'user_id' => $user['id'],
+                    'token_hash' => $tokenHash,
+                    'expires_at' => $expires,
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
+                ]);
+
+                $resetUrl = url('reset-password/' . $token);
+                $brand = \App\Services\BrandingService::get()['name'] ?? 'ToryCRM';
+                $body = "<p>Xin chào " . htmlspecialchars($user['name'] ?? '') . ",</p>"
+                      . "<p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản <strong>{$brand}</strong>.</p>"
+                      . "<p>Nhấn vào link bên dưới để đặt mật khẩu mới (hết hạn sau 1 giờ):</p>"
+                      . "<p><a href=\"{$resetUrl}\" style=\"display:inline-block;padding:10px 20px;background:#405189;color:#fff;text-decoration:none;border-radius:4px\">Đặt lại mật khẩu</a></p>"
+                      . "<p>Hoặc copy link này: <br><code>{$resetUrl}</code></p>"
+                      . "<p>Nếu không phải bạn yêu cầu, bỏ qua email này.</p>";
+
+                \App\Services\MailService::send(
+                    $user['email'],
+                    "[{$brand}] Đặt lại mật khẩu",
+                    $body,
+                    $user['name'] ?? null
+                );
+            } catch (\Throwable $e) {
+                error_log('[password-reset] ' . $e->getMessage());
+            }
+        }
+
+        // Always show same message (prevent email enumeration)
+        $this->setFlash('success', 'Nếu tài khoản tồn tại, link đặt lại mật khẩu đã được gửi tới email.');
         return $this->back();
+    }
+
+    public function resetForm($token)
+    {
+        $row = $this->validateResetToken((string) $token);
+        if (!$row) {
+            $this->setFlash('error', 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.');
+            return $this->redirect('forgot-password');
+        }
+        return $this->view('auth.reset-password', ['token' => $token]);
+    }
+
+    public function reset($token)
+    {
+        if (!$this->isPost()) return $this->redirect('reset-password/' . $token);
+
+        $row = $this->validateResetToken((string) $token);
+        if (!$row) {
+            $this->setFlash('error', 'Link không hợp lệ hoặc đã hết hạn.');
+            return $this->redirect('forgot-password');
+        }
+
+        $password = (string) $this->input('password', '');
+        $confirm = (string) $this->input('password_confirm', '');
+        if (strlen($password) < 8) {
+            $this->setFlash('error', 'Mật khẩu tối thiểu 8 ký tự.');
+            return $this->back();
+        }
+        if ($password !== $confirm) {
+            $this->setFlash('error', 'Mật khẩu xác nhận không khớp.');
+            return $this->back();
+        }
+
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        Database::update('users', ['password' => $hash], 'id = ?', [$row['user_id']]);
+        Database::update('password_reset_tokens', ['used_at' => date('Y-m-d H:i:s')], 'id = ?', [$row['id']]);
+        // Invalidate other outstanding tokens for this user
+        Database::query(
+            "UPDATE password_reset_tokens SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL AND id != ?",
+            [$row['user_id'], $row['id']]
+        );
+
+        $this->setFlash('success', 'Đã đặt lại mật khẩu thành công. Vui lòng đăng nhập.');
+        return $this->redirect('login');
+    }
+
+    private function validateResetToken(string $token): ?array
+    {
+        if (strlen($token) !== 64) return null;
+        $hash = hash('sha256', $token);
+        $row = Database::fetch(
+            "SELECT id, user_id, expires_at, used_at FROM password_reset_tokens
+             WHERE token_hash = ? LIMIT 1",
+            [$hash]
+        );
+        if (!$row) return null;
+        if ($row['used_at']) return null;
+        if (strtotime($row['expires_at']) < time()) return null;
+        return $row;
     }
 }
