@@ -99,6 +99,48 @@ class Database
         return (int) self::$connection->lastInsertId();
     }
 
+    /**
+     * Bulk insert multiple rows in batches. All rows must have the same columns.
+     * Returns total number of rows inserted. Auto-injects tenant_id for tenant tables.
+     *
+     * Example: Database::insertBatch('quotation_items', [
+     *   ['quotation_id' => 1, 'product_name' => 'A', ...],
+     *   ['quotation_id' => 1, 'product_name' => 'B', ...],
+     * ]);
+     */
+    public static function insertBatch(string $table, array $rows, int $batchSize = 500): int
+    {
+        if (empty($rows)) return 0;
+
+        $isTenantTable = in_array($table, self::$tenantTables);
+        $tenantId = $_SESSION['tenant_id'] ?? 1;
+
+        // Normalize: ensure every row has the same set of columns (union)
+        $allCols = [];
+        foreach ($rows as $r) {
+            foreach ($r as $k => $_) $allCols[$k] = true;
+        }
+        if ($isTenantTable) $allCols['tenant_id'] = true;
+        $cols = array_keys($allCols);
+        $colsSql = implode(', ', array_map(fn($c) => "`{$c}`", $cols));
+        $placeholderRow = '(' . implode(', ', array_fill(0, count($cols), '?')) . ')';
+
+        $inserted = 0;
+        foreach (array_chunk($rows, $batchSize) as $chunk) {
+            $values = [];
+            $params = [];
+            foreach ($chunk as $r) {
+                if ($isTenantTable && !isset($r['tenant_id'])) $r['tenant_id'] = $tenantId;
+                foreach ($cols as $c) $params[] = $r[$c] ?? null;
+                $values[] = $placeholderRow;
+            }
+            $sql = "INSERT INTO `{$table}` ({$colsSql}) VALUES " . implode(', ', $values);
+            self::query($sql, $params);
+            $inserted += count($chunk);
+        }
+        return $inserted;
+    }
+
     public static function update(string $table, array $data, string $where, array $whereParams = []): int
     {
         $set = implode(', ', array_map(fn($col) => "`{$col}` = ?", array_keys($data)));

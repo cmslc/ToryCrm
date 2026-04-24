@@ -977,63 +977,107 @@ class GetflySyncController extends Controller
         $pdo->beginTransaction();
 
         try {
+            // ---- Phase 1: normalize + validate rows ----
+            $validQuotes = [];
+            $quoteNumbers = [];
             foreach ($quotes as $q) {
                 if ($q['quote_number'] === '') { $skippedNoNumber++; continue; }
                 $contactId = $contactMap[$q['account_code']] ?? null;
                 if (!$contactId) { $skippedNoContact++; continue; }
 
-                $ownerId = $userMap[mb_strtolower($q['owner_name'])] ?? null;
-                $creatorId = $userMap[mb_strtolower($q['creator_name'])] ?? null;
-
-                $status = $statusMap[$q['status_raw']] ?? 'draft';
-
-                // Date "dd/mm/yyyy" → DATETIME
                 $createdAt = null;
                 if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $q['date_raw'], $m)) {
                     $createdAt = sprintf('%04d-%02d-%02d 00:00:00', $m[3], $m[2], $m[1]);
                 }
+                $q['_contact_id'] = $contactId;
+                $q['_owner_id'] = $userMap[mb_strtolower($q['owner_name'])] ?? null;
+                $q['_creator_id'] = $userMap[mb_strtolower($q['creator_name'])] ?? null;
+                $q['_status'] = $statusMap[$q['status_raw']] ?? 'draft';
+                $q['_created_at'] = $createdAt;
+                $q['_total'] = (float) str_replace([',', '.', ' '], '', $q['total_raw']);
+                $validQuotes[] = $q;
+                $quoteNumbers[] = $q['quote_number'];
+            }
 
-                // Parse total "29,808,000" → 29808000
-                $total = (float) str_replace([',', '.', ' '], '', $q['total_raw']);
+            // ---- Phase 2: batch-fetch all existing quote IDs by number ----
+            $existingIdByNumber = [];
+            if ($quoteNumbers) {
+                foreach (array_chunk($quoteNumbers, 1000) as $chunk) {
+                    $ph = implode(',', array_fill(0, count($chunk), '?'));
+                    $rows2 = Database::fetchAll(
+                        "SELECT id, quote_number FROM quotations
+                         WHERE tenant_id = ? AND quote_number IN ($ph)",
+                        array_merge([$tid], $chunk)
+                    );
+                    foreach ($rows2 as $r) $existingIdByNumber[$r['quote_number']] = (int)$r['id'];
+                }
+            }
 
-                // Upsert quotation by quote_number
-                $existing = Database::fetch(
-                    "SELECT id FROM quotations WHERE quote_number = ? AND tenant_id = ?",
-                    [$q['quote_number'], $tid]
-                );
+            // ---- Phase 3: split insert vs update; run updates per-row ----
+            $insertPayload = [];
+            $updatedQuoteIds = []; // to wipe their old items in bulk
 
-                $quoteData = [
+            foreach ($validQuotes as $q) {
+                $qData = [
                     'quote_number' => $q['quote_number'],
-                    'contact_id' => $contactId,
+                    'contact_id' => $q['_contact_id'],
                     'contact_phone' => $q['phone'] ?: null,
-                    'status' => $status,
-                    'owner_id' => $ownerId,
-                    'total' => $total,
-                    'subtotal' => $total,
+                    'status' => $q['_status'],
+                    'owner_id' => $q['_owner_id'],
+                    'total' => $q['_total'],
+                    'subtotal' => $q['_total'],
                     'currency' => 'VND',
                     'notes' => 'Imported from Getfly Excel export',
                     'tenant_id' => $tid,
                 ];
-                if ($createdAt) $quoteData['created_at'] = $createdAt;
+                if ($q['_created_at']) $qData['created_at'] = $q['_created_at'];
 
-                if ($existing) {
-                    Database::update('quotations', $quoteData, 'id = ?', [$existing['id']]);
-                    $quoteId = (int) $existing['id'];
-                    // Wipe old line items — re-import as source of truth
-                    Database::query("DELETE FROM quotation_items WHERE quotation_id = ?", [$quoteId]);
+                if (isset($existingIdByNumber[$q['quote_number']])) {
+                    $qid = $existingIdByNumber[$q['quote_number']];
+                    Database::update('quotations', $qData, 'id = ?', [$qid]);
+                    $updatedQuoteIds[] = $qid;
                     $updated++;
                 } else {
-                    $quoteData['created_by'] = $creatorId ?: $this->userId();
-                    $quoteId = (int) Database::insert('quotations', $quoteData);
+                    $qData['created_by'] = $q['_creator_id'] ?: $this->userId();
+                    $insertPayload[] = $qData;
                     $created++;
                 }
+            }
 
-                // Insert line items
+            // ---- Phase 4: bulk DELETE old items for updated quotes ----
+            if ($updatedQuoteIds) {
+                foreach (array_chunk($updatedQuoteIds, 1000) as $chunk) {
+                    $ph = implode(',', array_fill(0, count($chunk), '?'));
+                    Database::query("DELETE FROM quotation_items WHERE quotation_id IN ($ph)", $chunk);
+                }
+            }
+
+            // ---- Phase 5: bulk INSERT new quotations ----
+            if ($insertPayload) {
+                Database::insertBatch('quotations', $insertPayload, 500);
+                // Re-fetch generated IDs (safer than relying on lastInsertId sequence)
+                $newNumbers = array_column($insertPayload, 'quote_number');
+                foreach (array_chunk($newNumbers, 1000) as $chunk) {
+                    $ph = implode(',', array_fill(0, count($chunk), '?'));
+                    foreach (Database::fetchAll(
+                        "SELECT id, quote_number FROM quotations WHERE tenant_id = ? AND quote_number IN ($ph)",
+                        array_merge([$tid], $chunk)
+                    ) as $r) {
+                        $existingIdByNumber[$r['quote_number']] = (int)$r['id'];
+                    }
+                }
+            }
+
+            // ---- Phase 6: bulk INSERT all line items ----
+            $itemPayload = [];
+            foreach ($validQuotes as $q) {
+                $qid = $existingIdByNumber[$q['quote_number']] ?? null;
+                if (!$qid) continue;
                 $sort = 0;
                 foreach ($q['items'] as $item) {
                     $productId = !empty($item['sku']) ? ($productSkuMap[$item['sku']] ?? null) : null;
-                    Database::insert('quotation_items', [
-                        'quotation_id' => $quoteId,
+                    $itemPayload[] = [
+                        'quotation_id' => $qid,
                         'product_id' => $productId,
                         'product_name' => mb_substr($item['name'], 0, 255),
                         'description' => $item['description'] !== '' ? mb_substr($item['description'], 0, 65000) : null,
@@ -1042,9 +1086,13 @@ class GetflySyncController extends Controller
                         'unit_price' => 0,
                         'total' => 0,
                         'sort_order' => $sort++,
-                    ]);
+                    ];
                 }
             }
+            if ($itemPayload) {
+                Database::insertBatch('quotation_items', $itemPayload, 1000);
+            }
+
             $pdo->commit();
         } catch (\Exception $e) {
             $pdo->rollBack();
