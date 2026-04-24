@@ -42,6 +42,13 @@ select.searchable-select {
   max-height: calc(100vh - 320px);
   overflow: auto;
 }
+.table-sticky {
+  white-space: nowrap;
+}
+.table-sticky td .text-truncate,
+.table-sticky td .line-clamp-2 {
+  white-space: normal;
+}
 .table-sticky thead th {
   position: sticky;
   top: 0;
