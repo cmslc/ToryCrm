@@ -42,7 +42,7 @@ try {
         <?php
         // Mark new plugins (created within 30 days)
         $newPluginIds = [];
-        $hotPluginSlugs = ['kho-logistics','attendance-payroll','gamification'];
+        $hotPluginSlugs = ['attendance-payroll','gamification'];
         foreach ($plugins as $p) {
             if (!empty($p['created_at']) && strtotime($p['created_at']) > strtotime('-30 days')) $newPluginIds[] = $p['id'];
         }

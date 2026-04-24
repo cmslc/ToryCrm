@@ -404,7 +404,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('fund/{id}/delete', 'FundController@delete');
 
     // Warehouses → plugins/warehouse/routes.php
-    // Logistics → plugins/kho-logistics/routes.php
     // Booking Links → plugins/booking/routes.php
     // Gamification → plugins/gamification/routes.php
 

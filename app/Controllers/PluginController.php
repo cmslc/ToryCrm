@@ -127,7 +127,6 @@ class PluginController extends Controller
         // Redirect to plugin's own settings page if exists
         $settingsRoutes = [
             'email' => 'email/settings',
-            'kho-logistics' => 'logistics/settings',
         ];
         if (isset($settingsRoutes[$plugin['slug']])) {
             return $this->redirect($settingsRoutes[$plugin['slug']]);

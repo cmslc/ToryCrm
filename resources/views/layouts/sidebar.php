@@ -115,30 +115,6 @@ try {
                 </li>
                 <?php endif; ?>
 
-                <?php if (plugin_active('kho-logistics')):
-                    $logOpen = isOpen(['logistics'], $currentUrl);
-                ?>
-                <li class="nav-item">
-                    <a class="nav-link menu-link <?= $logOpen ? '' : 'collapsed' ?>" href="#sidebarLogistics" data-bs-toggle="collapse" role="button" aria-expanded="<?= $logOpen ? 'true' : 'false' ?>">
-                        <i class="ri-truck-line"></i> <span>Kho Logistics</span>
-                    </a>
-                    <div class="collapse menu-dropdown <?= $logOpen ? 'show' : '' ?>" id="sidebarLogistics">
-                        <ul class="nav nav-sm flex-column">
-                            <li class="nav-item"><a href="<?= url('logistics') ?>" class="nav-link <?= $currentUrl === 'logistics' ? 'active' : '' ?>">Dashboard</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/receive') ?>" class="nav-link <?= isActive('logistics/receive', $currentUrl) ?>">Nhập kho (Quét)</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/packages') ?>" class="nav-link <?= isActive('logistics/packages', $currentUrl) ?>">Kiện hàng</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/orders') ?>" class="nav-link <?= isActive('logistics/orders', $currentUrl) ?>">Đơn hàng</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/bags') ?>" class="nav-link <?= isActive('logistics/bags', $currentUrl) ?>">Bao hàng</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/shipments') ?>" class="nav-link <?= isActive('logistics/shipments', $currentUrl) ?>">Lô hàng</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/deliveries') ?>" class="nav-link <?= isActive('logistics/deliveries', $currentUrl) ?>">Giao hàng</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/calculator') ?>" class="nav-link <?= isActive('logistics/calculator', $currentUrl) ?>">Tính phí</a></li>
-                            <li class="nav-item"><a href="<?= url('logistics/reports') ?>" class="nav-link <?= isActive('logistics/reports', $currentUrl) ?>">Báo cáo</a></li>
-                        </ul>
-                    </div>
-                </li>
-                <?php endif; ?>
-
-
 
                 <?php if (canSee('tasks')): ?>
                 <?php $taskOpen = isOpen(['tasks','calendar','activities','checkins','bookings'], $currentUrl); ?>
