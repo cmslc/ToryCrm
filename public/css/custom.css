@@ -90,3 +90,14 @@ select.searchable-select {
 [data-sidebar-size="sm"] .navbar-menu:hover .navbar-brand-box .logo-lg {
   display: inline-block !important;
 }
+/* On hover-expand, lift sidebar above the fixed topbar so the expanded
+ * area isn't covered by the search bar / header icons. */
+[data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover,
+[data-sidebar-size="sm"] .app-menu.navbar-menu:hover {
+  z-index: 1005 !important;
+}
+[data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .navbar-brand-box,
+[data-sidebar-size="sm"] .app-menu.navbar-menu:hover .navbar-brand-box {
+  width: var(--vz-vertical-menu-width) !important;
+  background: var(--vz-vertical-menu-bg) !important;
+}
