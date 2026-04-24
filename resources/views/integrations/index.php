@@ -38,22 +38,6 @@
                     'color' => 'warning',
                     'url' => '#',
                 ],
-                [
-                    'type' => 'vnpay',
-                    'name' => 'VNPay',
-                    'description' => 'Tích hợp cổng thanh toán VNPay để nhận thanh toán trực tuyến từ khách hàng.',
-                    'icon' => 'ri-bank-card-line',
-                    'color' => 'info',
-                    'url' => '#',
-                ],
-                [
-                    'type' => 'momo',
-                    'name' => 'MoMo',
-                    'description' => 'Kết nối ví MoMo để nhận thanh toán qua QR code và ví điện tử.',
-                    'icon' => 'ri-wallet-line',
-                    'color' => 'danger',
-                    'url' => '#',
-                ],
             ];
             ?>
 

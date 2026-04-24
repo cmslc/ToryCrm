@@ -25,12 +25,6 @@ Router::get('logout', 'AuthController@logout');
 // Zalo webhook → plugins/zalo-mini-app/routes.php
 Router::post('webhooks/voip', 'VoipController@callEvent');
 
-// Payment gateway callbacks (public - no auth)
-Router::get('payments/vnpay-return', 'PaymentController@vnpayReturn');
-Router::get('payments/momo-return', 'PaymentController@momoReturn');
-Router::post('webhooks/vnpay', 'PaymentController@vnpayIPN');
-Router::post('webhooks/momo', 'PaymentController@momoIPN');
-
 // Google Calendar OAuth callback (public)
 Router::get('integrations/google-calendar/callback', 'GoogleCalendarController@callback');
 
@@ -497,13 +491,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('activities/{id}/update', 'ActivityController@update');
     Router::post('activities/{id}/delete', 'ActivityController@delete');
 
-    // Billing
-    Router::get('billing', 'BillingController@index');
-    Router::get('billing/plans', 'BillingController@plans');
-    Router::post('billing/subscribe', 'BillingController@subscribe');
-    Router::get('billing/invoices', 'BillingController@invoices');
-    Router::post('billing/cancel', 'BillingController@cancelSubscription');
-
     // Help Center
     Router::get('help', 'HelpController@index');
     Router::get('help/search', 'HelpController@search');
@@ -538,17 +525,6 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::get('integrations/google-calendar/connect', 'GoogleCalendarController@connect');
     Router::post('integrations/google-calendar/disconnect', 'GoogleCalendarController@disconnect');
     Router::post('integrations/google-calendar/sync', 'GoogleCalendarController@sync');
-
-    // Payment Gateway Settings
-    Router::get('integrations/vnpay', 'PaymentController@vnpaySettings');
-    Router::post('integrations/vnpay', 'PaymentController@saveVNPaySettings');
-    Router::get('integrations/momo', 'PaymentController@momoSettings');
-    Router::post('integrations/momo', 'PaymentController@saveMoMoSettings');
-
-    // Payment Checkout
-    Router::get('payments/{invoiceId}/checkout', 'PaymentController@checkout');
-    Router::post('payments/{invoiceId}/vnpay', 'PaymentController@processVNPay');
-    Router::post('payments/{invoiceId}/momo', 'PaymentController@processMoMo');
 
     // Custom Fields
     // Custom Fields → plugins/custom-fields/routes.php
