@@ -72,32 +72,8 @@ select.searchable-select {
   background: var(--vz-table-hover-bg, #f8f9fa);
 }
 
-/*
- * Sidebar brand-logo fix:
- * 1. Cap small logo so favicon never overflows narrow brand-box
- * 2. When sidebar collapsed (sm/sm-hover) is expanded on hover, swap
- *    logo-sm → logo-lg so the full logo fills the expanded brand-box
- */
+/* Keep favicon inside the narrow collapsed brand-box */
 .navbar-brand-box .logo-sm img {
   max-width: 100%;
   object-fit: contain;
-}
-[data-sidebar-size="sm-hover"] .navbar-menu:hover .navbar-brand-box .logo-sm,
-[data-sidebar-size="sm"] .navbar-menu:hover .navbar-brand-box .logo-sm {
-  display: none !important;
-}
-[data-sidebar-size="sm-hover"] .navbar-menu:hover .navbar-brand-box .logo-lg,
-[data-sidebar-size="sm"] .navbar-menu:hover .navbar-brand-box .logo-lg {
-  display: inline-block !important;
-}
-/* On hover-expand, lift sidebar above the fixed topbar so the expanded
- * area isn't covered by the search bar / header icons. */
-[data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover,
-[data-sidebar-size="sm"] .app-menu.navbar-menu:hover {
-  z-index: 1005 !important;
-}
-[data-sidebar-size="sm-hover"] .app-menu.navbar-menu:hover .navbar-brand-box,
-[data-sidebar-size="sm"] .app-menu.navbar-menu:hover .navbar-brand-box {
-  width: var(--vz-vertical-menu-width) !important;
-  background: var(--vz-vertical-menu-bg) !important;
 }
