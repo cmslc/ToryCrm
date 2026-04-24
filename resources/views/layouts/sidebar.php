@@ -184,7 +184,7 @@ try {
                 </li>
                 <?php endif; ?>
 
-                <?php if (canSee('tickets')): ?>
+                <?php if (plugin_active('tickets') && canSee('tickets')): ?>
                 <?php $supportOpen = isOpen(['tickets','sla'], $currentUrl); ?>
                 <li class="nav-item">
                     <a class="nav-link menu-link <?= $supportOpen ? '' : 'collapsed' ?>" href="#sidebarSupport" data-bs-toggle="collapse" role="button" aria-expanded="<?= $supportOpen ? 'true' : 'false' ?>">
