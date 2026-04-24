@@ -178,7 +178,7 @@ try {
                             <?php if (canSee('campaigns')): ?>
                             <li class="nav-item"><a href="<?= url('campaigns') ?>" class="nav-link <?= isActive('campaigns', $currentUrl) ?>">Chiến dịch Email</a></li>
                             <?php endif; ?>
-                            <?php if (canSee('automation')): ?><li class="nav-item"><a href="<?= url('workflows') ?>" class="nav-link <?= isActive(['workflows','automation'], $currentUrl) ?>">Tự động hóa</a></li><?php endif; ?>
+                            <?php if (plugin_active('automation') && canSee('automation')): ?><li class="nav-item"><a href="<?= url('workflows') ?>" class="nav-link <?= isActive(['workflows','automation'], $currentUrl) ?>">Tự động hóa</a></li><?php endif; ?>
                         </ul>
                     </div>
                 </li>
@@ -330,7 +330,7 @@ try {
                             <li class="nav-item"><a href="<?= url('settings/api') ?>" class="nav-link <?= isActive('settings/api', $currentUrl) ?>">Cấu hình API</a></li>
                             <li class="nav-item"><a href="<?= url('settings/contact-statuses') ?>" class="nav-link <?= isActive(['settings/contact-statuses','tags'], $currentUrl) ?>">Nhãn & Trạng thái</a></li>
                             <li class="nav-item"><a href="<?= url('settings/data-definition') ?>" class="nav-link <?= isActive('settings/data-definition', $currentUrl) ?>">Định nghĩa dữ liệu</a></li>
-                            <li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li>
+                            <?php if (plugin_active('custom-fields')): ?><li class="nav-item"><a href="<?= url('custom-fields') ?>" class="nav-link <?= isActive('custom-fields', $currentUrl) ?>">Trường tùy chỉnh</a></li><?php endif; ?>
                             <li class="nav-item"><a href="<?= url('settings/document-templates') ?>" class="nav-link <?= isActive('settings/document-templates', $currentUrl) ?>">Mẫu tài liệu</a></li>
                             <li class="nav-item"><a href="<?= url('settings/api-keys') ?>" class="nav-link <?= isActive('settings/api-keys', $currentUrl) ?>">API Keys</a></li>
                             <li class="nav-item"><a href="<?= url('settings/audit-log') ?>" class="nav-link <?= isActive('settings/audit-log', $currentUrl) ?>">Audit Log</a></li>
