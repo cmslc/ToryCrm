@@ -84,7 +84,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 })();
 </script>
 
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-header p-2">
                 <form method="GET" action="<?= url('products') ?>" class="d-flex align-items-center gap-2 flex-wrap">
                     <div class="search-box" style="min-width:200px;max-width:300px">
@@ -109,6 +109,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                     <input type="hidden" name="per_page" value="<?= e($filters['per_page'] ?? 20) ?>">
                 </form>
             </div>
+        </div>
+
+        <div class="card">
             <div class="card-body p-2">
 
                 <div class="table-responsive">
