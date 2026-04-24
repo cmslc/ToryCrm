@@ -4,6 +4,8 @@ $user = $_SESSION['user'] ?? null;
 $_branding = \App\Services\BrandingService::get();
 $_brandName = $_branding['name'] ?? 'ToryCRM';
 $_brandLogo = $_branding['logo_url'] ?? '';
+$_brandFavicon = $_branding['favicon_url'] ?? '';
+$_brandLogoSm = $_brandFavicon ?: $_brandLogo;
 $_role = $user['role'] ?? 'staff';
 $_isAdmin = \App\Services\PermissionService::isInSystemGroup($user['id'] ?? 0);
 $_isManager = $_isAdmin || canSee('settings', 'manage');
@@ -46,7 +48,7 @@ try {
     <div class="navbar-brand-box">
         <a href="<?= url('dashboard') ?>" class="logo logo-dark">
             <?php if ($_brandLogo): ?>
-                <span class="logo-sm"><img src="<?= asset($_brandLogo) ?>" alt="" height="22"></span>
+                <span class="logo-sm"><img src="<?= asset($_brandLogoSm) ?>" alt="" height="22"></span>
                 <span class="logo-lg"><img src="<?= asset($_brandLogo) ?>" alt="" height="45"></span>
             <?php else: ?>
                 <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:var(--vz-vertical-menu-item-active-color)"></i></span>
@@ -55,7 +57,7 @@ try {
         </a>
         <a href="<?= url('dashboard') ?>" class="logo logo-light">
             <?php if ($_brandLogo): ?>
-                <span class="logo-sm"><img src="<?= asset($_brandLogo) ?>" alt="" height="22"></span>
+                <span class="logo-sm"><img src="<?= asset($_brandLogoSm) ?>" alt="" height="22"></span>
                 <span class="logo-lg"><img src="<?= asset($_brandLogo) ?>" alt="" height="45"></span>
             <?php else: ?>
                 <span class="logo-sm"><i class="ri-customer-service-2-fill" style="font-size:22px;color:#fff"></i></span>
