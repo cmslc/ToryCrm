@@ -141,38 +141,45 @@
 
     <script>
     (function() {
-        // A4 @ 96dpi ≈ 1122px tall, padding 20mm ≈ 76px. Reserve ~15mm extra at the
-        // bottom so the last line on a page never sits flush against the edge and
-        // section headings don't look cramped.
-        var PAGE_HEIGHT = 1122, PADDING = 76, BOTTOM_SAFETY = 56;
-        var CONTENT_HEIGHT = PAGE_HEIGHT - PADDING * 2 - BOTTOM_SAFETY;
+        // A4 @ 96dpi ≈ 1122px tall, padding 20mm ≈ 76px. Reserve ~20mm extra at the
+        // bottom so the last line on a page never sits flush against the edge (and
+        // never collides with the page-number strip anchored at bottom:8mm).
+        var PAGE_HEIGHT = 1122, PADDING = 76, BOTTOM_SAFETY = 76;
+        // Maximum allowed rendered height of the .a4-content container. Measured
+        // via currentPage.offsetHeight which naturally includes collapsed margins
+        // between paragraphs — avoids the drift that per-element offsetHeight sums
+        // would cause.
+        var MAX_CONTENT = PAGE_HEIGHT - PADDING * 2 - BOTTOM_SAFETY;
         var watermarkText = '<?= $watermark ?? '' ?>';
         var raw = document.getElementById('rawContent').querySelector('.a4-content');
         var wrapper = document.getElementById('pagesWrapper');
         var sidebar = document.getElementById('printSidebar');
 
         var currentPage = createPage();
-        var currentHeight = 0;
         var children = Array.from(raw.children);
 
+        function pageFull() {
+            return currentPage.offsetHeight > MAX_CONTENT;
+        }
+        function pageEmpty() {
+            return currentPage.children.length === 0;
+        }
         function placeOnNewPage(el) {
             currentPage = createPage();
             currentPage.appendChild(el);
-            currentHeight = el.offsetHeight;
         }
 
         function splitBigTable(original) {
-            // Clone thead/tfoot once for reuse on each page chunk
             var thead = original.tHead ? original.tHead.cloneNode(true) : null;
             var tfoot = original.tFoot ? original.tFoot.cloneNode(true) : null;
             var rows = [];
             Array.from(original.tBodies).forEach(function(tb) {
                 Array.from(tb.rows).forEach(function(r) { rows.push(r); });
             });
-            if (rows.length < 2) return false; // not worth splitting
+            if (rows.length < 2) return false;
 
             function startChunk() {
-                var t = original.cloneNode(false); // <table> shell only
+                var t = original.cloneNode(false);
                 if (thead) t.appendChild(thead.cloneNode(true));
                 var tbody = document.createElement('tbody');
                 t.appendChild(tbody);
@@ -181,31 +188,24 @@
 
             var chunk = startChunk();
             currentPage.appendChild(chunk.table);
-            var baseBefore = currentHeight; // height on page before this table
             rows.forEach(function(row) {
                 var rClone = row.cloneNode(true);
                 chunk.tbody.appendChild(rClone);
-                var tableH = chunk.table.offsetHeight;
-                if (baseBefore + tableH > CONTENT_HEIGHT && chunk.tbody.rows.length > 1) {
-                    // Remove the row that overflowed and start a new page
+                if (pageFull() && chunk.tbody.rows.length > 1) {
                     chunk.tbody.removeChild(rClone);
-                    currentHeight = baseBefore + chunk.table.offsetHeight;
                     currentPage = createPage();
                     chunk = startChunk();
                     currentPage.appendChild(chunk.table);
                     chunk.tbody.appendChild(rClone);
-                    baseBefore = 0;
                 }
             });
             if (tfoot) chunk.table.appendChild(tfoot.cloneNode(true));
-            currentHeight = baseBefore + chunk.table.offsetHeight;
             return true;
         }
 
         function isHeadingLike(el) {
             if (!el) return false;
             if (/^H[1-6]$/i.test(el.tagName)) return true;
-            // Text-only <p> / <strong> starting with "ĐIỀU" / "Điều" acts as a section heading
             var txt = (el.textContent || '').trim();
             return /^Điều\s+\d/i.test(txt) || /^ĐIỀU\s+\d/.test(txt);
         }
@@ -213,43 +213,39 @@
         children.forEach(function(el, idx) {
             var clone = el.cloneNode(true);
             currentPage.appendChild(clone);
-            var h = clone.offsetHeight;
-            if (currentHeight + h <= CONTENT_HEIGHT) {
-                // Orphan protection: if this is a heading and the NEXT element
-                // won't fit together with it on this page, push both to next page.
+
+            if (!pageFull()) {
+                // Orphan protection: if we just placed a heading, make sure the
+                // next element also fits on this page — otherwise push the pair.
                 var next = children[idx + 1];
                 if (isHeadingLike(clone) && next) {
                     var probe = next.cloneNode(true);
                     currentPage.appendChild(probe);
-                    var together = probe.offsetHeight;
+                    var wouldOverflow = pageFull();
                     currentPage.removeChild(probe);
-                    if (currentHeight + h + together > CONTENT_HEIGHT) {
+                    if (wouldOverflow) {
                         currentPage.removeChild(clone);
                         placeOnNewPage(clone);
                         return;
                     }
                 }
-                currentHeight += h;
                 return;
             }
 
-            // Doesn't fit on current page. Remove it and decide.
+            // Overflow. Remove and decide.
             currentPage.removeChild(clone);
 
-            // If it's a table and tall enough that even an empty page can't hold it, split by rows.
-            if (clone.tagName === 'TABLE' && h > CONTENT_HEIGHT * 0.6) {
-                if (currentHeight === 0) {
-                    // Already on fresh page — split in place
+            // Tall table on a non-empty page: start a new page then split by rows.
+            // On an already-empty page: split in place.
+            if (clone.tagName === 'TABLE') {
+                if (pageEmpty()) {
                     if (splitBigTable(clone)) return;
                 } else {
-                    // Start a new page first, then try to split
                     currentPage = createPage();
-                    currentHeight = 0;
                     if (splitBigTable(clone)) return;
                 }
             }
 
-            // Fallback: move element wholly to a new page
             placeOnNewPage(clone);
         });
         if (children.length === 0) currentPage.innerHTML = raw.innerHTML;
