@@ -67,6 +67,10 @@
         .a4-content table { border-collapse: collapse; width: 100%; }
         .a4-content table td, .a4-content table th { padding: 5px 8px; vertical-align: top; font-size: 11pt; }
         .a4-content table[border] td, .a4-content table[border] th { border: 1px solid #000; }
+        /* Avoid breaking individual rows across pages in browser print */
+        .a4-content tr { page-break-inside: avoid; break-inside: avoid; }
+        .a4-content thead { display: table-header-group; }
+        .a4-content tfoot { display: table-footer-group; }
 
         /* Watermark */
         .watermark {
@@ -147,18 +151,80 @@
         var currentHeight = 0;
         var children = Array.from(raw.children);
 
+        function placeOnNewPage(el) {
+            currentPage = createPage();
+            currentPage.appendChild(el);
+            currentHeight = el.offsetHeight;
+        }
+
+        function splitBigTable(original) {
+            // Clone thead/tfoot once for reuse on each page chunk
+            var thead = original.tHead ? original.tHead.cloneNode(true) : null;
+            var tfoot = original.tFoot ? original.tFoot.cloneNode(true) : null;
+            var rows = [];
+            Array.from(original.tBodies).forEach(function(tb) {
+                Array.from(tb.rows).forEach(function(r) { rows.push(r); });
+            });
+            if (rows.length < 2) return false; // not worth splitting
+
+            function startChunk() {
+                var t = original.cloneNode(false); // <table> shell only
+                if (thead) t.appendChild(thead.cloneNode(true));
+                var tbody = document.createElement('tbody');
+                t.appendChild(tbody);
+                return { table: t, tbody: tbody };
+            }
+
+            var chunk = startChunk();
+            currentPage.appendChild(chunk.table);
+            var baseBefore = currentHeight; // height on page before this table
+            rows.forEach(function(row) {
+                var rClone = row.cloneNode(true);
+                chunk.tbody.appendChild(rClone);
+                var tableH = chunk.table.offsetHeight;
+                if (baseBefore + tableH > CONTENT_HEIGHT && chunk.tbody.rows.length > 1) {
+                    // Remove the row that overflowed and start a new page
+                    chunk.tbody.removeChild(rClone);
+                    currentHeight = baseBefore + chunk.table.offsetHeight;
+                    currentPage = createPage();
+                    chunk = startChunk();
+                    currentPage.appendChild(chunk.table);
+                    chunk.tbody.appendChild(rClone);
+                    baseBefore = 0;
+                }
+            });
+            if (tfoot) chunk.table.appendChild(tfoot.cloneNode(true));
+            currentHeight = baseBefore + chunk.table.offsetHeight;
+            return true;
+        }
+
         children.forEach(function(el) {
             var clone = el.cloneNode(true);
             currentPage.appendChild(clone);
             var h = clone.offsetHeight;
-            if (currentHeight + h > CONTENT_HEIGHT && currentHeight > 0) {
-                currentPage.removeChild(clone);
-                currentPage = createPage();
-                currentPage.appendChild(clone);
-                currentHeight = h;
-            } else {
+            if (currentHeight + h <= CONTENT_HEIGHT) {
                 currentHeight += h;
+                return;
             }
+
+            // Doesn't fit on current page. Remove it and decide.
+            currentPage.removeChild(clone);
+
+            // If it's a table and tall enough that even an empty page can't hold it, split by rows.
+            if (clone.tagName === 'TABLE' && h > CONTENT_HEIGHT * 0.6) {
+                if (currentHeight === 0) {
+                    // Already on fresh page — split in place
+                    if (splitBigTable(clone)) return;
+                } else {
+                    // Start a new page first, then try to split
+                    currentPage = createPage();
+                    currentHeight = 0;
+                    if (splitBigTable(clone)) return;
+                }
+            }
+
+            // Fallback: move element wholly to a new page
+            placeOnNewPage(clone);
         });
         if (children.length === 0) currentPage.innerHTML = raw.innerHTML;
 

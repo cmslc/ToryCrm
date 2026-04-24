@@ -72,6 +72,12 @@
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
             .page { page-break-after: avoid; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; break-inside: avoid; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+            .sig-block, .footer { page-break-inside: avoid; }
         }
     </style>
 </head>

@@ -7,12 +7,12 @@ use Core\Database;
 class FileUploadService
 {
     private static array $allowedTypes = [
-        'jpg', 'jpeg', 'png', 'gif',
+        'jpg', 'jpeg', 'png', 'gif', 'ico',
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'zip',
     ];
 
     private static array $imageTypes = [
-        'jpg', 'jpeg', 'png', 'gif',
+        'jpg', 'jpeg', 'png', 'gif', 'ico',
     ];
 
     private static int $maxSize = 10 * 1024 * 1024; // 10MB
@@ -58,6 +58,7 @@ class FileUploadService
                 'jpeg' => ['image/jpeg', 'image/pjpeg'],
                 'png' => ['image/png'],
                 'gif' => ['image/gif'],
+                'ico' => ['image/x-icon', 'image/vnd.microsoft.icon', 'image/ico', 'image/icon', 'application/octet-stream'],
                 'pdf' => ['application/pdf'],
                 'doc' => ['application/msword', 'application/vnd.ms-office'],
                 'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip'],

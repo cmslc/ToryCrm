@@ -35,7 +35,15 @@ table.content td.right { text-align: right; }
 .sig { width: 32%; text-align: center; border: 1px solid #333; padding: 10px 6px; min-height: 110px; }
 .sig u { font-weight: bold; display: block; margin-bottom: 6px; }
 .sig .name-bottom { margin-top: 60px; font-weight: bold; text-decoration: underline; }
-@media print { .no-print { display: none; } body { padding: 0; } }
+@media print {
+    .no-print { display: none; }
+    body { padding: 0; }
+    table.content { page-break-inside: auto; }
+    table.content tr { page-break-inside: avoid; break-inside: avoid; }
+    table.content thead { display: table-header-group; }
+    .signatures, .report-block { page-break-inside: avoid; }
+    h1.title, .section-title { page-break-after: avoid; break-after: avoid; }
+}
 </style>
 </head>
 <body>

@@ -44,6 +44,12 @@
         @media print {
             body { padding: 20px; }
             .no-print { display: none !important; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; break-inside: avoid; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+            .footer-sign { page-break-inside: avoid; }
         }
     </style>
 </head>

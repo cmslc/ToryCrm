@@ -361,7 +361,11 @@ class InstallationRequestController extends Controller
             echo '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><title>' . htmlspecialchars($title) . '</title>'
                 . '<style>body{font-family:"Segoe UI",Arial,sans-serif;font-size:13px;color:#333;padding:40px;max-width:900px;margin:0 auto}'
                 . 'table{width:100%;border-collapse:collapse;margin:10px 0}th,td{padding:8px;border:1px solid #ddd;font-size:12px}'
-                . 'h2{color:#405189}.no-print{text-align:center;margin-bottom:20px}@media print{.no-print{display:none}body{padding:20px}}</style>'
+                . 'h2{color:#405189}.no-print{text-align:center;margin-bottom:20px}'
+                . '@media print{.no-print{display:none}body{padding:20px}'
+                . 'table{page-break-inside:auto}tr{page-break-inside:avoid;break-inside:avoid}'
+                . 'thead{display:table-header-group}tfoot{display:table-footer-group}'
+                . 'h1,h2,h3,h4{page-break-after:avoid;break-after:avoid}}</style>'
                 . '</head><body><div class="no-print"><button onclick="window.print()" style="padding:10px 30px;background:#405189;color:#fff;border:none;border-radius:4px;cursor:pointer">In / Lưu PDF</button></div>'
                 . $rendered
                 . '<script>setTimeout(function(){window.print();},400);</script>'

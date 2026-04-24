@@ -14,7 +14,8 @@
       "Bash(wc -l /d/Toryhub/ToryCrm/database/migrations/*.sql)",
       "Bash(ssh -o:*)",
       "Bash(mysql --version)",
-      "Bash(mysqldump --version)"
+      "Bash(mysqldump --version)",
+      "WebFetch(domain:noithatmeta.com)"
     ],
     "additionalDirectories": [
       "d:\\Toryhub\\ToryCrm\\databaogia"
