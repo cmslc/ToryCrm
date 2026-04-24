@@ -150,7 +150,7 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
     <div class="card-body p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle table-nowrap table-sticky mb-0">
-                <thead class="text-muted table-light">
+                <thead class="table-light">
                     <tr>
                         <th style="width:40px"><input type="checkbox" class="form-check-input" id="checkAll"></th>
                         <?php foreach ($displayColumns ?? [] as $col): ?>

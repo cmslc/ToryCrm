@@ -143,7 +143,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle table-sticky mb-0">
-                        <thead class="text-muted table-light">
+                        <thead class="table-light">
                             <tr>
                                 <?php foreach ($displayColumns as $dc): ?>
                                 <th class="<?= $dc['key'] ?>"><?= e($dc['label']) ?></th>
