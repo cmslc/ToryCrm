@@ -183,8 +183,9 @@ class OrderApiController extends Controller
                     $unitPrice = (float) ($item['unit_price'] ?? 0);
                     $taxRate = (float) ($item['tax_rate'] ?? 0);
                     $discount = (float) ($item['discount'] ?? 0);
-                    $taxAmount = $qty * $unitPrice * $taxRate / 100;
-                    $itemTotal = $qty * $unitPrice + $taxAmount - $discount;
+                    $calc = \App\Services\PricingService::lineItem($qty, $unitPrice, $taxRate, $discount, 'fixed');
+                    $taxAmount = $calc['tax'];
+                    $itemTotal = $calc['total'];
 
                     Database::insert('order_items', [
                         'order_id' => $orderId,

@@ -145,7 +145,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                 <?php break; case 'start_date': case 'end_date': case 'signed_date': ?>
                                     <?= $val ? format_date($val) : '-' ?>
                                 <?php break; case 'created_at': ?>
-                                    <?= $val ? date('d/m/Y', strtotime($val)) : '-' ?>
+                                    <?= $val ? format_date($val) : '-' ?>
                                 <?php break; default: ?>
                                     <?= e($val ?: '-') ?>
                                 <?php break; endswitch; ?>
@@ -153,7 +153,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                             <?php endforeach; ?>
                             <td>
                                 <div class="dropdown">
-                                    <button class="btn btn-soft-secondary btn-sm" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
+                                    <button class="btn btn-soft-secondary" data-bs-toggle="dropdown"><i class="ri-more-fill"></i></button>
                                     <ul class="dropdown-menu">
                                         <li><a class="dropdown-item" href="<?= url('contracts/' . $ct['id']) ?>"><i class="ri-eye-line me-2"></i>Xem</a></li>
                                         <li><a class="dropdown-item" href="<?= url('contracts/' . $ct['id'] . '/edit') ?>"><i class="ri-pencil-line me-2"></i>Sửa</a></li>

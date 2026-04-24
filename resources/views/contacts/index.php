@@ -252,7 +252,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     $initial = mb_substr($contactName ?: '?', 0, 1);
                                     echo '<div class="d-flex align-items-center gap-2">';
                                     if (!empty($c['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $c['avatar'])) {
-                                        echo '<img src="' . url('uploads/avatars/' . $c['avatar']) . '" class="rounded-circle" width="32" height="32" style="object-fit:cover">';
+                                        echo '<img loading="lazy" src="' . url('uploads/avatars/' . $c['avatar']) . '" class="rounded-circle" width="32" height="32" style="object-fit:cover">';
                                     } else {
                                         echo '<span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-medium" style="width:32px;height:32px;font-size:13px">' . strtoupper($initial) . '</span>';
                                     }
@@ -292,7 +292,7 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                                     echo $genderLabels[$val] ?? '-';
                                     break;
                                 case 'date_of_birth':
-                                    echo $val ? date('d/m/Y', strtotime($val)) : '-';
+                                    echo $val ? format_date($val) : '-';
                                     break;
                                 case 'customer_group':
                                     echo ($val && isset($groupLabels[$val])) ? '<span class="badge bg-' . ($groupColors[$val] ?? 'secondary') . '-subtle text-' . ($groupColors[$val] ?? 'secondary') . '">' . $groupLabels[$val] . '</span>' : '<span class="text-muted">-</span>';

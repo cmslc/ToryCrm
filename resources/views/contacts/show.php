@@ -436,7 +436,7 @@
                                 span.dataset.uid = uid;
                                 var av = '';
                                 users.forEach(function(u2) { if (u2.id === uid && u2.avatar) av = u2.avatar; });
-                                var avHtml = av ? '<img src="/' + av + '" class="rounded-circle" width="20" height="20" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px">' + name.charAt(0).toUpperCase() + '</span>';
+                                var avHtml = av ? '<img loading="lazy" src="/' + av + '" class="rounded-circle" width="20" height="20" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px">' + name.charAt(0).toUpperCase() + '</span>';
                                 span.innerHTML = avHtml + ' ' + name + ' <i class="ri-close-line text-muted" style="cursor:pointer;font-size:14px" onclick="removeFollower(' + uid + ', this)"></i>';
                                 tags.appendChild(span);
                                 input.value = '';
@@ -1706,7 +1706,7 @@ function submitReply(id) {
         if (!data.success) return;
         var r = data.reply;
         var initial = (r.user_name||'?').charAt(0).toUpperCase();
-        var avatar = r.user_avatar ? '<img src="/' + r.user_avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px">' + initial + '</div>';
+        var avatar = r.user_avatar ? '<img loading="lazy" src="/' + r.user_avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:11px">' + initial + '</div>';
         var actions = '<div class="d-flex align-items-center gap-3 mt-1" style="font-size:12px">'
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'like\',this)"><i class="ri-thumb-up-line"></i></span>'
             + '<span class="act-btn text-muted" style="cursor:pointer" onclick="reactActivity(' + r.id + ',\'dislike\',this)"><i class="ri-thumb-down-line"></i></span>'
@@ -1788,7 +1788,7 @@ function submitReply(id) {
             html += '<div class="px-3 py-1 bg-light border-bottom d-flex justify-content-between"><small class="text-muted text-uppercase fw-medium">' + dept + '</small><small class="text-muted">' + depts[dept].length + '</small></div>';
             depts[dept].forEach(function(u) {
                 var initial = u.name.charAt(0).toUpperCase();
-                var av = u.avatar ? '<img src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
+                var av = u.avatar ? '<img loading="lazy" src="/' + u.avatar + '" class="rounded-circle" width="28" height="28" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:28px;height:28px;font-size:12px">' + initial + '</span>';
                 html += '<div class="mention-opt d-flex align-items-center gap-2 px-3 py-2" style="cursor:pointer" data-id="' + u.id + '" data-name="' + u.name + '">' + av + '<span style="font-size:13px">' + u.name + '</span></div>';
             });
         });

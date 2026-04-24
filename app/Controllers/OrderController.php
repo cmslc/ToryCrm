@@ -268,8 +268,9 @@ class OrderController extends Controller
                     $qty = (float)($item['quantity'] ?? 1);
                     $unitPrice = (float)($item['unit_price'] ?? 0);
                     $taxRate = (float)($item['tax_rate'] ?? 0);
-                    $taxAmount = $qty * $unitPrice * $taxRate / 100;
-                    $itemTotal = $qty * $unitPrice + $taxAmount;
+                    $calc = \App\Services\PricingService::lineItem($qty, $unitPrice, $taxRate);
+                    $taxAmount = $calc['tax'];
+                    $itemTotal = $calc['total'];
 
                     Database::insert('order_items', [
                         'order_id' => $orderId,
@@ -677,8 +678,9 @@ class OrderController extends Controller
                 $qty = (float)($item['quantity'] ?? 1);
                 $unitPrice = (float)($item['unit_price'] ?? 0);
                 $taxRate = (float)($item['tax_rate'] ?? 0);
-                $taxAmount = $qty * $unitPrice * $taxRate / 100;
-                $itemTotal = $qty * $unitPrice + $taxAmount;
+                $calc = \App\Services\PricingService::lineItem($qty, $unitPrice, $taxRate);
+                $taxAmount = $calc['tax'];
+                $itemTotal = $calc['total'];
 
                 Database::insert('order_items', [
                     'order_id' => $id,

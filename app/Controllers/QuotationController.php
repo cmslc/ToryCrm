@@ -258,9 +258,10 @@ class QuotationController extends Controller
                     $unitPrice = (float)($item['unit_price'] ?? 0);
                     $taxRate = (float)($item['tax_rate'] ?? 0);
                     $discount = (float)($item['discount'] ?? 0);
-                    $lineSubtotal = $qty * $unitPrice;
-                    $lineTax = $lineSubtotal * $taxRate / 100;
-                    $lineTotal = $lineSubtotal + $lineTax - $discount;
+                    $calc = \App\Services\PricingService::lineItem($qty, $unitPrice, $taxRate, $discount, 'fixed');
+                    $lineSubtotal = $calc['subtotal'];
+                    $lineTax = $calc['tax'];
+                    $lineTotal = $calc['total'];
 
                     Database::insert('quotation_items', [
                         'quotation_id' => $quotationId,
@@ -529,9 +530,10 @@ class QuotationController extends Controller
                     $unitPrice = (float)($item['unit_price'] ?? 0);
                     $taxRate = (float)($item['tax_rate'] ?? 0);
                     $discount = (float)($item['discount'] ?? 0);
-                    $lineSubtotal = $qty * $unitPrice;
-                    $lineTax = $lineSubtotal * $taxRate / 100;
-                    $lineTotal = $lineSubtotal + $lineTax - $discount;
+                    $calc = \App\Services\PricingService::lineItem($qty, $unitPrice, $taxRate, $discount, 'fixed');
+                    $lineSubtotal = $calc['subtotal'];
+                    $lineTax = $calc['tax'];
+                    $lineTotal = $calc['total'];
 
                     Database::insert('quotation_items', [
                         'quotation_id' => $id,

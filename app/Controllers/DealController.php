@@ -104,19 +104,26 @@ class DealController extends Controller
         $scopeSql = $this->getOwnerScopeSql('d.owner_id', 'deals');
         $stages = Database::fetchAll("SELECT * FROM deal_stages ORDER BY sort_order");
 
+        // Single query for all open deals (was N+1: one query per stage)
+        $deals = Database::fetchAll(
+            "SELECT d.*, c.first_name as contact_first_name, c.last_name as contact_last_name,
+                    comp.name as company_name, u.name as owner_name
+             FROM deals d
+             LEFT JOIN contacts c ON d.contact_id = c.id
+             LEFT JOIN companies comp ON d.company_id = comp.id
+             LEFT JOIN users u ON d.owner_id = u.id
+             WHERE d.status = 'open' AND d.tenant_id = ?{$scopeSql}
+             ORDER BY d.created_at DESC",
+            [$tid]
+        );
+        $dealsByStage = [];
+        foreach ($deals as $d) {
+            $dealsByStage[(int)$d['stage_id']][] = $d;
+        }
+
         $pipeline = [];
         foreach ($stages as $stage) {
-            $stage['deals'] = Database::fetchAll(
-                "SELECT d.*, c.first_name as contact_first_name, c.last_name as contact_last_name,
-                        comp.name as company_name, u.name as owner_name
-                 FROM deals d
-                 LEFT JOIN contacts c ON d.contact_id = c.id
-                 LEFT JOIN companies comp ON d.company_id = comp.id
-                 LEFT JOIN users u ON d.owner_id = u.id
-                 WHERE d.stage_id = ? AND d.status = 'open' AND d.tenant_id = ?{$scopeSql}
-                 ORDER BY d.created_at DESC",
-                [$stage['id'], $tid]
-            );
+            $stage['deals'] = $dealsByStage[(int)$stage['id']] ?? [];
             $pipeline[] = $stage;
         }
 

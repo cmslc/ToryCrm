@@ -183,7 +183,7 @@ try {
                 badge.dataset.uid = uid;
                 var av = '';
                 users.forEach(function(u2) { if (u2.id === uid && u2.avatar) av = u2.avatar; });
-                var avHtml = av ? '<img src="/' + av + '" class="rounded-circle" width="20" height="20" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px">' + name.charAt(0).toUpperCase() + '</span>';
+                var avHtml = av ? '<img loading="lazy" src="/' + av + '" class="rounded-circle" width="20" height="20" style="object-fit:cover">' : '<span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:20px;height:20px;font-size:9px">' + name.charAt(0).toUpperCase() + '</span>';
                 badge.innerHTML = avHtml + ' ' + name + ' <i class="ri-close-line text-muted" style="cursor:pointer;font-size:14px" onclick="rpRemoveFollower(' + uid + ', this)"></i>';
                 tags.appendChild(badge);
                 input.value = '';

@@ -53,7 +53,13 @@ class DashboardController extends Controller
             );
         } catch (\Exception $e) {}
 
-        // ---- Stats with last month comparison ----
+        // ---- Stats with last month comparison (cached 5min per user) ----
+        $cacheKey = "dash_stats_u{$uid}_t{$tid}";
+        $cached = $_SESSION[$cacheKey] ?? null;
+        if ($cached && ($cached['exp'] ?? 0) > time()) {
+            $stats = $cached['data'];
+            goto _dashStatsLoaded;
+        }
         $totalContacts = (int)(Database::fetch("SELECT COUNT(*) as c FROM contacts WHERE is_deleted=0 AND tenant_id=?{$ownerWhere}", array_merge([$tid], $ownerParams))['c'] ?? 0);
         $lastMonthContacts = (int)(Database::fetch(
             "SELECT COUNT(*) as c FROM contacts WHERE is_deleted=0 AND tenant_id=? AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01'){$ownerWhere}",
@@ -100,6 +106,8 @@ class DashboardController extends Controller
             'total_orders' => $totalOrders,
             'orders_change' => $lastMonthOrders > 0 ? round(($totalOrders - $lastMonthOrders) / $lastMonthOrders * 100) : 0,
         ];
+        $_SESSION[$cacheKey] = ['data' => $stats, 'exp' => time() + 300]; // 5-min TTL
+        _dashStatsLoaded:
 
         // ---- Health scores distribution ----
         $healthDist = ['low' => 0, 'medium' => 0, 'high' => 0, 'critical' => 0];

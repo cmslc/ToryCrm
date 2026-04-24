@@ -102,7 +102,7 @@ foreach ($statusCounts ?? [] as $sc) $countByStatus[$sc['status']] = $sc['count'
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= $r['requested_date'] ? date('d/m/Y', strtotime($r['requested_date'])) : '-' ?></td>
+                                <td><?= $r['requested_date'] ? format_date($r['requested_date']) : '-' ?></td>
                                 <td>
                                     <?php if ($r['owner_name']): ?>
                                         <div class="d-flex align-items-center gap-2">

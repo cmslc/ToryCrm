@@ -544,7 +544,7 @@
                             }
                             $av = $dashAvatarCache2[$userName];
                             if ($av && file_exists(BASE_PATH . '/public/uploads/avatars/' . $av)) {
-                                $avatarHtml = '<img src="' . url('uploads/avatars/' . $av) . '" class="rounded-circle" style="width:32px;height:32px;object-fit:cover">';
+                                $avatarHtml = '<img loading="lazy" src="' . url('uploads/avatars/' . $av) . '" class="rounded-circle" style="width:32px;height:32px;object-fit:cover">';
                             } else {
                                 $c = $colors[$a['type']] ?? 'primary';
                                 $avatarHtml = '<div class="avatar-title rounded-circle bg-' . $c . '-subtle text-' . $c . '" style="width:32px;height:32px;font-size:13px">' . mb_strtoupper(mb_substr($userName, 0, 1)) . '</div>';
@@ -644,7 +644,7 @@
                 <?php
                 $rlAvatar = '';
                 if (!empty($rl['avatar']) && file_exists(BASE_PATH . '/public/uploads/avatars/' . $rl['avatar'])) {
-                    $rlAvatar = '<img src="' . url('uploads/avatars/' . $rl['avatar']) . '" class="rounded-circle" style="width:22px;height:22px;object-fit:cover">';
+                    $rlAvatar = '<img loading="lazy" src="' . url('uploads/avatars/' . $rl['avatar']) . '" class="rounded-circle" style="width:22px;height:22px;object-fit:cover">';
                 } else {
                     $rlAvatar = '<div class="d-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary" style="width:22px;height:22px;font-size:10px">' . mb_strtoupper(mb_substr($rl['name'], 0, 1)) . '</div>';
                 }

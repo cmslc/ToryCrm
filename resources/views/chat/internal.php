@@ -717,7 +717,7 @@ if ($isAi) {
                         mentionPicker.innerHTML = mentionMatches.map(function(m, i){
                             var ava;
                             if (m.isAi) ava = '<div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px"><i class="ri-robot-2-line" style="font-size:14px"></i></div>';
-                            else if (m.avatar) ava = '<img src="'+assetBaseUrl+m.avatar+'" class="rounded-circle" width="24" height="24" style="object-fit:cover">';
+                            else if (m.avatar) ava = '<img loading="lazy" src="'+assetBaseUrl+m.avatar+'" class="rounded-circle" width="24" height="24" style="object-fit:cover">';
                             else ava = '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;font-size:11px">'+esc((m.name||'?').charAt(0).toUpperCase())+'</div>';
                             var tag = m.isAi ? '<span class="badge bg-warning-subtle text-warning ms-auto">Bot</span>' : '';
                             return '<div class="mention-item '+(i===0?'active':'')+'" data-idx="'+i+'">'+ava+'<span>'+esc(m.name)+'</span>'+tag+'</div>';
@@ -967,7 +967,7 @@ if ($isAi) {
     var isAdmin = false;
 
     function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-    function avatar(u, size){ size = size||32; return u.avatar ? '<img src="'+assetBase+u.avatar+'" class="rounded-circle" width="'+size+'" height="'+size+'" style="object-fit:cover">' : '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:'+size+'px;height:'+size+'px">'+esc((u.name||'?').charAt(0).toUpperCase())+'</div>'; }
+    function avatar(u, size){ size = size||32; return u.avatar ? '<img loading="lazy" src="'+assetBase+u.avatar+'" class="rounded-circle" width="'+size+'" height="'+size+'" style="object-fit:cover">' : '<div class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width:'+size+'px;height:'+size+'px">'+esc((u.name||'?').charAt(0).toUpperCase())+'</div>'; }
 
     function loadMembers(){
         fetch('<?= url('chat/group/') ?>'+gid+'/members').then(r=>r.json()).then(function(d){
@@ -1127,7 +1127,7 @@ if ($isAi) {
     var assetBase = '<?= rtrim(url(''), '/') ?>/';
 
     function userAvatarHtml(u){
-        if (u.avatar) return '<img src="'+assetBase+u.avatar+'" class="rounded-circle" width="32" height="32" style="object-fit:cover">';
+        if (u.avatar) return '<img loading="lazy" src="'+assetBase+u.avatar+'" class="rounded-circle" width="32" height="32" style="object-fit:cover">';
         var ini = (u.name||'?').trim().charAt(0).toUpperCase();
         return '<div class="avatar-xs"><div class="avatar-title rounded-circle bg-primary-subtle text-primary" style="width:32px;height:32px">'+ini+'</div></div>';
     }

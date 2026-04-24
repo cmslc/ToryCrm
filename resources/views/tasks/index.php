@@ -86,24 +86,26 @@ $defaultVisible = ['col-title', 'col-status', 'col-priority', 'col-assignedto', 
 <div class="card mb-3">
     <div class="card-header p-2">
         <div class="d-flex align-items-center justify-content-between">
-            <ul class="nav nav-custom nav-custom-light mb-0">
-                <li class="nav-item">
-                    <a class="nav-link py-2 <?= !$currentStatus ? 'active' : '' ?>" href="<?= url('tasks?' . http_build_query(array_diff_key($filters, ['status'=>'','page'=>'']))) ?>">
-                        Tất cả <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1"><?= $totalAll ?></span>
+            <div class="flex-grow-1 d-flex" style="overflow-x:auto;scrollbar-width:none;min-width:0">
+                <div class="d-flex gap-1 flex-nowrap">
+                    <a href="<?= url('tasks?' . http_build_query(array_diff_key($filters, ['status'=>'','page'=>'']))) ?>"
+                       class="btn <?= !$currentStatus ? 'btn-dark' : 'btn-soft-dark' ?> rounded-pill text-nowrap waves-effect">
+                        Tất cả <span class="badge rounded-pill bg-danger ms-1"><?= number_format((int)$totalAll) ?></span>
                     </a>
-                </li>
-                <?php foreach ($sl as $key => $label):
-                    $count = $countMap[$key] ?? 0;
-                    if ($count == 0 && $currentStatus !== $key) continue;
-                    $qp = array_merge(array_diff_key($filters, ['status'=>'','page'=>'']), ['status' => $key]);
-                ?>
-                <li class="nav-item">
-                    <a class="nav-link py-2 <?= $currentStatus === $key ? 'active' : '' ?>" href="<?= url('tasks?' . http_build_query($qp)) ?>">
-                        <?= $label ?> <span class="badge bg-<?= $sc[$key] ?>-subtle text-<?= $sc[$key] ?> rounded-pill ms-1"><?= $count ?></span>
+                    <?php foreach ($sl as $key => $label):
+                        $count = $countMap[$key] ?? 0;
+                        if ($count == 0 && $currentStatus !== $key) continue;
+                        $qp = array_merge(array_diff_key($filters, ['status'=>'','page'=>'']), ['status' => $key]);
+                        $color = $sc[$key] ?? 'secondary';
+                        $isActive = $currentStatus === $key;
+                    ?>
+                    <a href="<?= url('tasks?' . http_build_query($qp)) ?>"
+                       class="btn <?= $isActive ? "btn-{$color}" : "btn-soft-{$color}" ?> rounded-pill text-nowrap waves-effect">
+                        <?= $label ?> <span class="badge rounded-pill bg-danger ms-1"><?= number_format((int)$count) ?></span>
                     </a>
-                </li>
-                <?php endforeach; ?>
-            </ul>
+                    <?php endforeach; ?>
+                </div>
+            </div>
             <div class="d-flex align-items-center gap-2 ms-auto">
                 <div class="dropdown">
                     <button class="btn btn-soft-secondary py-1 px-2" data-bs-toggle="dropdown" title="Thêm">
