@@ -37,6 +37,8 @@ $apis = [
     ['key'=>'google_maps_api_key', 'id'=>'mp', 'name'=>'Google Maps', 'icon'=>'ri-map-pin-line', 'color'=>'danger', 'value'=>$gmapsKey, 'has'=>$hasGmaps, 'enabled'=>$isEnabled('google_maps'), 'placeholder'=>'AIzaSy...', 'hint'=>'Bản đồ · Check-in', 'url'=>'https://console.cloud.google.com/apis/credentials'],
 ];
 $activeTab = $_GET['tab'] ?? 'keys';
+$newKey = $_SESSION['_new_api_key'] ?? null;
+if ($newKey) unset($_SESSION['_new_api_key']); // one-time reveal
 ?>
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
@@ -105,9 +107,10 @@ $activeTab = $_GET['tab'] ?? 'keys';
 <div class="card">
     <div class="card-header">
         <ul class="nav nav-tabs card-header-tabs" role="tablist">
-            <li class="nav-item"><a class="nav-link <?= $activeTab === 'keys' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabKeys"><i class="ri-key-line me-1"></i> API Keys</a></li>
+            <li class="nav-item"><a class="nav-link <?= $activeTab === 'keys' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabKeys"><i class="ri-key-line me-1"></i> AI Provider Keys</a></li>
             <li class="nav-item"><a class="nav-link <?= $activeTab === 'tax' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabTax"><i class="ri-building-2-line me-1"></i> Tra cứu MST</a></li>
             <li class="nav-item"><a class="nav-link <?= $activeTab === 'ai' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabAI"><i class="ri-robot-line me-1"></i> Cấu hình AI</a></li>
+            <li class="nav-item"><a class="nav-link <?= $activeTab === 'apikeys' ? 'active' : '' ?>" data-bs-toggle="tab" href="#tabApiKeys"><i class="ri-key-2-line me-1"></i> API Keys nội bộ</a></li>
         </ul>
     </div>
     <div class="card-body">
@@ -229,6 +232,96 @@ $activeTab = $_GET['tab'] ?? 'keys';
                         <button type="submit" class="btn btn-primary"><i class="ri-save-line me-1"></i> Lưu cấu hình</button>
                     </div>
                 </form>
+            </div>
+
+            <!-- Tab: Internal API Keys (CRM-issued keys for 3rd-party apps) -->
+            <div class="tab-pane <?= $activeTab === 'apikeys' ? 'active' : '' ?>" id="tabApiKeys">
+                <?php if ($newKey): ?>
+                <div class="alert alert-success d-flex align-items-start gap-2">
+                    <i class="ri-key-2-line fs-20 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-medium mb-1">API Key đã tạo — copy ngay bây giờ!</div>
+                        <div class="text-muted small mb-2">Vì lý do bảo mật, key chỉ hiển thị đầy đủ một lần duy nhất. Rời trang hoặc reload là sẽ không xem lại được.</div>
+                        <div class="input-group">
+                            <input type="text" class="form-control font-monospace" id="newApiKey" value="<?= e($newKey) ?>" readonly onclick="this.select()">
+                            <button type="button" class="btn btn-primary" id="copyApiKeyBtn"><i class="ri-file-copy-line me-1"></i> Copy</button>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                document.getElementById('copyApiKeyBtn')?.addEventListener('click', function() {
+                    const inp = document.getElementById('newApiKey');
+                    inp.select(); inp.setSelectionRange(0, 99999);
+                    const fb = () => document.execCommand('copy');
+                    (navigator.clipboard?.writeText(inp.value) || Promise.reject()).then(() => {}, fb).catch(fb);
+                    this.innerHTML = '<i class="ri-check-line me-1"></i> Đã copy';
+                    this.classList.replace('btn-primary', 'btn-success');
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="ri-file-copy-line me-1"></i> Copy';
+                        this.classList.replace('btn-success', 'btn-primary');
+                    }, 2000);
+                });
+                </script>
+                <?php endif; ?>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr><th>Tên</th><th>Key</th><th>Rate Limit</th><th>Lần dùng cuối</th><th>Requests</th><th></th></tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($keys)): ?>
+                                        <?php foreach ($keys as $k): ?>
+                                        <tr>
+                                            <td class="fw-medium"><?= e($k['name']) ?></td>
+                                            <td><code class="small user-select-all"><?= e(substr($k['api_key'], 0, 12)) ?>...<?= e(substr($k['api_key'], -4)) ?></code></td>
+                                            <td><?= $k['rate_limit'] ?>/h</td>
+                                            <td><?= $k['last_used_at'] ? time_ago($k['last_used_at']) : '-' ?></td>
+                                            <td><?= number_format($k['request_count']) ?></td>
+                                            <td>
+                                                <form method="POST" action="<?= url('settings/api-keys/' . $k['id'] . '/delete') ?>" data-confirm="Xóa API key?" class="d-inline">
+                                                    <?= csrf_field() ?><button class="btn btn-soft-danger btn-icon"><i class="ri-delete-bin-line"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr><td colspan="6" class="text-center text-muted py-3">Chưa có API key — tạo key bên phải để tích hợp với app bên ngoài</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card border">
+                            <div class="card-header"><h6 class="card-title mb-0">Tạo API Key mới</h6></div>
+                            <div class="card-body">
+                                <form method="POST" action="<?= url('settings/api-keys/create') ?>">
+                                    <?= csrf_field() ?>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="name" required placeholder="VD: Mobile App">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Rate Limit (requests/giờ)</label>
+                                        <input type="number" class="form-control" name="rate_limit" value="100" min="1">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100"><i class="ri-key-line me-1"></i> Tạo API Key</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="card border mt-2">
+                            <div class="card-body">
+                                <h6 class="mb-2">Cách sử dụng</h6>
+                                <p class="text-muted small mb-1">Thêm header vào mọi API request:</p>
+                                <code class="d-block bg-light p-2 rounded small">X-API-KEY: your_api_key_here</code>
+                                <p class="text-muted small mt-2 mb-0">Base URL: <code><?= url('api/v1') ?></code></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>

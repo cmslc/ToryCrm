@@ -172,19 +172,15 @@ class SettingController extends Controller
     }
 
     // ---- API Keys ----
+    /** Legacy route — now merged into /settings/api (tab 'apikeys'). */
     public function apiKeys()
     {
-        $keys = Database::fetchAll(
-            "SELECT * FROM api_keys WHERE user_id = ? ORDER BY created_at DESC",
-            [$this->userId()]
-        );
-
-        return $this->view('settings.api-keys', ['keys' => $keys]);
+        return $this->redirect('settings/api?tab=apikeys');
     }
 
     public function createApiKey()
     {
-        if (!$this->isPost()) return $this->redirect('settings/api-keys');
+        if (!$this->isPost()) return $this->redirect('settings/api?tab=apikeys');
 
         $name = trim($this->input('name') ?? '');
         if (empty($name)) {
@@ -204,14 +200,14 @@ class SettingController extends Controller
         // Stash full key one-time in session so list view can reveal, then scrubbed
         $_SESSION['_new_api_key'] = $apiKey;
         $this->setFlash('success', 'API Key đã tạo. Hãy copy ngay — sau khi rời trang, chỉ hiển thị masked.');
-        return $this->redirect('settings/api-keys');
+        return $this->redirect('settings/api?tab=apikeys');
     }
 
     public function deleteApiKey($id)
     {
         Database::delete('api_keys', 'id = ? AND user_id = ?', [$id, $this->userId()]);
         $this->setFlash('success', 'Đã xóa API Key.');
-        return $this->redirect('settings/api-keys');
+        return $this->redirect('settings/api?tab=apikeys');
     }
 
     // ---- Permissions ----
@@ -300,9 +296,16 @@ class SettingController extends Controller
 
         $activeProvider = $aiConfig['provider'] ?? 'groq';
 
+        // API Keys (merged tab)
+        $keys = Database::fetchAll(
+            "SELECT * FROM api_keys WHERE user_id = ? ORDER BY created_at DESC",
+            [$this->userId()]
+        );
+
         return $this->view('settings.api', [
             'aiConfig' => $aiConfig,
             'activeProvider' => $activeProvider,
+            'keys' => $keys,
         ]);
     }
 
