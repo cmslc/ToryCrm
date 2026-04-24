@@ -201,36 +201,6 @@ $userTheme = $_SESSION['user']['theme'] ?? 'light';
     }
     </script>
 
-    <!-- Sidebar edge toggle (always-visible expand/collapse button) -->
-    <button type="button" id="sidebarEdgeToggle" title="Thu gọn / mở rộng sidebar">
-        <i class="ri-arrow-left-s-line"></i>
-    </button>
-    <script>
-    (function(){
-        var btn = document.getElementById('sidebarEdgeToggle');
-        var html = document.documentElement;
-        function syncIcon(){
-            var size = html.getAttribute('data-sidebar-size') || 'lg';
-            var collapsed = (size === 'sm' || size === 'sm-hover');
-            btn.querySelector('i').className = collapsed ? 'ri-arrow-right-s-line' : 'ri-arrow-left-s-line';
-        }
-        syncIcon();
-        btn.addEventListener('click', function(){
-            var size = html.getAttribute('data-sidebar-size') || 'lg';
-            var next = (size === 'sm' || size === 'sm-hover') ? 'lg' : 'sm';
-            html.setAttribute('data-sidebar-size', next);
-            try { localStorage.setItem('sidebar-size', next); } catch(e){}
-            syncIcon();
-        });
-        // Restore saved preference
-        try {
-            var saved = localStorage.getItem('sidebar-size');
-            if (saved) { html.setAttribute('data-sidebar-size', saved); syncIcon(); }
-        } catch(e){}
-        // Keep icon in sync if something else changes it (Velzon hamburger)
-        new MutationObserver(syncIcon).observe(html, { attributes: true, attributeFilter: ['data-sidebar-size'] });
-    })();
-    </script>
 
     <!-- Chat unread badge poller -->
     <script>
