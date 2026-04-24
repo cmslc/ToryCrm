@@ -105,7 +105,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                 <input class="form-check-input" type="checkbox" id="split-view-check">
                 <label class="form-check-label" for="split-view-check">Xem nhanh (bấm vào dòng để xem chi tiết bên phải)</label>
             </div>
-            <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+            <div class="text-end">
+                <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+            </div>
         </div>
     </div>
 </div>

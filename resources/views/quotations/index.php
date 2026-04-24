@@ -32,7 +32,9 @@ foreach ($stats as $v) $totalAll += (int)$v;
                     <?php endforeach; ?>
                 </div>
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                    </div>
                 </div>
             </div>
         </div>

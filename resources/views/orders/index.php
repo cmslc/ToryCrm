@@ -27,7 +27,9 @@ $colKeys = array_column($displayColumns ?? [], 'key');
                     </div>
                     <?php endforeach; ?>
                 </div>
-                <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                <div class="text-end">
+                    <button type="button" class="btn btn-soft-secondary py-1 px-2" id="resetColumns"><i class="ri-refresh-line me-1"></i>Đặt lại</button>
+                </div>
             </div>
         </div>
 
