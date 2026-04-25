@@ -191,6 +191,7 @@ class DocumentTemplateController extends Controller
             return array_merge($common, [
                 '{{quote_number}}' => 'Số báo giá',
                 '{{valid_until}}' => 'Hiệu lực đến',
+                '{{products_detail}}' => 'Mô tả chi tiết sản phẩm (ảnh + mô tả từ sản phẩm)',
                 '{{notes}}' => 'Ghi chú',
                 '{{terms}}' => 'Điều khoản',
             ]);
@@ -213,6 +214,7 @@ class DocumentTemplateController extends Controller
                 '{{transport_amount}}' => 'Phí vận chuyển',
                 '{{installation_amount}}' => 'Phí lắp đặt',
                 '{{paid_amount}}' => 'Đã thanh toán',
+                '{{products_detail}}' => 'Mô tả chi tiết sản phẩm (ảnh + mô tả từ sản phẩm)',
                 '{{notes}}' => 'Ghi chú',
                 '{{terms}}' => 'Điều khoản',
             ]);

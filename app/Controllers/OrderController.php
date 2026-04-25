@@ -340,7 +340,10 @@ class OrderController extends Controller
         }
 
         $items = Database::fetchAll(
-            "SELECT oi.*, p.sku FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ? ORDER BY oi.sort_order",
+            "SELECT oi.*, p.sku, p.description AS product_description, p.short_description AS product_short_description,
+                    COALESCE(p.featured_image, p.image) AS product_image
+             FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id
+             WHERE oi.order_id = ? ORDER BY oi.sort_order",
             [$id]
         );
 

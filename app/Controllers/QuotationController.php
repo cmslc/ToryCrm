@@ -1006,7 +1006,14 @@ class QuotationController extends Controller
             return $this->redirect('quotations');
         }
 
-        $items = Database::fetchAll("SELECT * FROM quotation_items WHERE quotation_id = ? ORDER BY sort_order", [$id]);
+        $items = Database::fetchAll(
+            "SELECT qi.*, p.sku AS product_sku, p.description AS product_description,
+                    p.short_description AS product_short_description,
+                    COALESCE(p.featured_image, p.image) AS product_image
+             FROM quotation_items qi LEFT JOIN products p ON qi.product_id = p.id
+             WHERE qi.quotation_id = ? ORDER BY qi.sort_order",
+            [$id]
+        );
         $templateId = (int)($this->input('template_id') ?: ($_GET['template_id'] ?? 0));
 
         // Auto-pick default quotation template if none specified
@@ -1081,6 +1088,7 @@ class QuotationController extends Controller
                 '{{customer_representative}}' => $contactName,
                 '{{customer_position}}' => $cp['position'] ?? '',
                 '{{items_table}}' => \App\Services\DocumentService::buildItemsTable($items, $summary),
+                '{{products_detail}}' => \App\Services\DocumentService::buildProductsDetail($items),
                 '{{subtotal}}' => number_format((float)($quotation['subtotal'] ?? 0)),
                 '{{discount}}' => number_format((float)($quotation['discount_amount'] ?? 0)),
                 '{{vat}}' => number_format((float)($quotation['tax_amount'] ?? 0)),
