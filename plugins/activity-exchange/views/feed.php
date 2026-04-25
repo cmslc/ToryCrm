@@ -26,7 +26,7 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
 <?php endif; ?>
 <div id="activity-exchange-inner">
         <!-- Compose Area -->
-        <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="composeForm" style="display:none">
+        <form method="POST" action="<?= url('activities/store') ?>" enctype="multipart/form-data" id="composeForm">
             <?= csrf_field() ?>
             <input type="hidden" name="<?= $_fieldName ?>" value="<?= $_entityId ?>">
             <input type="hidden" name="type" value="note" id="activityType">
@@ -217,12 +217,7 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
 <?php endif; ?>
 
 <script>
-// Move compose form below feed
-(function(){
-    var form = document.getElementById('composeForm');
-    var feed = document.getElementById('activityFeed');
-    if (form && feed) { feed.parentNode.insertBefore(feed, form); form.style.display = ''; }
-})();
+// Compose form stays on top (above feed) — no DOM reorder.
 
 // Attachment preview
 function previewAttach(input) {
@@ -402,6 +397,5 @@ document.getElementById('checkinBtn')?.addEventListener('click', function() {
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 });
 
-// Auto-scroll
-var _feed=document.getElementById('activityFeed');if(_feed)_feed.scrollTop=_feed.scrollHeight;
+// Feed shows newest at top, no autoscroll needed.
 </script>
