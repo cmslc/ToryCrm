@@ -27,7 +27,7 @@ if ($shipFull === '' && $cAddress !== '') {
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <div>
         <h4 class="mb-0">
-            <?= e($order['order_number']) ?>
+            <?= $order['type'] === 'quote' ? 'Báo giá' : 'Đơn hàng' ?>: <?= e($order['order_number']) ?>
             <a href="<?= url('orders/' . $order['id'] . '/edit') ?>" class="text-muted ms-1"><i class="ri-pencil-line"></i></a>
             <span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?> ms-2"><?= $sl[$order['status']] ?? $order['status'] ?></span>
             <span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>-subtle text-<?= $pc[$order['payment_status']] ?? 'secondary' ?> ms-1"><?= $pl[$order['payment_status']] ?? '' ?></span>
