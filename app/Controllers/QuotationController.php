@@ -1146,7 +1146,15 @@ class QuotationController extends Controller
                     $row = str_replace('{{p.discount}}', number_format((float)($item['discount'] ?? 0)), $row);
                     $row = str_replace('{{p.vat}}', number_format((float)($item['tax_rate'] ?? 0), 2) . '%', $row);
                     $row = str_replace('{{p.vatp}}', number_format((float)($item['tax_rate'] ?? 0), 0) . '%', $row);
-                    $row = preg_replace('/\{\{p\.avatar[^}]*\}\}/', '', $row);
+                    $img = $item['product_image'] ?? '';
+                    $imgUrl = $img ? (strpos($img, 'http') === 0 ? $img : asset($img)) : '';
+                    $row = preg_replace_callback('/\{\{p\.avatar(?::([0-9]+|auto)x([0-9]+|auto))?\}\}/', function($m) use ($imgUrl) {
+                        if (!$imgUrl) return '';
+                        $w = $m[1] ?? '90';
+                        $h = $m[2] ?? 'auto';
+                        $style = ($w === 'auto' ? '' : 'width:' . (int)$w . 'px;') . ($h === 'auto' ? '' : 'height:' . (int)$h . 'px;') . 'object-fit:cover';
+                        return '<img src="' . htmlspecialchars($imgUrl) . '" style="' . $style . '">';
+                    }, $row);
                     $rowsHtml .= $row;
                 }
                 $html = str_replace($rowTemplate, $rowsHtml, $html);
