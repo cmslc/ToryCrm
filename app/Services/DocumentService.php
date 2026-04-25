@@ -311,7 +311,7 @@ class DocumentService
         foreach ($items as $it) {
             $dim = trim((string)($it['product_dimensions'] ?? ''));
             if ($dim === '') continue;
-            $parts[] = '<p style="margin:0">' . htmlspecialchars($dim) . '</p>';
+            $parts[] = '<p style="margin:0">Kích thước: ' . htmlspecialchars($dim) . '</p>';
         }
         return implode('', $parts);
     }
