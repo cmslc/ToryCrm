@@ -14,12 +14,17 @@ class ProductController extends Controller
         if (strlen($q) < 1) return $this->json([]);
 
         $results = Database::fetchAll(
-            "SELECT id, name, sku, price, unit, tax_rate FROM products
+            "SELECT id, name, sku, price, unit, tax_rate, image, featured_image FROM products
              WHERE tenant_id = ? AND is_active = 1 AND is_deleted = 0
              AND (name LIKE ? OR sku LIKE ?)
              ORDER BY name LIMIT 20",
             [$tid, "%{$q}%", "%{$q}%"]
         );
+        foreach ($results as &$r) {
+            $img = $r['featured_image'] ?: $r['image'];
+            $r['image_url'] = $img ? (strpos($img, 'http') === 0 ? $img : asset($img)) : '';
+            unset($r['image'], $r['featured_image']);
+        }
         return $this->json($results);
     }
 

@@ -401,9 +401,12 @@ function searchProduct(input, idx, type) {
             .then(r => r.json())
             .then(results => {
                 if (!results.length) { drop.innerHTML = '<div class="pd-item text-muted">Không tìm thấy</div>'; positionDropdown(input, drop); drop.style.display = 'block'; return; }
-                drop.innerHTML = results.map(p =>
-                    `<div class="pd-item" onclick="pickProduct(${idx}, ${JSON.stringify(p).replace(/"/g, '&quot;')})"><strong>${p.name}</strong> <span class="pd-sku">${p.sku || ''}</span><br><small class="text-muted">${Number(p.price).toLocaleString('vi-VN')} ₫ / ${p.unit || 'Cái'}</small></div>`
-                ).join('');
+                drop.innerHTML = results.map(p => {
+                    const imgHtml = p.image_url
+                        ? `<img src="${p.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;flex-shrink:0;margin-right:8px" onerror="this.style.display='none'">`
+                        : `<div style="width:40px;height:40px;background:#f0f0f0;border-radius:4px;flex-shrink:0;margin-right:8px;display:flex;align-items:center;justify-content:center;color:#999"><i class="ri-image-line"></i></div>`;
+                    return `<div class="pd-item d-flex align-items-center" onclick="pickProduct(${idx}, ${JSON.stringify(p).replace(/"/g, '&quot;')})">${imgHtml}<div class="flex-grow-1" style="min-width:0"><div><strong>${p.name}</strong> <span class="pd-sku">${p.sku || ''}</span></div><small class="text-muted">${Number(p.price).toLocaleString('vi-VN')} ₫ / ${p.unit || 'Cái'}</small></div></div>`;
+                }).join('');
                 positionDropdown(input, drop);
                 drop.style.display = 'block';
             });
