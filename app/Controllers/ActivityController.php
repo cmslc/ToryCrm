@@ -374,6 +374,12 @@ class ActivityController extends Controller
             return $this->json(['error' => 'Không tìm thấy hoạt động'], 404);
         }
 
+        // Ownership: only author can edit (admins can edit via /activities/{id}/edit page if permitted)
+        $currentUserId = $_SESSION['user']['id'] ?? 0;
+        if ((int)$activity['user_id'] !== (int)$currentUserId && !\App\Services\PermissionService::can('settings', 'manage')) {
+            return $this->json(['error' => 'Bạn không có quyền sửa hoạt động này'], 403);
+        }
+
         $data = $this->allInput();
         $title = trim($data['title'] ?? '');
         $type = trim($data['type'] ?? $activity['type']);

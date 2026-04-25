@@ -98,7 +98,14 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                             <strong style="font-size:14px"><?= e($userName) ?></strong>
                             <small class="text-muted"><?= !empty($act['created_at']) ? date('d/m/Y H:i', strtotime($act['created_at'])) : '' ?></small>
                         </div>
-                        <div style="white-space:pre-wrap;word-break:break-word"><?= $content ?></div>
+                        <div class="act-content" data-id="<?= $act['id'] ?>" style="white-space:pre-wrap;word-break:break-word"><?= $content ?></div>
+                        <div class="act-edit d-none" data-id="<?= $act['id'] ?>" data-original="<?= e($act['title']) ?>">
+                            <textarea class="form-control" rows="3"><?= e($act['title']) ?></textarea>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="saveEdit(<?= $act['id'] ?>)">Lưu</button>
+                                <button type="button" class="btn btn-sm btn-soft-secondary" onclick="cancelEdit(<?= $act['id'] ?>)">Hủy</button>
+                            </div>
+                        </div>
                         <?php if (!empty($act['description'])): ?>
                         <div class="text-muted mt-1" style="font-size:13px;white-space:pre-wrap"><?= e($act['description']) ?></div>
                         <?php endif; ?>
@@ -143,6 +150,11 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                             <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)">
                                 <i class="ri-reply-line"></i> Trả lời
                             </span>
+                            <?php if (($act['user_id'] ?? 0) == ($_SESSION['user']['id'] ?? 0)): ?>
+                            <span class="text-muted act-btn" style="cursor:pointer" onclick="startEdit(<?= $act['id'] ?>)">
+                                <i class="ri-pencil-line"></i> Sửa
+                            </span>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Replies -->
@@ -163,7 +175,14 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                                 <div class="flex-grow-1">
                                     <strong style="font-size:13px"><?= e($rName) ?></strong>
                                     <small class="text-muted ms-1"><?= date('d/m H:i', strtotime($reply['created_at'])) ?></small>
-                                    <div style="font-size:13px"><?= $rContent ?></div>
+                                    <div class="act-content" data-id="<?= $reply['id'] ?>" style="font-size:13px"><?= $rContent ?></div>
+                                    <div class="act-edit d-none" data-id="<?= $reply['id'] ?>" data-original="<?= e($reply['title']) ?>">
+                                        <textarea class="form-control form-control-sm" rows="2"><?= e($reply['title']) ?></textarea>
+                                        <div class="d-flex gap-2 mt-1">
+                                            <button type="button" class="btn btn-sm btn-primary" onclick="saveEdit(<?= $reply['id'] ?>)">Lưu</button>
+                                            <button type="button" class="btn btn-sm btn-soft-secondary" onclick="cancelEdit(<?= $reply['id'] ?>)">Hủy</button>
+                                        </div>
+                                    </div>
                                     <?php if (!empty($reply['attachment'])):
                                         $rPath = trim($reply['attachment']);
                                         $rExt = strtolower(pathinfo($rPath, PATHINFO_EXTENSION));
@@ -182,6 +201,9 @@ $_fieldName = $_entityType . '_id'; // contact_id, quotation_id, etc.
                                             <i class="ri-thumb-down-<?= ($reply['my_reaction'] ?? '') === 'dislike' ? 'fill' : 'line' ?>"></i><?php if (($reply['dislikes'] ?? 0) > 0): ?> <?= $reply['dislikes'] ?><?php endif; ?>
                                         </span>
                                         <span class="text-muted act-btn" style="cursor:pointer" onclick="toggleReplyBox(<?= $act['id'] ?>)"><i class="ri-reply-line"></i> Trả lời</span>
+                                        <?php if (($reply['user_id'] ?? 0) == ($_SESSION['user']['id'] ?? 0)): ?>
+                                        <span class="text-muted act-btn" style="cursor:pointer" onclick="startEdit(<?= $reply['id'] ?>)"><i class="ri-pencil-line"></i> Sửa</span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -398,4 +420,55 @@ document.getElementById('checkinBtn')?.addEventListener('click', function() {
 });
 
 // Feed shows newest at top, no autoscroll needed.
+
+// Edit comment / reply
+function startEdit(id) {
+    var content = document.querySelector('.act-content[data-id="'+id+'"]');
+    var editBox = document.querySelector('.act-edit[data-id="'+id+'"]');
+    if (content && editBox) {
+        content.classList.add('d-none');
+        editBox.classList.remove('d-none');
+        var ta = editBox.querySelector('textarea');
+        if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+    }
+}
+function cancelEdit(id) {
+    var content = document.querySelector('.act-content[data-id="'+id+'"]');
+    var editBox = document.querySelector('.act-edit[data-id="'+id+'"]');
+    if (content && editBox) {
+        var ta = editBox.querySelector('textarea');
+        if (ta) ta.value = editBox.dataset.original || '';
+        editBox.classList.add('d-none');
+        content.classList.remove('d-none');
+    }
+}
+function saveEdit(id) {
+    var editBox = document.querySelector('.act-edit[data-id="'+id+'"]');
+    if (!editBox) return;
+    var ta = editBox.querySelector('textarea');
+    var newTitle = (ta.value || '').trim();
+    if (!newTitle) { alert('Nội dung không được để trống'); return; }
+    var fd = new FormData();
+    fd.append('title', newTitle);
+    fetch('<?= url("activities") ?>/'+id+'/update', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '<?= csrf_token() ?>', 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd
+    }).then(r => r.json()).then(function(data) {
+        if (data.success) {
+            var content = document.querySelector('.act-content[data-id="'+id+'"]');
+            if (content) {
+                var html = newTitle.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                html = html.replace(/@([^\s,\.]+(?:\s[^\s,\.@]+){0,4})/g, '<span class="text-primary fw-medium">@$1</span>');
+                html = html.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" class="text-primary">$1</a>');
+                content.innerHTML = html;
+                content.classList.remove('d-none');
+            }
+            editBox.classList.add('d-none');
+            editBox.dataset.original = newTitle;
+        } else {
+            alert(data.error || 'Lỗi cập nhật');
+        }
+    }).catch(function() { alert('Lỗi kết nối'); });
+}
 </script>
