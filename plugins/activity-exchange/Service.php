@@ -25,7 +25,7 @@ class ActivityExchangeService
              FROM activities a
              LEFT JOIN users u ON a.user_id = u.id
              WHERE a.{$column} = ? AND a.parent_id IS NULL
-             ORDER BY a.created_at ASC
+             ORDER BY a.created_at DESC
              LIMIT ?",
             [$userId, $entityId, $limit]
         );
