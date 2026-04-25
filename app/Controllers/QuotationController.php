@@ -1009,6 +1009,7 @@ class QuotationController extends Controller
         $items = Database::fetchAll(
             "SELECT qi.*, p.sku AS product_sku, p.description AS product_description,
                     p.short_description AS product_short_description,
+                    p.dimensions AS product_dimensions, p.color AS product_color,
                     COALESCE(p.featured_image, p.image) AS product_image
              FROM quotation_items qi LEFT JOIN products p ON qi.product_id = p.id
              WHERE qi.quotation_id = ? ORDER BY qi.sort_order",
@@ -1089,6 +1090,7 @@ class QuotationController extends Controller
                 '{{customer_position}}' => $cp['position'] ?? '',
                 '{{items_table}}' => \App\Services\DocumentService::buildItemsTable($items, $summary),
                 '{{products_detail}}' => \App\Services\DocumentService::buildProductsDetail($items),
+                '{{products_dimensions}}' => \App\Services\DocumentService::buildProductsDimensions($items),
                 '{{subtotal}}' => number_format((float)($quotation['subtotal'] ?? 0)),
                 '{{discount}}' => number_format((float)($quotation['discount_amount'] ?? 0)),
                 '{{vat}}' => number_format((float)($quotation['tax_amount'] ?? 0)),

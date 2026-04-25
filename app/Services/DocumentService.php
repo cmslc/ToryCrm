@@ -202,6 +202,7 @@ class DocumentService
             '{{customer_position}}' => $order['cp_position'] ?? '',
             '{{items_table}}' => self::buildOrderItemsTable($items, $order),
             '{{products_detail}}' => self::buildProductsDetail($items),
+            '{{products_dimensions}}' => self::buildProductsDimensions($items),
             '{{subtotal}}' => number_format($subtotal),
             '{{discount}}' => number_format((float)($order['discount_amount'] ?? 0)),
             '{{discount_amount}}' => number_format((float)($order['discount_amount'] ?? 0)),
@@ -296,6 +297,21 @@ class DocumentService
             $body = $desc ?: $shortDesc;
             if ($body === '') continue;
             $parts[] = '<p>' . html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8') . '</p>';
+        }
+        return implode('', $parts);
+    }
+
+    /**
+     * Build a plain dimensions list — one per paragraph for each item that
+     * has dimensions on its product.
+     */
+    public static function buildProductsDimensions(array $items): string
+    {
+        $parts = [];
+        foreach ($items as $it) {
+            $dim = trim((string)($it['product_dimensions'] ?? ''));
+            if ($dim === '') continue;
+            $parts[] = '<p>' . htmlspecialchars($dim) . '</p>';
         }
         return implode('', $parts);
     }
