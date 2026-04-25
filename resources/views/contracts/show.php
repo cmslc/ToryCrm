@@ -11,7 +11,6 @@ $usageTypes = ['one_time'=>'Một lần','multiple'=>'Nhiều lần'];
 <!-- Header -->
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <div>
-        <span class="text-muted">Quản lý hợp đồng / Chi tiết hợp đồng bán</span><br>
         <h4 class="mb-0">
             <span class="text-primary">Số: <?= e($contract['contract_number']) ?></span>
             <?php if (!empty($contract['title'])): ?> - <?= e($contract['title']) ?><?php endif; ?>

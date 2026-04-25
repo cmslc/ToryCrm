@@ -26,15 +26,14 @@ if ($shipFull === '' && $cAddress !== '') {
 
 <div class="page-title-box d-flex align-items-center justify-content-between">
     <div>
-        <span class="text-muted"><?= $order['type'] === 'quote' ? 'Báo giá' : 'Đơn hàng' ?></span><br>
         <h4 class="mb-0">
             <?= e($order['order_number']) ?>
+            <a href="<?= url('orders/' . $order['id'] . '/edit') ?>" class="text-muted ms-1"><i class="ri-pencil-line"></i></a>
             <span class="badge bg-<?= $sc[$order['status']] ?? 'secondary' ?> ms-2"><?= $sl[$order['status']] ?? $order['status'] ?></span>
             <span class="badge bg-<?= $pc[$order['payment_status']] ?? 'secondary' ?>-subtle text-<?= $pc[$order['payment_status']] ?? 'secondary' ?> ms-1"><?= $pl[$order['payment_status']] ?? '' ?></span>
         </h4>
     </div>
     <div class="d-flex gap-2">
-        <a href="<?= url('orders/' . $order['id'] . '/edit') ?>" class="btn btn-soft-primary"><i class="ri-pencil-line me-1"></i>Sửa</a>
         <a href="<?= url('orders/pdf/' . $order['id']) ?>" class="btn btn-soft-info" target="_blank"><i class="ri-printer-line me-1"></i>In</a>
         <?php if ($order['status'] === 'pending'): ?>
             <form method="POST" action="<?= url('orders/' . $order['id'] . '/approve') ?>" class="d-inline" data-confirm="Duyệt đơn hàng này?">
