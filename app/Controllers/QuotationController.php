@@ -1178,6 +1178,8 @@ class QuotationController extends Controller
 
     /**
      * Export a single quotation to Excel (HTML-based .xls — Excel opens it natively).
+     * Mirrors the print/PDF layout: branding header, customer/creator info,
+     * items, totals, content (terms HTML), notes, terms, bank info.
      */
     public function exportXlsx($id)
     {
@@ -1189,7 +1191,7 @@ class QuotationController extends Controller
                     c.address as c_address,
                     c.company_phone as c_company_phone, c.company_email as c_company_email,
                     c.phone as c_phone, c.email as c_email,
-                    u.name as owner_name
+                    u.name as owner_name, u.email as owner_email, u.phone as owner_phone
              FROM quotations q
              LEFT JOIN contacts c ON q.contact_id = c.id
              LEFT JOIN users u ON q.owner_id = u.id
@@ -1205,9 +1207,20 @@ class QuotationController extends Controller
             [$id]
         );
 
+        $branding = \App\Services\BrandingService::get();
         $custName = $quotation['c_company_name'] ?: ($quotation['c_full_name'] ?: '');
-        $custPhone = $quotation['c_company_phone'] ?: ($quotation['c_phone'] ?? '');
-        $custEmail = $quotation['c_company_email'] ?: ($quotation['c_email'] ?? '');
+        $custPhone = $quotation['contact_phone'] ?? ($quotation['c_company_phone'] ?? $quotation['c_phone'] ?? '');
+        $custEmail = $quotation['contact_email'] ?? ($quotation['c_company_email'] ?? $quotation['c_email'] ?? '');
+        $custAddress = $quotation['address'] ?? ($quotation['c_address'] ?? '');
+
+        // Strip HTML, keep <br>/<p> as newlines
+        $stripHtml = function ($html) {
+            if (!$html) return '';
+            $t = preg_replace('/<\s*\/?\s*(br|p|div|li|tr)[^>]*>/i', "\n", $html);
+            $t = strip_tags($t);
+            $t = html_entity_decode($t, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            return trim(preg_replace("/\n{3,}/", "\n\n", $t));
+        };
 
         $filename = 'BaoGia_' . preg_replace('/[^A-Za-z0-9_-]/', '', $quotation['quote_number']) . '_' . date('Ymd_His') . '.xls';
 
@@ -1216,48 +1229,128 @@ class QuotationController extends Controller
         header('Pragma: no-cache');
         header('Expires: 0');
 
-        echo "\xEF\xBB\xBF"; // UTF-8 BOM for Excel
+        echo "\xEF\xBB\xBF"; // UTF-8 BOM
         echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-        echo '<head><meta charset="UTF-8"><style>td,th{border:1px solid #999;padding:4px 6px;font-family:Calibri,Arial;font-size:11pt;vertical-align:top}th{background:#d9e1f2;font-weight:bold;text-align:center}.r{text-align:right;mso-number-format:"\#\,\#\#0"}.c{text-align:center}.b{font-weight:bold}.t{font-size:14pt;font-weight:bold}</style></head><body>';
+        echo '<head><meta charset="UTF-8"><style>'
+            . 'td,th{border:1px solid #999;padding:4px 6px;font-family:Calibri,Arial;font-size:11pt;vertical-align:top}'
+            . 'th{background:#d9e1f2;font-weight:bold;text-align:center}'
+            . '.r{text-align:right;mso-number-format:"\#\,\#\#0"}'
+            . '.c{text-align:center}.l{text-align:left}.b{font-weight:bold}'
+            . '.t{font-size:18pt;font-weight:bold;color:#405189}'
+            . '.h{font-size:12pt;font-weight:bold;background:#f0f0f0}'
+            . '.box{background:#fafbfc}'
+            . '.grand{background:#405189;color:#fff;font-weight:bold;font-size:13pt}'
+            . '.nobd td{border:none}'
+            . '.brand td{border:none;font-size:11pt;color:#333}'
+            . '.brand .name{font-size:14pt;font-weight:bold;color:#405189}'
+            . '</style></head><body>';
 
+        $cols = 9;
         echo '<table>';
-        echo '<tr><td colspan="9" class="t c">BÁO GIÁ ' . htmlspecialchars($quotation['quote_number']) . '</td></tr>';
-        echo '<tr><td colspan="9"></td></tr>';
-        echo '<tr><td class="b">Khách hàng:</td><td colspan="3">' . htmlspecialchars($custName) . '</td>';
-        echo '<td class="b">Mã KH:</td><td colspan="2">' . htmlspecialchars($quotation['c_account_code'] ?? '') . '</td>';
-        echo '<td class="b">MST:</td><td>' . htmlspecialchars($quotation['c_tax_code'] ?? '') . '</td></tr>';
-        echo '<tr><td class="b">Địa chỉ:</td><td colspan="5">' . htmlspecialchars($quotation['c_address'] ?? '') . '</td>';
-        echo '<td class="b">Ngày:</td><td colspan="2">' . (!empty($quotation['created_at']) ? date('d/m/Y', strtotime($quotation['created_at'])) : '') . '</td></tr>';
-        echo '<tr><td class="b">Điện thoại:</td><td colspan="3">' . htmlspecialchars($custPhone) . '</td>';
-        echo '<td class="b">Email:</td><td colspan="2">' . htmlspecialchars($custEmail) . '</td>';
-        echo '<td class="b">Phụ trách:</td><td>' . htmlspecialchars($quotation['owner_name'] ?? '') . '</td></tr>';
-        echo '<tr><td colspan="9"></td></tr>';
 
-        echo '<tr><th>STT</th><th>Mã SP</th><th>Tên sản phẩm</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>CK%</th><th>VAT%</th><th>Thành tiền</th></tr>';
+        // ========== BRANDING HEADER ==========
+        $brandLines = [];
+        if (!empty($branding['name'])) $brandLines[] = '<div class="name">' . htmlspecialchars($branding['name']) . '</div>';
+        if (!empty($branding['address'])) $brandLines[] = 'Trụ sở: ' . htmlspecialchars($branding['address']);
+        if (!empty($branding['branch_address'])) $brandLines[] = 'Chi nhánh: ' . htmlspecialchars($branding['branch_address']);
+        $line3 = [];
+        if (!empty($branding['phone'])) $line3[] = 'Hotline: ' . htmlspecialchars($branding['phone']);
+        if (!empty($branding['fax'])) $line3[] = 'Fax: ' . htmlspecialchars($branding['fax']);
+        if ($line3) $brandLines[] = implode(' · ', $line3);
+        $line4 = [];
+        if (!empty($branding['email'])) $line4[] = 'Email: ' . htmlspecialchars($branding['email']);
+        if (!empty($branding['website'])) $line4[] = htmlspecialchars($branding['website']);
+        if ($line4) $brandLines[] = implode(' · ', $line4);
+        if (!empty($branding['tax_code'])) $brandLines[] = 'MST: ' . htmlspecialchars($branding['tax_code']);
+
+        echo '<tr class="brand"><td colspan="' . ($cols - 3) . '">' . implode('<br>', $brandLines) . '</td>'
+            . '<td colspan="3" class="t r">BÁO GIÁ<br><span style="font-size:11pt;font-weight:normal;color:#666">' . htmlspecialchars($quotation['quote_number']) . '</span></td></tr>';
+
+        // Meta bar
+        echo '<tr class="box">'
+            . '<td colspan="3"><span class="b">Ngày:</span> ' . (!empty($quotation['created_at']) ? date('d/m/Y', strtotime($quotation['created_at'])) : '') . '</td>'
+            . '<td colspan="3">' . (!empty($quotation['valid_until']) ? '<span class="b">Hiệu lực đến:</span> ' . date('d/m/Y', strtotime($quotation['valid_until'])) : '') . '</td>'
+            . '<td colspan="3"><span class="b">Phụ trách:</span> ' . htmlspecialchars($quotation['owner_name'] ?? '-') . '</td>'
+            . '</tr>';
+
+        // ========== CUSTOMER + CREATOR ==========
+        echo '<tr class="h"><td colspan="5">KHÁCH HÀNG</td><td colspan="4">NGƯỜI TẠO BÁO GIÁ</td></tr>';
+        $custLines = [];
+        $custLines[] = '<span class="b" style="font-size:12pt">' . htmlspecialchars($custName ?: '-') . '</span>';
+        if (!empty($quotation['c_account_code'])) $custLines[] = 'Mã KH: ' . htmlspecialchars($quotation['c_account_code']);
+        if (!empty($quotation['c_tax_code'])) $custLines[] = 'MST: ' . htmlspecialchars($quotation['c_tax_code']);
+        if ($custAddress) $custLines[] = 'Địa chỉ: ' . htmlspecialchars($custAddress);
+        if ($custPhone) $custLines[] = 'ĐT: ' . htmlspecialchars($custPhone);
+        if ($custEmail) $custLines[] = 'Email: ' . htmlspecialchars($custEmail);
+
+        $ownerLines = [];
+        $ownerLines[] = '<span class="b" style="font-size:12pt">' . htmlspecialchars($quotation['owner_name'] ?? '-') . '</span>';
+        if (!empty($quotation['owner_email'])) $ownerLines[] = 'Email: ' . htmlspecialchars($quotation['owner_email']);
+        if (!empty($quotation['owner_phone'])) $ownerLines[] = 'ĐT: ' . htmlspecialchars($quotation['owner_phone']);
+
+        echo '<tr><td colspan="5">' . implode('<br>', $custLines) . '</td>'
+            . '<td colspan="4">' . implode('<br>', $ownerLines) . '</td></tr>';
+
+        echo '<tr class="nobd"><td colspan="' . $cols . '" style="height:8px"></td></tr>';
+
+        // ========== ITEMS ==========
+        echo '<tr><th>STT</th><th>Mã SP</th><th>Tên sản phẩm / Mô tả</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>CK%</th><th>VAT%</th><th>Thành tiền</th></tr>';
         foreach ($items as $i => $it) {
+            $name = htmlspecialchars($it['product_name'] ?? '');
+            if (!empty($it['description'])) {
+                $name .= '<br><span style="color:#888;font-size:10pt">' . htmlspecialchars($it['description']) . '</span>';
+            }
             echo '<tr>'
                 . '<td class="c">' . ($i + 1) . '</td>'
                 . '<td>' . htmlspecialchars($it['product_sku'] ?? '') . '</td>'
-                . '<td>' . htmlspecialchars($it['product_name'] ?? '') . '</td>'
+                . '<td>' . $name . '</td>'
                 . '<td class="c">' . htmlspecialchars($it['unit'] ?? '') . '</td>'
                 . '<td class="r">' . (float)($it['quantity'] ?? 0) . '</td>'
                 . '<td class="r">' . number_format((float)($it['unit_price'] ?? 0)) . '</td>'
                 . '<td class="r">' . number_format((float)($it['discount_percent'] ?? 0), 2) . '</td>'
                 . '<td class="r">' . number_format((float)($it['tax_rate'] ?? 0), 2) . '</td>'
-                . '<td class="r">' . number_format((float)($it['total'] ?? 0)) . '</td>'
+                . '<td class="r b">' . number_format((float)($it['total'] ?? 0)) . '</td>'
                 . '</tr>';
         }
 
-        $sumRow = function($label, $value, $bold = false) {
-            $cls = $bold ? 'r b' : 'r';
-            echo '<tr><td colspan="8" class="r' . ($bold ? ' b' : '') . '">' . $label . '</td><td class="' . $cls . '">' . $value . '</td></tr>';
+        // ========== TOTALS ==========
+        $sumRow = function($label, $value, $bold = false, $cls = '') use ($cols) {
+            $tdCls = trim(($bold ? 'r b' : 'r') . ' ' . $cls);
+            echo '<tr><td colspan="' . ($cols - 1) . '" class="' . $tdCls . '">' . $label . '</td>'
+                . '<td class="' . $tdCls . '">' . $value . '</td></tr>';
         };
         $sumRow('Tạm tính', number_format((float)($quotation['subtotal'] ?? 0)), true);
-        if (($quotation['shipping_fee'] ?? 0) > 0) $sumRow('Phí vận chuyển', number_format((float)$quotation['shipping_fee']));
-        if (($quotation['installation_fee'] ?? 0) > 0) $sumRow('Phí lắp đặt', number_format((float)$quotation['installation_fee']));
         if (($quotation['tax_amount'] ?? 0) > 0) $sumRow('Thuế VAT', number_format((float)$quotation['tax_amount']));
         if (($quotation['discount_amount'] ?? 0) > 0) $sumRow('Chiết khấu', '-' . number_format((float)$quotation['discount_amount']));
-        $sumRow('TỔNG CỘNG', number_format((float)($quotation['total'] ?? 0)), true);
+        if (($quotation['shipping_fee'] ?? 0) > 0) {
+            $sLabel = 'Phí vận chuyển' . (!empty($quotation['shipping_note']) ? ' (' . htmlspecialchars($quotation['shipping_note']) . ')' : '');
+            $sumRow($sLabel, number_format((float)$quotation['shipping_fee']));
+        }
+        if (($quotation['installation_fee'] ?? 0) > 0) $sumRow('Phí lắp đặt', number_format((float)$quotation['installation_fee']));
+        $sumRow('TỔNG CỘNG', number_format((float)($quotation['total'] ?? 0)), true, 'grand');
+
+        // ========== CONTENT / NOTES / TERMS ==========
+        $sectionRow = function($title, $body) use ($cols) {
+            $body = trim((string)$body);
+            if ($body === '') return;
+            echo '<tr class="nobd"><td colspan="' . $cols . '" style="height:8px"></td></tr>';
+            echo '<tr class="h"><td colspan="' . $cols . '">' . htmlspecialchars($title) . '</td></tr>';
+            echo '<tr><td colspan="' . $cols . '" style="white-space:pre-wrap">' . nl2br(htmlspecialchars($body)) . '</td></tr>';
+        };
+
+        $sectionRow('Nội dung điều khoản', $stripHtml($quotation['content'] ?? ''));
+        $sectionRow('Ghi chú', $quotation['notes'] ?? '');
+        $sectionRow('Điều khoản & Điều kiện', $stripHtml($quotation['terms'] ?? ''));
+
+        // ========== BANK INFO ==========
+        if (!empty($branding['bank_account'])) {
+            echo '<tr class="nobd"><td colspan="' . $cols . '" style="height:8px"></td></tr>';
+            echo '<tr class="h"><td colspan="' . $cols . '">THÔNG TIN THANH TOÁN</td></tr>';
+            $bankBody = 'Số TK: ' . htmlspecialchars($branding['bank_account'])
+                . ($branding['bank_name'] ?? '' ? "\nNgân hàng: " . htmlspecialchars($branding['bank_name']) : '')
+                . ($branding['name'] ?? '' ? "\nChủ TK: " . htmlspecialchars($branding['name']) : '');
+            echo '<tr><td colspan="' . $cols . '" style="white-space:pre-wrap">' . nl2br($bankBody) . '</td></tr>';
+        }
 
         echo '</table></body></html>';
         exit;
