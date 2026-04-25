@@ -1177,6 +1177,93 @@ class QuotationController extends Controller
     }
 
     /**
+     * Export a single quotation to Excel (HTML-based .xls — Excel opens it natively).
+     */
+    public function exportXlsx($id)
+    {
+        $this->authorize('quotations', 'view');
+        $quotation = Database::fetch(
+            "SELECT q.*,
+                    c.company_name as c_company_name, c.full_name as c_full_name,
+                    c.account_code as c_account_code, c.tax_code as c_tax_code,
+                    c.address as c_address,
+                    c.company_phone as c_company_phone, c.company_email as c_company_email,
+                    c.phone as c_phone, c.email as c_email,
+                    u.name as owner_name
+             FROM quotations q
+             LEFT JOIN contacts c ON q.contact_id = c.id
+             LEFT JOIN users u ON q.owner_id = u.id
+             WHERE q.id = ? AND q.tenant_id = ?",
+            [$id, Database::tenantId()]
+        );
+        if (!$quotation) { $this->setFlash('error', 'Báo giá không tồn tại.'); return $this->redirect('quotations'); }
+
+        $items = Database::fetchAll(
+            "SELECT qi.*, p.sku AS product_sku FROM quotation_items qi
+             LEFT JOIN products p ON qi.product_id = p.id
+             WHERE qi.quotation_id = ? ORDER BY qi.sort_order",
+            [$id]
+        );
+
+        $custName = $quotation['c_company_name'] ?: ($quotation['c_full_name'] ?: '');
+        $custPhone = $quotation['c_company_phone'] ?: ($quotation['c_phone'] ?? '');
+        $custEmail = $quotation['c_company_email'] ?: ($quotation['c_email'] ?? '');
+
+        $filename = 'BaoGia_' . preg_replace('/[^A-Za-z0-9_-]/', '', $quotation['quote_number']) . '_' . date('Ymd_His') . '.xls';
+
+        header('Content-Type: application/vnd.ms-excel; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        echo "\xEF\xBB\xBF"; // UTF-8 BOM for Excel
+        echo '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+        echo '<head><meta charset="UTF-8"><style>td,th{border:1px solid #999;padding:4px 6px;font-family:Calibri,Arial;font-size:11pt;vertical-align:top}th{background:#d9e1f2;font-weight:bold;text-align:center}.r{text-align:right;mso-number-format:"\#\,\#\#0"}.c{text-align:center}.b{font-weight:bold}.t{font-size:14pt;font-weight:bold}</style></head><body>';
+
+        echo '<table>';
+        echo '<tr><td colspan="9" class="t c">BÁO GIÁ ' . htmlspecialchars($quotation['quote_number']) . '</td></tr>';
+        echo '<tr><td colspan="9"></td></tr>';
+        echo '<tr><td class="b">Khách hàng:</td><td colspan="3">' . htmlspecialchars($custName) . '</td>';
+        echo '<td class="b">Mã KH:</td><td colspan="2">' . htmlspecialchars($quotation['c_account_code'] ?? '') . '</td>';
+        echo '<td class="b">MST:</td><td>' . htmlspecialchars($quotation['c_tax_code'] ?? '') . '</td></tr>';
+        echo '<tr><td class="b">Địa chỉ:</td><td colspan="5">' . htmlspecialchars($quotation['c_address'] ?? '') . '</td>';
+        echo '<td class="b">Ngày:</td><td colspan="2">' . (!empty($quotation['created_at']) ? date('d/m/Y', strtotime($quotation['created_at'])) : '') . '</td></tr>';
+        echo '<tr><td class="b">Điện thoại:</td><td colspan="3">' . htmlspecialchars($custPhone) . '</td>';
+        echo '<td class="b">Email:</td><td colspan="2">' . htmlspecialchars($custEmail) . '</td>';
+        echo '<td class="b">Phụ trách:</td><td>' . htmlspecialchars($quotation['owner_name'] ?? '') . '</td></tr>';
+        echo '<tr><td colspan="9"></td></tr>';
+
+        echo '<tr><th>STT</th><th>Mã SP</th><th>Tên sản phẩm</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>CK%</th><th>VAT%</th><th>Thành tiền</th></tr>';
+        foreach ($items as $i => $it) {
+            echo '<tr>'
+                . '<td class="c">' . ($i + 1) . '</td>'
+                . '<td>' . htmlspecialchars($it['product_sku'] ?? '') . '</td>'
+                . '<td>' . htmlspecialchars($it['product_name'] ?? '') . '</td>'
+                . '<td class="c">' . htmlspecialchars($it['unit'] ?? '') . '</td>'
+                . '<td class="r">' . (float)($it['quantity'] ?? 0) . '</td>'
+                . '<td class="r">' . number_format((float)($it['unit_price'] ?? 0)) . '</td>'
+                . '<td class="r">' . number_format((float)($it['discount_percent'] ?? 0), 2) . '</td>'
+                . '<td class="r">' . number_format((float)($it['tax_rate'] ?? 0), 2) . '</td>'
+                . '<td class="r">' . number_format((float)($it['total'] ?? 0)) . '</td>'
+                . '</tr>';
+        }
+
+        $sumRow = function($label, $value, $bold = false) {
+            $cls = $bold ? 'r b' : 'r';
+            echo '<tr><td colspan="8" class="r' . ($bold ? ' b' : '') . '">' . $label . '</td><td class="' . $cls . '">' . $value . '</td></tr>';
+        };
+        $sumRow('Tạm tính', number_format((float)($quotation['subtotal'] ?? 0)), true);
+        if (($quotation['shipping_fee'] ?? 0) > 0) $sumRow('Phí vận chuyển', number_format((float)$quotation['shipping_fee']));
+        if (($quotation['installation_fee'] ?? 0) > 0) $sumRow('Phí lắp đặt', number_format((float)$quotation['installation_fee']));
+        if (($quotation['tax_amount'] ?? 0) > 0) $sumRow('Thuế VAT', number_format((float)$quotation['tax_amount']));
+        if (($quotation['discount_amount'] ?? 0) > 0) $sumRow('Chiết khấu', '-' . number_format((float)$quotation['discount_amount']));
+        $sumRow('TỔNG CỘNG', number_format((float)($quotation['total'] ?? 0)), true);
+
+        echo '</table></body></html>';
+        exit;
+    }
+
+    /**
      * Public view via portal token (no auth)
      */
     public function publicView($token)

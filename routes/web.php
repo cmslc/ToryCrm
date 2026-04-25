@@ -324,6 +324,7 @@ Router::group(['middleware' => ['TenantMiddleware', 'AuthMiddleware', 'CsrfMiddl
     Router::post('quotations/{id}/attachment', 'QuotationController@uploadAttachment');
     Router::post('quotations/{id}/attachment/{attachId}/delete', 'QuotationController@deleteAttachment');
     Router::get('quotations/{id}/pdf', 'QuotationController@pdf');
+    Router::get('quotations/{id}/excel', 'QuotationController@exportXlsx');
 
     // Budgets (Ngân sách)
     Router::get('budgets', 'BudgetController@index');
