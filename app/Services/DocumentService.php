@@ -284,40 +284,20 @@ class DocumentService
     }
 
     /**
-     * Build a detailed product list (image + name + sku + full description).
-     * Renders only items whose product has a description.
+     * Build a plain product description list — just the description text
+     * from each item's product, one per paragraph. No image, no heading.
      */
     public static function buildProductsDetail(array $items): string
     {
-        $rows = '';
-        $i = 0;
+        $parts = [];
         foreach ($items as $it) {
             $desc = trim((string)($it['product_description'] ?? ''));
             $shortDesc = trim((string)($it['product_short_description'] ?? ''));
             $body = $desc ?: $shortDesc;
             if ($body === '') continue;
-            $i++;
-            $img = $it['product_image'] ?? '';
-            $imgUrl = $img ? (strpos($img, 'http') === 0 ? $img : asset($img)) : '';
-            $imgHtml = $imgUrl
-                ? '<img src="' . htmlspecialchars($imgUrl) . '" style="width:120px;height:120px;object-fit:cover;border:1px solid #ddd;border-radius:4px">'
-                : '<div style="width:120px;height:120px;background:#f3f3f3;border:1px solid #ddd;border-radius:4px"></div>';
-            $sku = htmlspecialchars($it['sku'] ?? $it['product_sku'] ?? '');
-            $name = htmlspecialchars($it['product_name'] ?? '');
-
-            $rows .= '<tr><td style="width:140px;vertical-align:top;padding:8px;border-bottom:1px solid #eee">'
-                . $imgHtml
-                . '</td><td style="vertical-align:top;padding:8px;border-bottom:1px solid #eee">'
-                . '<div style="font-weight:bold;font-size:14px">' . $i . '. ' . $name . ($sku ? ' <span style="color:#888;font-weight:normal">(' . $sku . ')</span>' : '') . '</div>'
-                . '<div style="margin-top:6px;font-size:13px">' . html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8') . '</div>'
-                . '</td></tr>';
+            $parts[] = '<p>' . html_entity_decode($body, ENT_QUOTES | ENT_HTML5, 'UTF-8') . '</p>';
         }
-
-        if ($rows === '') return '';
-
-        return '<table style="width:100%;border-collapse:collapse;margin:10px 0">'
-            . '<thead><tr><th colspan="2" style="text-align:left;padding:6px 8px;background:#f5f5f5;border-bottom:2px solid #ccc">Mô tả chi tiết sản phẩm</th></tr></thead>'
-            . '<tbody>' . $rows . '</tbody></table>';
+        return implode('', $parts);
     }
 
     /**
